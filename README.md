@@ -208,4 +208,4 @@ Gunakan alur berikut untuk kolaborasi:
 
 ## Lisensi dan Hak Cipta
 
-Proyek ini dikembangkan untuk keperluan akademik mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain antarmuka, aset visual, dan maskot sepenuhnya dimiliki oleh pemilik aslinya.
+Proyek ini dikembangkan untuk keperluan akademik mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain antarmuka, aset visual, dan maskot sepenuhnya dimiliki oleh Tim Nexus (Nexus Project).
