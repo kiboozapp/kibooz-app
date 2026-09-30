@@ -1,0 +1,30 @@
+<resources>
+    <string name="app_name">Kibooz</string>
+    <string name="app_tagline">Sahabat Emosi Si Kecil</string>
+    
+    <!-- Onboarding -->
+    <string name="onboarding_title_1">Pantau Perasaan Si Kecil Setiap Hari</string>
+    <string name="onboarding_desc_1">Kibooz membantu Anda memahami emosi anak melalui cerita interaktif dan laporan harian yang simpel.</string>
+    <string name="onboarding_title_2">Ajarkan Anak Mengenal Perasaannya</string>
+    <string name="onboarding_desc_2">Dengan permainan dan cerita, anak belajar mengekspresikan emosi tanpa rasa tertekan.</string>
+    <string name="onboarding_title_3">Dapatkan Insight Harian dalam 1 Klik</string>
+    <string name="onboarding_desc_3">Lihat perkembangan emosi anak melalui grafik yang mudah dibaca, kapan saja dan di mana saja.</string>
+    
+    <!-- Role Selection -->
+    <string name="role_title">Selamat datang di Kibooz!</string>
+    <string name="role_subtitle">Pilih peran Anda</string>
+    <string name="role_orang_tua">Orang Tua</string>
+    <string name="role_orang_tua_desc">Pantau emosi anak sehari-hari</string>
+    <string name="role_guru">Guru</string>
+    <string name="role_guru_desc">Lihat laporan emosi seluruh kelas</string>
+    
+    <!-- Auth -->
+    <string name="login_title">Selamat Datang di Kibooz!</string>
+    <string name="login_subtitle">Pantau dan dukung perkembangan emosi anak setiap hari.</string>
+    <string name="hint_email">Masukkan Email kamu</string>
+    <string name="hint_password">Masukkan Kata sandi kamu</string>
+    <string name="forgot_password">Lupa kata sandi?</string>
+    <string name="btn_login">Masuk</string>
+    <string name="login_with_google">Google</string>
+    <string name="or_login_with">Atau Masuk dengan</string>
+</resources>

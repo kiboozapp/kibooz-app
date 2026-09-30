@@ -1,0 +1,38 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Theme.KiboozApp" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/kibooz_primary_purple</item>
+        <item name="colorPrimaryVariant">@color/kibooz_purple_dark</item>
+        <item name="colorOnPrimary">@color/kibooz_white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/kibooz_yellow_accent</item>
+        <item name="colorSecondaryVariant">@color/kibooz_yellow_gradient_end</item>
+        <item name="colorOnSecondary">@color/kibooz_white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">@color/kibooz_primary_purple</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <!-- System Navigation bar color (Abu-abu lembut & ikon navigasi gelap jelas) -->
+        <item name="android:navigationBarColor">@color/kibooz_nav_bar_gray</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="o_mr1">true</item>
+        <!-- Background -->
+        <item name="android:windowBackground">@color/kibooz_background</item>
+    </style>
+
+    <style name="Theme.Kibooz" parent="Theme.KiboozApp" />
+
+    <style name="Theme.Kibooz.Fullscreen" parent="Theme.KiboozApp">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowFullscreen">false</item>
+        <item name="android:windowContentOverlay">@null</item>
+    </style>
+
+    <!-- Top Rounded Bottom Sheet (Flat Bottom, 0dp Corner) -->
+    <style name="ShapeAppearance.TopRounded36" parent="">
+        <item name="cornerSizeTopLeft">36dp</item>
+        <item name="cornerSizeTopRight">36dp</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+</resources>

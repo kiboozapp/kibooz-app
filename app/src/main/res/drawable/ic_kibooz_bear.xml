@@ -1,0 +1,51 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="41dp"
+    android:viewportWidth="100"
+    android:viewportHeight="85">
+
+    <!-- 1. Chubby & Balanced Bear Silhouette with Crisp White Border and Purple Body -->
+    <path
+        android:fillColor="#724AE2"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5.0"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round"
+        android:pathData="M 50.0,18.5 C 42.0,18.5 36.0,17.5 32.0,16.0 C 25.0,7.0 18.0,5.0 12.0,7.0 C 6.0,10.0 5.0,18.0 7.0,25.0 C 9.0,30.0 12.0,32.0 13.0,35.0 C 12.0,43.0 12.0,51.0 13.0,58.0 C 14.0,66.0 18.0,75.0 27.0,75.0 C 35.0,75.0 41.0,69.0 50.0,69.0 C 59.0,69.0 65.0,75.0 73.0,75.0 C 82.0,75.0 86.0,66.0 87.0,58.0 C 88.0,51.0 88.0,43.0 87.0,35.0 C 88.0,32.0 91.0,30.0 93.0,25.0 C 95.0,18.0 94.0,10.0 88.0,7.0 C 82.0,5.0 75.0,7.0 68.0,16.0 C 64.0,17.5 58.0,18.5 50.0,18.5 Z" />
+
+    <!-- 2. Distinct Wide Vibrant Orange Heart Vector in Front -->
+    <path
+        android:fillColor="#FD9C27"
+        android:pathData="M 50.0,44.0 C 43.0,40.0 35.0,38.0 28.0,41.0 C 19.0,45.0 18.0,55.0 25.0,63.0 C 33.0,68.5 43.0,70.5 50.0,70.5 C 57.0,70.5 67.0,68.5 75.0,63.0 C 82.0,55.0 81.0,45.0 72.0,41.0 C 65.0,38.0 57.0,40.0 50.0,44.0 Z" />
+
+    <!-- 3. Cute Bear Nose -->
+    <path
+        android:fillColor="#1E1B4B"
+        android:pathData="M 50,40.5 A 1.9,1.5 0 1,0 50,43.5 A 1.9,1.5 0 1,0 50,40.5 Z" />
+
+    <!-- 4. Cute Expressive Eyes & Catchlights -->
+    <path
+        android:fillColor="#1E1B4B"
+        android:pathData="M 41.5,29.6 A 2.4,2.9 0 1,0 41.5,35.4 A 2.4,2.9 0 1,0 41.5,29.6 Z" />
+    <path
+        android:fillColor="#1E1B4B"
+        android:pathData="M 58.5,29.6 A 2.4,2.9 0 1,0 58.5,35.4 A 2.4,2.9 0 1,0 58.5,29.6 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 40.8,30.3 A 0.75,0.9 0 1,0 40.8,32.1 A 0.75,0.9 0 1,0 40.8,30.3 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M 57.8,30.3 A 0.75,0.9 0 1,0 57.8,32.1 A 0.75,0.9 0 1,0 57.8,30.3 Z" />
+
+    <!-- 5. Cute Arched Eyebrows -->
+    <path
+        android:strokeColor="#1E1B4B"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M 38,25 Q 41,22 44.5,24" />
+    <path
+        android:strokeColor="#1E1B4B"
+        android:strokeWidth="2.2"
+        android:strokeLineCap="round"
+        android:pathData="M 55.5,24 Q 59,22 62,25" />
+</vector>

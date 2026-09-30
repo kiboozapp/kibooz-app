@@ -1,0 +1,40 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="36dp"
+    android:height="36dp"
+    android:viewportWidth="36"
+    android:viewportHeight="36">
+    <!-- Crown Base Band -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M6,27h24v4a2,2 0 0,1 -2,2H8a2,2 0 0,1 -2,-2v-4z" />
+    <path
+        android:fillColor="#FFB300"
+        android:pathData="M7,28.5h22v1.5H7z" />
+
+    <!-- Crown Body Spikes -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M5,12l5,15h16l5,-15 -6.5,7L18,8l-6.5,11L5,12z" />
+
+    <!-- Jewels on the Crown Spikes -->
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M5,12m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" />
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M11.5,19m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0" />
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M18,8m-3,0a3,3 0 1,0 6,0a3,3 0 1,0 -6,0" />
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M24.5,19m-2,0a2,2 0 1,0 4,0a2,2 0 1,0 -4,0" />
+    <path
+        android:fillColor="#E91E63"
+        android:pathData="M31,12m-2.5,0a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0" />
+
+    <!-- Center Gem on Band -->
+    <path
+        android:fillColor="#9C27B0"
+        android:pathData="M18,29m-1.5,0a1.5,1.5 0 1,0 3,0a1.5,1.5 0 1,0 -3,0" />
+</vector>
