@@ -1,4 +1,4 @@
-# 🐻 Kibooz App — Smart Early Childhood Education & Eco-Gamification Platform
+# Kibooz App: Early Childhood Education and Eco-Gamification Platform
 
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
 [![Language](https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
@@ -7,226 +7,205 @@
 [![Build Tool](https://img.shields.io/badge/Gradle-8.14-02303A?style=for-the-badge&logo=gradle&logoColor=white)](https://gradle.org)
 [![JDK](https://img.shields.io/badge/Java-JDK%2017-ED8B00?style=for-the-badge&logo=java&logoColor=white)](https://www.oracle.com/java/)
 
-**Kibooz** adalah aplikasi mobile Android inovatif untuk ekosistem pendidikan anak usia dini (PAUD/TK) yang menghubungkan **Guru** dan **Wali Murid**. Aplikasi ini mengintegrasikan pemantauan kesejahteraan emosional (*mood tracker*) berbasis ekspresi wajah anak dengan pembiasaan peduli lingkungan (*eco-gamification*) melalui fitur pilah sampah berhadiah poin reward.
+Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubungkan guru dengan wali murid. Fitur intinya mencakup pemantauan kondisi emosional anak dan pembiasaan pilah sampah berhadiah poin reward.
 
 ---
 
-## 📑 Daftar Isi
+## Daftar Isi
 
-- [Fitur Utama](#-fitur-utama)
-  - [1. Autentikasi & Onboarding](#1-autentikasi--onboarding)
-  - [2. Portal Guru (Teacher Space)](#2-portal-guru-teacher-space)
-  - [3. Portal Wali Murid (Parent Space)](#3-portal-wali-murid-parent-space)
-  - [4. Smart AI Scanner (Kamera Pintar)](#4-smart-ai-scanner-kamera-pintar)
-- [Arsitektur & Teknologi](#-arsitektur--teknologi)
-- [Desain Sistem & Visual](#-desain-sistem--visual)
-- [Struktur Direktori Proyek](#-struktur-direktori-proyek)
-- [Panduan Instalasi & Menjalankan](#-panduan-instalasi--menjalankan)
-- [Panduan Kolaborasi Git & Tim](#-panduan-kolaborasi-git--tim)
-  - [Pengaturan .gitignore & .git/info/exclude](#pengaturan-gitignore--gitinfoexclude)
-  - [Alur Kerja Branching & Commit](#alur-kerja-branching--commit)
-- [Lisensi & Hak Cipta](#-lisensi--hak-cipta)
-
----
-
-## 🌟 Fitur Utama
-
-### 1. Autentikasi & Onboarding
-- **Animated Splash Screen:** Transisi pembuka dengan branding maskot Kibooz dan tipografi modern.
-- **Carousel Onboarding (3-Langkah):** Edukasi pengenalan fitur utama dengan ilustrasi beresolusi tinggi, *dot indicator* dinamis, serta tombol aksi cepat *Lewati* dan *Lanjut*.
-- **Role Selection:** Pemilihan peran instan antara **Guru** dan **Wali Murid** dengan kartu interaktif berbasis *gradient-card* dan efek sentuh responsif.
-- **Role-Based Authentication:** Halaman masuk terspesialisasi yang mengarahkan pengguna secara otomatis ke portal kerja masing-masing.
+- [Fitur Utama](#fitur-utama)
+  - [1. Autentikasi dan Onboarding](#1-autentikasi-dan-onboarding)
+  - [2. Portal Guru](#2-portal-guru)
+  - [3. Portal Wali Murid](#3-portal-wali-murid)
+  - [4. Pemindai Kamera](#4-pemindai-kamera)
+- [Arsitektur dan Teknologi](#arsitektur-dan-teknologi)
+- [Desain Sistem dan Visual](#desain-sistem-dan-visual)
+- [Struktur Direktori Proyek](#struktur-direktori-proyek)
+- [Panduan Instalasi dan Menjalankan](#panduan-instalasi-dan-menjalankan)
+- [Panduan Kolaborasi Git](#panduan-kolaborasi-git)
+  - [Aturan Berkas Gitignore](#aturan-berkas-gitignore)
+  - [Alur Kerja Branching dan Commit](#alur-kerja-branching-dan-commit)
+- [Lisensi dan Hak Cipta](#lisensi-dan-hak-cipta)
 
 ---
 
-### 2. Portal Guru (Teacher Space)
+## Fitur Utama
+
+### 1. Autentikasi dan Onboarding
+- **Splash Screen:** Layar pembuka dengan maskot Kibooz.
+- **Carousel Onboarding:** Tiga slide pengenalan fitur utama dengan indikator titik dan tombol navigasi.
+- **Pemilihan Peran:** Pengguna memilih portal sebagai Guru atau Wali Murid sebelum masuk.
+- **Halaman Masuk:** Formulir login yang mengarahkan pengguna ke alur kerja masing-masing.
+
+---
+
+### 2. Portal Guru
 - **Dashboard Guru:**
-  - Header profil interaktif dengan drawer menu navigasi samping.
-  - Kartu ringkasan mood kelas harian (*Senang, Sedih, Marah, Takut*).
+  - Header profil ringkas dan menu drawer samping.
+  - Ringkasan mood harian siswa di kelas.
   - Akses cepat daftar kelas, mata pelajaran, dan jadwal kegiatan.
-  - Navigasi bawah (*Bottom Navigation Bar*) terintegrasi.
+  - Bottom navigation bar terintegrasi.
 - **Ruang Kelas Guru:**
-  - Katalog kelas yang diajar lengkap dengan jumlah peserta didik.
-  - Dialog pop-up tambah kelas baru.
+  - Daftar kelas aktif beserta jumlah siswa.
+  - Kotak dialog tambah kelas baru.
   - Pencarian dan filter kategori kelas.
-- **Detail & Peserta Kelas:**
-  - Informasi rincian mata pelajaran (Seni & Kreativitas, Bahasa & Literasi, Sosial & Emosional, Sains & Eksplorasi).
-  - Peringkat peserta kelas dengan poin akumulasi dan status mood terkini.
-- **Statistik & Analisis Mood Siswa:**
-  - Grafik kustom interaktif yang dibangun menggunakan Android Canvas murni:
-    - **Donut Chart Mood:** Proporsi emosi siswa secara keseluruhan.
-    - **Weekly Line Chart:** Tren fluktuasi kebahagiaan siswa dalam sepekan.
-    - **Monthly Bar Chart:** Distribusi frekuensi emosi per bulan.
+- **Detail dan Peserta Kelas:**
+  - Rincian mata pelajaran (Seni, Bahasa, Sosial, Sains).
+  - Daftar siswa lengkap dengan perolehan poin dan status emosional.
+- **Statistik Mood Siswa:**
+  - Grafik kustom dengan Android Canvas:
+    - Donut Mood Chart untuk proporsi emosi kelas.
+    - Weekly Line Chart untuk tren mingguan.
+    - Monthly Bar Chart untuk sebaran emosi bulanan.
 - **Fitur Pendukung:**
-  - **Video Pembelajaran:** Pustaka konten edukatif interaktif untuk anak.
-  - **Forum Diskusi:** Wadah komunikasi dan tanya jawab antara pendidik.
-  - **Manajemen Profil Guru:** Pengaturan biodata, instansi mengajar, dan preferensi akun.
+  - Video pembelajaran untuk materi kelas.
+  - Forum diskusi antarpendidik.
+  - Pengaturan biodata dan profil guru.
 
 ---
 
-### 3. Portal Wali Murid (Parent Space)
-- **Dashboard Wali Murid:**
-  - Widget status emosional anak hari ini disertai tips penanganan cepat.
-  - Banner gamifikasi pemilahan sampah (*Koin/Poin Eco-Reward*).
-  - Shortcut langsung ke pemindai sampah dan pemantau mood.
-- **Papan Peringkat (Leaderboard):**
-  - Podium bertingkat 3D (Juara 1, 2, 3) dengan avatar profil lingkaran sempurna.
-  - Badge poin *opaque flame* berkontras tinggi untuk keterbacaan optimal.
-  - Kartu urutan peringkat siswa berikutnya dengan visualisasi *bottom sheet* melengkung.
+### 3. Portal Wali Murid
+- **Dashboard Wali:**
+  - Kartu pemantau mood anak hari ini.
+  - Informasi perolehan poin pilah sampah.
+  - Akses langsung menuju scanner kamera.
+- **Papan Peringkat:**
+  - Podium 3D juara 1, 2, dan 3 dengan avatar melingkar penuh.
+  - Lencana poin solid berkontras tinggi agar teks terbaca jelas.
+  - Daftar peringkat siswa lanjutan dalam kartu putih melengkung.
 - **Statistik Pilah Sampah:**
-  - Rekapitulasi pemilahan sampah anak (Organik, Anorganik, B3, Daur Ulang).
-  - Riwayat perolehan poin ramah lingkungan (*Eco-Points*).
-- **Detail Penanganan Mood:**
-  - Rekomendasi psikologis praktis bagi orang tua dalam merespons kondisi emosional anak.
-- **Manajemen Profil:**
-  - Profil Anak & Edit Data Siswa.
-  - Profil Wali Murid.
+  - Riwayat pemilahan kategori organik, anorganik, B3, dan daur ulang.
+  - Akumulasi poin reward anak.
+- **Panduan Mood:**
+  - Rekomendasi tindakan bagi orang tua saat anak mengalami emosi negatif.
+- **Manajemen Akun:**
+  - Halaman profil anak dan edit biodata siswa.
+  - Halaman profil wali murid.
 
 ---
 
-### 4. Smart AI Scanner (Kamera Pintar)
-- **Camera Scan Mood:** Antarmuka pemindai wajah anak dengan overlay pemandu deteksi ekspresi wajah secara *real-time*.
-- **Camera Scan Sampah:** Antarmuka pemindai objek sampah dengan kotak penanda (*bounding box*) otomatis dan panel identifikasi jenis sampah serta reward poin.
+### 4. Pemindai Kamera
+- **Scanner Mood Anak:** Viewfinder kamera dengan overlay pemandu deteksi ekspresi wajah.
+- **Scanner Pilah Sampah:** Viewfinder kamera dengan kotak deteksi objek dan kartu identifikasi jenis sampah.
 
 ---
 
-## 🛠 Arsitektur & Teknologi
+## Arsitektur dan Teknologi
 
 | Komponen | Spesifikasi / Pustaka | Keterangan |
 | :--- | :--- | :--- |
-| **Bahasa Pemrograman** | Kotlin 1.9+ | Modern, concise, dan null-safe |
-| **Arsitektur UI** | MVC / ViewBinding | Bersih, cepat, tanpa overhead `findViewById` |
-| **Komponen UI** | Material Design 3 (M3) | MaterialCardView, ShapeableImageView, FloatingAction |
-| **Custom Canvas** | Custom View 2D Canvas | DonutMoodChart, WeeklyLineChart, MonthlyBarChart |
-| **Sistem Navigasi** | Activity Stack + Drawer | Smooth transition dan deep-linking intent |
-| **Edge-to-Edge** | WindowInsetsCompat (`InsetsUtil`) | Tampilan penuh tanpa terpotong notch / system bar |
-| **Build System** | Gradle Kotlin DSL (`build.gradle.kts`) | Konfigurasi deklaratif dan modular |
+| **Bahasa Pemrograman** | Kotlin 1.9+ | Bahasa utama proyek |
+| **Arsitektur UI** | MVC dengan ViewBinding | Pengikatan tampilan tanpa `findViewById` |
+| **Komponen UI** | Material Design 3 (M3) | MaterialCardView, ShapeableImageView |
+| **Grafik Kustom** | Custom View 2D Canvas | DonutMoodChart, WeeklyLineChart, MonthlyBarChart |
+| **Navigasi** | Intent Stack dan Drawer | Navigasi antarlayar dan menu samping |
+| **Edge-to-Edge** | WindowInsetsCompat (`InsetsUtil`) | Penanganan area status bar dan navigation bar |
+| **Build Tool** | Gradle Kotlin DSL (`build.gradle.kts`) | Konfigurasi modular |
 
 ---
 
-## 🎨 Desain Sistem & Visual
+## Desain Sistem dan Visual
 
-Aplikasi mengadopsi palet warna ceria, ramah anak, dan elegan:
+Daftar token warna yang digunakan di seluruh aplikasi:
 
-| Token Warna | Nilai HEX | Penggunaan Utama |
+| Token Warna | Nilai HEX | Penggunaan |
 | :--- | :---: | :--- |
-| **Primary Purple** | `#5D40B3` | Latar belakang hero, header, tombol utama |
-| **Accent Orange** | `#FD9C27` | Aksen reward, badge api poin, highlight penting |
-| **Secondary Violet**| `#724AE2` | Gradasi kartu, balok podium juara 1 |
-| **Soft Lilac** | `#EFEBFF` | Latar belakang modul, surface card lembut |
-| **Neutral White** | `#FFFFFF` | Bottom sheet, tipografi utama pada hero section |
-| **Text Dark** | `#201A3F` | Judul teks pada latar putih |
-| **Text Subtitle** | `#756E8A` | Keterangan sekunder dan placeholder |
+| **Primary Purple** | `#5D40B3` | Background utama, header, tombol aksi |
+| **Accent Orange** | `#FD9C27` | Lencana poin, aksen reward, highlight |
+| **Secondary Violet** | `#724AE2` | Gradasi kartu, balok juara 1 |
+| **Soft Lilac** | `#EFEBFF` | Latar kartu modul dan tag |
+| **Neutral White** | `#FFFFFF` | Latar bottom sheet dan teks kontras |
+| **Text Dark** | `#201A3F` | Teks judul pada latar terang |
+| **Text Subtitle** | `#756E8A` | Teks keterangan dan placeholder |
 
 ---
 
-## 📂 Struktur Direktori Proyek
+## Struktur Direktori Proyek
 
 ```text
 KiboozApp/
-├── .git/                      # Repositori Git lokal
-├── .github/                   # Konfigurasi GitHub (opsional)
-├── gradle/                    # Gradle wrapper binaries
+├── gradle/                    # Wrapper binaries
 ├── app/
-│   ├── build.gradle.kts       # Konfigurasi modul aplikasi
-│   ├── proguard-rules.pro     # Aturan obfuscation ProGuard/R8
+│   ├── build.gradle.kts       # Konfigurasi dependensi aplikasi
+│   ├── proguard-rules.pro     # Aturan R8 dan ProGuard
 │   └── src/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
 │       │   ├── java/com/valentinusmarvel/kibooz/
 │       │   │   ├── ui/
-│       │   │   │   ├── auth/          # Login & RoleSelection
-│       │   │   │   ├── camera/        # CameraScanMood & CameraScanSampah
-│       │   │   │   ├── common/        # Custom Charts (Donut, Bar, Line)
-│       │   │   │   ├── guru/          # Ruang Kelas, Detail, Mood, Profil Guru
-│       │   │   │   ├── onboarding/    # Carousel Onboarding & Adapter
+│       │   │   │   ├── auth/          # Login dan RoleSelection
+│       │   │   │   ├── camera/        # CameraScanMood dan CameraScanSampah
+│       │   │   │   ├── common/        # Donut, Bar, dan Line Chart Views
+│       │   │   │   ├── guru/          # Ruang Kelas, Detail, Mood, Profil
+│       │   │   │   ├── onboarding/    # Carousel Onboarding dan Adapter
 │       │   │   │   ├── splash/        # Splash Screen
-│       │   │   │   └── wali/          # Dashboard Wali, Leaderboard, Statistik
+│       │   │   │   └── wali/          # Dashboard Wali, Leaderboard, Sampah
 │       │   │   └── util/
-│       │   │       └── InsetsUtil.kt  # Helper Insets & Edge-to-Edge System Bar
+│       │   │       └── InsetsUtil.kt  # Helper Insets System Bar
 │       │   └── res/
-│       │       ├── drawable/          # Vektor ikon, background gradient, pill
-│       │       ├── layout/            # Berkas XML tampilan seluruh Activity
+│       │       ├── drawable/          # Vektor ikon, shape, dan background
+│       │       ├── layout/            # Layout XML seluruh activity
 │       │       ├── values/            # colors.xml, strings.xml, themes.xml
-│       │       └── mipmap/            # Ikon launcher aplikasi Kibooz
-├── .gitignore                 # Konfigurasi pengabaian publik
-├── build.gradle.kts           # Root project Gradle configuration
-├── gradle.properties          # JVM & Gradle flags
-├── gradlew / gradlew.bat      # Gradle wrapper executable
-└── settings.gradle.kts        # Repository & plugin settings
+│       │       └── mipmap/            # Ikon launcher Kibooz
+├── .gitignore                 # Aturan pengabaian berkas bersama
+├── build.gradle.kts           # Root gradle script
+├── gradle.properties          # Pengaturan JVM gradle
+├── gradlew / gradlew.bat      # Script eksekusi wrapper
+└── settings.gradle.kts        # Pengaturan repositori dan modul
 ```
 
 ---
 
-## 🚀 Panduan Instalasi & Menjalankan
+## Panduan Instalasi dan Menjalankan
 
-### Prasyarat:
-1. **Android Studio:** Versi *Hedgehog (2023.1.1)* ke atas (direkomendasikan *Ladybug / Koala*).
-2. **JDK:** Versi 17 (disediakan bawaan oleh Android Studio).
-3. **Android Device / Emulator:** Menggunakan Android 7.0 (API 24) ke atas.
+### Prasyarat
+1. Android Studio Hedgehog (2023.1.1) atau versi lebih baru.
+2. JDK 17.
+3. Perangkat fisik atau emulator dengan Android 7.0 (API 24) ke atas.
 
-### Langkah-Langkah:
-1. **Clone Repositori:**
+### Langkah Setup
+1. Clone repositori ini:
    ```bash
-   git clone https://github.com/USERNAME/kibooz-app.git
+   git clone https://github.com/ValentinusMarvel/kibooz-app.git
    cd kibooz-app
    ```
-2. **Buka Proyek:**
-   - Jalankan Android Studio.
-   - Pilih menu **Open**, lalu arahkan ke folder proyek `KiboozApp`.
-3. **Sinkronisasi Gradle:**
-   - Tunggu hingga Android Studio menyelesaikan proses *Gradle Sync*.
-   - File `local.properties` akan otomatis dibuat oleh Android Studio sesuai letak Android SDK komputer Anda.
-4. **Jalankan Aplikasi:**
-   - Hubungkan HP Android dengan USB Debugging aktif atau nyalakan Emulator.
-   - Klik tombol **Run** (`Shift + F10`) di Android Studio.
+2. Buka Android Studio.
+3. Pilih menu **Open**, lalu tentukan direktori `KiboozApp`.
+4. Tunggu sinkronisasi Gradle selesai. Android Studio membuat file `local.properties` secara otomatis.
+5. Sambungkan perangkat Android atau aktifkan emulator.
+6. Tekan tombol **Run** (`Shift + F10`).
 
 ---
 
-## 🤝 Panduan Kolaborasi Git & Tim
+## Panduan Kolaborasi Git
 
-### Pengaturan `.gitignore` & `.git/info/exclude`
+### Aturan Berkas Gitignore
 
-Untuk menjaga kelancaran kolaborasi tanpa merusak konfigurasi lokal masing-masing anggota tim:
+Berkas `.gitignore` memastikan repositori tetap bersih:
+- Berkas `local.properties` tidak di-commit karena berisi path lokal SDK setiap komputer.
+- Direktori `.gradle/`, `.kotlin/`, dan seluruh output `build/` diabaikan otomatis.
+- File konfigurasi workspace IDE dan file biner `.apk` tidak dimasukkan ke dalam commit.
 
-1. **File [`.gitignore`](.gitignore) (Publik):**
-   - Mengabaikan folder `.gradle/`, `build/`, `.idea/`, dan `local.properties`.
-   - **Penting:** Setiap anggota tim memiliki letak SDK yang berbeda di komputernya masing-masing, sehingga `local.properties` **tidak boleh** di-commit ke Git.
+### Alur Kerja Branching dan Commit
 
-2. **File [`.git/info/exclude`](.git/info/exclude) (Pengecualian Lokal Rahasia):**
-   - Jika Anda memiliki catatan pribadi (`notes.txt`, `catatan_pribadi.txt`), screenshot uji coba ADB, atau file rahasia lokal:
-   - Tambahkan nama file/ekstensi tersebut ke `.git/info/exclude`.
-   - **Kelebihan:** File ini **100% lokal** di dalam folder `.git/` Anda, **tidak akan pernah muncul di `.gitignore`**, dan **tidak akan terlihat oleh rekan tim** di GitHub.
+Gunakan alur berikut untuk kolaborasi:
 
-### Alur Kerja Branching & Commit
-
-Untuk menjaga branch utama `main` tetap stabil:
-
-1. **Buat Branch Baru untuk Setiap Fitur/Perbaikan:**
+1. Buat branch baru dari `main`:
    ```bash
-   git checkout -b feat/nama-fitur-baru
-   # atau untuk perbaikan bug
-   git checkout -b fix/perbaikan-leaderboard
+   git checkout -b feat/nama-fitur
    ```
-
-2. **Gunakan Format Conventional Commits:**
-   - `feat: Menambahkan filter pencarian di ruang kelas guru`
-   - `fix: Memperbaiki avatar melingkar dan badge poin di leaderboard`
-   - `style: Menyesuaikan gradasi warna background dashboard`
-   - `docs: Memperbarui panduan README`
-
-3. **Kirim Perubahan (Push):**
+2. Tulis pesan commit secara ringkas dan deskriptif:
+   - `feat: tambah filter pencarian ruang kelas`
+   - `fix: perbaiki batas avatar leaderboard`
+   - `docs: perbarui panduan instalasi`
+3. Unggah branch ke remote:
    ```bash
-   git push origin feat/nama-fitur-baru
+   git push origin feat/nama-fitur
    ```
-
-4. **Buat Pull Request (PR):**
-   - Buka GitHub dan ajukan PR ke branch `main`.
-   - Minta rekan tim mereview sebelum digabungkan (*merge*).
+4. Buka Pull Request di GitHub untuk ditinjau bersama sebelum digabung ke `main`.
 
 ---
 
-## 📄 Lisensi & Hak Cipta
+## Lisensi dan Hak Cipta
 
-Proyek ini dikembangkan untuk keperluan akademik mata kuliah **Pengembangan Aplikasi Perangkat Bergerak (PAPB)**.  
-Hak cipta maskot dan desain antarmuka dimiliki oleh tim pengembang **Kibooz**.
+Proyek ini dikembangkan untuk mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain dan aset berada pada pengembang Kibooz.
