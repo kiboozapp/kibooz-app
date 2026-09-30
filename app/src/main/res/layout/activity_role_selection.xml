@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/clRoleRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_role_selection_screen"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="36dp"
+    android:paddingBottom="24dp">
+
+    <!-- Top Header: Title and Subtitle -->
+    <LinearLayout
+        android:id="@+id/llHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvRoleTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/baloo2"
+            android:text="Selamat datang di Kibooz!"
+            android:textColor="#221C38"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvRoleSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="@font/baloo2"
+            android:text="Pilih peran Anda"
+            android:textColor="#6E6988"
+            android:textSize="15sp" />
+
+    </LinearLayout>
+
+    <!-- Role Cards Container (Proportionate, centered, no awkward stretching) -->
+    <LinearLayout
+        android:id="@+id/llRoleCards"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llHeader"
+        app:layout_constraintVertical_bias="0.45">
+
+        <!-- Column 1: Orang Tua -->
+        <LinearLayout
+            android:id="@+id/cardOrangTua"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Pill Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="330dp"
+                app:cardCornerRadius="44dp"
+                app:cardElevation="10dp"
+                app:cardPreventCornerOverlap="false">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_role_card_orang_tua_gradient"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivOrangTua"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Ilustrasi Orang Tua"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/img_role_orang_tua" />
+
+                </FrameLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Text Below Card -->
+            <TextView
+                android:id="@+id/tvOrangTuaTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="Orang Tua"
+                android:textColor="@color/kibooz_white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvOrangTuaDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="Pantau emosi anak\nsehari-hari"
+                android:textColor="#EFE6FC"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <!-- Column 2: Guru -->
+        <LinearLayout
+            android:id="@+id/cardGuru"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_horizontal"
+            android:orientation="vertical">
+
+            <!-- Pill Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="330dp"
+                app:cardCornerRadius="44dp"
+                app:cardElevation="10dp"
+                app:cardPreventCornerOverlap="false">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_role_card_guru_gradient"
+                    android:padding="16dp">
+
+                    <ImageView
+                        android:id="@+id/ivGuru"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Ilustrasi Guru"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/img_role_guru" />
+
+                </FrameLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Text Below Card -->
+            <TextView
+                android:id="@+id/tvGuruTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="Guru"
+                android:textColor="@color/kibooz_white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvGuruDesc"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="Lihat laporan emosi\nseluruh kelas"
+                android:textColor="#EFE6FC"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
