@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "com.valentinusmarvel.kibooz"
+    namespace = "com.nthb.kibooz"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.valentinusmarvel.kibooz"
+        applicationId = "com.nthb.kibooz"
         minSdk = 24
         targetSdk = 35
         versionCode = 1

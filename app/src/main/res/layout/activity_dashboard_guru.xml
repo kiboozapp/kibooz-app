@@ -327,7 +327,7 @@
                         android:orientation="horizontal">
 
                         <!-- Custom Donut Chart -->
-                        <com.valentinusmarvel.kibooz.ui.common.DonutMoodChartView
+                        <com.nthb.kibooz.ui.common.DonutMoodChartView
                             android:id="@+id/donutMoodChart"
                             android:layout_width="130dp"
                             android:layout_height="130dp"

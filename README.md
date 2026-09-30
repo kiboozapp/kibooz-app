@@ -131,7 +131,7 @@ KiboozApp/
 │   └── src/
 │       ├── main/
 │       │   ├── AndroidManifest.xml
-│       │   ├── java/com/valentinusmarvel/kibooz/
+│       │   ├── java/com/nthb/kibooz/
 │       │   │   ├── ui/
 │       │   │   │   ├── auth/          # Login dan RoleSelection
 │       │   │   │   ├── camera/        # CameraScanMood dan CameraScanSampah
@@ -166,7 +166,7 @@ KiboozApp/
 ### Langkah Setup
 1. Clone repositori ini:
    ```bash
-   git clone https://github.com/ValentinusMarvel/kibooz-app.git
+   git clone https://github.com/NTHB/kibooz-app.git
    cd kibooz-app
    ```
 2. Buka Android Studio.
@@ -208,4 +208,4 @@ Gunakan alur berikut untuk kolaborasi:
 
 ## Lisensi dan Hak Cipta
 
-Proyek ini dikembangkan untuk mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain dan aset berada pada pengembang Kibooz.
+Proyek ini dikembangkan untuk mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain dan aset berada pada Tim NTHB.

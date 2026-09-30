@@ -370,7 +370,7 @@
                         android:textSize="16sp"
                         android:textStyle="bold" />
 
-                    <com.valentinusmarvel.kibooz.ui.common.DonutMoodChartView
+                    <com.nthb.kibooz.ui.common.DonutMoodChartView
                         android:id="@+id/donutMoodChart"
                         android:layout_width="140dp"
                         android:layout_height="140dp"
