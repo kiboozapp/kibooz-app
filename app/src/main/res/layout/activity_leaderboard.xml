@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/clRootLeaderboard"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_leaderboard_screen">
+
+    <!-- Top App Bar with Insets -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="16dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Kembali"
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/kibooz_white" />
+
+        <TextView
+            android:id="@+id/tvTitleBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/baloo2"
+            android:text="Ranking Poin"
+            android:textColor="@color/kibooz_white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Period Filter Pills Container -->
+    <LinearLayout
+        android:id="@+id/llPeriodContainer"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/bg_leaderboard_tabs_container"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/clTopBar">
+
+        <TextView
+            android:id="@+id/tabHariIni"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:text="Hari ini"
+            android:textColor="#C7B4F5"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabMingguIni"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:text="Minggu ini"
+            android:textColor="#C7B4F5"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabBulanIni"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_leaderboard_tab_active"
+            android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:text="Bulan ini"
+            android:textColor="@color/kibooz_white"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Podium Section (Juara 1, 2, 3) -->
+    <LinearLayout
+        android:id="@+id/llPodiumSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="16dp"
+        android:gravity="bottom"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/llPeriodContainer">
+
+        <!-- Juara 2 (Melarini - Kiri) -->
+        <LinearLayout
+            android:id="@+id/podiumRank2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Avatar Juara 2 (Perfect Circle via MaterialCardView) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="31dp"
+                app:cardElevation="0dp"
+                app:cardPreventCornerOverlap="false"
+                app:strokeColor="@color/kibooz_white"
+                app:strokeWidth="2.5dp">
+
+                <ImageView
+                    android:id="@+id/ivAvatarRank2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_avatar_guru" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Flame Points Badge (Solid High Contrast Opaque) -->
+            <TextView
+                android:id="@+id/tvPoinRank2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-11dp"
+                android:background="@drawable/bg_pill_flame_badge"
+                android:elevation="4dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:text="🔥 850 Poin"
+                android:textColor="@color/kibooz_white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Name -->
+            <TextView
+                android:id="@+id/tvNameRank2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:text="Melarini"
+                android:textColor="@color/kibooz_white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Balok Podium 2 (Taller, extending deep under white sheet) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="130dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_podium_2"
+                android:elevation="4dp"
+                android:gravity="top|center_horizontal"
+                android:paddingTop="18dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="2"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Juara 1 (Novita Sari - Tengah - Paling Tinggi) -->
+        <LinearLayout
+            android:id="@+id/podiumRank1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.15"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Golden Crown -->
+            <ImageView
+                android:id="@+id/ivCrown"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:contentDescription="Mahkota Juara 1"
+                android:src="@drawable/ic_crown" />
+
+            <!-- Avatar Juara 1 (Perfect Circle via MaterialCardView) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="74dp"
+                android:layout_height="74dp"
+                android:layout_marginTop="-4dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="37dp"
+                app:cardElevation="0dp"
+                app:cardPreventCornerOverlap="false"
+                app:strokeColor="@color/kibooz_white"
+                app:strokeWidth="3dp">
+
+                <ImageView
+                    android:id="@+id/ivAvatarRank1"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_avatar_siswa" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Flame Points Badge (Solid High Contrast Opaque) -->
+            <TextView
+                android:id="@+id/tvPoinRank1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-12dp"
+                android:background="@drawable/bg_pill_flame_badge"
+                android:elevation="4dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:paddingHorizontal="11dp"
+                android:paddingVertical="3dp"
+                android:text="🔥 899 Poin"
+                android:textColor="@color/kibooz_white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Name -->
+            <TextView
+                android:id="@+id/tvNameRank1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:text="Novita Sari"
+                android:textColor="@color/kibooz_white"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <!-- Balok Podium 1 (Taller, extending deep under white sheet) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="165dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_podium_1"
+                android:elevation="6dp"
+                android:gravity="top|center_horizontal"
+                android:paddingTop="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="1"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="34sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Juara 3 (Amelia Zahra - Kanan) -->
+        <LinearLayout
+            android:id="@+id/podiumRank3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <!-- Avatar Juara 3 (Perfect Circle via MaterialCardView) -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="31dp"
+                app:cardElevation="0dp"
+                app:cardPreventCornerOverlap="false"
+                app:strokeColor="@color/kibooz_white"
+                app:strokeWidth="2.5dp">
+
+                <ImageView
+                    android:id="@+id/ivAvatarRank3"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_avatar_siswa" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Flame Points Badge (Solid High Contrast Opaque) -->
+            <TextView
+                android:id="@+id/tvPoinRank3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="-11dp"
+                android:background="@drawable/bg_pill_flame_badge"
+                android:elevation="4dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:text="🔥 829 Poin"
+                android:textColor="@color/kibooz_white"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Name -->
+            <TextView
+                android:id="@+id/tvNameRank3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:text="Amelia Zahra"
+                android:textColor="@color/kibooz_white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <!-- Balok Podium 3 (Taller, extending deep under white sheet) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="115dp"
+                android:layout_marginTop="6dp"
+                android:background="@drawable/bg_podium_3"
+                android:elevation="3dp"
+                android:gravity="top|center_horizontal"
+                android:paddingTop="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="3"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- White Bottom Sheet Container with Rounded Top Corners -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardBottomSheetLeaderboard"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="-42dp"
+        app:cardBackgroundColor="#FAF9FD"
+        app:cardElevation="16dp"
+        app:cardPreventCornerOverlap="false"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.TopRounded36"
+        app:strokeWidth="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/llPodiumSection">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="24dp">
+
+                <!-- Drag Handle -->
+                <View
+                    android:layout_width="40dp"
+                    android:layout_height="4dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_dot_inactive" />
+
+                <!-- Rank 4 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_item_participant"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="24dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="4"
+                        android:textColor="#221C38"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_guru"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/baloo2"
+                        android:text="Desi Kurniasih"
+                        android:textColor="#221C38"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="🔥 805 poin"
+                        android:textColor="#E65100"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- Rank 5 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_item_participant"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="24dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="5"
+                        android:textColor="#221C38"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_siswa"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/baloo2"
+                        android:text="Filia Debora Sharon"
+                        android:textColor="#221C38"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="🔥 789 poin"
+                        android:textColor="#E65100"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- Rank 6 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_item_participant"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="24dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="6"
+                        android:textColor="#221C38"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_guru"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/baloo2"
+                        android:text="Gita Rizky Syahlia"
+                        android:textColor="#221C38"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="🔥 750 poin"
+                        android:textColor="#E65100"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- Rank 7 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:layout_marginBottom="8dp"
+                    android:background="@drawable/bg_item_participant"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="24dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="7"
+                        android:textColor="#221C38"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_siswa"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/baloo2"
+                        android:text="Abdul Manap"
+                        android:textColor="#221C38"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="🔥 710 poin"
+                        android:textColor="#E65100"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <!-- Rank 8 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="62dp"
+                    android:background="@drawable/bg_item_participant"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="16dp">
+
+                    <TextView
+                        android:layout_width="24dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="8"
+                        android:textColor="#221C38"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="38dp"
+                        android:layout_height="38dp"
+                        android:layout_marginStart="8dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_siswa"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:fontFamily="@font/baloo2"
+                        android:text="Anika Nur Kholisoh"
+                        android:textColor="#221C38"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:text="🔥 680 poin"
+                        android:textColor="#E65100"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </androidx.core.widget.NestedScrollView>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

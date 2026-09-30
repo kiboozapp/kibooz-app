@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kibooz_background">
+
+    <!-- Scrollable Content -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/clBottomNavigation"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Curved Purple Header -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/clTopHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_header_curved_purple"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="36dp">
+
+                <TextView
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Profil Siswa"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Avatar Siswa -->
+                <ImageView
+                    android:id="@+id/ivAvatarSiswa"
+                    android:layout_width="84dp"
+                    android:layout_height="84dp"
+                    android:layout_marginTop="16dp"
+                    android:src="@drawable/img_avatar_siswa"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvHeaderTitle" />
+
+                <!-- Student Name -->
+                <TextView
+                    android:id="@+id/tvNamaSiswa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Amelia Siti Zahra"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/ivAvatarSiswa" />
+
+                <!-- Student Class -->
+                <TextView
+                    android:id="@+id/tvKelasSiswa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Kelas A • TK Pertiwi Harapan Bangsa"
+                    android:textColor="#E0DBF5"
+                    android:textSize="13sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvNamaSiswa" />
+
+                <!-- Button Edit Profil -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEditProfil"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/baloo2"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="38dp"
+                    android:paddingHorizontal="18dp"
+                    android:text="Edit Profil Siswa &amp; Wali"
+                    android:textAllCaps="false"
+                    android:textColor="@color/kibooz_primary_purple"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#F2EDFD"
+                    app:cornerRadius="20dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/tvKelasSiswa" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Body Section -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="24dp">
+
+                <!-- Kartu Identitas Siswa & Wali -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="3dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Informasi Siswa &amp; Wali"
+                            android:textColor="@color/kibooz_text_dark"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <!-- NISN -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Nomor Induk Siswa Nasional (NISN)"
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvNisn"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="3124567890"
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Nama Wali -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Nama Orang Tua / Wali Murid"
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvNamaWali"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Ibu Citra Lestari"
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Email -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Email Terdaftar"
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvEmail"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="citra.lestari@gmail.com"
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Telepon -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Nomor WhatsApp Wali"
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvPhone"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="+62 813-8899-7766"
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <!-- Alamat -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Alamat Rumah"
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/tvAlamat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Jl. Mawar Indah Blok B3 No. 7, Lowokwaru, Kota Malang"
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Tombol Keluar Akun -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnLogout"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="20dp"
+                    android:backgroundTint="#FFEBEE"
+                    android:fontFamily="@font/baloo2"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Keluar dari Akun Wali"
+                    android:textAllCaps="false"
+                    android:textColor="#C62828"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#FFEBEE"
+                    app:cornerRadius="26dp"
+                    app:strokeColor="#FFCDD2"
+                    app:strokeWidth="1dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Navigation Bar (Wali) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clBottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="@drawable/bg_card_white"
+        android:elevation="12dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <!-- Tab 1: Home -->
+            <LinearLayout
+                android:id="@+id/tabHome"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_home"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+            <!-- Tab 2: Sampah -->
+            <LinearLayout
+                android:id="@+id/tabSampah"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_stats"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+            <!-- Center Placeholder for FAB -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Tab 4: Ranking -->
+            <LinearLayout
+                android:id="@+id/tabLeaderboard"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_trophy"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+            <!-- Tab 5: Profil (ACTIVE) -->
+            <LinearLayout
+                android:id="@+id/tabProfil"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:src="@drawable/ic_profile"
+                    app:tint="@color/kibooz_primary_purple" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_dot_active" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Center Floating Action Button (Scan Waste / Sampah) -->
+    <ImageButton
+        android:id="@+id/fabScannerSampah"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_marginBottom="36dp"
+        android:background="@drawable/bg_fab_scanner"
+        android:contentDescription="Scan Sampah AI"
+        android:elevation="16dp"
+        android:src="@drawable/ic_scan_waste"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

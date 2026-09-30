@@ -1,0 +1,910 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kibooz_background">
+
+    <!-- Scrollable Content Area -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/nsvContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/clBottomNavigation"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Top Header Curved Purple Background -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/clTopHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_header_curved_purple"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="48dp">
+
+                <!-- Logo & App Title -->
+                <ImageView
+                    android:id="@+id/ivHeaderLogo"
+                    android:layout_width="38dp"
+                    android:layout_height="32dp"
+                    android:contentDescription="Logo Kibooz"
+                    android:src="@drawable/ic_kibooz_bear"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <TextView
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Kibooz Wali"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivHeaderLogo"
+                    app:layout_constraintStart_toEndOf="@+id/ivHeaderLogo"
+                    app:layout_constraintTop_toTopOf="@+id/ivHeaderLogo" />
+
+                <!-- Action Icons (History & Notification) -->
+                <ImageView
+                    android:id="@+id/ivHistory"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Riwayat Aktivitas"
+                    android:src="@drawable/ic_history"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivHeaderLogo"
+                    app:layout_constraintEnd_toStartOf="@+id/ivNotification"
+                    app:layout_constraintTop_toTopOf="@+id/ivHeaderLogo"
+                    app:tint="@color/kibooz_white" />
+
+                <ImageView
+                    android:id="@+id/ivNotification"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Notifikasi"
+                    android:src="@drawable/ic_notification"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivHeaderLogo"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/ivHeaderLogo"
+                    app:tint="@color/kibooz_white" />
+
+                <!-- Student Profile Container -->
+                <LinearLayout
+                    android:id="@+id/llStudentProfile"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/ivHeaderLogo">
+
+                    <ImageView
+                        android:id="@+id/ivAvatarSiswa"
+                        android:layout_width="54dp"
+                        android:layout_height="54dp"
+                        android:src="@drawable/img_avatar_siswa" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Halo Ayah &amp; Bunda,"
+                            android:textColor="#E0DBF5"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvNamaSiswa"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Amelia Siti Zahra"
+                            android:textColor="@color/kibooz_white"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Kelas A • NISN: 3124567890"
+                            android:textColor="#E0DBF5"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Floating 3 Metric Cards (Overlap Header) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="-28dp"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <!-- Metric 1: Ranking -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMetricRanking"
+                    android:layout_width="0dp"
+                    android:layout_height="88dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="#3"
+                            android:textColor="@color/kibooz_yellow_accent"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Ranking Kelas"
+                            android:textColor="@color/kibooz_text_muted"
+                            android:textSize="11sp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Metric 2: Sampah Ter-Scan -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMetricSampah"
+                    android:layout_width="0dp"
+                    android:layout_height="88dp"
+                    android:layout_marginHorizontal="3dp"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="48"
+                            android:textColor="@color/kibooz_primary_purple"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Pilah Sampah"
+                            android:textColor="@color/kibooz_text_muted"
+                            android:textSize="11sp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Metric 3: Total Poin -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMetricPoin"
+                    android:layout_width="0dp"
+                    android:layout_height="88dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:orientation="vertical"
+                        android:padding="8dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="18dp"
+                                android:layout_height="18dp"
+                                android:src="@drawable/ic_flame" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="3dp"
+                                android:fontFamily="@font/baloo2"
+                                android:text="829"
+                                android:textColor="#F67E02"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Total Poin"
+                            android:textColor="@color/kibooz_text_muted"
+                            android:textSize="11sp" />
+
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+            <!-- Main Body Sections -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="20dp"
+                android:paddingTop="18dp"
+                android:paddingBottom="24dp">
+
+                <!-- Banner Ranking & Poin -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardBannerRanking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="#FFF8E7"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="2dp"
+                    app:strokeColor="#FFE0B2"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/img_banner_ranking" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Peringkat Si Kecil: Top 3!"
+                                android:textColor="#D84315"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Kumpulkan 71 poin lagi untuk mencapai Juara 2 minggu ini."
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="#D84315" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Section: Mood Si Kecil Hari Ini -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Mood Si Kecil Hari Ini"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Card Perbandingan Mood Awal vs Akhir -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMoodHariIni"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="3dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:orientation="horizontal">
+
+                            <!-- Mood Datang (Awal) -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/baloo2"
+                                    android:text="Mood Datang (07:30)"
+                                    android:textColor="@color/kibooz_text_muted"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:background="@drawable/bg_tag_lavender"
+                                    android:fontFamily="@font/baloo2"
+                                    android:paddingHorizontal="14dp"
+                                    android:paddingVertical="4dp"
+                                    android:text="😕 Bingung"
+                                    android:textColor="@color/kibooz_mood_bingung"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
+
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="@color/kibooz_text_muted" />
+
+                            <!-- Mood Pulang (Akhir) -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:gravity="center"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/baloo2"
+                                    android:text="Mood Pulang (11:30)"
+                                    android:textColor="@color/kibooz_text_muted"
+                                    android:textSize="12sp" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:background="#FFF9C4"
+                                    android:fontFamily="@font/baloo2"
+                                    android:paddingHorizontal="14dp"
+                                    android:paddingVertical="4dp"
+                                    android:text="😊 Happy!"
+                                    android:textColor="#F57F17"
+                                    android:textSize="15sp"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <!-- AI Insight Text Box -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:background="@drawable/bg_tag_lavender"
+                            android:orientation="vertical"
+                            android:padding="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="💡 Insight AI Guru &amp; Kamera"
+                                android:textColor="@color/kibooz_primary_purple"
+                                android:textSize="13sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Amelia sempat tampak ragu di pagi hari saat berpisah dengan bunda, namun berkembang ceria dan antusias setelah sesi mewarnai."
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <!-- Tombol Buka Detail Penanganan Mood -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnBukaPenanganan"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="12dp"
+                            android:fontFamily="@font/baloo2"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Lihat Panduan Penanganan Emosi"
+                            android:textAllCaps="false"
+                            android:textColor="@color/kibooz_white"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@color/kibooz_primary_purple"
+                            app:cornerRadius="22dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Section: Ruang Kelas Si Kecil (Screenshot 154028) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Ruang Kelas Si Kecil"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardRuangKelasWali"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:cardBackgroundColor="#F5EEFD"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="2dp"
+                    app:strokeColor="#DDD0F9"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <ImageView
+                            android:layout_width="52dp"
+                            android:layout_height="52dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/img_mapel_seni" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Ruang Kelas &amp; Aktivitas Belajar"
+                                android:textColor="@color/kibooz_primary_purple"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="6 mata pelajaran aktif, video pembelajaran, &amp; forum."
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="22dp"
+                            android:layout_height="22dp"
+                            android:src="@drawable/ic_chevron_right"
+                            app:tint="@color/kibooz_primary_purple" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Section: Sampah di-Scan -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Aktivitas Pilah Sampah Si Kecil"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Card Sampah di-Scan -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardSampah"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="3dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <ImageView
+                                android:layout_width="90dp"
+                                android:layout_height="72dp"
+                                android:scaleType="fitCenter"
+                                android:src="@drawable/img_trash_cans" />
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="14dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <!-- Organik -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <View
+                                        android:layout_width="10dp"
+                                        android:layout_height="10dp"
+                                        android:background="#2E7D32" />
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="6dp"
+                                        android:layout_weight="1"
+                                        android:fontFamily="@font/baloo2"
+                                        android:text="Sampah Organik"
+                                        android:textColor="@color/kibooz_text_dark"
+                                        android:textSize="13sp" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:fontFamily="@font/baloo2"
+                                        android:text="28 (58%)"
+                                        android:textColor="#2E7D32"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                </LinearLayout>
+
+                                <!-- Anorganik -->
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="6dp"
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
+
+                                    <View
+                                        android:layout_width="10dp"
+                                        android:layout_height="10dp"
+                                        android:background="#C62828" />
+
+                                    <TextView
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_marginStart="6dp"
+                                        android:layout_weight="1"
+                                        android:fontFamily="@font/baloo2"
+                                        android:text="Sampah Anorganik"
+                                        android:textColor="@color/kibooz_text_dark"
+                                        android:textSize="13sp" />
+
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:fontFamily="@font/baloo2"
+                                        android:text="20 (42%)"
+                                        android:textColor="#C62828"
+                                        android:textSize="13sp"
+                                        android:textStyle="bold" />
+
+                                </LinearLayout>
+
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                        <!-- Tombol Buka Statistik Sampah -->
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnStatistikSampah"
+                            android:layout_width="match_parent"
+                            android:layout_height="44dp"
+                            android:layout_marginTop="12dp"
+                            android:fontFamily="@font/baloo2"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="Lihat Detail Statistik Sampah"
+                            android:textAllCaps="false"
+                            android:textColor="@color/kibooz_primary_purple"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="#F2EDFD"
+                            app:cornerRadius="22dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Section: Panduan Emosi Pilihan -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Panduan Emosi Anak"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Card Edukasi 1: Berikan Rasa Aman -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardPanduanAman"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="3dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="14dp">
+
+                        <ImageView
+                            android:layout_width="70dp"
+                            android:layout_height="70dp"
+                            android:scaleType="fitCenter"
+                            android:src="@drawable/img_penanganan_aman" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="14dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@drawable/bg_tag_lavender"
+                                android:fontFamily="@font/baloo2"
+                                android:paddingHorizontal="8dp"
+                                android:paddingVertical="2dp"
+                                android:text="Panduan Emosi Bingung"
+                                android:textColor="@color/kibooz_mood_bingung"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="@font/baloo2"
+                                android:text="Berikan Rasa Aman Pada Anak"
+                                android:textColor="@color/kibooz_text_dark"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:text="4 Langkah praktis meredakan ragu si kecil"
+                                android:textColor="@color/kibooz_text_muted"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_arrow_forward"
+                            app:tint="@color/kibooz_primary_purple" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Navigation Bar (Wali: Home, Sampah, Scan Sampah FAB, Ranking, Profil) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clBottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:background="@drawable/bg_card_white"
+        android:elevation="12dp"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:baselineAligned="false"
+            android:orientation="horizontal">
+
+            <!-- Tab 1: Home (ACTIVE) -->
+            <LinearLayout
+                android:id="@+id/tabHome"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:src="@drawable/ic_home"
+                    app:tint="@color/kibooz_primary_purple" />
+
+                <View
+                    android:layout_width="6dp"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="4dp"
+                    android:background="@drawable/bg_dot_active" />
+
+            </LinearLayout>
+
+            <!-- Tab 2: Statistik Sampah -->
+            <LinearLayout
+                android:id="@+id/tabSampah"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_stats"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+            <!-- Center Placeholder for FAB -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Tab 4: Leaderboard / Ranking -->
+            <LinearLayout
+                android:id="@+id/tabLeaderboard"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_trophy"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+            <!-- Tab 5: Profil Siswa -->
+            <LinearLayout
+                android:id="@+id/tabProfil"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_profile"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Center Floating Action Button (Scan Waste / Sampah) -->
+    <ImageButton
+        android:id="@+id/fabScannerSampah"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        android:layout_marginBottom="36dp"
+        android:background="@drawable/bg_fab_scanner"
+        android:contentDescription="Scan Sampah AI"
+        android:elevation="16dp"
+        android:src="@drawable/ic_scan_waste"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
