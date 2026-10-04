@@ -10,8 +10,8 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clTopBar"
         android:layout_width="match_parent"
-        android:layout_height="140dp"
-        android:background="@drawable/bg_header_curved_purple"
+        android:layout_height="64dp"
+        android:background="@drawable/bg_topbar_purple_gradient"
         app:layout_constraintTop_toTopOf="parent">
 
         <ImageView
@@ -19,11 +19,11 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Kembali"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/kibooz_white" />
@@ -37,21 +37,21 @@
             android:textColor="@color/kibooz_white"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="@+id/ivBack"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="@+id/ivBack" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
             android:id="@+id/ivActionEdit"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_marginTop="16dp"
             android:layout_marginEnd="16dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Edit Profil"
             android:padding="8dp"
             android:src="@drawable/ic_camera"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/kibooz_white" />
