@@ -6,18 +6,25 @@ Panduan ini memuat piramida pengujian, otomasi UI Espresso, konfigurasi GitHub A
 
 ## 1. Piramida Pengujian (Testing Pyramid)
 
-```text
-       / \
-      /   \      UI End-to-End Tests (10%)
-     /     \     - Otomasi alur kritis (Espresso & UI Automator)
-    /-------\
-   /         \   Integration Tests (30%)
-  /           \  - Room DAO in-memory test & MockWebServer API test
- /-------------\
-/               \ Unit Tests (60%)
-/                 \ - ViewModel, Repository, UseCases, Chart math logic
--------------------
+```mermaid
+graph TD
+    classDef top fill:#FD9C27,stroke:#B45309,stroke-width:2px,color:#FFFFFF;
+    classDef mid fill:#724AE2,stroke:#4C1D95,stroke-width:2px,color:#FFFFFF;
+    classDef base fill:#5D40B3,stroke:#2E1065,stroke-width:2px,color:#FFFFFF;
+
+    L3["<b>Level 3: UI & End-to-End Tests (10%)</b><br/>Otomasi alur navigasi dan interaksi pengguna via Espresso"]:::top
+    L2["<b>Level 2: Integration Tests (30%)</b><br/>Pengujian relasi database Room dan MockWebServer API"]:::mid
+    L1["<b>Level 1: Unit Tests (60%)</b><br/>Pengujian fungsi logika ViewModel, Repository, dan kalkulasi chart"]:::base
+
+    L3 -->|Skala kecil, uji alur nyata| L2
+    L2 -->|Skala menengah, uji antarkomponen| L1
 ```
+
+| Tingkatan | Porsi | Sasaran Pengujian | Alat dan Framework | Karakteristik |
+| :--- | :---: | :--- | :--- | :--- |
+| **UI & E2E** | 10% | Otomasi alur login, presensi mood, dan klaim sampah | Espresso, UI Automator | Menguji alur pengguna nyata, eksekusi lambat |
+| **Integration** | 30% | Konsistensi query Room DAO dan serialisasi JSON API | MockWebServer, Room In-Memory DB | Menguji interaksi antarkomponen |
+| **Unit** | 60% | Logika bisnis ViewModel, transformasi data Repository, formula chart | JUnit 5, MockK, Turbine | Cepat, terisolasi, berjalan di JVM lokal |
 
 ### 1.1 Spesifikasi Pengujian Unit (Unit Testing)
 - **Framework:** JUnit 5 / JUnit 4 + MockK + Turbine (untuk pengujian `StateFlow` dan Coroutines).
