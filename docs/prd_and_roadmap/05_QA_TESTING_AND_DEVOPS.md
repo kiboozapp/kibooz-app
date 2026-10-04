@@ -1,6 +1,6 @@
 # Strategi Pengujian (QA), Otomasi CI/CD, dan Panduan DevOps Kibooz
 
-Dokumen ini mendefinisikan piramida pengujian, otomasi pengujian UI Espresso, konfigurasi pipeline GitHub Actions CI/CD, alur kerja rilis APK, dan aturan kolaborasi git tim pengembang.
+Panduan ini memuat piramida pengujian, otomasi UI Espresso, konfigurasi GitHub Actions CI/CD, alur rilis APK, dan aturan git tim.
 
 ---
 
@@ -47,7 +47,7 @@ Dokumen ini mendefinisikan piramida pengujian, otomasi pengujian UI Espresso, ko
 | **TC-02** | **Izin Akses** | Pengguna menolak izin kamera (*Camera Permission Denied*) saat membuka scanner. | Viewfinder kamera menampilkan pesan edukatif dan tombol langsung menuju "Pengaturan Izin Aplikasi". |
 | **TC-03** | **Sesi Kedaluwarsa** | Token JWT kedaluwarsa saat pengguna sedang berada di halaman profil. | Interceptor menangkap kode HTTP 401, menghapus token di DataStore, dan menampilkan dialog "Sesi telah berakhir, silakan masuk kembali". |
 | **TC-04** | **Rotasi Layar** | Layar dirotasi atau ukuran jendela diubah pada tablet / mode split-screen. | Data form tidak hilang (*retained via ViewModel*), status bar dan bilah navigasi tetap proporsional berkat `InsetsUtil`. |
-| **TC-05** | **Input Ekstrem** | Pengguna memasukkan nama anak sepanjang 100 karakter atau karakter simbolik khusus. | Tampilan UI memotong teks secara rapi (*ellipsize end*) tanpa merusak struktur kartu antarmuka. |
+| **TC-05** | **Input Ekstrem** | Pengguna memasukkan nama anak sepanjang 100 karakter atau simbol khusus. | Tampilan UI memotong teks (*ellipsize end*) tanpa merusak tata letak kartu antarmuka. |
 
 ---
 

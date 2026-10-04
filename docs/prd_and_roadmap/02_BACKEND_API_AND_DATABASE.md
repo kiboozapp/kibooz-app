@@ -1,6 +1,6 @@
 # Spesifikasi Teknis Backend: Arsitektur API dan Basis Data Kibooz
 
-Dokumen ini merupakan panduan implementasi teknis bagi tim backend. Mencakup diagram relasi entitas, DDL skema database, spesifikasi kontrak RESTful API, dan daftar tugas terperinci dari fase MVP hingga produksi penuh.
+Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful API, dan rincian tugas backend dari fase MVP hingga produksi penuh.
 
 ---
 
@@ -432,13 +432,13 @@ CREATE INDEX idx_trash_scans_student_date ON trash_scans(student_id, scanned_at)
 
 ## 5. Daftar Tugas Tim Backend (Work Breakdown)
 
-- [ ] **BE-01:** Inisialisasi repositori backend, konfigurasi Docker Compose untuk PostgreSQL 15 & Redis 7.
+- [ ] **BE-01:** Setup environment backend dan konfigurasi Docker Compose untuk PostgreSQL 15 & Redis 7.
 - [ ] **BE-02:** Migrasi skema database relasional (Prisma / TypeORM / Liquibase DDL).
-- [ ] **BE-03:** Implementasi modul autentikasi JWT (Login multi-peran, token refresh, bcrypt password hash).
-- [ ] **BE-04:** Implementasi endpoint Dashboard Wali Murid & pemantauan mood harian anak.
-- [ ] **BE-05:** Implementasi endpoint Dashboard Guru & agregasi grafik analitik mood (Donut, Weekly Trend).
-- [ ] **BE-06:** Implementasi endpoint pencatatan mood anak (verifikasi peran guru & validasi nilai enum).
-- [ ] **BE-07:** Implementasi endpoint transaksi pemilahan sampah, kalkulasi poin reward, dan limit 5x per hari.
-- [ ] **BE-08:** Implementasi query leaderboard terindeks dengan cache Redis untuk respons di bawah 50ms.
-- [ ] **BE-09:** Integrasi penyimpanan cloud (S3 / R2) untuk unggah avatar dan rekaman foto sampah.
-- [ ] **BE-10:** Pengujian endpoint terintegrasi menggunakan Postman/Newman atau automated Jest e2e test suite.
+- [ ] **BE-03:** Pembuatan modul autentikasi JWT (Login multi-peran, token refresh, bcrypt password hash).
+- [ ] **BE-04:** Pembuatan endpoint Dashboard Wali Murid dan pemantauan mood harian anak.
+- [ ] **BE-05:** Pembuatan endpoint Dashboard Guru dan agregasi grafik analitik mood (Donut, Weekly Trend).
+- [ ] **BE-06:** Pembuatan endpoint pencatatan mood anak (verifikasi peran guru dan validasi enum).
+- [ ] **BE-07:** Pembuatan endpoint transaksi pilah sampah, kalkulasi poin reward, dan limit 5x per hari.
+- [ ] **BE-08:** Optimasi query leaderboard terindeks dengan cache Redis untuk respons di bawah 50ms.
+- [ ] **BE-09:** Integrasi penyimpanan cloud (S3 / R2) untuk unggah avatar dan foto sampah.
+- [ ] **BE-10:** Pengujian endpoint otomatis menggunakan Postman atau automated Jest e2e test suite.

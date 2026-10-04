@@ -1,6 +1,6 @@
 # Work Breakdown Structure (WBS) dan Pembagian Tugas Tim Kibooz
 
-Dokumen ini membagi seluruh pekerjaan teknis menjadi tiket tugas berukuran terukur (*sized tasks*) dengan estimasi *story points*, dependensi masukan, dan luaran konkret. Tujuannya adalah agar setiap anggota tim dapat memilih atau ditugaskan pada peran tertentu secara mandiri tanpa terjadi tumpang tindih (*zero-overlap*).
+Panduan ini membagi pekerjaan teknis menjadi tiket tugas terukur (*sized tasks*) dengan estimasi *story points*, dependensi masukan, dan luaran konkret. Setiap anggota tim dapat memilih tugas tanpa saling tumpang tindih (*zero-overlap*).
 
 ---
 
@@ -142,7 +142,7 @@ graph TD
 
 ## 4. Lembar Kesepakatan Tim (Assignment Sign-Off)
 
-Gunakan tabel ini untuk mencatat penanggung jawab internal secara resmi sebelum memulai sprint:
+Gunakan tabel ini untuk mencatat penanggung jawab internal sebelum sprint mulai:
 
 | Peran | Nama Anggota Tim | NIM / Kontak | Status Persetujuan |
 | :--- | :--- | :--- | :---: |

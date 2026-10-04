@@ -1,6 +1,6 @@
 # Roadmap Frontend Android: Arsitektur MVVM, State Management, dan Integrasi Layar
 
-Dokumen ini memetakan langkah-langkah kerja untuk mengubah basis kode antarmuka Kibooz dari prototipe statis menjadi aplikasi Android reaktif yang 100% fungsional dengan pola Clean Architecture dan MVVM (Model-View-ViewModel).
+Panduan ini memetakan langkah migrasi UI Kibooz dari prototipe statis menjadi aplikasi Android reaktif. Kode memakai arsitektur Clean MVVM (Model-View-ViewModel).
 
 ---
 
@@ -137,13 +137,13 @@ lifecycleScope.launch {
 
 - [ ] **FE-01:** Konfigurasi Retrofit Network Client, OkHttp logging interceptor, dan AuthTokenInterceptor.
 - [ ] **FE-02:** Pembuatan Room Database (`KiboozDatabase`), Entity (`StudentEntity`, `MoodLogEntity`), dan DAO.
-- [ ] **FE-03:** Pembuatan `AuthRepository` & implementasi penyimpanan sesi dengan Jetpack Preferences DataStore.
+- [ ] **FE-03:** Pembuatan `AuthRepository` dan penyimpanan sesi dengan Jetpack Preferences DataStore.
 - [ ] **FE-04:** Refaktor `LoginActivity` ke `AuthViewModel`, penanganan pesan error jaringan, dan validasi form.
 - [ ] **FE-05:** Refaktor `DashboardWaliActivity` ke `WaliViewModel`, menghubungkan kartu mood dan poin nyata.
 - [ ] **FE-06:** Refaktor `DashboardGuruActivity` ke `GuruViewModel`, menghubungkan metrik kelas dinamis.
 - [ ] **FE-07:** Integrasi data dinamis pada grafik kustom `DonutMoodChart`, `WeeklyLineChart`, dan `MonthlyBarChart`.
 - [ ] **FE-08:** Refaktor `LeaderboardActivity` ke `LeaderboardViewModel`, mengisi podium dan recycler view.
 - [ ] **FE-09:** Refaktor `DetailPenangananMoodActivity` untuk mengirimkan payload `guidance/apply` ke server.
-- [ ] **FE-10:** Implementasi `Formulir Edit Profil` (Siswa & Guru) dengan validasi masukan dan callback simpan data.
+- [ ] **FE-10:** Pembuatan `Formulir Edit Profil` (Siswa & Guru) dengan validasi masukan dan callback simpan data.
 - [ ] **FE-11:** Penambahan efek *Shimmer Loading Placeholder* pada dashboard saat data sedang diunduh dari jaringan.
 - [ ] **FE-12:** Penanganan kondisi jaringan putus (*offline banner*) dan tombol aksi coba lagi (*retry button*).

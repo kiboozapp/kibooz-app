@@ -1,12 +1,12 @@
 # Pipeline Kecerdasan Buatan (AI/ML) dan Visi Komputer Kibooz
 
-Dokumen ini memuat arsitektur teknis pipeline penglihatan komputer (*computer vision*), model inferensi edge berbasis TensorFlow Lite (TFLite), dan integrasi CameraX untuk deteksi emosi anak serta klasifikasi jenis sampah.
+Panduan ini merinci arsitektur computer vision, model edge TensorFlow Lite (TFLite), dan integrasi CameraX untuk deteksi emosi anak serta klasifikasi sampah.
 
 ---
 
 ## 1. Prinsip Utama dan Privasi Data Anak
 
-1. **Inferensi On-Device Penuh:** Seluruh pemrosesan frame video kamera dilakukan secara lokal di prosesor perangkat pengguna (NPU/GPU/CPU).
+1. **Inferensi On-Device Penuh:** Prosesor perangkat (NPU/GPU/CPU) memproses semua frame video kamera langsung di tempat.
 2. **Perlindungan Privasi Wajah (Zero-Cloud Face Streaming):** Rekaman video atau foto wajah anak mentah tidak pernah diunggah atau disimpan di server cloud. Yang dikirim ke backend hanyalah label emosi akhir (`SENANG`, `SEDIH`, `MARAH`, `BINGUNG`) beserta skor keyakinan (*confidence score*).
 3. **Efisiensi Daya:** Pipeline kamera menggunakan resolusi optimal 720p (1280x720) dengan strategi `STRATEGY_KEEP_ONLY_LATEST` agar perangkat tidak mengalami *thermal throttling* atau pemborosan baterai.
 
@@ -62,7 +62,7 @@ graph LR
 
 ## 4. Implementasi Blueprint CameraX Analyzer
 
-Berikut adalah contoh struktur kelas implementasi analyzer berbasis Kotlin untuk menghubungkan CameraX dengan TensorFlow Lite:
+Berikut contoh kode analyzer Kotlin penghubung CameraX dengan TensorFlow Lite:
 
 ```kotlin
 class MoodAnalysisAnalyzer(
@@ -143,5 +143,5 @@ class MoodAnalysisAnalyzer(
 - [ ] **ML-04:** Integrasi Google ML Kit Face Detection pada CameraX di [CameraScanMoodActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanMoodActivity.kt).
 - [ ] **ML-05:** Kurasi dataset sampah sekolah (botol plastik, kotak susu, daun, sisa buah) dan pelatihan YOLOv8-nano.
 - [ ] **ML-06:** Ekspor dan kuantisasi model deteksi sampah ke format TFLite dengan metadata input/output terdefinisi.
-- [ ] **ML-07:** Integrasi deteksi sampah real-time dengan bounding box overlay di [CameraScanSampahActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanSampahActivity.kt).
-- [ ] **ML-08:** Implementasi mekanisme dialog konfirmasi manual untuk prediksi dengan tingkat keyakinan di bawah 75%.
+- [ ] **ML-07:** Integrasi deteksi sampah langsung dengan bounding box overlay di [CameraScanSampahActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanSampahActivity.kt).
+- [ ] **ML-08:** Pembuatan dialog konfirmasi manual saat akurasi prediksi berada di bawah 75%.
