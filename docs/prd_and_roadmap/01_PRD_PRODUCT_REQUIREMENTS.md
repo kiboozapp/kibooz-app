@@ -73,6 +73,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 ### FR-4: Video Pembelajaran dan Forum Diskusi
 - **FR-4.1:** Menampilkan video edukasi anak dengan pemutar media terintegrasi (*Media3 ExoPlayer*). Video berupa alamat https, baik tautan ke tempat lain maupun berkas yang diunggah guru.
 - **FR-4.2:** Forum diskusi kelas memfasilitasi pertukaran pesan guru dan wali seputar tumbuh kembang siswa, dalam bentuk utas dan balasan.
+- **FR-4.3:** Guru kelas dapat mengubah dan menghapus video pembelajaran. Pembuat sebuah utas atau balasan dapat mengubahnya, dan pembuatnya atau guru kelas dapat menghapusnya.
 
 ### FR-5: Portal dan Dashboard Wali Murid
 - **FR-5.1:** Menampilkan status mood anak hari ini lengkap dengan catatan guru pendamping.
