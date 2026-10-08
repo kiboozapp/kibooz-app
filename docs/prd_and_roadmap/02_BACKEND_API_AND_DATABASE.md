@@ -9,10 +9,10 @@ Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful A
 - **Runtime:** Go dengan Fiber v3 dan GORM. Satu binary menjalankan API dan menerapkan migrasi SQL yang tertanam saat mulai.
 - **Basis Data Utama:** PostgreSQL 15 (relasional, ACID untuk pencatatan poin dan log mood). Token refresh juga disimpan di sini dalam bentuk hash SHA-256.
 - **In-Memory Caching:** Redis 7 bersifat opsional. Redis mempercepat penolakan token yang dipakai ulang, batas laju yang dipakai bersama dan cache leaderboard. API tetap berjalan tanpa Redis dan `GET /healthz` melaporkan status `degraded`.
-- **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil dan foto bukti scan sampah. Unggahan nonaktif sampai konfigurasi S3 lengkap.
+- **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil, foto bukti scan sampah dan video kelas. Video diunggah langsung ke bucket lewat alamat bertanda tangan, bukan melalui API. Unggahan nonaktif sampai konfigurasi S3 lengkap.
 - **Protokol Komunikasi:** RESTful JSON melalui HTTPS dengan header `Authorization: Bearer <JWT>`. Semua respons memakai satu amplop dan semua pesan berbahasa Inggris, sehingga klien bercabang pada `errorCode` dan tidak pada teks pesan.
 - **Alamat Layanan:** `https://kibooz-api.syafahadyan.com/api/v1`. Dokumentasi interaktif ada di `https://docs.kibooz.syafahadyan.com` dan dibangun dari `openapi.yaml` di repositori backend (`SyafaHadyan/kibooz-backend`), yang menjadi acuan jika ada perbedaan dengan dokumen ini.
-- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Unggah berkas video belum ada, guru menambahkan alamat https dari video yang disimpan di tempat lain.
+- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan.
 
 ## 2. Diagram Relasi Entitas (ERD)
 
@@ -156,7 +156,7 @@ erDiagram
     }
 ```
 
-Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru.
+Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru, baik tautan ke tempat lain maupun berkas yang diunggah ke bucket. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru.
 
 ---
 
@@ -871,7 +871,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 ```
 
 #### `POST /classes/{classId}/videos`
-- **Deskripsi:** Guru kelas menambahkan video. Videonya berupa alamat https yang diputar aplikasi dari tempat lain, sedangkan unggah berkas video belum tersedia.
+- **Deskripsi:** Guru kelas menambahkan video. Videonya berupa alamat https yang diputar aplikasi. Untuk berkas hasil rekaman guru, minta alamat unggah dulu lewat `POST /classes/{classId}/videos/upload-url`, kirim berkasnya, lalu tambahkan video dengan `videoUrl` dari jawaban itu. Berkasnya harus sudah sampai, milik kelas ini dan berupa video yang diterima.
 - **Request Body:** `title` dan `videoUrl` wajib. `videoUrl` dan `thumbnailUrl` harus alamat https tanpa spasi dan tanpa nama pengguna. `durationSeconds` bernilai 1 sampai 86400.
 ```json
 {
@@ -883,7 +883,32 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 }
 ```
 - **Response 201 Created:** `message` bernilai `Learning video added` dan `data` berisi satu video seperti pada daftar di atas.
-- **Kegagalan:** `400` `VALIDATION_ERROR` dan `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk berkas unggahan yang belum sampai, milik kelas lain atau bukan video), `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `502` `STORAGE_ERROR` jika bucket gagal dihubungi.
+
+#### `POST /classes/{classId}/videos/upload-url`
+- **Deskripsi:** Guru kelas meminta alamat bertanda tangan untuk mengunggah satu berkas video langsung ke bucket. Berkas besar tidak melewati API, sehingga batas ukuran permintaan tidak berlaku. Bucket menolak berkas yang ukuran atau jenisnya berbeda dari yang diumumkan.
+- **Request Body:** `contentType` bernilai `video/mp4` atau `video/webm`, dan `sizeBytes` adalah ukuran persis berkas (paling besar `VIDEO_MAX_MB`, bawaan 100 MB).
+```json
+{
+  "contentType": "video/mp4",
+  "sizeBytes": 48211340
+}
+```
+- **Response 200 OK:** `message` bernilai `Upload URL created`. Aplikasi mengirim `PUT` berisi berkas ke `uploadUrl` sebelum `expiresAt` (bawaan 15 menit), hanya dengan header dari `headers`, lalu menambahkan video dengan `videoUrl`.
+```json
+{
+  "success": true,
+  "message": "Upload URL created",
+  "data": {
+    "uploadUrl": "https://<bucket-endpoint>/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4?X-Amz-Signature=...",
+    "method": "PUT",
+    "headers": { "Content-Type": "video/mp4" },
+    "videoUrl": "https://kibooz-media.syafahadyan.com/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4",
+    "expiresAt": "2026-10-09T09:15:00Z"
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk jenis atau ukuran yang tidak valid, `403` `AUTH_FORBIDDEN`, `502` `STORAGE_ERROR` dan `503` `STORAGE_UNAVAILABLE` jika penyimpanan belum diatur.
 
 #### `GET /classes/{classId}/forum`
 - **Deskripsi:** Utas forum kelas, dari yang terbaru. `author.id` adalah id akun penulis, sehingga aplikasi dapat menandai postingan sendiri dengan membandingkannya dengan id pengguna yang masuk. Akun yang sudah dihapus tampil dengan nama `Deleted account` tanpa foto.
@@ -1002,5 +1027,5 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-11:** Pembuatan endpoint video pembelajaran kelas (daftar dan tambah lewat alamat https).
 - [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan.
 - [x] **BE-13:** Pembuatan endpoint kelas guru (daftar, buat dan detail), daftar peserta kelas, profil guru, profil anak dan statistik sampah.
-- [ ] **BE-14:** Unggah berkas video ke penyimpanan cloud sebagai pengganti alamat https.
+- [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https.
 - [ ] **BE-15:** Reset papan peringkat di awal semester (BR-03).
