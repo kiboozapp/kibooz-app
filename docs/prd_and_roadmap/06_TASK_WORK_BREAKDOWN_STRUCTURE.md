@@ -96,8 +96,8 @@ graph TD
 | **BE-08** | API Papan Peringkat | 2 SP (1 hari) | BE-07 | Endpoint `GET /api/v1/leaderboard` dengan query terindeks dan cache Redis opsional. |
 | **BE-09** | Integrasi Cloud Storage (S3/R2) | 3 SP (1 hari) | BE-03 | Modul upload berkas foto profil dan foto bukti sampah. |
 | **BE-10** | Pengujian Otomatis Kontrak API | 3 SP (1 hari) | BE-03 | Rangkaian uji Go (unit dan end to end) yang memeriksa setiap respons terhadap `openapi.yaml`. |
-| **BE-11** | API Video Pembelajaran Kelas | 3 SP (1 hari) | BE-05 | Endpoint `GET` dan `POST /api/v1/classes/{classId}/videos` untuk video berupa alamat https. |
-| **BE-12** | API Forum Diskusi Kelas | 5 SP (2 hari) | BE-05 | Endpoint utas dan balasan di `/api/v1/classes/{classId}/forum`. |
+| **BE-11** | API Video Pembelajaran Kelas | 3 SP (1 hari) | BE-05 | Endpoint `GET` dan `POST /api/v1/classes/{classId}/videos` untuk video berupa alamat https, serta `PATCH` dan `DELETE` pada `/videos/{videoId}`. |
+| **BE-12** | API Forum Diskusi Kelas | 5 SP (2 hari) | BE-05 | Endpoint utas dan balasan di `/api/v1/classes/{classId}/forum`, termasuk mengubah dan menghapusnya. |
 | **BE-13** | API Kelas, Peserta, Profil & Statistik | 8 SP (3 hari) | BE-05 | Endpoint `/api/v1/guru/classes`, `/api/v1/guru/profile`, `/api/v1/classes/{classId}/students`, `/api/v1/wali/child/{studentId}` dan `/api/v1/trash/stats`. |
 | **BE-14** | Unggah Berkas Video | 5 SP (2 hari) | BE-09, BE-11 | Endpoint `POST /api/v1/classes/{classId}/videos/upload-url` untuk unggah langsung ke bucket lewat alamat bertanda tangan. |
 | **BE-15** | Reset Papan Peringkat Semester | 3 SP (1 hari) | BE-08 | Pengaturan ulang peringkat otomatis di awal semester (BR-03), belum dikerjakan. |
