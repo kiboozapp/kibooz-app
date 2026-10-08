@@ -12,7 +12,7 @@ Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful A
 - **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil, foto bukti scan sampah dan video kelas. Video diunggah langsung ke bucket lewat alamat bertanda tangan, bukan melalui API. Unggahan nonaktif sampai konfigurasi S3 lengkap.
 - **Protokol Komunikasi:** RESTful JSON melalui HTTPS dengan header `Authorization: Bearer <JWT>`. Semua respons memakai satu amplop dan semua pesan berbahasa Inggris, sehingga klien bercabang pada `errorCode` dan tidak pada teks pesan.
 - **Alamat Layanan:** `https://kibooz-api.syafahadyan.com/api/v1`. Dokumentasi interaktif ada di `https://docs.kibooz.syafahadyan.com` dan dibangun dari `openapi.yaml` di repositori backend (`SyafaHadyan/kibooz-backend`), yang menjadi acuan jika ada perbedaan dengan dokumen ini.
-- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan.
+- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan. Guru kelas dapat mengubah dan menghapus video, dan pembuat postingan forum dapat mengubah postingannya sendiri.
 
 ## 2. Diagram Relasi Entitas (ERD)
 
@@ -368,7 +368,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun |
 | `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar |
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas |
-| `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND` | Data yang dicari tidak ada |
+| `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `FILE_TOO_LARGE` | Berkas bukan gambar atau terlalu besar |
 | `STORAGE_UNAVAILABLE`, `STORAGE_ERROR` | Penyimpanan berkas belum diatur atau gagal |
@@ -453,7 +453,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 #### `GET /wali/dashboard`
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `studentId=<uuid>` opsional, untuk wali yang memiliki lebih dari satu anak. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
-- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`.
+- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `bannerUrl` bernilai teks kosong jika alamat publik penyimpanan belum diatur di server. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`.
 ```json
 {
   "success": true,
@@ -910,6 +910,24 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 ```
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk jenis atau ukuran yang tidak valid, `403` `AUTH_FORBIDDEN`, `502` `STORAGE_ERROR` dan `503` `STORAGE_UNAVAILABLE` jika penyimpanan belum diatur.
 
+#### `PATCH /classes/{classId}/videos/{videoId}`
+- **Deskripsi:** Guru kelas mengubah rincian sebuah video. Guru mana pun di kelas itu boleh melakukannya. Kolom yang tidak dikirim dibiarkan apa adanya, `description` atau `thumbnailUrl` berisi teks kosong menghapus nilainya, dan `durationSeconds` bernilai 0 menghapus durasi. Alamat video tidak dapat diubah, sehingga berkas lain berarti video baru.
+- **Request Body:** salah satu atau beberapa kolom. `title` tidak boleh kosong, dan `thumbnailUrl` harus alamat https.
+```json
+{
+  "title": "Mengenal Sampah Organik (versi baru)",
+  "description": "",
+  "durationSeconds": 130
+}
+```
+- **Response 200 OK:** `message` bernilai `Learning video updated` dan `data` berisi satu video seperti pada daftar video.
+- **Kegagalan:** `400` `VALIDATION_ERROR` termasuk jika tidak ada kolom yang dikirim, `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `404` `VIDEO_NOT_FOUND` jika video itu bukan milik kelas itu.
+
+#### `DELETE /classes/{classId}/videos/{videoId}`
+- **Deskripsi:** Guru kelas menghapus sebuah video. Jika videonya berkas yang diunggah dan tidak ada video lain yang memakai berkas yang sama, berkasnya ikut dihapus dari penyimpanan. Tautan ke tempat lain hanya dilupakan.
+- **Response 200 OK:** `{ "success": true, "message": "Learning video deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `VIDEO_NOT_FOUND`.
+
 #### `GET /classes/{classId}/forum`
 - **Deskripsi:** Utas forum kelas, dari yang terbaru. `author.id` adalah id akun penulis, sehingga aplikasi dapat menandai postingan sendiri dengan membandingkannya dengan id pengguna yang masuk. Akun yang sudah dihapus tampil dengan nama `Deleted account` tanpa foto.
 - **Response 200 OK:**
@@ -951,6 +969,22 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - **Response 201 Created:** `message` bernilai `Forum thread created` dan `data` berisi satu utas dengan `replyCount` 0.
 - **Kegagalan:** `400` `VALIDATION_ERROR` dan `403` `AUTH_FORBIDDEN`.
 
+#### `PATCH /classes/{classId}/forum/{postId}`
+- **Deskripsi:** Pembuat sebuah utas mengubah judul atau isinya. Hanya pembuatnya yang boleh, guru kelas pun tidak. Kolom yang tidak dikirim dibiarkan apa adanya.
+- **Request Body:** `title` (maksimal 150 karakter) dan atau `body` (maksimal 5000 karakter), tidak boleh hanya berisi spasi, dan paling sedikit satu kolom.
+```json
+{
+  "body": "Mohon anak membawa topi dan botol minum."
+}
+```
+- **Response 200 OK:** `message` bernilai `Forum thread updated` dan `data` berisi satu utas seperti pada daftar utas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk selain pembuatnya dan untuk yang bukan anggota kelas, dan `404` `FORUM_POST_NOT_FOUND`.
+
+#### `DELETE /classes/{classId}/forum/{postId}`
+- **Deskripsi:** Pembuat utas atau guru kelas menghapus sebuah utas. Semua balasannya ikut terhapus.
+- **Response 200 OK:** `{ "success": true, "message": "Forum thread deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk wali selain pembuatnya dan untuk yang bukan anggota kelas, dan `404` `FORUM_POST_NOT_FOUND`.
+
 #### `GET /classes/{classId}/forum/{postId}/replies`
 - **Deskripsi:** Balasan sebuah utas, dari yang paling lama. `postId` harus id sebuah utas di kelas itu.
 - **Response 200 OK:**
@@ -983,6 +1017,17 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - **Deskripsi:** Membalas sebuah utas. Balasan tidak dapat dibalas lagi.
 - **Request Body:** `{ "body": "Baik, akan saya siapkan." }` dengan `body` wajib (maksimal 5000 karakter).
 - **Response 201 Created:** `message` bernilai `Forum reply added` dan `data` berisi satu balasan seperti pada daftar di atas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND`.
+
+#### `PATCH /classes/{classId}/forum/{postId}/replies/{replyId}`
+- **Deskripsi:** Pembuat sebuah balasan mengubah isinya. `postId` adalah utas tempat balasan itu berada, dan hanya pembuatnya yang boleh mengubah.
+- **Request Body:** `{ "body": "Baik, akan saya siapkan dua." }` dengan `body` wajib (maksimal 5000 karakter) dan tidak boleh hanya berisi spasi.
+- **Response 200 OK:** `message` bernilai `Forum reply updated` dan `data` berisi satu balasan seperti pada daftar balasan.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND` jika balasan itu bukan milik utas dan kelas pada alamat tersebut.
+
+#### `DELETE /classes/{classId}/forum/{postId}/replies/{replyId}`
+- **Deskripsi:** Pembuat balasan atau guru kelas menghapus sebuah balasan.
+- **Response 200 OK:** `{ "success": true, "message": "Forum reply deleted" }`
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND`.
 
 #### `GET /classes/{classId}/students`
@@ -1024,8 +1069,8 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-08:** Optimasi query leaderboard terindeks dengan cache Redis opsional.
 - [x] **BE-09:** Integrasi penyimpanan cloud (S3 / R2) untuk unggah avatar dan foto sampah.
 - [x] **BE-10:** Pengujian otomatis dengan rangkaian uji Go (unit dan end to end) yang memeriksa setiap respons terhadap `openapi.yaml`.
-- [x] **BE-11:** Pembuatan endpoint video pembelajaran kelas (daftar dan tambah lewat alamat https).
-- [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan.
+- [x] **BE-11:** Pembuatan endpoint video pembelajaran kelas (daftar, tambah lewat alamat https, ubah dan hapus).
+- [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan, termasuk mengubah dan menghapusnya.
 - [x] **BE-13:** Pembuatan endpoint kelas guru (daftar, buat dan detail), daftar peserta kelas, profil guru, profil anak dan statistik sampah.
 - [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https.
 - [ ] **BE-15:** Reset papan peringkat di awal semester (BR-03).
