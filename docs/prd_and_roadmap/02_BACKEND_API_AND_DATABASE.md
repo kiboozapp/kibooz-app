@@ -384,7 +384,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 #### `GET /wali/dashboard`
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `studentId=<uuid>` opsional, untuk wali yang memiliki lebih dari satu anak. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
-- **Response 200 OK:**
+- **Response 200 OK:** `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`.
 ```json
 {
   "success": true,
@@ -392,13 +392,13 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "student": {
       "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
       "fullName": "Amelia Siti Zahra",
-      "className": "Kelas A • TK Pertiwi Harapan Bangsa",
+      "className": "Class A • TK Pertiwi Harapan Bangsa",
       "avatarUrl": "https://kibooz-media.syafahadyan.com/avatars/amelia.png",
       "nisn": "3124567890"
     },
     "todayMood": {
       "moodType": "BINGUNG",
-      "label": "Ragu / Perlu Pendampingan",
+      "label": "Unsure / Needs Support",
       "confidence": 0.88,
       "recordedAt": "2026-10-04T08:15:00Z",
       "teacherNotes": "Amelia sempat ragu saat berpisah di gerbang, namun ceria saat sesi mewarnai."
@@ -411,8 +411,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     },
     "recommendedGuidance": {
       "id": "guidance-bingung-4step",
-      "title": "Berikan Rasa Aman Pada Anak",
-      "category": "Bingung / Ragu",
+      "title": "Give Your Child a Sense of Safety",
+      "category": "Confused / Unsure",
       "bannerUrl": "https://kibooz-media.syafahadyan.com/guidance/banner_aman.png"
     }
   }
@@ -457,7 +457,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     },
     "classOverview": {
       "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
-      "className": "Kelas A (Mawar)",
+      "className": "Class A (Mawar)",
       "joinCode": "KBZ4829",
       "totalStudents": 24,
       "presentStudents": 22,
