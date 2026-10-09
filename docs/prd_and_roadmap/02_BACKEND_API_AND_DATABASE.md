@@ -12,7 +12,7 @@ Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful A
 - **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil, foto bukti scan sampah dan video kelas. Video diunggah langsung ke bucket lewat alamat bertanda tangan, bukan melalui API. Unggahan nonaktif sampai konfigurasi S3 lengkap.
 - **Protokol Komunikasi:** RESTful JSON melalui HTTPS dengan header `Authorization: Bearer <JWT>`. Semua respons memakai satu amplop dan semua pesan berbahasa Inggris, sehingga klien bercabang pada `errorCode` dan tidak pada teks pesan.
 - **Alamat Layanan:** `https://kibooz-api.syafahadyan.com/api/v1`. Dokumentasi interaktif ada di `https://docs.kibooz.syafahadyan.com` dan dibangun dari `openapi.yaml` di repositori backend (`SyafaHadyan/kibooz-backend`), yang menjadi acuan jika ada perbedaan dengan dokumen ini.
-- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan. Guru kelas dapat mengubah dan menghapus video, dan pembuat postingan forum dapat mengubah postingannya sendiri.
+- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan. Guru kelas dapat mengubah dan menghapus video, dan pembuat postingan forum dapat mengubah postingannya sendiri. Berkas video yang diunggah menunggu di folder sementara sampai videonya ditambahkan, dan postingan forum yang diubah penulisnya ditandai dengan `editedAt`.
 
 ## 2. Diagram Relasi Entitas (ERD)
 
@@ -145,6 +145,7 @@ erDiagram
         string title "hanya untuk utas"
         string body
         timestamp created_at
+        timestamp edited_at "kosong sampai penulis mengubah isinya"
     }
 
     REFRESH_TOKENS {
@@ -156,13 +157,13 @@ erDiagram
     }
 ```
 
-Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru, baik tautan ke tempat lain maupun berkas yang diunggah ke bucket. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru.
+Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru, baik tautan ke tempat lain maupun berkas yang diunggah ke bucket. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru. Kolom `forum_posts.edited_at` menandai kapan penulis terakhir mengubah judul atau isi postingan dan kosong untuk postingan yang belum pernah diubah. Berkas video yang baru diunggah menunggu di awalan `pending/` pada bucket dan disalin ke alamat permanennya di `videos/` saat video ditambahkan, sedangkan berkas yang tidak pernah ditambahkan dihapus bucket setelah satu hari.
 
 ---
 
 ## 3. Skema Basis Data Relasional (PostgreSQL DDL)
 
-DDL di bawah ini adalah gabungan migrasi `000001` sampai `000006` dari `internal/infra/db/migrations` di repositori backend. Migrasi tertanam di binary dan dijalankan otomatis saat API mulai. Dibanding rancangan awal, `gen_random_uuid()` menggantikan `uuid_generate_v4()` sehingga tidak perlu ekstensi, dan ada tabel serta kolom tambahan yang dijelaskan di bagian 2.
+DDL di bawah ini adalah gabungan migrasi `000001` sampai `000007` dari `internal/infra/db/migrations` di repositori backend. Migrasi tertanam di binary dan dijalankan otomatis saat API mulai. Dibanding rancangan awal, `gen_random_uuid()` menggantikan `uuid_generate_v4()` sehingga tidak perlu ekstensi, dan ada tabel serta kolom tambahan yang dijelaskan di bagian 2.
 
 ```sql
 -- Initial Kibooz schema following 02_BACKEND_API_AND_DATABASE.md with the addition of
@@ -338,6 +339,10 @@ CREATE INDEX idx_forum_replies_thread ON forum_posts(parent_id, created_at, id) 
 -- 000006 teacher address
 -- A teacher keeps an official address next to the phone number that already lives on the account.
 ALTER TABLE gurus ADD COLUMN address TEXT;
+
+-- 000007 forum edited marker
+-- The time a post was last changed by its author, empty for a post that was never edited.
+ALTER TABLE forum_posts ADD COLUMN edited_at TIMESTAMP WITH TIME ZONE;
 ```
 
 ---
@@ -871,7 +876,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 ```
 
 #### `POST /classes/{classId}/videos`
-- **Deskripsi:** Guru kelas menambahkan video. Videonya berupa alamat https yang diputar aplikasi. Untuk berkas hasil rekaman guru, minta alamat unggah dulu lewat `POST /classes/{classId}/videos/upload-url`, kirim berkasnya, lalu tambahkan video dengan `videoUrl` dari jawaban itu. Berkasnya harus sudah sampai, milik kelas ini dan berupa video yang diterima.
+- **Deskripsi:** Guru kelas menambahkan video. Videonya berupa alamat https yang diputar aplikasi. Untuk berkas hasil rekaman guru, minta alamat unggah dulu lewat `POST /classes/{classId}/videos/upload-url`, kirim berkasnya, lalu tambahkan video dengan `videoUrl` dari jawaban itu. Berkasnya harus sudah sampai, milik kelas ini dan berupa video yang diterima. Berkas itu menunggu di folder sementara, dan saat video ditambahkan berkasnya disalin ke alamat permanen yang menjadi `videoUrl` pada video yang dikembalikan. Karena itu putar video dari alamat yang dikembalikan dan bukan dari alamat unggahan. Berkas sementara hanya dapat ditambahkan sekali. Alamat permanen boleh ditambahkan lagi untuk berbagi satu berkas antar video di kelas yang sama.
 - **Request Body:** `title` dan `videoUrl` wajib. `videoUrl` dan `thumbnailUrl` harus alamat https tanpa spasi dan tanpa nama pengguna. `durationSeconds` bernilai 1 sampai 86400.
 ```json
 {
@@ -883,10 +888,10 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 }
 ```
 - **Response 201 Created:** `message` bernilai `Learning video added` dan `data` berisi satu video seperti pada daftar di atas.
-- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk berkas unggahan yang belum sampai, milik kelas lain atau bukan video), `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `502` `STORAGE_ERROR` jika bucket gagal dihubungi.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk berkas unggahan yang belum sampai, sudah pernah ditambahkan, milik kelas lain atau bukan video), `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `502` `STORAGE_ERROR` jika bucket gagal dihubungi.
 
 #### `POST /classes/{classId}/videos/upload-url`
-- **Deskripsi:** Guru kelas meminta alamat bertanda tangan untuk mengunggah satu berkas video langsung ke bucket. Berkas besar tidak melewati API, sehingga batas ukuran permintaan tidak berlaku. Bucket menolak berkas yang ukuran atau jenisnya berbeda dari yang diumumkan.
+- **Deskripsi:** Guru kelas meminta alamat bertanda tangan untuk mengunggah satu berkas video langsung ke bucket. Berkas besar tidak melewati API, sehingga batas ukuran permintaan tidak berlaku. Bucket menolak berkas yang ukuran atau jenisnya berbeda dari yang diumumkan. Berkas disimpan sementara di bawah `pending/` dan dihapus bucket setelah satu hari jika videonya tidak pernah ditambahkan.
 - **Request Body:** `contentType` bernilai `video/mp4` atau `video/webm`, dan `sizeBytes` adalah ukuran persis berkas (paling besar `VIDEO_MAX_MB`, bawaan 100 MB).
 ```json
 {
@@ -894,16 +899,16 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
   "sizeBytes": 48211340
 }
 ```
-- **Response 200 OK:** `message` bernilai `Upload URL created`. Aplikasi mengirim `PUT` berisi berkas ke `uploadUrl` sebelum `expiresAt` (bawaan 15 menit), hanya dengan header dari `headers`, lalu menambahkan video dengan `videoUrl`.
+- **Response 200 OK:** `message` bernilai `Upload URL created`. Aplikasi mengirim `PUT` berisi berkas ke `uploadUrl` sebelum `expiresAt` (bawaan 15 menit), hanya dengan header dari `headers`, lalu menambahkan video dengan `videoUrl`, yaitu alamat sementara berkas itu. Video yang ditambahkan mengembalikan alamat permanennya.
 ```json
 {
   "success": true,
   "message": "Upload URL created",
   "data": {
-    "uploadUrl": "https://<bucket-endpoint>/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4?X-Amz-Signature=...",
+    "uploadUrl": "https://<bucket-endpoint>/pending/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4?X-Amz-Signature=...",
     "method": "PUT",
     "headers": { "Content-Type": "video/mp4" },
-    "videoUrl": "https://kibooz-media.syafahadyan.com/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4",
+    "videoUrl": "https://kibooz-media.syafahadyan.com/pending/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4",
     "expiresAt": "2026-10-09T09:15:00Z"
   }
 }
@@ -929,7 +934,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `VIDEO_NOT_FOUND`.
 
 #### `GET /classes/{classId}/forum`
-- **Deskripsi:** Utas forum kelas, dari yang terbaru. `author.id` adalah id akun penulis, sehingga aplikasi dapat menandai postingan sendiri dengan membandingkannya dengan id pengguna yang masuk. Akun yang sudah dihapus tampil dengan nama `Deleted account` tanpa foto.
+- **Deskripsi:** Utas forum kelas, dari yang terbaru. `author.id` adalah id akun penulis, sehingga aplikasi dapat menandai postingan sendiri dengan membandingkannya dengan id pengguna yang masuk. Akun yang sudah dihapus tampil dengan nama `Deleted account` tanpa foto. `editedAt` berisi waktu terakhir penulis mengubah judul atau isinya dan bernilai `null` untuk utas yang belum pernah diubah, sehingga aplikasi dapat menampilkan label "diedit". Balasan memiliki `editedAt` yang sama.
 - **Response 200 OK:**
 ```json
 {
@@ -947,7 +952,8 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
           "avatarUrl": null
         },
         "replyCount": 2,
-        "createdAt": "2026-10-08T09:30:00Z"
+        "createdAt": "2026-10-08T09:30:00Z",
+        "editedAt": null
       }
     ],
     "page": 1,
@@ -970,7 +976,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - **Kegagalan:** `400` `VALIDATION_ERROR` dan `403` `AUTH_FORBIDDEN`.
 
 #### `PATCH /classes/{classId}/forum/{postId}`
-- **Deskripsi:** Pembuat sebuah utas mengubah judul atau isinya. Hanya pembuatnya yang boleh, guru kelas pun tidak. Kolom yang tidak dikirim dibiarkan apa adanya.
+- **Deskripsi:** Pembuat sebuah utas mengubah judul atau isinya. Hanya pembuatnya yang boleh, guru kelas pun tidak. Kolom yang tidak dikirim dibiarkan apa adanya. `editedAt` terisi waktu perubahan hanya jika judul atau isinya benar-benar berbeda, sehingga simpan tanpa perubahan tidak menandai utas sebagai diedit.
 - **Request Body:** `title` (maksimal 150 karakter) dan atau `body` (maksimal 5000 karakter), tidak boleh hanya berisi spasi, dan paling sedikit satu kolom.
 ```json
 {
@@ -1002,7 +1008,8 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
           "role": "WALI",
           "avatarUrl": null
         },
-        "createdAt": "2026-10-08T09:45:00Z"
+        "createdAt": "2026-10-08T09:45:00Z",
+        "editedAt": null
       }
     ],
     "page": 1,
@@ -1020,7 +1027,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND`.
 
 #### `PATCH /classes/{classId}/forum/{postId}/replies/{replyId}`
-- **Deskripsi:** Pembuat sebuah balasan mengubah isinya. `postId` adalah utas tempat balasan itu berada, dan hanya pembuatnya yang boleh mengubah.
+- **Deskripsi:** Pembuat sebuah balasan mengubah isinya. `postId` adalah utas tempat balasan itu berada, dan hanya pembuatnya yang boleh mengubah. `editedAt` terisi waktu perubahan hanya jika isinya benar-benar berbeda.
 - **Request Body:** `{ "body": "Baik, akan saya siapkan dua." }` dengan `body` wajib (maksimal 5000 karakter) dan tidak boleh hanya berisi spasi.
 - **Response 200 OK:** `message` bernilai `Forum reply updated` dan `data` berisi satu balasan seperti pada daftar balasan.
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND` jika balasan itu bukan milik utas dan kelas pada alamat tersebut.
@@ -1070,7 +1077,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-09:** Integrasi penyimpanan cloud (S3 / R2) untuk unggah avatar dan foto sampah.
 - [x] **BE-10:** Pengujian otomatis dengan rangkaian uji Go (unit dan end to end) yang memeriksa setiap respons terhadap `openapi.yaml`.
 - [x] **BE-11:** Pembuatan endpoint video pembelajaran kelas (daftar, tambah lewat alamat https, ubah dan hapus).
-- [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan, termasuk mengubah dan menghapusnya.
+- [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan, termasuk mengubah, menghapus dan penanda `editedAt` pada postingan yang diubah.
 - [x] **BE-13:** Pembuatan endpoint kelas guru (daftar, buat dan detail), daftar peserta kelas, profil guru, profil anak dan statistik sampah.
-- [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https.
+- [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https. Berkas menunggu di `pending/` dan disalin ke `videos/` saat video ditambahkan.
 - [ ] **BE-15:** Reset papan peringkat di awal semester (BR-03).
