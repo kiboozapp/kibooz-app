@@ -84,6 +84,7 @@ erDiagram
         string full_name
         string avatar_url
         integer current_points
+        integer season_points
         integer rank_position
         timestamp created_at
         timestamp deleted_at
@@ -343,6 +344,38 @@ ALTER TABLE gurus ADD COLUMN address TEXT;
 -- 000007 forum edited marker
 -- The time a post was last changed by its author, empty for a post that was never edited.
 ALTER TABLE forum_posts ADD COLUMN edited_at TIMESTAMP WITH TIME ZONE;
+
+-- 000008 to 000010 are not listed here: a video url index, refresh token families and eight character join codes.
+
+-- 000011 file cleanups
+-- A file that could not be removed from the bucket when its owner deleted the account waits here until a later try works.
+CREATE TABLE file_cleanups (
+    object_key TEXT PRIMARY KEY,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    queued_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    next_try_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+-- 000012 semester leaderboard
+-- The leaderboard ranks season_points, and current_points keeps the points of all semesters.
+ALTER TABLE students ADD COLUMN season_points INTEGER NOT NULL DEFAULT 0 CHECK (season_points >= 0);
+CREATE INDEX idx_students_class_season_points ON students(class_id, season_points DESC, full_name, id);
+
+CREATE TABLE leaderboard_seasons (
+    label TEXT PRIMARY KEY,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
+
+CREATE TABLE leaderboard_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id UUID NOT NULL REFERENCES classes(id),
+    student_id UUID NOT NULL,
+    student_name VARCHAR(150) NOT NULL,
+    season_label TEXT NOT NULL,
+    points INTEGER NOT NULL,
+    rank_position INTEGER NOT NULL,
+    recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 ```
 
 ---
@@ -361,6 +394,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
 
+**Poin semester.** Setiap anak punya `totalPoints` atau `currentPoints` untuk poin dari semua semester, dan `seasonPoints` untuk poin semester yang sedang berjalan. Papan peringkat dan `classRank` mengikuti `seasonPoints`. Pada hari pertama bulan awal semester (Januari dan Juli secara bawaan, diatur oleh `SEMESTER_START_MONTHS`) pukul 00.00 zona waktu server, `seasonPoints` semua anak kembali ke 0 dan peringkat dihitung ulang, sedangkan `totalPoints` tetap. Server menyimpan peringkat akhir semester yang berakhir di tabel `leaderboard_history`, dan belum ada rute untuk membacanya. Pemeriksaan kalender berjalan setiap menit, sehingga poin yang masuk dalam semenit setelah pergantian semester mungkin masih dihitung ke semester yang berakhir.
+
 **Kode kesalahan.**
 
 | `errorCode` | Arti |
@@ -373,6 +408,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun |
 | `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar |
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas |
+| `CHILD_LIMIT_REACHED` | Wali sudah memiliki 10 anak, jumlah terbanyak |
+| `TEACHER_NOT_FOUND`, `TEACHER_ALREADY_IN_CLASS` | Tidak ada akun guru dengan email itu, atau guru itu sudah mengajar kelas ini |
 | `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
@@ -480,6 +517,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     },
     "pointsSummary": {
       "totalPoints": 340,
+      "seasonPoints": 120,
       "classRank": 2,
       "organicCount": 28,
       "anorganicCount": 20
@@ -495,7 +533,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 
 #### `POST /wali/guidance/apply`
-- **Deskripsi:** Konfirmasi penerapan panduan penanganan emosi oleh wali. Penerapan disimpan di tabel `guidance_applications` dan diteruskan ke guru kelas.
+- **Deskripsi:** Konfirmasi penerapan panduan penanganan emosi oleh wali. Penerapan disimpan di tabel `guidance_applications` dan dibaca guru kelas lewat `GET /classes/{classId}/guidance-reports`.
 - **Request Body:**
 ```json
 {
@@ -508,7 +546,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```json
 {
   "success": true,
-  "message": "Handling status forwarded to the class teacher"
+  "message": "Handling status recorded"
 }
 ```
 - **Kegagalan:** `404` `STUDENT_NOT_FOUND` atau `GUIDANCE_NOT_FOUND`.
@@ -531,6 +569,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "schoolName": "TK Pertiwi Harapan Bangsa",
     "academicYear": "2026/2027",
     "currentPoints": 340,
+    "seasonPoints": 120,
     "classRank": 2,
     "guardian": {
       "fullName": "Sarah Kartika",
@@ -543,6 +582,39 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID dan `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali.
+
+#### `GET /wali/children`
+- **Deskripsi:** Daftar anak milik wali yang masuk, yang terdaftar paling awal di urutan pertama. `id` dipakai sebagai `studentId` pada rute lain yang menerimanya, seperti `GET /wali/dashboard`.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "children": [
+      {
+        "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
+        "fullName": "Amelia Siti Zahra",
+        "nisn": "3124567890",
+        "avatarUrl": null,
+        "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+        "className": "Mawar"
+      }
+    ]
+  }
+}
+```
+
+#### `POST /wali/children`
+- **Deskripsi:** Mendaftarkan satu anak lagi untuk wali yang masuk di kelas pemilik `classCode`, yang boleh berbeda dari kelas anak pertama. Satu wali dapat memiliki sampai 10 anak. Rute ini memakai anggaran tebakan kode kelas yang sama dengan registrasi (`CLASS_CODE_LIMITER_MAX` untuk seluruh API), sehingga dapat menjawab `429` ketika banyak kode sedang dicoba.
+- **Request Body:**
+```json
+{
+  "classCode": "K7M2QX4R",
+  "student": { "nisn": "3124567891", "fullName": "Budi Santoso" }
+}
+```
+- **Response 201 Created:** `message` bernilai `Child added` dan `data` berisi satu anak dengan bentuk yang sama seperti isi `children` di atas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `NISN_ALREADY_REGISTERED`, `CLASS_NO_ACTIVE_TEACHER` atau `CHILD_LIMIT_REACHED`, dan `429` `RATE_LIMITED`.
 
 ---
 
@@ -680,6 +752,33 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Catatan rilis 0.7.0:** kode bergabung kini terdiri dari 8 karakter, dan migrasi pada rilis itu mengganti setiap kode 6 karakter yang sudah ada dengan kode baru. Kode lama berhenti berlaku, sehingga guru perlu membagikan kode baru. Aplikasi selalu membaca `joinCode` dari dashboard dan tidak menyimpannya sendiri.
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu, dan `429` `RATE_LIMITED`.
 
+#### `GET /guru/classes/{classId}/teachers`
+- **Deskripsi:** Daftar guru yang mengajar sebuah kelas milik guru yang masuk, guru yang bergabung paling awal di urutan pertama.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "teachers": [
+      {
+        "id": "7a2f5c1e-3b44-4c8d-9d0e-5f6a7b8c9d0e",
+        "fullName": "Siti Rahayu, S.Pd.",
+        "nip": "198001012005012001",
+        "avatarUrl": null,
+        "joinedAt": "2026-10-01T07:00:00Z"
+      }
+    ]
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, dan `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu.
+
+#### `POST /guru/classes/{classId}/teachers`
+- **Deskripsi:** Seorang guru kelas menambahkan guru lain yang sudah terdaftar, dengan email akunnya. Guru yang ditambahkan langsung melihat seluruh kelas, yaitu anak, mood dan forum, sehingga hanya tambahkan orang yang memang berhak. Seorang guru tetap tidak dapat bergabung ke kelas sendiri dengan kode bergabung. Guru belum dapat dikeluarkan dari kelas. Jawaban untuk email yang bukan akun guru sama bagi semua penanya yang sudah lolos akses kelas, dan permintaan dihitung pada batas pengguna.
+- **Request Body:** `{ "email": "budi@example.com" }`
+- **Response 201 Created:** `message` bernilai `Teacher added` dan `data` berisi satu guru dengan bentuk yang sama seperti isi `teachers` di atas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `TEACHER_NOT_FOUND`, dan `409` `TEACHER_ALREADY_IN_CLASS`.
+
 #### `GET /guru/classes/{classId}`
 - **Deskripsi:** Satu kelas milik guru dengan jumlah anak, video pembelajaran dan utas forum. Layar detail kelas memakai jumlah ini sebagai ringkasan aktivitas.
 - **Response 200 OK:** semua kolom satu kelas dari daftar di atas ditambah dua kolom.
@@ -773,6 +872,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "data": {
     "pointsAdded": 15,
     "totalPoints": 355,
+    "seasonPoints": 135,
     "newRank": 2,
     "remainingDailyScans": 4
   }
@@ -799,7 +899,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   }
 }
 ```
-- Hasil disimpan di cache selama `LEADERBOARD_CACHE_SECONDS` (300 detik) dan cache dihapus setiap kali peringkat berubah. Reset peringkat di awal semester (BR-03) belum otomatis.
+- `points` adalah poin semester yang sedang berjalan (`seasonPoints`), dan peringkat mengikuti poin itu. Hasil disimpan di cache selama `LEADERBOARD_CACHE_SECONDS` (300 detik) dan cache dihapus setiap kali peringkat berubah, termasuk saat semester baru dimulai.
 
 #### `GET /trash/stats`
 - **Deskripsi:** Statistik pemilahan sampah seorang anak. Hanya untuk wali.
@@ -811,6 +911,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "data": {
     "student": { "id": "c4b3a981-5502-4f32-8231-10c970a03bd7", "fullName": "Amelia Siti Zahra" },
     "totalPoints": 340,
+    "seasonPoints": 120,
     "classRank": 2,
     "totalScans": 48,
     "breakdown": [
@@ -848,8 +949,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.7.0", "checks": { "database": "ok", "redis": "ok", "storage": "disabled" } }`
-- `status` bernilai `degraded` jika hanya Redis yang mati (tetap `200`) dan `down` dengan `503` jika basis data mati. Nilai `storage` `disabled` berarti konfigurasi S3 belum lengkap dan tidak memengaruhi `status`.
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.8.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
 
@@ -1058,6 +1159,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
         "nisn": "3124567890",
         "avatarUrl": null,
         "currentPoints": 340,
+        "seasonPoints": 120,
         "classRank": 2,
         "todayMood": "SENANG"
       }
@@ -1068,6 +1170,33 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
   }
 }
 ```
+
+#### `GET /classes/{classId}/guidance-reports`
+- **Deskripsi:** Panduan penanganan emosi yang diterapkan wali untuk anak di kelas ini, laporan terbaru di urutan pertama. Laporan dibuat ketika wali memanggil `POST /wali/guidance/apply`, sehingga guru tahu bahwa penanganan sedang berjalan. Hanya untuk guru kelas itu.
+- **Response 200 OK:** `parentNotes` bernilai `null` jika wali tidak menulis catatan.
+```json
+{
+  "success": true,
+  "data": {
+    "reports": [
+      {
+        "id": "5d8c3a2e-1f4b-4a6c-8e7d-9b0a1c2d3e4f",
+        "studentId": "c4b3a981-5502-4f32-8231-10c970a03bd7",
+        "studentName": "Amelia Siti Zahra",
+        "guidanceId": "guidance-bingung-4step",
+        "guidanceTitle": "Give Your Child a Sense of Safety",
+        "category": "Confused / Unsure",
+        "parentNotes": "Sudah diajak berbicara pelan di rumah, Amelia sudah tenang dan siap sekolah besok.",
+        "appliedAt": "2026-10-04T18:30:00Z"
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk wali dan guru kelas lain, dan `401` tanpa token.
 
 ---
 
@@ -1087,4 +1216,6 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan, termasuk mengubah, menghapus dan penanda `editedAt` pada postingan yang diubah.
 - [x] **BE-13:** Pembuatan endpoint kelas guru (daftar, buat dan detail), daftar peserta kelas, profil guru, profil anak dan statistik sampah.
 - [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https. Berkas menunggu di `pending/` dan disalin ke `videos/` saat video ditambahkan.
-- [ ] **BE-15:** Reset papan peringkat di awal semester (BR-03).
+- [x] **BE-15:** Reset papan peringkat di awal semester (BR-03), otomatis pada bulan awal semester dengan poin semester terpisah dari poin seluruh semester.
+- [x] **BE-16:** Daftar dan tambah anak untuk wali, daftar dan tambah guru untuk kelas, dan laporan panduan untuk guru.
+- [x] **BE-17:** Pemeriksaan tulis penyimpanan pada `/healthz` dan antrean penghapusan berkas akun yang dihapus.

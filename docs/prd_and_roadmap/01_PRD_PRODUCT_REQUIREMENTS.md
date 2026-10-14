@@ -123,5 +123,5 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 
 1. **BR-01 Batas Klaim Poin Harian:** Siswa dapat mengklaim poin pilah sampah maksimal 5 kali per hari. Batasan ini mencegah eksploitasi poin buatan.
 2. **BR-02 Hak Akses Data Emosi:** Guru kelas dan wali murid berhak melihat data emosi siswa terkait. Guru atau wali lain tidak memiliki izin akses riwayat ini.
-3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru. Pengaturan ulang otomatis ini belum dibangun di backend.
+3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru, yaitu pada hari pertama bulan awal semester (Januari dan Juli secara bawaan). Yang kembali ke nol adalah poin semester (`seasonPoints`) yang dipakai papan peringkat, sedangkan poin seluruh semester (`totalPoints`) tetap pada anak. Peringkat akhir semester yang berakhir disimpan di server.
 4. **BR-04 Konfirmasi Deteksi AI di Bawah Ambang Batas:** Skor keyakinan (*confidence score*) AI minimal 75%. Jika hasil di bawah 75%, sistem menampilkan dialog konfirmasi manual kepada pengguna. Langkah ini mencegah salah catat data.
