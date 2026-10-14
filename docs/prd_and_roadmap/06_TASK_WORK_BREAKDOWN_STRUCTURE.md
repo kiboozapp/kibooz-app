@@ -100,7 +100,9 @@ graph TD
 | **BE-12** | API Forum Diskusi Kelas | 5 SP (2 hari) | BE-05 | Endpoint utas dan balasan di `/api/v1/classes/{classId}/forum`, termasuk mengubah dan menghapusnya, dengan penanda `editedAt` pada postingan yang diubah. |
 | **BE-13** | API Kelas, Peserta, Profil & Statistik | 8 SP (3 hari) | BE-05 | Endpoint `/api/v1/guru/classes`, `/api/v1/guru/profile`, `/api/v1/classes/{classId}/students`, `/api/v1/wali/child/{studentId}` dan `/api/v1/trash/stats`. |
 | **BE-14** | Unggah Berkas Video | 5 SP (2 hari) | BE-09, BE-11 | Endpoint `POST /api/v1/classes/{classId}/videos/upload-url` untuk unggah langsung ke bucket lewat alamat bertanda tangan. Berkas menunggu di folder sementara dan disalin ke alamat permanen saat video ditambahkan. |
-| **BE-15** | Reset Papan Peringkat Semester | 3 SP (1 hari) | BE-08 | Pengaturan ulang peringkat otomatis di awal semester (BR-03), belum dikerjakan. |
+| **BE-15** | Reset Papan Peringkat Semester | 3 SP (1 hari) | BE-08 | Pengaturan ulang peringkat otomatis di awal semester (BR-03) dengan `season_points` terpisah dari `current_points` dan riwayat peringkat akhir, selesai. |
+| **BE-16** | Anak Tambahan, Guru Tambahan & Laporan Panduan | 5 SP (2 hari) | BE-13 | Rute `GET` dan `POST /wali/children`, `GET` dan `POST /guru/classes/{classId}/teachers`, dan `GET /classes/{classId}/guidance-reports`, selesai. |
+| **BE-17** | Pemeriksaan Penyimpanan & Antrean Hapus Berkas | 3 SP (1 hari) | BE-09 | Pemeriksaan tulis bucket pada `/healthz` dan antrean penghapusan berkas akun yang dihapus, selesai. |
 ---
 
 ### 3.2 Track 2: Frontend Guru & Kamera (Engineer B)
@@ -114,6 +116,7 @@ graph TD
 | **FE-G05** | Wiring Ruang Kelas & Roster Siswa | 5 SP (2 hari) | BE-06, BE-13 | `RuangKelasGuruActivity` dan `PesertaKelasActivity` fungsional dengan dialog input mood. |
 | **FE-G06** | Integrasi CameraX & Analyzer Mood | 8 SP (3 hari) | ML-02 | `CameraScanMoodActivity` menjalankan `MoodAnalysisAnalyzer` dan mengunci emosi anak. |
 | **FE-G07** | Wiring Video & Forum Edukasi | 3 SP (1 hari) | BE-11, BE-12 | Pemutar video `VideoPembelajaranActivity` yang memutar dari alamat permanen hasil tambah video, dan recycler view `ForumDiskusiActivity` dengan label "diedit" saat `editedAt` tidak `null`. |
+| **FE-G08** | Wiring Laporan Panduan & Guru Kelas | 3 SP (1 hari) | BE-16 | Layar daftar laporan panduan dari `GET /classes/{classId}/guidance-reports` dengan nama anak, judul panduan, catatan wali dan waktu, serta dialog tambah guru dengan email lewat `POST /guru/classes/{classId}/teachers` yang menampilkan `TEACHER_NOT_FOUND` dan `TEACHER_ALREADY_IN_CLASS`. |
 
 ---
 
@@ -130,6 +133,8 @@ graph TD
 | **FE-W07** | Formulir Edit Profil Siswa & Wali | 3 SP (1 hari) | BE-04 | `EditProfilSiswaActivity` dengan validasi NISN, nomor telepon, dan simpan data. |
 | **FE-W08** | Unggah Foto yang Diperkecil | 3 SP (1 hari) | BE-09 | Pembantu bersama yang memperkecil sisi terpanjang foto menjadi sekitar 1600 piksel, menyimpannya sebagai JPEG berkualitas 80 dan memeriksa ukurannya terhadap batas 2 MiB untuk foto profil dan 4 MiB untuk foto sampah, lalu menurunkan dimensi atau kualitas bila melebihi. Menampilkan pesan untuk `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE` dan `FILE_TOO_LARGE`. Dipakai oleh profil guru, `FE-W07` dan `FE-W06`. |
 | **FE-W09** | Foto Kecil dari Host Media | 2 SP (1 hari) | FE-W08 | Menambah pustaka pemuat gambar dan pemuat yang menyusun alamat `/cdn-cgi/image/` dengan `width` 128 atau 256, `quality=80`, `format=webp` dan `onerror=redirect` untuk foto profil pada daftar (leaderboard, roster, forum). Hanya untuk host `kibooz-media`, dengan foto asli sebagai cadangan. |
+| **FE-W10** | Poin Semester & Seluruh Semester | 2 SP (1 hari) | BE-15 | Leaderboard dan peringkat memakai `seasonPoints` dan layar profil serta statistik menampilkan `totalPoints` sebagai poin seluruh semester, dengan keterangan bahwa peringkat mulai dari nol di awal semester. |
+| **FE-W11** | Pilih & Tambah Anak | 3 SP (1 hari) | BE-16 | Pemilih anak dari `GET /wali/children` yang mengirim `studentId` ke rute lain, dan formulir tambah anak dengan kode kelas lewat `POST /wali/children` yang menampilkan `CHILD_LIMIT_REACHED`, `NISN_ALREADY_REGISTERED` dan `CLASS_CODE_NOT_FOUND`. |
 
 ---
 
