@@ -375,7 +375,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas |
 | `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
-| `INVALID_IMAGE`, `FILE_TOO_LARGE` | Berkas bukan gambar atau terlalu besar |
+| `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
 | `STORAGE_UNAVAILABLE`, `STORAGE_ERROR` | Penyimpanan berkas belum diatur atau gagal |
 | `RATE_LIMITED` | Batas laju terlewati |
 
@@ -384,7 +384,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.1 Autentikasi (`/auth`)
 
 #### `POST /auth/register`
-- **Deskripsi:** Membuat akun. Seorang GURU mendaftar dengan kelas baru dan seorang WALI bergabung dengan kode kelas. Mengetahui kode kelas tidak pernah memberi akses sebagai guru.
+- **Deskripsi:** Membuat akun. Seorang GURU mendaftar dengan kelas baru dan seorang WALI bergabung dengan kode kelas. Mengetahui kode kelas tidak pernah memberi akses sebagai guru. Kode kelas terdiri dari 8 karakter huruf besar dan angka, tanpa huruf `I` dan `O` serta angka `0` dan `1` agar tidak tertukar saat dibaca atau disalin.
 - **Request Body (WALI):**
 ```json
 {
@@ -392,13 +392,13 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "password": "PasswordRahasia123!",
   "fullName": "Sarah Kartika, S.Pd.",
   "role": "WALI",
-  "classCode": "KBZ4829",
+  "classCode": "KBZ48R2M",
   "student": { "nisn": "3124567890", "fullName": "Amelia Siti Zahra" }
 }
 ```
 - **Request Body (GURU):** `email`, `password`, `fullName`, `role: "GURU"`, `nip` dan `schoolName` yang opsional, serta `class` berisi `name` (wajib), `gradeLevel`, `academicYear` dan `schoolName`.
 - **Response 201 Created:** sama dengan respons login di bawah, dengan `message` `Registration successful`.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND` atau `CLASS_NO_ACTIVE_TEACHER`, `409` untuk email, NIP atau NISN yang sudah terdaftar.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND` atau `CLASS_NO_ACTIVE_TEACHER`, `409` untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk seluruh API dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`.
 
 #### `POST /auth/login`
 - **Deskripsi:** Masuk ke akun sebagai Guru atau Wali Murid.
@@ -564,7 +564,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "classOverview": {
       "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
       "className": "Class A (Mawar)",
-      "joinCode": "KBZ4829",
+      "joinCode": "KBZ48R2M",
       "totalStudents": 24,
       "presentStudents": 22,
       "dominantMood": "SENANG"
@@ -649,7 +649,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
         "gradeLevel": "Class A",
         "schoolName": "TK Pertiwi Harapan Bangsa",
         "academicYear": "2026/2027",
-        "joinCode": "K7ZH2M",
+        "joinCode": "K7ZH2MQ4",
         "totalStudents": 24,
         "createdAt": "2026-10-01T07:00:00Z"
       }
@@ -686,7 +686,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "gradeLevel": "Class A",
     "schoolName": "TK Pertiwi Harapan Bangsa",
     "academicYear": "2026/2027",
-    "joinCode": "K7ZH2M",
+    "joinCode": "K7ZH2MQ4",
     "totalStudents": 24,
     "createdAt": "2026-10-01T07:00:00Z",
     "totalVideos": 3,
@@ -749,7 +749,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.4 Gamifikasi dan Poin Sampah (`/trash` dan `/leaderboard`)
 
 #### `POST /trash/scan-claim`
-- **Deskripsi:** Klaim poin setelah melakukan pemindaian objek sampah. Poin per klaim adalah 10 untuk ORGANIK, 15 untuk ANORGANIK dan 0 untuk B3 (nilai bawaan yang dapat diatur), dengan batas 5 klaim per anak per hari. `photoBase64` bersifat opsional (base64 atau data URI, paling besar 4 MiB setelah didekode).
+- **Deskripsi:** Klaim poin setelah melakukan pemindaian objek sampah. Poin per klaim adalah 10 untuk ORGANIK, 15 untuk ANORGANIK dan 0 untuk B3 (nilai bawaan yang dapat diatur), dengan batas 5 klaim per anak per hari. `photoBase64` bersifat opsional (base64 atau data URI, paling besar 4 MiB setelah didekode, dan aplikasi memperkecilnya dulu seperti foto profil).
 - **Request Body:**
 ```json
 {
@@ -772,7 +772,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   }
 }
 ```
-- **Kegagalan:** `429` `TRASH_DAILY_LIMIT_REACHED` ketika batas harian anak sudah tercapai.
+- **Kegagalan:** `400` `INVALID_IMAGE` atau `IMAGE_DIMENSIONS_TOO_LARGE` untuk foto yang tidak valid, dan `429` `TRASH_DAILY_LIMIT_REACHED` ketika batas harian anak sudah tercapai.
 
 #### `GET /leaderboard`
 - **Query Params:** `classId=<uuid>` opsional.
@@ -826,9 +826,9 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /users/avatar`
 - **Deskripsi:** Mengunggah foto profil pengguna, atau foto seorang anak jika `studentId` diisi oleh wali pemiliknya.
-- **Request:** `multipart/form-data` dengan kolom `file` (gambar) dan `studentId` (opsional).
+- **Request:** `multipart/form-data` dengan kolom `file` (gambar) dan `studentId` (opsional). Server tidak memperkecil atau mengompres gambar, sehingga aplikasi memperkecil foto sebelum mengunggah, sekitar 1600 piksel pada sisi terpanjang dengan kualitas JPEG 80. Server menolak gambar yang lebih dari 40 megapiksel atau yang sisinya lebih dari 8192 piksel.
 - **Response 200 OK:** `{ "success": true, "message": "Profile photo updated", "data": { "avatarUrl": "https://kibooz-media.syafahadyan.com/avatars/..." } }`
-- **Kegagalan:** `400` `INVALID_IMAGE`, `413` `FILE_TOO_LARGE`, `503` `STORAGE_UNAVAILABLE`.
+- **Kegagalan:** `400` `INVALID_IMAGE` atau `IMAGE_DIMENSIONS_TOO_LARGE`, `413` `FILE_TOO_LARGE`, `503` `STORAGE_UNAVAILABLE`.
 
 #### `DELETE /users/me`
 - **Deskripsi:** Menghapus akun sendiri. Akun dan data anak disembunyikan dengan `deleted_at`, sehingga email, NIP dan NISN dapat dipakai lagi setelahnya.
