@@ -58,7 +58,7 @@ Fondasi antarmuka dan komponen dasar sudah siap di repositori utama:
   - Model TensorFlow Lite berjalan langsung pada CameraX ImageAnalysis.
   - Deteksi mood wajah anak menampilkan klasifikasi emosi (Senang, Sedih, Bingung, Marah).
   - Klasifikasi objek sampah mendeteksi Organik versus Anorganik dengan bounding box aktif.
-  - Fitur video pembelajaran terhubung ke penyimpanan Cloud Storage.
+  - Fitur video pembelajaran memutar video dari alamat https, termasuk berkas yang diunggah guru langsung ke Cloud Storage lewat alamat bertanda tangan.
 
 ### Fase 3: Hardening Produksi dan Pengujian Menyeluruh
 - **Tujuan:** Menjamin keandalan aplikasi pada lingkungan sekolah nyata.

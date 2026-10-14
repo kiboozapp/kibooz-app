@@ -61,7 +61,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 ### FR-2: Portal dan Dashboard Guru
 - **FR-2.1:** Menampilkan ringkasan metrik kelas: jumlah total siswa, persentase kehadiran, dan tren mood kelas.
 - **FR-2.2:** Menyediakan jalan pintas ke Ruang Kelas, Input Mood Manual, dan Kamera Scan AI.
-- **FR-2.3:** Mengelola daftar kelas (tambah kelas, mata pelajaran, dan daftar siswa).
+- **FR-2.3:** Mengelola daftar kelas (tambah kelas dan daftar siswa).
 - **FR-2.4:** Menyediakan akses modul video pembelajaran dan forum diskusi pendidik.
 
 ### FR-3: Visualisasi Analitik Mood
@@ -71,8 +71,9 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-3.4 Interaktivitas Grafik:** Sentuhan pada segmen grafik menampilkan angka detail dan nama kategori emosi.
 
 ### FR-4: Video Pembelajaran dan Forum Diskusi
-- **FR-4.1:** Menampilkan video edukasi anak dengan pemutar media terintegrasi (*Media3 ExoPlayer*).
-- **FR-4.2:** Forum diskusi kelas memfasilitasi pertukaran pesan guru dan wali seputar tumbuh kembang siswa.
+- **FR-4.1:** Menampilkan video edukasi anak dengan pemutar media terintegrasi (*Media3 ExoPlayer*). Video berupa alamat https, baik tautan ke tempat lain maupun berkas yang diunggah guru.
+- **FR-4.2:** Forum diskusi kelas memfasilitasi pertukaran pesan guru dan wali seputar tumbuh kembang siswa, dalam bentuk utas dan balasan. Postingan yang pernah diubah penulisnya diberi label diedit.
+- **FR-4.3:** Guru kelas dapat mengubah dan menghapus video pembelajaran. Pembuat sebuah utas atau balasan dapat mengubahnya, dan pembuatnya atau guru kelas dapat menghapusnya.
 
 ### FR-5: Portal dan Dashboard Wali Murid
 - **FR-5.1:** Menampilkan status mood anak hari ini lengkap dengan catatan guru pendamping.
@@ -122,5 +123,5 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 
 1. **BR-01 Batas Klaim Poin Harian:** Siswa dapat mengklaim poin pilah sampah maksimal 5 kali per hari. Batasan ini mencegah eksploitasi poin buatan.
 2. **BR-02 Hak Akses Data Emosi:** Guru kelas dan wali murid berhak melihat data emosi siswa terkait. Guru atau wali lain tidak memiliki izin akses riwayat ini.
-3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru.
+3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru. Pengaturan ulang otomatis ini belum dibangun di backend.
 4. **BR-04 Konfirmasi Deteksi AI di Bawah Ambang Batas:** Skor keyakinan (*confidence score*) AI minimal 75%. Jika hasil di bawah 75%, sistem menampilkan dialog konfirmasi manual kepada pengguna. Langkah ini mencegah salah catat data.

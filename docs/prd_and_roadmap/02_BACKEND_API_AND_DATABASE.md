@@ -9,10 +9,10 @@ Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful A
 - **Runtime:** Go dengan Fiber v3 dan GORM. Satu binary menjalankan API dan menerapkan migrasi SQL yang tertanam saat mulai.
 - **Basis Data Utama:** PostgreSQL 15 (relasional, ACID untuk pencatatan poin dan log mood). Token refresh juga disimpan di sini dalam bentuk hash SHA-256.
 - **In-Memory Caching:** Redis 7 bersifat opsional. Redis mempercepat penolakan token yang dipakai ulang, batas laju yang dipakai bersama dan cache leaderboard. API tetap berjalan tanpa Redis dan `GET /healthz` melaporkan status `degraded`.
-- **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil dan foto bukti scan sampah. Unggahan nonaktif sampai konfigurasi S3 lengkap.
+- **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil, foto bukti scan sampah dan video kelas. Video diunggah langsung ke bucket lewat alamat bertanda tangan, bukan melalui API. Unggahan nonaktif sampai konfigurasi S3 lengkap.
 - **Protokol Komunikasi:** RESTful JSON melalui HTTPS dengan header `Authorization: Bearer <JWT>`. Semua respons memakai satu amplop dan semua pesan berbahasa Inggris, sehingga klien bercabang pada `errorCode` dan tidak pada teks pesan.
 - **Alamat Layanan:** `https://kibooz-api.syafahadyan.com/api/v1`. Dokumentasi interaktif ada di `https://docs.kibooz.syafahadyan.com` dan dibangun dari `openapi.yaml` di repositori backend (`SyafaHadyan/kibooz-backend`), yang menjadi acuan jika ada perbedaan dengan dokumen ini.
-- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto dan hapus akun. Materi video dan forum diskusi belum ada di backend.
+- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan. Guru kelas dapat mengubah dan menghapus video, dan pembuat postingan forum dapat mengubah postingannya sendiri. Berkas video yang diunggah menunggu di folder sementara sampai videonya ditambahkan, dan postingan forum yang diubah penulisnya ditandai dengan `editedAt`.
 
 ## 2. Diagram Relasi Entitas (ERD)
 
@@ -30,6 +30,11 @@ erDiagram
     STUDENTS ||--o{ GUIDANCE_APPLICATIONS : "penerapan panduan"
     WALIS ||--o{ GUIDANCE_APPLICATIONS : "dikirim oleh wali"
     USERS ||--o{ REFRESH_TOKENS : "sesi masuk"
+    CLASSES ||--o{ LEARNING_VIDEOS : "memiliki materi video"
+    GURUS ||--o{ LEARNING_VIDEOS : "menambahkan video"
+    CLASSES ||--o{ FORUM_POSTS : "memiliki forum diskusi"
+    USERS ||--o{ FORUM_POSTS : "menulis postingan"
+    FORUM_POSTS ||--o{ FORUM_POSTS : "dibalas oleh"
 
     USERS {
         uuid id PK
@@ -49,6 +54,7 @@ erDiagram
         uuid user_id FK
         string nip UK
         string school_name
+        string address "alamat dinas"
         timestamp deleted_at
     }
 
@@ -119,6 +125,29 @@ erDiagram
         timestamp applied_at
     }
 
+    LEARNING_VIDEOS {
+        uuid id PK
+        uuid class_id FK
+        uuid added_by_guru_id FK
+        string title
+        string description
+        string video_url "alamat https"
+        string thumbnail_url
+        integer duration_seconds
+        timestamp created_at
+    }
+
+    FORUM_POSTS {
+        uuid id PK
+        uuid class_id FK
+        uuid parent_id FK "kosong untuk utas, terisi untuk balasan"
+        uuid author_user_id FK
+        string title "hanya untuk utas"
+        string body
+        timestamp created_at
+        timestamp edited_at "kosong sampai penulis mengubah isinya"
+    }
+
     REFRESH_TOKENS {
         uuid id PK
         uuid user_id FK
@@ -128,13 +157,13 @@ erDiagram
     }
 ```
 
-Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` dari rancangan awal belum dibuat karena video dan forum di luar kontrak MVP backend.
+Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru, baik tautan ke tempat lain maupun berkas yang diunggah ke bucket. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru. Kolom `forum_posts.edited_at` menandai kapan penulis terakhir mengubah judul atau isi postingan dan kosong untuk postingan yang belum pernah diubah. Berkas video yang baru diunggah menunggu di awalan `pending/` pada bucket dan disalin ke alamat permanennya di `videos/` saat video ditambahkan, sedangkan berkas yang tidak pernah ditambahkan dihapus bucket setelah satu hari.
 
 ---
 
 ## 3. Skema Basis Data Relasional (PostgreSQL DDL)
 
-DDL di bawah ini adalah gabungan migrasi `000001` sampai `000004` dari `internal/infra/db/migrations` di repositori backend. Migrasi tertanam di binary dan dijalankan otomatis saat API mulai. Dibanding rancangan awal, `gen_random_uuid()` menggantikan `uuid_generate_v4()` sehingga tidak perlu ekstensi, dan ada tabel serta kolom tambahan yang dijelaskan di bagian 2.
+DDL di bawah ini adalah gabungan migrasi `000001` sampai `000007` dari `internal/infra/db/migrations` di repositori backend. Migrasi tertanam di binary dan dijalankan otomatis saat API mulai. Dibanding rancangan awal, `gen_random_uuid()` menggantikan `uuid_generate_v4()` sehingga tidak perlu ekstensi, dan ada tabel serta kolom tambahan yang dijelaskan di bagian 2.
 
 ```sql
 -- Initial Kibooz schema following 02_BACKEND_API_AND_DATABASE.md with the addition of
@@ -271,6 +300,49 @@ CREATE UNIQUE INDEX students_nisn_key ON students (nisn) WHERE deleted_at IS NUL
 
 -- 000004 default grade level
 ALTER TABLE classes ALTER COLUMN grade_level SET DEFAULT 'Class A';
+
+-- 000005 learning videos and the class forum
+-- A teacher adds learning videos to a class as https addresses, and the class forum holds threads and replies.
+-- A thread is a forum post with a title and no parent, a reply is a post without a title that points at a thread of the same class.
+
+CREATE TABLE learning_videos (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    added_by_guru_id UUID NOT NULL REFERENCES gurus(id) ON DELETE RESTRICT,
+    title VARCHAR(150) NOT NULL,
+    description TEXT,
+    video_url TEXT NOT NULL,
+    thumbnail_url TEXT,
+    duration_seconds INTEGER CHECK (duration_seconds IS NULL OR duration_seconds > 0),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_learning_videos_class ON learning_videos(class_id, created_at DESC, id DESC);
+
+CREATE TABLE forum_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    class_id UUID NOT NULL REFERENCES classes(id) ON DELETE CASCADE,
+    parent_id UUID,
+    author_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(150),
+    body TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (id, class_id),
+    -- the composite key keeps a reply in the class of its thread
+    FOREIGN KEY (parent_id, class_id) REFERENCES forum_posts(id, class_id) ON DELETE CASCADE,
+    CHECK ((parent_id IS NULL) = (title IS NOT NULL))
+);
+
+CREATE INDEX idx_forum_threads_class ON forum_posts(class_id, created_at DESC, id DESC) WHERE parent_id IS NULL;
+CREATE INDEX idx_forum_replies_thread ON forum_posts(parent_id, created_at, id) WHERE parent_id IS NOT NULL;
+
+-- 000006 teacher address
+-- A teacher keeps an official address next to the phone number that already lives on the account.
+ALTER TABLE gurus ADD COLUMN address TEXT;
+
+-- 000007 forum edited marker
+-- The time a post was last changed by its author, empty for a post that was never edited.
+ALTER TABLE forum_posts ADD COLUMN edited_at TIMESTAMP WITH TIME ZONE;
 ```
 
 ---
@@ -287,6 +359,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Registrasi, login, token refresh dan logout dibatasi per akun (10 permintaan per 60 detik). Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After`.
 
+**Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
+
 **Kode kesalahan.**
 
 | `errorCode` | Arti |
@@ -299,7 +373,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun |
 | `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar |
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas |
-| `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND` | Data yang dicari tidak ada |
+| `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `FILE_TOO_LARGE` | Berkas bukan gambar atau terlalu besar |
 | `STORAGE_UNAVAILABLE`, `STORAGE_ERROR` | Penyimpanan berkas belum diatur atau gagal |
@@ -384,7 +458,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 #### `GET /wali/dashboard`
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `studentId=<uuid>` opsional, untuk wali yang memiliki lebih dari satu anak. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
-- **Response 200 OK:** `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`.
+- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `bannerUrl` bernilai teks kosong jika alamat publik penyimpanan belum diatur di server. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`.
 ```json
 {
   "success": true,
@@ -392,6 +466,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "student": {
       "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
       "fullName": "Amelia Siti Zahra",
+      "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
       "className": "Class A • TK Pertiwi Harapan Bangsa",
       "avatarUrl": "https://kibooz-media.syafahadyan.com/avatars/amelia.png",
       "nisn": "3124567890"
@@ -437,6 +512,37 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - **Kegagalan:** `404` `STUDENT_NOT_FOUND` atau `GUIDANCE_NOT_FOUND`.
+
+#### `GET /wali/child/{studentId}`
+- **Deskripsi:** Data resmi seorang anak beserta kontak wali, untuk layar profil siswa. Hanya anak milik wali yang masuk yang dapat dilihat.
+- **Header:** `Authorization: Bearer <token>`
+- **Response 200 OK:** `phoneNumber`, `whatsappNumber` dan `address` bernilai `null` jika wali tidak mengisinya saat registrasi.
+```json
+{
+  "success": true,
+  "data": {
+    "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
+    "fullName": "Amelia Siti Zahra",
+    "nisn": "3124567890",
+    "avatarUrl": null,
+    "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+    "className": "Mawar",
+    "gradeLevel": "Class A",
+    "schoolName": "TK Pertiwi Harapan Bangsa",
+    "academicYear": "2026/2027",
+    "currentPoints": 340,
+    "classRank": 2,
+    "guardian": {
+      "fullName": "Sarah Kartika",
+      "email": "sarah@example.com",
+      "phoneNumber": "081234567890",
+      "whatsappNumber": "+6281234567890",
+      "address": "Jl. Kenanga 5, Malang"
+    }
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID dan `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali.
 
 ---
 
@@ -527,6 +633,117 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 
+#### `GET /guru/classes`
+- **Deskripsi:** Kelas yang diajar guru, dari yang paling lama, dengan kode bergabung dan jumlah anak.
+- **Header:** `Authorization: Bearer <token>`
+- **Query Params:** `page` dan `limit` opsional.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "classes": [
+      {
+        "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+        "name": "Mawar",
+        "gradeLevel": "Class A",
+        "schoolName": "TK Pertiwi Harapan Bangsa",
+        "academicYear": "2026/2027",
+        "joinCode": "K7ZH2M",
+        "totalStudents": 24,
+        "createdAt": "2026-10-01T07:00:00Z"
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+
+#### `POST /guru/classes`
+- **Deskripsi:** Membuat kelas baru. Guru yang membuatnya menjadi pengajar kelas itu dan kelas mendapat kode bergabung sendiri untuk wali.
+- **Request Body:** `name` wajib (maksimal 50 karakter). `gradeLevel` (bawaan `Class A`), `academicYear` (bawaan `2026/2027`) dan `schoolName` (bawaan sekolah guru) opsional.
+```json
+{
+  "name": "Melati",
+  "gradeLevel": "Class B",
+  "academicYear": "2027/2028"
+}
+```
+- **Response 201 Created:** `message` bernilai `Class created` dan `data` berisi satu kelas dengan bentuk yang sama seperti isi `classes` di atas, dengan `totalStudents` 0.
+- **Kegagalan:** `400` `VALIDATION_ERROR`.
+
+#### `GET /guru/classes/{classId}`
+- **Deskripsi:** Satu kelas milik guru dengan jumlah anak, video pembelajaran dan utas forum. Layar detail kelas memakai jumlah ini sebagai ringkasan aktivitas.
+- **Response 200 OK:** semua kolom satu kelas dari daftar di atas ditambah dua kolom.
+```json
+{
+  "success": true,
+  "data": {
+    "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+    "name": "Mawar",
+    "gradeLevel": "Class A",
+    "schoolName": "TK Pertiwi Harapan Bangsa",
+    "academicYear": "2026/2027",
+    "joinCode": "K7ZH2M",
+    "totalStudents": 24,
+    "createdAt": "2026-10-01T07:00:00Z",
+    "totalVideos": 3,
+    "totalThreads": 5
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR` dan `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu.
+
+#### `GET /guru/profile`
+- **Deskripsi:** Identitas guru untuk layar profil. `id` adalah id akun.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "7d1e6c52-0a3b-4c8e-9f21-5b6a7c8d9e0f",
+    "fullName": "Siti Rahayu, S.Pd.",
+    "nip": "198507152010032005",
+    "schoolName": "TK Pertiwi Harapan Bangsa",
+    "avatarUrl": "https://kibooz-media.syafahadyan.com/avatars/guru_siti.png"
+  }
+}
+```
+
+#### `GET /guru/profile/detail`
+- **Deskripsi:** Data lengkap guru. `phoneNumber` dan `address` bernilai `null` selama belum diisi.
+- **Response 200 OK:** semua kolom `GET /guru/profile` ditambah empat kolom.
+```json
+{
+  "success": true,
+  "data": {
+    "id": "7d1e6c52-0a3b-4c8e-9f21-5b6a7c8d9e0f",
+    "fullName": "Siti Rahayu, S.Pd.",
+    "nip": "198507152010032005",
+    "schoolName": "TK Pertiwi Harapan Bangsa",
+    "avatarUrl": null,
+    "email": "siti@example.com",
+    "phoneNumber": "+62 812-3456-7890",
+    "address": "Jl. Merdeka 1, Malang",
+    "joinedAt": "2026-10-01T07:00:00Z"
+  }
+}
+```
+
+#### `PUT /guru/profile`
+- **Deskripsi:** Mengubah nomor telepon dan alamat. Kolom yang tidak dikirim dibiarkan apa adanya dan teks kosong menghapus nilainya. Foto diganti lewat `POST /users/avatar`.
+- **Request Body:** salah satu atau kedua kolom. Nomor telepon berisi 6 sampai 30 karakter berupa angka dengan tanda plus di depan, serta spasi, tanda hubung dan kurung.
+```json
+{
+  "phoneNumber": "+62 812-3456-7890",
+  "address": "Jl. Merdeka 1, Malang"
+}
+```
+- **Response 200 OK:** `message` bernilai `Profile updated` dan `data` berisi data lengkap seperti `GET /guru/profile/detail`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim atau nomor telepon tidak valid.
+
 ---
 
 ### 4.4 Gamifikasi dan Poin Sampah (`/trash` dan `/leaderboard`)
@@ -578,6 +795,31 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 - Hasil disimpan di cache selama `LEADERBOARD_CACHE_SECONDS` (300 detik) dan cache dihapus setiap kali peringkat berubah. Reset peringkat di awal semester (BR-03) belum otomatis.
 
+#### `GET /trash/stats`
+- **Deskripsi:** Statistik pemilahan sampah seorang anak. Hanya untuk wali.
+- **Query Params:** `studentId=<uuid>` opsional. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
+- **Response 200 OK:** `breakdown` selalu berisi tiga kategori dengan urutan `ORGANIK`, `ANORGANIK` dan `B3`.
+```json
+{
+  "success": true,
+  "data": {
+    "student": { "id": "c4b3a981-5502-4f32-8231-10c970a03bd7", "fullName": "Amelia Siti Zahra" },
+    "totalPoints": 340,
+    "classRank": 2,
+    "totalScans": 48,
+    "breakdown": [
+      { "trashType": "ORGANIK", "scans": 28, "points": 280 },
+      { "trashType": "ANORGANIK", "scans": 20, "points": 60 },
+      { "trashType": "B3", "scans": 0, "points": 0 }
+    ],
+    "todayScans": 2,
+    "dailyLimit": 5,
+    "remainingDailyScans": 3
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR` dan `404` `STUDENT_NOT_FOUND`.
+
 ---
 
 ### 4.5 Akun dan Foto (`/users`)
@@ -604,6 +846,224 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 ---
 
+### 4.7 Kelas, Video Pembelajaran dan Forum (`/classes`)
+
+Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Guru yang mengajar kelas itu dan wali yang memiliki anak di kelas itu boleh membaca dan menulis, kecuali ada catatan lain. Pengguna lain menerima `403` `AUTH_FORBIDDEN`. Wali menemukan `classId` di `student.classId` pada `GET /wali/dashboard` dan guru menemukannya di `classOverview.classId` pada `GET /guru/dashboard`. Semua daftar di bagian ini berhalaman dan memuat `page`, `limit` dan `total`.
+
+#### `GET /classes/{classId}/videos`
+- **Deskripsi:** Video pembelajaran kelas, dari yang terbaru.
+- **Response 200 OK:** `description`, `thumbnailUrl` dan `durationSeconds` bernilai `null` jika tidak diisi.
+```json
+{
+  "success": true,
+  "data": {
+    "videos": [
+      {
+        "id": "3f2a9b1c-6d4e-4f70-8a12-9c0d1e2f3a4b",
+        "title": "Mengenal Sampah Organik",
+        "description": "Video pendek untuk anak TK.",
+        "videoUrl": "https://videos.example.com/sampah-organik.mp4",
+        "thumbnailUrl": "https://videos.example.com/sampah-organik.jpg",
+        "durationSeconds": 125,
+        "createdAt": "2026-10-08T09:00:00Z"
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+
+#### `POST /classes/{classId}/videos`
+- **Deskripsi:** Guru kelas menambahkan video. Videonya berupa alamat https yang diputar aplikasi. Untuk berkas hasil rekaman guru, minta alamat unggah dulu lewat `POST /classes/{classId}/videos/upload-url`, kirim berkasnya, lalu tambahkan video dengan `videoUrl` dari jawaban itu. Berkasnya harus sudah sampai, milik kelas ini dan berupa video yang diterima. Berkas itu menunggu di folder sementara, dan saat video ditambahkan berkasnya disalin ke alamat permanen yang menjadi `videoUrl` pada video yang dikembalikan. Karena itu putar video dari alamat yang dikembalikan dan bukan dari alamat unggahan. Berkas sementara hanya dapat ditambahkan sekali. Alamat permanen boleh ditambahkan lagi untuk berbagi satu berkas antar video di kelas yang sama.
+- **Request Body:** `title` dan `videoUrl` wajib. `videoUrl` dan `thumbnailUrl` harus alamat https tanpa spasi dan tanpa nama pengguna. `durationSeconds` bernilai 1 sampai 86400.
+```json
+{
+  "title": "Mengenal Sampah Organik",
+  "description": "Video pendek untuk anak TK.",
+  "videoUrl": "https://videos.example.com/sampah-organik.mp4",
+  "thumbnailUrl": "https://videos.example.com/sampah-organik.jpg",
+  "durationSeconds": 125
+}
+```
+- **Response 201 Created:** `message` bernilai `Learning video added` dan `data` berisi satu video seperti pada daftar di atas.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk berkas unggahan yang belum sampai, sudah pernah ditambahkan, milik kelas lain atau bukan video), `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `502` `STORAGE_ERROR` jika bucket gagal dihubungi.
+
+#### `POST /classes/{classId}/videos/upload-url`
+- **Deskripsi:** Guru kelas meminta alamat bertanda tangan untuk mengunggah satu berkas video langsung ke bucket. Berkas besar tidak melewati API, sehingga batas ukuran permintaan tidak berlaku. Bucket menolak berkas yang ukuran atau jenisnya berbeda dari yang diumumkan. Berkas disimpan sementara di bawah `pending/` dan dihapus bucket setelah satu hari jika videonya tidak pernah ditambahkan.
+- **Request Body:** `contentType` bernilai `video/mp4` atau `video/webm`, dan `sizeBytes` adalah ukuran persis berkas (paling besar `VIDEO_MAX_MB`, bawaan 100 MB).
+```json
+{
+  "contentType": "video/mp4",
+  "sizeBytes": 48211340
+}
+```
+- **Response 200 OK:** `message` bernilai `Upload URL created`. Aplikasi mengirim `PUT` berisi berkas ke `uploadUrl` sebelum `expiresAt` (bawaan 15 menit), hanya dengan header dari `headers`, lalu menambahkan video dengan `videoUrl`, yaitu alamat sementara berkas itu. Video yang ditambahkan mengembalikan alamat permanennya.
+```json
+{
+  "success": true,
+  "message": "Upload URL created",
+  "data": {
+    "uploadUrl": "https://<bucket-endpoint>/pending/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4?X-Amz-Signature=...",
+    "method": "PUT",
+    "headers": { "Content-Type": "video/mp4" },
+    "videoUrl": "https://kibooz-media.syafahadyan.com/pending/videos/a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d/0e9f8d7c.mp4",
+    "expiresAt": "2026-10-09T09:15:00Z"
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk jenis atau ukuran yang tidak valid, `403` `AUTH_FORBIDDEN`, `502` `STORAGE_ERROR` dan `503` `STORAGE_UNAVAILABLE` jika penyimpanan belum diatur.
+
+#### `PATCH /classes/{classId}/videos/{videoId}`
+- **Deskripsi:** Guru kelas mengubah rincian sebuah video. Guru mana pun di kelas itu boleh melakukannya. Kolom yang tidak dikirim dibiarkan apa adanya, `description` atau `thumbnailUrl` berisi teks kosong menghapus nilainya, dan `durationSeconds` bernilai 0 menghapus durasi. Alamat video tidak dapat diubah, sehingga berkas lain berarti video baru.
+- **Request Body:** salah satu atau beberapa kolom. `title` tidak boleh kosong, dan `thumbnailUrl` harus alamat https.
+```json
+{
+  "title": "Mengenal Sampah Organik (versi baru)",
+  "description": "",
+  "durationSeconds": 130
+}
+```
+- **Response 200 OK:** `message` bernilai `Learning video updated` dan `data` berisi satu video seperti pada daftar video.
+- **Kegagalan:** `400` `VALIDATION_ERROR` termasuk jika tidak ada kolom yang dikirim, `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `404` `VIDEO_NOT_FOUND` jika video itu bukan milik kelas itu.
+
+#### `DELETE /classes/{classId}/videos/{videoId}`
+- **Deskripsi:** Guru kelas menghapus sebuah video. Jika videonya berkas yang diunggah dan tidak ada video lain yang memakai berkas yang sama, berkasnya ikut dihapus dari penyimpanan. Tautan ke tempat lain hanya dilupakan.
+- **Response 200 OK:** `{ "success": true, "message": "Learning video deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `VIDEO_NOT_FOUND`.
+
+#### `GET /classes/{classId}/forum`
+- **Deskripsi:** Utas forum kelas, dari yang terbaru. `author.id` adalah id akun penulis, sehingga aplikasi dapat menandai postingan sendiri dengan membandingkannya dengan id pengguna yang masuk. Akun yang sudah dihapus tampil dengan nama `Deleted account` tanpa foto. `editedAt` berisi waktu terakhir penulis mengubah judul atau isinya dan bernilai `null` untuk utas yang belum pernah diubah, sehingga aplikasi dapat menampilkan label "diedit". Balasan memiliki `editedAt` yang sama.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "threads": [
+      {
+        "id": "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d",
+        "title": "Kegiatan kunjungan",
+        "body": "Mohon anak membawa topi.",
+        "author": {
+          "id": "7d1e6c52-0a3b-4c8e-9f21-5b6a7c8d9e0f",
+          "fullName": "Siti Rahayu, S.Pd.",
+          "role": "GURU",
+          "avatarUrl": null
+        },
+        "replyCount": 2,
+        "createdAt": "2026-10-08T09:30:00Z",
+        "editedAt": null
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+
+#### `POST /classes/{classId}/forum`
+- **Deskripsi:** Memulai utas baru. Guru kelas dan wali dari anak di kelas itu sama-sama boleh menulis.
+- **Request Body:** `title` (maksimal 150 karakter) dan `body` (maksimal 5000 karakter), keduanya wajib dan tidak boleh hanya berisi spasi.
+```json
+{
+  "title": "Kegiatan kunjungan",
+  "body": "Mohon anak membawa topi."
+}
+```
+- **Response 201 Created:** `message` bernilai `Forum thread created` dan `data` berisi satu utas dengan `replyCount` 0.
+- **Kegagalan:** `400` `VALIDATION_ERROR` dan `403` `AUTH_FORBIDDEN`.
+
+#### `PATCH /classes/{classId}/forum/{postId}`
+- **Deskripsi:** Pembuat sebuah utas mengubah judul atau isinya. Hanya pembuatnya yang boleh, guru kelas pun tidak. Kolom yang tidak dikirim dibiarkan apa adanya. `editedAt` terisi waktu perubahan hanya jika judul atau isinya benar-benar berbeda, sehingga simpan tanpa perubahan tidak menandai utas sebagai diedit.
+- **Request Body:** `title` (maksimal 150 karakter) dan atau `body` (maksimal 5000 karakter), tidak boleh hanya berisi spasi, dan paling sedikit satu kolom.
+```json
+{
+  "body": "Mohon anak membawa topi dan botol minum."
+}
+```
+- **Response 200 OK:** `message` bernilai `Forum thread updated` dan `data` berisi satu utas seperti pada daftar utas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk selain pembuatnya dan untuk yang bukan anggota kelas, dan `404` `FORUM_POST_NOT_FOUND`.
+
+#### `DELETE /classes/{classId}/forum/{postId}`
+- **Deskripsi:** Pembuat utas atau guru kelas menghapus sebuah utas. Semua balasannya ikut terhapus.
+- **Response 200 OK:** `{ "success": true, "message": "Forum thread deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk wali selain pembuatnya dan untuk yang bukan anggota kelas, dan `404` `FORUM_POST_NOT_FOUND`.
+
+#### `GET /classes/{classId}/forum/{postId}/replies`
+- **Deskripsi:** Balasan sebuah utas, dari yang paling lama. `postId` harus id sebuah utas di kelas itu.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "replies": [
+      {
+        "id": "1c2d3e4f-5a6b-4c7d-8e9f-0a1b2c3d4e5f",
+        "body": "Baik, akan saya siapkan.",
+        "author": {
+          "id": "5b6a7c8d-9e0f-4a1b-8c2d-3e4f5a6b7c8d",
+          "fullName": "Sarah Kartika",
+          "role": "WALI",
+          "avatarUrl": null
+        },
+        "createdAt": "2026-10-08T09:45:00Z",
+        "editedAt": null
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+- **Kegagalan:** `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND` jika `postId` bukan utas di kelas itu, termasuk jika id itu milik sebuah balasan.
+
+#### `POST /classes/{classId}/forum/{postId}/replies`
+- **Deskripsi:** Membalas sebuah utas. Balasan tidak dapat dibalas lagi.
+- **Request Body:** `{ "body": "Baik, akan saya siapkan." }` dengan `body` wajib (maksimal 5000 karakter).
+- **Response 201 Created:** `message` bernilai `Forum reply added` dan `data` berisi satu balasan seperti pada daftar di atas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND`.
+
+#### `PATCH /classes/{classId}/forum/{postId}/replies/{replyId}`
+- **Deskripsi:** Pembuat sebuah balasan mengubah isinya. `postId` adalah utas tempat balasan itu berada, dan hanya pembuatnya yang boleh mengubah. `editedAt` terisi waktu perubahan hanya jika isinya benar-benar berbeda.
+- **Request Body:** `{ "body": "Baik, akan saya siapkan dua." }` dengan `body` wajib (maksimal 5000 karakter) dan tidak boleh hanya berisi spasi.
+- **Response 200 OK:** `message` bernilai `Forum reply updated` dan `data` berisi satu balasan seperti pada daftar balasan.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND` jika balasan itu bukan milik utas dan kelas pada alamat tersebut.
+
+#### `DELETE /classes/{classId}/forum/{postId}/replies/{replyId}`
+- **Deskripsi:** Pembuat balasan atau guru kelas menghapus sebuah balasan.
+- **Response 200 OK:** `{ "success": true, "message": "Forum reply deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND`.
+
+#### `GET /classes/{classId}/students`
+- **Deskripsi:** Daftar anak di kelas untuk layar peserta kelas, diurutkan menurut nama. Hanya untuk guru kelas itu karena memuat NISN, sehingga wali menerima `403` `AUTH_FORBIDDEN`.
+- **Response 200 OK:** `todayMood` adalah mood terbaru yang dicatat hari ini dan bernilai `null` jika belum ada.
+```json
+{
+  "success": true,
+  "data": {
+    "students": [
+      {
+        "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
+        "fullName": "Amelia Siti Zahra",
+        "nisn": "3124567890",
+        "avatarUrl": null,
+        "currentPoints": 340,
+        "classRank": 2,
+        "todayMood": "SENANG"
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+
+---
+
 ## 5. Daftar Tugas Tim Backend (Work Breakdown)
 
 - [x] **BE-01:** Setup environment backend dan konfigurasi Docker Compose untuk PostgreSQL 15 & Redis 7.
@@ -616,3 +1076,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - [x] **BE-08:** Optimasi query leaderboard terindeks dengan cache Redis opsional.
 - [x] **BE-09:** Integrasi penyimpanan cloud (S3 / R2) untuk unggah avatar dan foto sampah.
 - [x] **BE-10:** Pengujian otomatis dengan rangkaian uji Go (unit dan end to end) yang memeriksa setiap respons terhadap `openapi.yaml`.
+- [x] **BE-11:** Pembuatan endpoint video pembelajaran kelas (daftar, tambah lewat alamat https, ubah dan hapus).
+- [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan, termasuk mengubah, menghapus dan penanda `editedAt` pada postingan yang diubah.
+- [x] **BE-13:** Pembuatan endpoint kelas guru (daftar, buat dan detail), daftar peserta kelas, profil guru, profil anak dan statistik sampah.
+- [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https. Berkas menunggu di `pending/` dan disalin ke `videos/` saat video ditambahkan.
+- [ ] **BE-15:** Reset papan peringkat di awal semester (BR-03).
