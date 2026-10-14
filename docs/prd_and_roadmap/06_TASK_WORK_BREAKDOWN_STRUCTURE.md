@@ -128,6 +128,8 @@ graph TD
 | **FE-W05** | Wiring Statistik Pilah Sampah | 3 SP (1 hari) | BE-13 | `StatistikSampahActivity` memetakan proporsi tiap kategori sampah (Organik, Anorganik dan B3) dari API. |
 | **FE-W06** | Integrasi CameraX & Scanner Sampah | 8 SP (3 hari) | ML-02 | `CameraScanSampahActivity` mendeteksi jenis sampah dan memicu dialog klaim poin. |
 | **FE-W07** | Formulir Edit Profil Siswa & Wali | 3 SP (1 hari) | BE-04 | `EditProfilSiswaActivity` dengan validasi NISN, nomor telepon, dan simpan data. |
+| **FE-W08** | Unggah Foto yang Diperkecil | 3 SP (1 hari) | BE-09 | Pembantu bersama yang memperkecil sisi terpanjang foto menjadi sekitar 1600 piksel, menyimpannya sebagai JPEG berkualitas 80 dan memeriksa ukurannya terhadap batas 2 MiB untuk foto profil dan 4 MiB untuk foto sampah, lalu menurunkan dimensi atau kualitas bila melebihi. Menampilkan pesan untuk `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE` dan `FILE_TOO_LARGE`. Dipakai oleh profil guru, `FE-W07` dan `FE-W06`. |
+| **FE-W09** | Foto Kecil dari Host Media | 2 SP (1 hari) | FE-W08 | Menambah pustaka pemuat gambar dan pemuat yang menyusun alamat `/cdn-cgi/image/` dengan `width` 128 atau 256, `quality=80`, `format=webp` dan `onerror=redirect` untuk foto profil pada daftar (leaderboard, roster, forum). Hanya untuk host `kibooz-media`, dengan foto asli sebagai cadangan. |
 
 ---
 

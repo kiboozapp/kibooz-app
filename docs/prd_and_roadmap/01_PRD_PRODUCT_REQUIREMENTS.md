@@ -97,7 +97,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-7.1 Profil Wali:** Menampilkan identitas wali murid, nama anak asuh, tautan ubah sandi, dan syarat ketentuan.
 - **FR-7.2 Profil Siswa:** Menampilkan NISN resmi (Nomor Induk Siswa Nasional), nama lengkap, kelas, kontak darurat, dan alamat rumah.
 - **FR-7.3 Profil Guru:** Menampilkan NIP (Nomor Induk Pegawai), email dinas, nomor telepon, alamat, dan grafik mood kelas bimbingan.
-- **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil.
+- **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil. Aplikasi memperkecil foto sebelum mengunggahnya.
 
 ### FR-8: Sistem Kamera AI (Computer Vision)
 - **FR-8.1 Viewfinder Kamera:** Antarmuka layar penuh CameraX dengan rasio bingkai stabil 30fps.
