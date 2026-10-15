@@ -376,6 +376,15 @@ CREATE TABLE leaderboard_history (
     rank_position INTEGER NOT NULL,
     recorded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
 );
+
+-- 000013 class owner
+-- Satu guru memiliki setiap kelas. Pemilik dapat mengeluarkan guru lain dan menyerahkan kelas, dan setiap guru dapat keluar.
+-- Guru aktif yang bergabung paling awal menjadi pemilik kelas yang sudah ada.
+ALTER TABLE class_teachers ADD COLUMN is_owner BOOLEAN NOT NULL DEFAULT false;
+-- (pengisian awal is_owner untuk kelas yang sudah ada ada di berkas migrasi)
+
+-- paling banyak satu pemilik untuk satu kelas
+CREATE UNIQUE INDEX idx_class_teachers_owner ON class_teachers(class_id) WHERE is_owner;
 ```
 
 ---
@@ -394,7 +403,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
 
-**Poin semester.** Setiap anak punya `totalPoints` atau `currentPoints` untuk poin dari semua semester, dan `seasonPoints` untuk poin semester yang sedang berjalan. Papan peringkat dan `classRank` mengikuti `seasonPoints`. Pada hari pertama bulan awal semester (Januari dan Juli secara bawaan, diatur oleh `SEMESTER_START_MONTHS`) pukul 00.00 zona waktu server, `seasonPoints` semua anak kembali ke 0 dan peringkat dihitung ulang, sedangkan `totalPoints` tetap. Server menyimpan peringkat akhir semester yang berakhir di tabel `leaderboard_history`, dan belum ada rute untuk membacanya. Pemeriksaan kalender berjalan setiap menit, sehingga poin yang masuk dalam semenit setelah pergantian semester mungkin masih dihitung ke semester yang berakhir.
+**Poin semester.** Setiap anak punya `totalPoints` atau `currentPoints` untuk poin dari semua semester, dan `seasonPoints` untuk poin semester yang sedang berjalan. Papan peringkat dan `classRank` mengikuti `seasonPoints`. Pada hari pertama bulan awal semester (Januari dan Juli secara bawaan, diatur oleh `SEMESTER_START_MONTHS`) pukul 00.00 zona waktu server, `seasonPoints` semua anak kembali ke 0 dan peringkat dihitung ulang, sedangkan `totalPoints` tetap. Server menyimpan peringkat akhir semester yang berakhir di tabel `leaderboard_history`, dan `GET /leaderboard/history` membacanya kembali. Pemeriksaan kalender berjalan setiap menit, sehingga poin yang masuk dalam semenit setelah pergantian semester mungkin masih dihitung ke semester yang berakhir.
 
 **Kode kesalahan.**
 
@@ -409,7 +418,11 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar |
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas |
 | `CHILD_LIMIT_REACHED` | Wali sudah memiliki 10 anak, jumlah terbanyak |
-| `TEACHER_NOT_FOUND`, `TEACHER_ALREADY_IN_CLASS` | Tidak ada akun guru dengan email itu, atau guru itu sudah mengajar kelas ini |
+| `TEACHER_NOT_FOUND`, `TEACHER_ALREADY_IN_CLASS` | Tidak ada akun guru aktif dengan email itu, baik saat menambah guru maupun saat menyebut pengganti, atau guru itu sudah mengajar kelas ini |
+| `TEACHER_NOT_IN_CLASS` | Guru yang dituju tidak mengajar kelas ini |
+| `CLASS_OWNER_REQUIRED` | Hanya pemilik kelas yang boleh melakukan aksi ini |
+| `LAST_TEACHER` | Guru itu satu-satunya yang tersisa di kelas, sehingga tidak dapat keluar |
+| `SUCCESSOR_REQUIRED` | Akun adalah satu-satunya guru sebuah kelas dan tidak menyebut `successorEmail` saat dihapus |
 | `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
@@ -765,19 +778,32 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
         "fullName": "Siti Rahayu, S.Pd.",
         "nip": "198001012005012001",
         "avatarUrl": null,
+        "isOwner": true,
         "joinedAt": "2026-10-01T07:00:00Z"
       }
     ]
   }
 }
 ```
+- `isOwner` bernilai `true` untuk tepat satu guru di setiap kelas, yaitu pemilik kelas. Guru yang membuat kelas menjadi pemiliknya, dan guru yang ditambahkan tidak pernah menjadi pemilik.
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, dan `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu.
 
 #### `POST /guru/classes/{classId}/teachers`
-- **Deskripsi:** Seorang guru kelas menambahkan guru lain yang sudah terdaftar, dengan email akunnya. Guru yang ditambahkan langsung melihat seluruh kelas, yaitu anak, mood dan forum, sehingga hanya tambahkan orang yang memang berhak. Seorang guru tetap tidak dapat bergabung ke kelas sendiri dengan kode bergabung. Guru belum dapat dikeluarkan dari kelas. Jawaban untuk email yang bukan akun guru sama bagi semua penanya yang sudah lolos akses kelas, dan permintaan dihitung pada batas pengguna.
+- **Deskripsi:** Seorang guru kelas menambahkan guru lain yang sudah terdaftar, dengan email akunnya. Guru yang ditambahkan langsung melihat seluruh kelas, yaitu anak, mood dan forum, sehingga hanya tambahkan orang yang memang berhak. Seorang guru tetap tidak dapat bergabung ke kelas sendiri dengan kode bergabung. Hanya pemilik kelas yang dapat mengeluarkan guru lagi, lewat `DELETE /guru/classes/{classId}/teachers/{teacherId}`. Jawaban untuk email yang bukan akun guru sama bagi semua penanya yang sudah lolos akses kelas, dan permintaan dihitung pada batas pengguna.
 - **Request Body:** `{ "email": "budi@example.com" }`
 - **Response 201 Created:** `message` bernilai `Teacher added` dan `data` berisi satu guru dengan bentuk yang sama seperti isi `teachers` di atas.
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `TEACHER_NOT_FOUND`, dan `409` `TEACHER_ALREADY_IN_CLASS`.
+
+#### `DELETE /guru/classes/{classId}/teachers/{teacherId}`
+- **Deskripsi:** Pemilik kelas dapat mengeluarkan guru lain, dan setiap guru dapat keluar dari kelas dengan mengirim id dirinya sendiri. Guru yang keluar tidak lagi melihat kelas, anak, mood dan forum, sedangkan tulisannya tetap ada. Ketika pemilik keluar, guru yang bergabung berikutnya menjadi pemilik. Satu-satunya guru aktif sebuah kelas tidak dapat keluar, sehingga kelas selalu punya guru dan pemilik. Untuk menyerahkan kelas dengan sengaja, pakai `PUT /guru/classes/{classId}/owner` lebih dulu. `teacherId` adalah `id` salah satu isi `teachers` pada `GET /guru/classes/{classId}/teachers`.
+- **Response 200 OK:** `{ "success": true, "message": "Teacher removed" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru atau `CLASS_OWNER_REQUIRED` ketika guru yang bukan pemilik mengeluarkan orang lain, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu atau `TEACHER_NOT_IN_CLASS`, `409` `LAST_TEACHER`, dan `429` `RATE_LIMITED`.
+
+#### `PUT /guru/classes/{classId}/owner`
+- **Deskripsi:** Pemilik menyerahkan kepemilikan kelas kepada guru lain di kelas yang sama. Pemilik baru dapat mengeluarkan guru dan menyerahkan kelas lagi, sedangkan pemilik lama tetap menjadi guru kelas. Menyebut pemilik yang sekarang tidak mengubah apa pun dan tetap dijawab dengan pemilik itu.
+- **Request Body:** `{ "teacherId": "7a2f5c1e-3b44-4c8d-9d0e-5f6a7b8c9d0e" }`
+- **Response 200 OK:** `message` bernilai `Ownership handed over` dan `data` berisi satu guru dengan bentuk yang sama seperti isi `teachers` di atas, yaitu pemilik yang baru.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` atau `CLASS_OWNER_REQUIRED`, `404` `CLASS_NOT_FOUND` atau `TEACHER_NOT_IN_CLASS`, dan `429` `RATE_LIMITED`.
 
 #### `GET /guru/classes/{classId}`
 - **Deskripsi:** Satu kelas milik guru dengan jumlah anak, video pembelajaran dan utas forum. Layar detail kelas memakai jumlah ini sebagai ringkasan aktivitas.
@@ -901,6 +927,35 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 - `points` adalah poin semester yang sedang berjalan (`seasonPoints`), dan peringkat mengikuti poin itu. Hasil disimpan di cache selama `LEADERBOARD_CACHE_SECONDS` (300 detik) dan cache dihapus setiap kali peringkat berubah, termasuk saat semester baru dimulai.
 
+#### `GET /leaderboard/history`
+- **Deskripsi:** Podium dan peringkat akhir setiap semester yang sudah berakhir untuk sebuah kelas, semester terbaru di urutan pertama. Semester diberi nama bulan awalnya, misalnya `2026-07`, dan baru muncul setelah berakhir, sehingga semester yang sedang berjalan hanya ada di `GET /leaderboard`. Anak memakai nama dan poin yang ia punya saat semester berakhir. Anak yang akunnya sudah dihapus tidak ditampilkan, sehingga sebuah peringkat bisa hilang dari daftar dan sebuah semester bisa tidak punya peringkat tersisa. Wali melihat kelas anaknya dan guru melihat kelas yang ia ajar.
+- **Query Params:** `classId=<uuid>` opsional, serta `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20) yang menghitung semester dan bukan anak.
+- **Response 200 OK:** daftar kosong untuk kelas yang belum punya semester berakhir.
+```json
+{
+  "success": true,
+  "data": {
+    "page": 1,
+    "limit": 20,
+    "total": 2,
+    "seasons": [
+      {
+        "label": "2026-07",
+        "podium": [
+          { "rank": 1, "studentName": "Farhan Al-Fatih", "points": 120 },
+          { "rank": 2, "studentName": "Amelia Siti Zahra", "points": 95 }
+        ],
+        "rankings": [
+          { "rank": 4, "studentName": "Zhafira Bilqis", "points": 60 }
+        ]
+      }
+    ]
+  }
+}
+```
+- Isi `podium` adalah peringkat 1 sampai 3 yang masih ada, dan `rankings` adalah peringkat sesudahnya. Berbeda dari `GET /leaderboard`, setiap isi tidak memuat `avatarUrl`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `401` tanpa token, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` dan `429` `RATE_LIMITED`.
+
 #### `GET /trash/stats`
 - **Deskripsi:** Statistik pemilahan sampah seorang anak. Hanya untuk wali.
 - **Query Params:** `studentId=<uuid>` opsional. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
@@ -939,17 +994,17 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Menampilkan foto yang lebih kecil:** untuk daftar yang berisi banyak foto, aplikasi meminta salinan kecil dari host media dan tidak mengunduh aslinya. Sisipkan `/cdn-cgi/image/width=128,quality=80,format=webp,onerror=redirect` setelah nama host pada `avatarUrl`, misalnya `https://kibooz-media.syafahadyan.com/cdn-cgi/image/width=128,quality=80,format=webp,onerror=redirect/avatars/...`. Aplikasi memakai daftar lebar yang pendek dan tetap, yaitu 128 dan 256 untuk foto profil, serta opsi yang sama setiap kali, karena setiap kombinasi foto dan opsi dihitung satu kali per bulan dan jatah gratisnya 5.000 per bulan. `onerror=redirect` selalu disertakan agar aplikasi mendapat foto aslinya ketika salinan tidak dapat dibuat. Cara ini hanya berlaku untuk alamat di host media, dan foto yang diganti mendapat alamat baru.
 
 #### `DELETE /users/me`
-- **Deskripsi:** Menghapus akun sendiri. Akun dan data anak disembunyikan dengan `deleted_at`, sehingga email, NIP dan NISN dapat dipakai lagi setelahnya.
-- **Request Body:** `{ "password": "PasswordRahasia123!" }`
+- **Deskripsi:** Menghapus akun sendiri. Akun dan data anak disembunyikan dengan `deleted_at`, sehingga email, NIP dan NISN dapat dipakai lagi setelahnya. Guru yang menjadi satu-satunya guru sebuah kelas wajib menyebut `successorEmail`, yaitu email guru lain yang sudah terdaftar. Pengganti itu ditambahkan ke setiap kelas yang tidak diajar guru lain dan menjadi pemiliknya, sehingga kelas tidak pernah kehilangan guru terakhirnya. Kelas yang juga diajar guru lain tetap bersama mereka, dan jika akun yang dihapus adalah pemiliknya, guru yang bergabung berikutnya menjadi pemilik. Penghapusan yang ditolak tidak mengubah apa pun.
+- **Request Body:** `{ "password": "PasswordRahasia123!", "successorEmail": "budi@example.com" }`. `successorEmail` opsional dan diabaikan untuk wali. Isinya tidak boleh email akun itu sendiri.
 - **Response 200 OK:** `{ "success": true, "message": "Account deleted" }`
-- **Kegagalan:** `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk email pengganti yang sama dengan akun itu), `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND` atau `TEACHER_NOT_FOUND` untuk email pengganti yang bukan akun guru aktif, `409` `SUCCESSOR_REQUIRED`, dan `429` `RATE_LIMITED`.
 
 ---
 
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.8.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.9.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
 - `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
@@ -1219,3 +1274,4 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-15:** Reset papan peringkat di awal semester (BR-03), otomatis pada bulan awal semester dengan poin semester terpisah dari poin seluruh semester.
 - [x] **BE-16:** Daftar dan tambah anak untuk wali, daftar dan tambah guru untuk kelas, dan laporan panduan untuk guru.
 - [x] **BE-17:** Pemeriksaan tulis penyimpanan pada `/healthz` dan antrean penghapusan berkas akun yang dihapus.
+- [x] **BE-18:** Pemilik kelas, mengeluarkan guru dan keluar dari kelas, pengganti wajib saat satu-satunya guru menghapus akun, dan rute riwayat papan peringkat per semester.
