@@ -357,7 +357,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Bahasa.** Pesan dan nama hari dalam respons memakai bahasa Inggris (`Monday` sampai `Friday`), dan nilai bawaan `gradeLevel` kelas baru adalah `Class A`. Aplikasi menerjemahkan teks tampilan di sisi klien.
 
-**Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Registrasi, login, token refresh dan logout dibatasi per akun (10 permintaan per 60 detik). Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After`.
+**Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Login dan registrasi dibatasi per email, atau per perangkat jika login membawa `deviceToken` yang valid, sedangkan token refresh dan logout dibatasi per token refresh, masing-masing 10 permintaan per 60 detik untuk tiap rute. Registrasi yang menyebut kode kelas juga berbagi satu batas untuk seluruh API (60 permintaan per 60 detik) agar kode kelas tidak dapat ditebak. Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After` yang berisi jumlah detik sampai permintaan berikutnya diterima. Permintaan yang ditolak tetap dihitung, sehingga aplikasi yang terus mencoba harus menunggu lebih lama. Respons dari rute yang dibatasi juga memuat `X-RateLimit-Limit`, `X-RateLimit-Remaining` dan `X-RateLimit-Reset`. Proksi di depan API dapat menjawab `429` tanpa isi dan tanpa `Retry-After`, sehingga aplikasi memeriksa kode status lebih dulu, menunggu sekitar 30 detik jika header itu tidak ada, dan menggandakan waktunya pada tiap `429` berikutnya. Batas harian klaim sampah berbeda, yaitu `429` dengan `TRASH_DAILY_LIMIT_REACHED` tanpa `Retry-After`, dan batas itu mulai lagi pada hari lokal berikutnya.
 
 **Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
 
@@ -365,7 +365,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 | `errorCode` | Arti |
 |:---|:---|
-| `VALIDATION_ERROR` | Masukan tidak valid, rincian per kolom ada di `details` |
+| `VALIDATION_ERROR` | Masukan tidak valid, rincian per kolom ada di `details`. Teks yang memuat karakter NUL (`\u0000`) juga ditolak dengan nama kolomnya |
 | `AUTH_INVALID_CREDENTIALS` | Email atau kata sandi tidak cocok untuk peran yang dipilih |
 | `AUTH_TOKEN_MISSING`, `AUTH_TOKEN_INVALID` | Token akses tidak dikirim atau tidak valid |
 | `AUTH_REFRESH_INVALID` | Sesi sudah berakhir dan pengguna harus masuk lagi |
@@ -674,6 +674,12 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Response 201 Created:** `message` bernilai `Class created` dan `data` berisi satu kelas dengan bentuk yang sama seperti isi `classes` di atas, dengan `totalStudents` 0.
 - **Kegagalan:** `400` `VALIDATION_ERROR`.
 
+#### `POST /guru/classes/{classId}/join-code`
+- **Deskripsi:** Mengganti kode bergabung sebuah kelas dengan kode acak yang baru. Kode lama berhenti berlaku saat itu juga, sehingga wali yang belum bergabung memerlukan kode baru, sedangkan wali yang sudah bergabung tidak terpengaruh. Dipakai ketika kode terlanjur dibagikan terlalu luas atau berhasil ditebak. Hanya guru yang mengajar kelas itu yang dapat memakainya.
+- **Response 200 OK:** `{ "success": true, "message": "Join code replaced", "data": { "joinCode": "K7M2QX4R" } }`. Aplikasi menampilkan kode baru dan meminta guru membagikannya lagi.
+- **Catatan rilis 0.7.0:** kode bergabung kini terdiri dari 8 karakter, dan migrasi pada rilis itu mengganti setiap kode 6 karakter yang sudah ada dengan kode baru. Kode lama berhenti berlaku, sehingga guru perlu membagikan kode baru. Aplikasi selalu membaca `joinCode` dari dashboard dan tidak menyimpannya sendiri.
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu, dan `429` `RATE_LIMITED`.
+
 #### `GET /guru/classes/{classId}`
 - **Deskripsi:** Satu kelas milik guru dengan jumlah anak, video pembelajaran dan utas forum. Layar detail kelas memakai jumlah ini sebagai ringkasan aktivitas.
 - **Response 200 OK:** semua kolom satu kelas dari daftar di atas ditambah dua kolom.
@@ -826,7 +832,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /users/avatar`
 - **Deskripsi:** Mengunggah foto profil pengguna, atau foto seorang anak jika `studentId` diisi oleh wali pemiliknya.
-- **Request:** `multipart/form-data` dengan kolom `file` (gambar) dan `studentId` (opsional). Server tidak memperkecil atau mengompres gambar, sehingga aplikasi memperkecil foto sebelum mengunggah, sekitar 1600 piksel pada sisi terpanjang dengan kualitas JPEG 80. Server menolak gambar yang lebih dari 40 megapiksel atau yang sisinya lebih dari 8192 piksel.
+- **Request:** `multipart/form-data` dengan kolom `file` (gambar) dan `studentId` (opsional). Berkas paling besar 2 MiB. Server tidak memperkecil atau mengompres gambar, sehingga aplikasi memperkecil foto sebelum mengunggah, sekitar 1600 piksel pada sisi terpanjang dengan kualitas JPEG 80. Server menolak gambar yang lebih dari 40 megapiksel atau yang sisinya lebih dari 8192 piksel.
 - **Response 200 OK:** `{ "success": true, "message": "Profile photo updated", "data": { "avatarUrl": "https://kibooz-media.syafahadyan.com/avatars/..." } }`
 - **Kegagalan:** `400` `INVALID_IMAGE` atau `IMAGE_DIMENSIONS_TOO_LARGE`, `413` `FILE_TOO_LARGE`, `503` `STORAGE_UNAVAILABLE`.
 - **Menampilkan foto yang lebih kecil:** untuk daftar yang berisi banyak foto, aplikasi meminta salinan kecil dari host media dan tidak mengunduh aslinya. Sisipkan `/cdn-cgi/image/width=128,quality=80,format=webp,onerror=redirect` setelah nama host pada `avatarUrl`, misalnya `https://kibooz-media.syafahadyan.com/cdn-cgi/image/width=128,quality=80,format=webp,onerror=redirect/avatars/...`. Aplikasi memakai daftar lebar yang pendek dan tetap, yaitu 128 dan 256 untuk foto profil, serta opsi yang sama setiap kali, karena setiap kombinasi foto dan opsi dihitung satu kali per bulan dan jatah gratisnya 5.000 per bulan. `onerror=redirect` selalu disertakan agar aplikasi mendapat foto aslinya ketika salinan tidak dapat dibuat. Cara ini hanya berlaku untuk alamat di host media, dan foto yang diganti mendapat alamat baru.
@@ -842,7 +848,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** `{ "success": true, "status": "ok", "version": "0.4.0", "checks": { "database": "ok", "redis": "ok", "storage": "disabled" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.7.0", "checks": { "database": "ok", "redis": "ok", "storage": "disabled" } }`
 - `status` bernilai `degraded` jika hanya Redis yang mati (tetap `200`) dan `down` dengan `503` jika basis data mati. Nilai `storage` `disabled` berarti konfigurasi S3 belum lengkap dan tidak memengaruhi `status`.
 
 ---
