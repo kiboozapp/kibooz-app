@@ -103,6 +103,7 @@ graph TD
 | **BE-15** | Reset Papan Peringkat Semester | 3 SP (1 hari) | BE-08 | Pengaturan ulang peringkat otomatis di awal semester (BR-03) dengan `season_points` terpisah dari `current_points` dan riwayat peringkat akhir, selesai. |
 | **BE-16** | Anak Tambahan, Guru Tambahan & Laporan Panduan | 5 SP (2 hari) | BE-13 | Rute `GET` dan `POST /wali/children`, `GET` dan `POST /guru/classes/{classId}/teachers`, dan `GET /classes/{classId}/guidance-reports`, selesai. |
 | **BE-17** | Pemeriksaan Penyimpanan & Antrean Hapus Berkas | 3 SP (1 hari) | BE-09 | Pemeriksaan tulis bucket pada `/healthz` dan antrean penghapusan berkas akun yang dihapus, selesai. |
+| **BE-18** | Pemilik Kelas, Pengganti & Riwayat Peringkat | 5 SP (2 hari) | BE-15, BE-16 | Kolom `is_owner` pada guru kelas, rute `DELETE /guru/classes/{classId}/teachers/{teacherId}` dan `PUT /guru/classes/{classId}/owner`, `successorEmail` yang wajib pada `DELETE /users/me` untuk satu-satunya guru sebuah kelas, dan `GET /leaderboard/history`, selesai. |
 ---
 
 ### 3.2 Track 2: Frontend Guru & Kamera (Engineer B)
@@ -117,6 +118,7 @@ graph TD
 | **FE-G06** | Integrasi CameraX & Analyzer Mood | 8 SP (3 hari) | ML-02 | `CameraScanMoodActivity` menjalankan `MoodAnalysisAnalyzer` dan mengunci emosi anak. |
 | **FE-G07** | Wiring Video & Forum Edukasi | 3 SP (1 hari) | BE-11, BE-12 | Pemutar video `VideoPembelajaranActivity` yang memutar dari alamat permanen hasil tambah video, dan recycler view `ForumDiskusiActivity` dengan label "diedit" saat `editedAt` tidak `null`. |
 | **FE-G08** | Wiring Laporan Panduan & Guru Kelas | 3 SP (1 hari) | BE-16 | Layar daftar laporan panduan dari `GET /classes/{classId}/guidance-reports` dengan nama anak, judul panduan, catatan wali dan waktu, serta dialog tambah guru dengan email lewat `POST /guru/classes/{classId}/teachers` yang menampilkan `TEACHER_NOT_FOUND` dan `TEACHER_ALREADY_IN_CLASS`. |
+| **FE-G09** | Pemilik Kelas, Keluar dari Kelas & Pengganti | 3 SP (1 hari) | BE-18 | Daftar guru kelas menandai pemilik dari `isOwner`, pemilik dapat mengeluarkan guru dan menyerahkan kelas lewat `DELETE` dan `PUT /guru/classes/{classId}/owner`, dan setiap guru dapat keluar dengan id dirinya sendiri. Layar hapus akun meminta email guru pengganti bagi guru yang mengajar sendirian, lalu menampilkan `SUCCESSOR_REQUIRED`, `TEACHER_NOT_FOUND`, `LAST_TEACHER` dan `CLASS_OWNER_REQUIRED`. |
 
 ---
 
@@ -135,6 +137,7 @@ graph TD
 | **FE-W09** | Foto Kecil dari Host Media | 2 SP (1 hari) | FE-W08 | Menambah pustaka pemuat gambar dan pemuat yang menyusun alamat `/cdn-cgi/image/` dengan `width` 128 atau 256, `quality=80`, `format=webp` dan `onerror=redirect` untuk foto profil pada daftar (leaderboard, roster, forum). Hanya untuk host `kibooz-media`, dengan foto asli sebagai cadangan. |
 | **FE-W10** | Poin Semester & Seluruh Semester | 2 SP (1 hari) | BE-15 | Leaderboard dan peringkat memakai `seasonPoints` dan layar profil serta statistik menampilkan `totalPoints` sebagai poin seluruh semester, dengan keterangan bahwa peringkat mulai dari nol di awal semester. |
 | **FE-W11** | Pilih & Tambah Anak | 3 SP (1 hari) | BE-16 | Pemilih anak dari `GET /wali/children` yang mengirim `studentId` ke rute lain, dan formulir tambah anak dengan kode kelas lewat `POST /wali/children` yang menampilkan `CHILD_LIMIT_REACHED`, `NISN_ALREADY_REGISTERED` dan `CLASS_CODE_NOT_FOUND`. |
+| **FE-W12** | Riwayat Papan Peringkat | 2 SP (1 hari) | BE-18 | Layar atau tab riwayat dari `GET /leaderboard/history` yang menampilkan podium dan peringkat setiap semester dengan nama semester dari `label`, halaman berikutnya lewat `page`, dan keadaan kosong untuk kelas yang belum punya semester berakhir. |
 
 ---
 
