@@ -34,4 +34,21 @@
     <string name="izin_kamera_ditolak">Izin kamera ditolak. Aktifkan izin kamera di Pengaturan untuk melanjutkan.</string>
     <string name="izin_kamera_beri">Beri Izin Kamera</string>
     <string name="izin_kamera_pengaturan">Buka Pengaturan</string>
+
+    <!-- Pemindai mood -->
+    <string name="konsen_mood_judul">Sebelum memindai</string>
+    <string name="konsen_mood_pesan">Wajah siswa dianalisis hanya di ponsel ini. Tidak ada foto atau video yang disimpan atau dikirim, hanya label emosi dan tingkat keyakinannya. Pastikan sekolah sudah mendapat izin orang tua untuk pemindaian ini.</string>
+    <string name="konsen_mood_mulai">Mulai Pindai</string>
+    <string name="konsen_batal">Batal</string>
+    <string name="mood_cahaya_rendah">Arahkan ke tempat terang</string>
+    <string name="mood_status_mencari">Mencari wajah siswa…</string>
+    <string name="mood_status_wajah">%1$d wajah terdeteksi, %2$d sudah dipilih siswanya</string>
+    <string name="mood_senter_tidak_ada">Perangkat ini tidak punya senter</string>
+    <string name="mood_kamera_gagal">Kamera tidak dapat dibuka</string>
+    <string name="mood_siswa_sudah_dipilih">Siswa ini sudah dipilih untuk wajah lain</string>
+    <string name="mood_menganalisis">Menganalisis…</string>
+    <string name="mood_ketuk_pilih_siswa">Ketuk untuk pilih siswa</string>
+    <string name="mood_wajah_terdeteksi_desc">%1$d wajah terdeteksi</string>
+    <string name="pilih_siswa_judul">Pilih siswa</string>
+    <string name="pilih_siswa_sudah_dipilih">%1$s (sudah dipilih)</string>
 </resources>
