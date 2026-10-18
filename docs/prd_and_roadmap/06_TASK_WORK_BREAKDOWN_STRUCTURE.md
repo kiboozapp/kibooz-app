@@ -104,6 +104,8 @@ graph TD
 | **BE-16** | Anak Tambahan, Guru Tambahan & Laporan Panduan | 5 SP (2 hari) | BE-13 | Rute `GET` dan `POST /wali/children`, `GET` dan `POST /guru/classes/{classId}/teachers`, dan `GET /classes/{classId}/guidance-reports`, selesai. |
 | **BE-17** | Pemeriksaan Penyimpanan & Antrean Hapus Berkas | 3 SP (1 hari) | BE-09 | Pemeriksaan tulis bucket pada `/healthz` dan antrean penghapusan berkas akun yang dihapus, selesai. |
 | **BE-18** | Pemilik Kelas, Pengganti & Riwayat Peringkat | 5 SP (2 hari) | BE-15, BE-16 | Kolom `is_owner` pada guru kelas, rute `DELETE /guru/classes/{classId}/teachers/{teacherId}` dan `PUT /guru/classes/{classId}/owner`, `successorEmail` yang wajib pada `DELETE /users/me` untuk satu-satunya guru sebuah kelas, dan `GET /leaderboard/history`, selesai. |
+| **BE-19** | Pencatatan Mood Massal, Waktu Catat & Kunci Idempotensi | 5 SP (2 hari) | BE-06, BE-16 | Rute `POST /guru/mood/log/batch` (paling banyak 30 entri dalam satu transaksi), `recordedAt` opsional pada pencatatan mood tunggal dan massal, header `Idempotency-Key` pada sepuluh rute yang membuat sesuatu dengan tabel `idempotency_keys`, header `Idempotent-Replayed`, serta kode `IDEMPOTENCY_KEY_REUSED` dan `IDEMPOTENCY_IN_PROGRESS`, selesai. |
+| **BE-20** | Ganti Kata Sandi & Arsip Kelas Kosong | 3 SP (1 hari) | BE-18 | Rute `PUT /users/me/password` yang mengakhiri semua sesi akun, kolom `classes.archived_at`, dan penghapusan akun guru yang mengarsipkan kelas tanpa anak aktif sehingga `successorEmail` hanya wajib untuk kelas yang punya anak, selesai. |
 ---
 
 ### 3.2 Track 2: Frontend Guru & Kamera (Engineer B)
@@ -138,6 +140,8 @@ graph TD
 | **FE-W10** | Poin Semester & Seluruh Semester | 2 SP (1 hari) | BE-15 | Leaderboard dan peringkat memakai `seasonPoints` dan layar profil serta statistik menampilkan `totalPoints` sebagai poin seluruh semester, dengan keterangan bahwa peringkat mulai dari nol di awal semester. |
 | **FE-W11** | Pilih & Tambah Anak | 3 SP (1 hari) | BE-16 | Pemilih anak dari `GET /wali/children` yang mengirim `studentId` ke rute lain, dan formulir tambah anak dengan kode kelas lewat `POST /wali/children` yang menampilkan `CHILD_LIMIT_REACHED`, `NISN_ALREADY_REGISTERED` dan `CLASS_CODE_NOT_FOUND`. |
 | **FE-W12** | Riwayat Papan Peringkat | 2 SP (1 hari) | BE-18 | Layar atau tab riwayat dari `GET /leaderboard/history` yang menampilkan podium dan peringkat setiap semester dengan nama semester dari `label`, halaman berikutnya lewat `page`, dan keadaan kosong untuk kelas yang belum punya semester berakhir. |
+| **FE-W13** | Ganti Kata Sandi | 2 SP (1 hari) | BE-20 | Layar dari tautan ubah sandi di profil (FR-7.1) yang memanggil `PUT /users/me/password`, menampilkan `AUTH_PASSWORD_INCORRECT` dan kegagalan validasi, lalu mengarahkan pengguna masuk lagi karena semua sesi berakhir. |
+| **FE-W14** | Antrean Offline yang Aman Diulang | 5 SP (2 hari) | BE-19, QA-03 | Setiap aksi yang diantrekan saat offline menyimpan satu `Idempotency-Key` acak dan mengirimnya pada setiap percobaan, menandai catatan mood dengan `recordedAt` waktu terlihat (paling lama 7 hari), mengirim mood satu kelas lewat rute massal, serta menganggap `Idempotent-Replayed` sebagai keberhasilan dan `IDEMPOTENCY_IN_PROGRESS` sebagai alasan mencoba lagi nanti. |
 
 ---
 

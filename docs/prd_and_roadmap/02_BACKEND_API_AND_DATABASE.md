@@ -385,6 +385,30 @@ ALTER TABLE class_teachers ADD COLUMN is_owner BOOLEAN NOT NULL DEFAULT false;
 
 -- paling banyak satu pemilik untuk satu kelas
 CREATE UNIQUE INDEX idx_class_teachers_owner ON class_teachers(class_id) WHERE is_owner;
+
+-- 000014 idempotency keys
+-- Aplikasi yang mengantrekan aksi saat offline mengirim Idempotency-Key yang sama pada setiap percobaan, dan percobaan
+-- untuk aksi yang sudah berhasil mendapat respons pertamanya lagi tanpa mengerjakan ulang. Baris diklaim sebelum pekerjaan
+-- dimulai, sehingga status_code kosong selama percobaan pertama berjalan dan berisi respons setelah berhasil.
+-- Setiap klaim punya claim_id sendiri, sehingga percobaan yang dianggap mati tidak dapat mengubah baris percobaan yang
+-- mengambil alih kunci itu.
+CREATE TABLE idempotency_keys (
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    idempotency_key VARCHAR(64) NOT NULL,
+    fingerprint BYTEA NOT NULL,
+    claim_id UUID NOT NULL DEFAULT gen_random_uuid(),
+    status_code SMALLINT,
+    response BYTEA,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    PRIMARY KEY (user_id, idempotency_key)
+);
+
+CREATE INDEX idx_idempotency_keys_created_at ON idempotency_keys(created_at);
+
+-- 000015 class archive
+-- Kelas yang tidak diajar siapa pun dan tidak punya anak aktif diarsipkan, tidak ditinggalkan dengan kode gabung yang
+-- masih menjawab. Kelas yang diarsipkan tetap menyimpan baris dan kodenya, sehingga kode itu tidak pernah dipakai kelas lain.
+ALTER TABLE classes ADD COLUMN archived_at TIMESTAMPTZ;
 ```
 
 ---
@@ -405,6 +429,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Poin semester.** Setiap anak punya `totalPoints` atau `currentPoints` untuk poin dari semua semester, dan `seasonPoints` untuk poin semester yang sedang berjalan. Papan peringkat dan `classRank` mengikuti `seasonPoints`. Pada hari pertama bulan awal semester (Januari dan Juli secara bawaan, diatur oleh `SEMESTER_START_MONTHS`) pukul 00.00 zona waktu server, `seasonPoints` semua anak kembali ke 0 dan peringkat dihitung ulang, sedangkan `totalPoints` tetap. Server menyimpan peringkat akhir semester yang berakhir di tabel `leaderboard_history`, dan `GET /leaderboard/history` membacanya kembali. Pemeriksaan kalender berjalan setiap menit, sehingga poin yang masuk dalam semenit setelah pergantian semester mungkin masih dihitung ke semester yang berakhir.
 
+**Aman diulang (`Idempotency-Key`).** Sepuluh rute yang membuat sesuatu menerima header opsional `Idempotency-Key` (8 sampai 64 karakter `A-Z`, `a-z`, `0-9`, `_` atau `-`, misalnya UUID). Rute itu adalah `POST /guru/mood/log`, `POST /guru/mood/log/batch`, `POST /trash/scan-claim`, `POST /wali/children`, `POST /wali/guidance/apply`, `POST /guru/classes`, `POST /guru/classes/{classId}/teachers`, `POST /classes/{classId}/videos`, `POST /classes/{classId}/forum` dan `POST /classes/{classId}/forum/{postId}/replies`. Aplikasi yang mengantrekan aksi saat offline membuat satu kunci acak untuk setiap aksi dan mengirim kunci yang sama pada setiap percobaan. Percobaan setelah yang berhasil mendapat respons pertama lagi dengan header `Idempotent-Replayed: true`, dan tidak ada yang dikerjakan dua kali. Kunci dimiliki pengguna yang masuk dan disimpan server selama 7 hari (`IDEMPOTENCY_TTL_HOURS`). Hanya respons `2xx` yang diingat, sehingga setelah respons lain kunci yang sama boleh dikirim lagi. Kunci yang sama dengan permintaan yang berbeda ditolak dengan `422` `IDEMPOTENCY_KEY_REUSED`, dan kunci yang sama selagi percobaan pertama masih berjalan ditolak dengan `409` `IDEMPOTENCY_IN_PROGRESS`, yang berarti aplikasi menunggu sebentar lalu mencoba lagi. Kunci yang bentuknya salah mendapat `400` `VALIDATION_ERROR`.
+
 **Kode kesalahan.**
 
 | `errorCode` | Arti |
@@ -414,15 +440,17 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_TOKEN_MISSING`, `AUTH_TOKEN_INVALID` | Token akses tidak dikirim atau tidak valid |
 | `AUTH_REFRESH_INVALID` | Sesi sudah berakhir dan pengguna harus masuk lagi |
 | `AUTH_FORBIDDEN` | Peran tidak boleh melakukan aksi ini |
-| `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun |
+| `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun atau mengganti kata sandi |
 | `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar |
-| `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas |
+| `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas. Kode gabung milik kelas yang diarsipkan dijawab `CLASS_CODE_NOT_FOUND`, dan kelas yang diarsipkan tidak dapat ditambah guru (`CLASS_NOT_FOUND`) |
 | `CHILD_LIMIT_REACHED` | Wali sudah memiliki 10 anak, jumlah terbanyak |
 | `TEACHER_NOT_FOUND`, `TEACHER_ALREADY_IN_CLASS` | Tidak ada akun guru aktif dengan email itu, baik saat menambah guru maupun saat menyebut pengganti, atau guru itu sudah mengajar kelas ini |
 | `TEACHER_NOT_IN_CLASS` | Guru yang dituju tidak mengajar kelas ini |
 | `CLASS_OWNER_REQUIRED` | Hanya pemilik kelas yang boleh melakukan aksi ini |
 | `LAST_TEACHER` | Guru itu satu-satunya yang tersisa di kelas, sehingga tidak dapat keluar |
-| `SUCCESSOR_REQUIRED` | Akun adalah satu-satunya guru sebuah kelas dan tidak menyebut `successorEmail` saat dihapus |
+| `SUCCESSOR_REQUIRED` | Akun adalah satu-satunya guru sebuah kelas yang punya anak aktif dan tidak menyebut `successorEmail` saat dihapus |
+| `IDEMPOTENCY_KEY_REUSED` | `Idempotency-Key` yang sama dipakai untuk permintaan yang berbeda (`422`) |
+| `IDEMPOTENCY_IN_PROGRESS` | Permintaan dengan `Idempotency-Key` yang sama masih berjalan, aplikasi mencoba lagi sebentar lagi (`409`) |
 | `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
@@ -676,6 +704,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "notes": "Anak tersenyum lepas saat menyanyikan lagu pembuka."
 }
 ```
+- **`recordedAt` (opsional):** waktu mood itu terlihat, untuk catatan yang diantrekan saat offline (NFR-3). Bawaannya adalah waktu server saat ini. Waktunya tidak boleh di masa depan (waktu yang kurang dari 5 menit di depan dihitung sebagai sekarang) dan tidak boleh lebih tua dari 7 hari, karena itu selaras dengan lama `Idempotency-Key` disimpan. Hanya mood terakhir seorang anak pada setiap hari lokal yang dihitung di dasbor dan grafik, sehingga pengulangan yang terlambat tidak menggantikan mood yang lebih baru.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Response 201 Created:**
 ```json
 {
@@ -687,6 +717,22 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   }
 }
 ```
+
+#### `POST /guru/mood/log/batch`
+- **Deskripsi:** Guru menyimpan mood beberapa anak dari satu kelas sekaligus, misalnya hasil pindai kamera untuk seluruh kelas. Setiap entri menjadi satu catatan mood, semuanya disimpan dalam satu transaksi dengan satu `recordedAt` yang sama, sehingga satu entri yang salah membuat tidak ada yang tersimpan. Guru harus mengajar kelas itu, setiap anak harus ada di kelas itu, dan seorang anak hanya boleh muncul satu kali. Berbeda dengan pencatatan tunggal, `source` bernilai `AI_CAMERA` jika tidak diisi, dan `confidenceScore` bernilai 1 untuk `MANUAL_INPUT` jika tidak diisi tetapi wajib untuk `AI_CAMERA`.
+- **Request Body:** (paling banyak 30 entri, `recordedAt` opsional dengan batas yang sama seperti pencatatan tunggal)
+```json
+{
+  "classId": "7d9f0a52-6c1e-4b8a-9d61-2c3f9a5f1d02",
+  "entries": [
+    { "studentId": "c4b3a981-5502-4f32-8231-10c970a03bd7", "moodType": "SENANG", "source": "AI_CAMERA", "confidenceScore": 0.94 },
+    { "studentId": "a1b2c3d4-0000-4f32-8231-10c970a03bd8", "moodType": "SEDIH", "source": "MANUAL_INPUT", "notes": "Menangis di pintu." }
+  ]
+}
+```
+- **Response 201 Created:** `data.logs` berisi satu `{ "logId", "studentId", "recordedAt" }` untuk setiap entri, sesuai urutan permintaan.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
+- **Kegagalan:** `400` `VALIDATION_ERROR` dengan `details` yang menamai entri yang salah, misalnya `entries[1].studentId` untuk anak dari kelas lain, anak yang tidak ada atau anak yang muncul dua kali, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` (termasuk kelas guru lain), `409` `IDEMPOTENCY_IN_PROGRESS`, `422` `IDEMPOTENCY_KEY_REUSED`, dan `429` `RATE_LIMITED`.
 
 #### `GET /guru/mood/analytics`
 - **Query Params:** `classId=<uuid>` dan `range=weekly|monthly` (bawaan `weekly`). Keduanya opsional.
@@ -993,18 +1039,24 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Kegagalan:** `400` `INVALID_IMAGE` atau `IMAGE_DIMENSIONS_TOO_LARGE`, `413` `FILE_TOO_LARGE`, `503` `STORAGE_UNAVAILABLE`.
 - **Menampilkan foto yang lebih kecil:** untuk daftar yang berisi banyak foto, aplikasi meminta salinan kecil dari host media dan tidak mengunduh aslinya. Sisipkan `/cdn-cgi/image/width=128,quality=80,format=webp,onerror=redirect` setelah nama host pada `avatarUrl`, misalnya `https://kibooz-media.syafahadyan.com/cdn-cgi/image/width=128,quality=80,format=webp,onerror=redirect/avatars/...`. Aplikasi memakai daftar lebar yang pendek dan tetap, yaitu 128 dan 256 untuk foto profil, serta opsi yang sama setiap kali, karena setiap kombinasi foto dan opsi dihitung satu kali per bulan dan jatah gratisnya 5.000 per bulan. `onerror=redirect` selalu disertakan agar aplikasi mendapat foto aslinya ketika salinan tidak dapat dibuat. Cara ini hanya berlaku untuk alamat di host media, dan foto yang diganti mendapat alamat baru.
 
+#### `PUT /users/me/password`
+- **Deskripsi:** Mengganti kata sandi sendiri setelah kata sandi saat ini dikonfirmasi, untuk wali maupun guru (FR-7.1). Setiap sesi akun itu berakhir, sehingga aplikasi harus masuk lagi di setiap perangkat dengan kata sandi baru. Token akses yang sudah terbit tetap berlaku sampai masa berlakunya habis, tetapi token refresh tidak dapat dipakai lagi. Kata sandi baru mengikuti aturan registrasi (8 sampai 72 byte) dan harus berbeda dari yang sekarang. Rute ini dibatasi per akun seperti rute lain yang mengonfirmasi kata sandi.
+- **Request Body:** `{ "currentPassword": "PasswordRahasia123!", "newPassword": "PasswordBaru456!" }`
+- **Response 200 OK:** `{ "success": true, "message": "Password changed" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk kata sandi baru yang sama dengan yang sekarang), `401` `AUTH_TOKEN_MISSING` atau `AUTH_TOKEN_INVALID`, `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND`, dan `429` `RATE_LIMITED`.
+
 #### `DELETE /users/me`
-- **Deskripsi:** Menghapus akun sendiri. Akun dan data anak disembunyikan dengan `deleted_at`, sehingga email, NIP dan NISN dapat dipakai lagi setelahnya. Guru yang menjadi satu-satunya guru sebuah kelas wajib menyebut `successorEmail`, yaitu email guru lain yang sudah terdaftar. Pengganti itu ditambahkan ke setiap kelas yang tidak diajar guru lain dan menjadi pemiliknya, sehingga kelas tidak pernah kehilangan guru terakhirnya. Kelas yang juga diajar guru lain tetap bersama mereka, dan jika akun yang dihapus adalah pemiliknya, guru yang bergabung berikutnya menjadi pemilik. Penghapusan yang ditolak tidak mengubah apa pun.
+- **Deskripsi:** Menghapus akun sendiri. Akun dan data anak disembunyikan dengan `deleted_at`, sehingga email, NIP dan NISN dapat dipakai lagi setelahnya. Guru yang menjadi satu-satunya guru sebuah kelas yang punya anak aktif wajib menyebut `successorEmail`, yaitu email guru lain yang sudah terdaftar. Pengganti itu ditambahkan ke setiap kelas yang tidak diajar guru lain dan menjadi pemiliknya, sehingga kelas yang punya anak tidak pernah kehilangan guru terakhirnya. Jika `successorEmail` tidak disebut, kelas yang hanya diajar akun itu dan tidak punya anak aktif diarsipkan (`classes.archived_at`) dan kode gabungnya dijawab `CLASS_CODE_NOT_FOUND`, sedangkan jika `successorEmail` disebut, pengganti itu tetap menerima semua kelas termasuk yang kosong. Kelas yang juga diajar guru lain tetap bersama mereka, dan jika akun yang dihapus adalah pemiliknya, guru yang bergabung berikutnya menjadi pemilik. Penghapusan yang ditolak tidak mengubah apa pun.
 - **Request Body:** `{ "password": "PasswordRahasia123!", "successorEmail": "budi@example.com" }`. `successorEmail` opsional dan diabaikan untuk wali. Isinya tidak boleh email akun itu sendiri.
 - **Response 200 OK:** `{ "success": true, "message": "Account deleted" }`
-- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk email pengganti yang sama dengan akun itu), `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND` atau `TEACHER_NOT_FOUND` untuk email pengganti yang bukan akun guru aktif, `409` `SUCCESSOR_REQUIRED`, dan `429` `RATE_LIMITED`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk email pengganti yang sama dengan akun itu), `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND` atau `TEACHER_NOT_FOUND` untuk email pengganti yang bukan akun guru aktif, `409` `SUCCESSOR_REQUIRED` (hanya untuk kelas yang punya anak aktif), dan `429` `RATE_LIMITED`.
 
 ---
 
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.10.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.11.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
 - `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
@@ -1281,3 +1333,5 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-16:** Daftar dan tambah anak untuk wali, daftar dan tambah guru untuk kelas, dan laporan panduan untuk guru.
 - [x] **BE-17:** Pemeriksaan tulis penyimpanan pada `/healthz` dan antrean penghapusan berkas akun yang dihapus.
 - [x] **BE-18:** Pemilik kelas, mengeluarkan guru dan keluar dari kelas, pengganti wajib saat satu-satunya guru menghapus akun, dan rute riwayat papan peringkat per semester.
+- [x] **BE-19:** Pencatatan mood massal (`POST /guru/mood/log/batch`), `recordedAt` opsional pada pencatatan mood, dan `Idempotency-Key` pada sepuluh rute yang membuat sesuatu agar antrean offline aman diulang.
+- [x] **BE-20:** Rute ganti kata sandi (`PUT /users/me/password`) dan pengarsipan kelas tanpa anak aktif saat satu-satunya guru menghapus akun tanpa menyebut `successorEmail`.
