@@ -27,4 +27,11 @@
     <string name="btn_login">Masuk</string>
     <string name="login_with_google">Google</string>
     <string name="or_login_with">Atau Masuk dengan</string>
+
+    <!-- Izin kamera -->
+    <string name="izin_kamera_mood">Kibooz butuh izin kamera untuk memindai mood siswa. Foto tidak disimpan.</string>
+    <string name="izin_kamera_sampah">Kibooz butuh izin kamera untuk memindai sampah. Foto tidak disimpan.</string>
+    <string name="izin_kamera_ditolak">Izin kamera ditolak. Aktifkan izin kamera di Pengaturan untuk melanjutkan.</string>
+    <string name="izin_kamera_beri">Beri Izin Kamera</string>
+    <string name="izin_kamera_pengaturan">Buka Pengaturan</string>
 </resources>

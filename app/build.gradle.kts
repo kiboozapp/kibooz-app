@@ -36,6 +36,10 @@ android {
     buildFeatures {
         viewBinding = true
     }
+    androidResources {
+        // Model TFLite harus tidak terkompresi agar bisa di-memory-map
+        noCompress += "tflite"
+    }
 }
 
 dependencies {
@@ -50,4 +54,13 @@ dependencies {
     implementation("androidx.cardview:cardview:1.0.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.7")
+
+    // Kamera dan AI di perangkat (FR-8)
+    implementation("androidx.camera:camera-core:1.3.4")
+    implementation("androidx.camera:camera-camera2:1.3.4")
+    implementation("androidx.camera:camera-lifecycle:1.3.4")
+    implementation("androidx.camera:camera-view:1.3.4")
+    implementation("com.google.mlkit:face-detection:16.1.7")
+    implementation("org.tensorflow:tensorflow-lite:2.16.1")
+    implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
 }
