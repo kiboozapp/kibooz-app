@@ -86,10 +86,11 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-5.4:** Tombol aksi konfirmasi "Terapkan Panduan & Laporkan ke Guru" memberitahu guru bahwa langkah penanganan sudah berjalan di rumah.
 
 ### FR-6: Ekosistem Gamifikasi Pilah Sampah
-- **FR-6.1:** Pencatatan aktivitas pilah sampah kategori Organik dan Anorganik.
+- **FR-6.1:** Pencatatan aktivitas pilah sampah kategori Organik dan Anorganik, serta B3 (bahan berbahaya dan beracun, seperti baterai bekas) yang dicatat tanpa poin.
 - **FR-6.2:** Aturan perhitungan poin:
   - Sampah Organik: 10 poin per aksi terverifikasi.
   - Sampah Anorganik: 15 poin per aksi terverifikasi.
+  - Sampah B3: tidak diberi poin dan anak diarahkan ke kotak khusus (nilai bawaan 0 poin yang dapat diatur).
 - **FR-6.3 Leaderboard Podium:** Menampilkan 3 besar siswa terbaik pada panggung podium dengan lencana juara.
 - **FR-6.4 Daftar Peringkat Lanjutan:** Menampilkan urutan ranking kelas dan skor masing-masing anak.
 
@@ -102,7 +103,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 ### FR-8: Sistem Kamera AI (Computer Vision)
 - **FR-8.1 Viewfinder Kamera:** Antarmuka layar penuh CameraX dengan rasio bingkai stabil 30fps.
 - **FR-8.2 AI Scanner Mood:** Memproses bingkai wajah anak di perangkat. Model mengenali ekspresi dan memetakan ke salah satu dari 4 emosi.
-- **FR-8.3 AI Scanner Sampah:** Mendeteksi objek sampah di depan kamera, menentukan kategori (Organik vs Anorganik), dan menampilkan kartu poin.
+- **FR-8.3 AI Scanner Sampah:** Mendeteksi objek sampah di depan kamera, menentukan kategori (Organik, Anorganik atau B3), dan menampilkan kartu poin.
 
 ---
 
