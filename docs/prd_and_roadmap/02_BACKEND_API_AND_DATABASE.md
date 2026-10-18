@@ -1004,7 +1004,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.9.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.10.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
 - `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
@@ -1054,7 +1054,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk berkas unggahan yang belum sampai, sudah pernah ditambahkan, milik kelas lain atau bukan video), `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `502` `STORAGE_ERROR` jika bucket gagal dihubungi.
 
 #### `POST /classes/{classId}/videos/upload-url`
-- **Deskripsi:** Guru kelas meminta alamat bertanda tangan untuk mengunggah satu berkas video langsung ke bucket. Berkas besar tidak melewati API, sehingga batas ukuran permintaan tidak berlaku. Bucket menolak berkas yang ukuran atau jenisnya berbeda dari yang diumumkan. Berkas disimpan sementara di bawah `pending/` dan dihapus bucket setelah satu hari jika videonya tidak pernah ditambahkan.
+- **Deskripsi:** Guru kelas meminta alamat bertanda tangan untuk mengunggah satu berkas video langsung ke bucket. Berkas besar tidak melewati API, sehingga batas ukuran permintaan tidak berlaku. Bucket menolak berkas yang ukuran atau jenisnya berbeda dari yang diumumkan. Berkas disimpan sementara di bawah `pending/` dan dihapus bucket setelah satu hari jika videonya tidak pernah ditambahkan. Guru yang membatalkan dapat menghapus berkas itu seketika dengan `DELETE` pada alamat yang sama.
 - **Request Body:** `contentType` bernilai `video/mp4` atau `video/webm`, dan `sizeBytes` adalah ukuran persis berkas (paling besar `VIDEO_MAX_MB`, bawaan 100 MB).
 ```json
 {
@@ -1077,6 +1077,12 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 }
 ```
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk jenis atau ukuran yang tidak valid, `403` `AUTH_FORBIDDEN`, `502` `STORAGE_ERROR` dan `503` `STORAGE_UNAVAILABLE` jika penyimpanan belum diatur.
+
+#### `DELETE /classes/{classId}/videos/upload-url`
+- **Deskripsi:** Guru kelas menghapus berkas yang sudah diunggah tetapi tidak jadi ditambahkan sebagai video, misalnya saat guru membatalkan formulir. Berkas langsung dihapus dari folder `pending/`, tanpa menunggu aturan bucket yang menghapusnya setelah satu hari. Berkas yang sudah hilang tetap dijawab 200, sehingga mengulang permintaan aman.
+- **Query Params:** `videoUrl` (wajib), yaitu `videoUrl` dari jawaban `POST /classes/{classId}/videos/upload-url`. Nilainya perlu di-encode sebagai URL.
+- **Response 200 OK:** `{ "success": true, "message": "Upload deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR` jika `videoUrl` kosong atau bukan berkas sementara milik kelas itu, yaitu alamat kelas lain, video yang sudah ditambahkan, jenis berkas lain atau tautan ke situs lain, dan tidak ada yang dihapus. `401`, `403` `AUTH_FORBIDDEN` untuk wali dan untuk guru yang tidak mengajar kelas itu, dan `502` `STORAGE_ERROR` jika bucket gagal dihubungi.
 
 #### `PATCH /classes/{classId}/videos/{videoId}`
 - **Deskripsi:** Guru kelas mengubah rincian sebuah video. Guru mana pun di kelas itu boleh melakukannya. Kolom yang tidak dikirim dibiarkan apa adanya, `description` atau `thumbnailUrl` berisi teks kosong menghapus nilainya, dan `durationSeconds` bernilai 0 menghapus durasi. Alamat video tidak dapat diubah, sehingga berkas lain berarti video baru.
@@ -1270,7 +1276,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-11:** Pembuatan endpoint video pembelajaran kelas (daftar, tambah lewat alamat https, ubah dan hapus).
 - [x] **BE-12:** Pembuatan forum diskusi kelas dengan utas dan balasan, termasuk mengubah, menghapus dan penanda `editedAt` pada postingan yang diubah.
 - [x] **BE-13:** Pembuatan endpoint kelas guru (daftar, buat dan detail), daftar peserta kelas, profil guru, profil anak dan statistik sampah.
-- [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https. Berkas menunggu di `pending/` dan disalin ke `videos/` saat video ditambahkan.
+- [x] **BE-14:** Unggah berkas video ke penyimpanan cloud lewat alamat bertanda tangan, selain tautan https. Berkas menunggu di `pending/` dan disalin ke `videos/` saat video ditambahkan. Berkas yang tidak jadi ditambahkan dapat dihapus seketika dengan `DELETE /classes/{classId}/videos/upload-url`.
 - [x] **BE-15:** Reset papan peringkat di awal semester (BR-03), otomatis pada bulan awal semester dengan poin semester terpisah dari poin seluruh semester.
 - [x] **BE-16:** Daftar dan tambah anak untuk wali, daftar dan tambah guru untuk kelas, dan laporan panduan untuk guru.
 - [x] **BE-17:** Pemeriksaan tulis penyimpanan pada `/healthz` dan antrean penghapusan berkas akun yang dihapus.
