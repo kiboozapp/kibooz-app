@@ -63,4 +63,6 @@ dependencies {
     implementation("com.google.mlkit:face-detection:16.1.7")
     implementation("org.tensorflow:tensorflow-lite:2.16.1")
     implementation("org.tensorflow:tensorflow-lite-support:0.4.4")
+
+    testImplementation("junit:junit:4.13.2")
 }
