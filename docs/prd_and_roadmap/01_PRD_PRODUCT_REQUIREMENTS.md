@@ -95,7 +95,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-6.4 Daftar Peringkat Lanjutan:** Menampilkan urutan ranking kelas dan skor masing-masing anak.
 
 ### FR-7: Profil Pengguna dan Data Siswa
-- **FR-7.1 Profil Wali:** Menampilkan identitas wali murid, nama anak asuh, tautan ubah sandi, dan syarat ketentuan.
+- **FR-7.1 Profil Wali:** Menampilkan identitas wali murid, nama anak asuh, tautan ubah sandi (layar ganti kata sandi yang memanggil `PUT /users/me/password` dan mengakhiri semua sesi), dan syarat ketentuan.
 - **FR-7.2 Profil Siswa:** Menampilkan NISN resmi (Nomor Induk Siswa Nasional), nama lengkap, kelas, kontak darurat, dan alamat rumah.
 - **FR-7.3 Profil Guru:** Menampilkan NIP (Nomor Induk Pegawai), email dinas, nomor telepon, alamat, dan grafik mood kelas bimbingan.
 - **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil. Aplikasi memperkecil foto sebelum mengunggahnya.
@@ -113,7 +113,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 | :--- | :--- | :--- |
 | **NFR-1** | **Performa** | Cold start aplikasi di bawah 2.0 detik pada RAM 4GB. Render UI dan chart stabil pada 60fps tanpa lagging. |
 | **NFR-2** | **Keamanan & Privasi** | Patuh aturan privasi anak (COPPA). Data foto wajah mentah tidak dikirim ke server. Jaringan wajib HTTPS dengan TLS 1.3. |
-| **NFR-3** | **Keandalan Offline** | Data profil, ringkasan kelas, dan panduan emosi tersimpan di cache Room DB. Aksi offline masuk ke antrean sinkronisasi. |
+| **NFR-3** | **Keandalan Offline** | Data profil, ringkasan kelas, dan panduan emosi tersimpan di cache Room DB. Aksi offline masuk ke antrean sinkronisasi. Setiap aksi membawa satu `Idempotency-Key`, sehingga percobaan ulang tidak mengerjakannya dua kali, dan catatan mood membawa waktu terlihat lewat `recordedAt`. |
 | **NFR-4** | **Kompatibilitas** | Mendukung Android versi 7.0 (API Level 24) hingga Android 15 (API Level 35). Mendukung rasio layar modern lewat `InsetsUtil`. |
 | **NFR-5** | **Aksesibilitas** | Teks memenuhi rasio kontras minimal 4.5:1 (WCAG AA). Tombol dan ikon memiliki atribut `contentDescription` untuk TalkBack. |
 | **NFR-6** | **Bahasa** | Antarmuka memakai Bahasa Indonesia santun, ramah anak, dan bebas istilah asing yang membingungkan. |
