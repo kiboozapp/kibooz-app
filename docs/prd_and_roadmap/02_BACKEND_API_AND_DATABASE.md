@@ -479,7 +479,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 - **Request Body (GURU):** `email`, `password`, `fullName`, `role: "GURU"`, `nip` dan `schoolName` yang opsional, serta `class` berisi `name` (wajib), `gradeLevel`, `academicYear` dan `schoolName`.
 - **Response 201 Created:** sama dengan respons login di bawah, dengan `message` `Registration successful`.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND` atau `CLASS_NO_ACTIVE_TEACHER`, `409` untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk rute itu dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `CLASS_NO_ACTIVE_TEACHER` atau untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk rute itu dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
 
 #### `POST /auth/login`
 - **Deskripsi:** Masuk ke akun sebagai Guru atau Wali Murid.
@@ -527,6 +527,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Request Body:** `{ "refreshToken": "d8f8a123-bc42-4b21-8931..." }`
 - **Response 200 OK:** `message` `Token refreshed` dan `data` yang sama dengan respons login.
 - **Response 401 Unauthorized:** `AUTH_REFRESH_INVALID`, artinya sesi berakhir dan pengguna harus masuk lagi.
+- **Aturan pemakaian ulang:** panggilan yang gagal tidak mengembalikan token, sehingga aplikasi menyimpan token baru ke penyimpanan lebih dulu dan baru mengirim permintaan berikutnya. Token lama yang dikirim lagi lebih dari semenit setelah dipakai dianggap token curian, dan seluruh sesi berakhir termasuk token terbaru, sehingga pengguna harus masuk lagi. Dalam semenit itu token lama hanya ditolak. Sesi juga berakhir sendiri 90 hari setelah masuk (`JWT_SESSION_MAX_DAYS`) betapa pun sering token diperbarui, dan keluar mengakhiri seluruh sesi.
 
 #### `POST /auth/logout`
 - **Deskripsi:** Mencabut sebuah token refresh.
@@ -579,6 +580,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /wali/guidance/apply`
 - **Deskripsi:** Konfirmasi penerapan panduan penanganan emosi oleh wali. Penerapan disimpan di tabel `guidance_applications` dan dibaca guru kelas lewat `GET /classes/{classId}/guidance-reports`.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:**
 ```json
 {
@@ -651,6 +653,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /wali/children`
 - **Deskripsi:** Mendaftarkan satu anak lagi untuk wali yang masuk di kelas pemilik `classCode`, yang boleh berbeda dari kelas anak pertama. Satu wali dapat memiliki sampai 10 anak. Rute ini memakai anggaran tebakan kode kelas yang sama dengan registrasi (`CLASS_CODE_LIMITER_MAX` untuk seluruh API), sehingga dapat menjawab `429` ketika banyak kode sedang dicoba.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:**
 ```json
 {
@@ -798,6 +801,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /guru/classes`
 - **Deskripsi:** Membuat kelas baru. Guru yang membuatnya menjadi pengajar kelas itu dan kelas mendapat kode bergabung sendiri untuk wali.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:** `name` wajib (maksimal 50 karakter). `gradeLevel` (bawaan `Class A`), `academicYear` (bawaan `2026/2027`) dan `schoolName` (bawaan sekolah guru) opsional.
 ```json
 {
@@ -840,6 +844,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /guru/classes/{classId}/teachers`
 - **Deskripsi:** Seorang guru kelas menambahkan guru lain yang sudah terdaftar, dengan email akunnya. Guru yang ditambahkan langsung melihat seluruh kelas, yaitu anak, mood dan forum, sehingga hanya tambahkan orang yang memang berhak. Seorang guru tetap tidak dapat bergabung ke kelas sendiri dengan kode bergabung. Hanya pemilik kelas yang dapat mengeluarkan guru lagi, lewat `DELETE /guru/classes/{classId}/teachers/{teacherId}`. Jawaban untuk email yang bukan akun guru sama bagi semua penanya yang sudah lolos akses kelas, dan permintaan dihitung pada batas pengguna.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:** `{ "email": "budi@example.com" }`
 - **Response 201 Created:** `message` bernilai `Teacher added` dan `data` berisi satu guru dengan bentuk yang sama seperti isi `teachers` di atas.
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `TEACHER_NOT_FOUND`, dan `409` `TEACHER_ALREADY_IN_CLASS`.
@@ -931,6 +936,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `POST /trash/scan-claim`
 - **Deskripsi:** Klaim poin setelah melakukan pemindaian objek sampah. Poin per klaim adalah 10 untuk ORGANIK, 15 untuk ANORGANIK dan 0 untuk B3 (nilai bawaan yang dapat diatur), dengan batas 5 klaim per anak per hari. `photoBase64` bersifat opsional (base64 atau data URI, paling besar 4 MiB setelah didekode, dan aplikasi memperkecilnya dulu seperti foto profil).
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:**
 ```json
 {
@@ -1096,6 +1102,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 
 #### `POST /classes/{classId}/videos`
 - **Deskripsi:** Guru kelas menambahkan video. Videonya berupa alamat https yang diputar aplikasi. Untuk berkas hasil rekaman guru, minta alamat unggah dulu lewat `POST /classes/{classId}/videos/upload-url`, kirim berkasnya, lalu tambahkan video dengan `videoUrl` dari jawaban itu. Berkasnya harus sudah sampai, milik kelas ini dan berupa video yang diterima. Berkas itu menunggu di folder sementara, dan saat video ditambahkan berkasnya disalin ke alamat permanen yang menjadi `videoUrl` pada video yang dikembalikan. Karena itu putar video dari alamat yang dikembalikan dan bukan dari alamat unggahan. Berkas sementara hanya dapat ditambahkan sekali. Alamat permanen boleh ditambahkan lagi untuk berbagi satu berkas antar video di kelas yang sama.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:** `title` dan `videoUrl` wajib. `videoUrl` dan `thumbnailUrl` harus alamat https tanpa spasi dan tanpa nama pengguna. `durationSeconds` bernilai 1 sampai 86400.
 ```json
 {
@@ -1190,6 +1197,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 
 #### `POST /classes/{classId}/forum`
 - **Deskripsi:** Memulai utas baru. Guru kelas dan wali dari anak di kelas itu sama-sama boleh menulis.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:** `title` (maksimal 150 karakter) dan `body` (maksimal 5000 karakter), keduanya wajib dan tidak boleh hanya berisi spasi.
 ```json
 {
@@ -1247,6 +1255,7 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 
 #### `POST /classes/{classId}/forum/{postId}/replies`
 - **Deskripsi:** Membalas sebuah utas. Balasan tidak dapat dibalas lagi.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:** `{ "body": "Baik, akan saya siapkan." }` dengan `body` wajib (maksimal 5000 karakter).
 - **Response 201 Created:** `message` bernilai `Forum reply added` dan `data` berisi satu balasan seperti pada daftar di atas.
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` dan `404` `FORUM_POST_NOT_FOUND`.
