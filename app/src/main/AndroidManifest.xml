@@ -142,12 +142,14 @@
         <!-- 18. AI Camera Overlay: Scan Mood Kelas (Guru) -->
         <activity
             android:name=".ui.camera.CameraScanMoodActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- 19. AI Camera Overlay: Scan Sampah & Klaim Poin (Wali/Siswa) -->
         <activity
             android:name=".ui.camera.CameraScanSampahActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
     </application>
 
