@@ -20,6 +20,12 @@ android {
         val apiBaseUrl = providers.gradleProperty("kibooz.apiBaseUrl")
             .getOrElse("https://kibooz-api.syafahadyan.com/api/v1/")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+
+        // Build rilis harus https agar token dan kata sandi tidak terkirim tanpa enkripsi
+        val releaseRequested = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+        check(!releaseRequested || apiBaseUrl.startsWith("https://")) {
+            "kibooz.apiBaseUrl harus diawali https:// untuk build rilis, nilai sekarang $apiBaseUrl"
+        }
     }
 
     buildTypes {
