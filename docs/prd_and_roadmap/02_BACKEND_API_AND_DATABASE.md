@@ -423,7 +423,9 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Bahasa.** Pesan dan nama hari dalam respons memakai bahasa Inggris (`Monday` sampai `Friday`), dan nilai bawaan `gradeLevel` kelas baru adalah `Class A`. Aplikasi menerjemahkan teks tampilan di sisi klien.
 
-**Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Login dan registrasi dibatasi per email, atau per perangkat jika login membawa `deviceToken` yang valid, sedangkan token refresh dan logout dibatasi per token refresh, masing-masing 10 permintaan per 60 detik untuk tiap rute. Registrasi yang menyebut kode kelas juga berbagi satu batas untuk seluruh API (60 permintaan per 60 detik) agar kode kelas tidak dapat ditebak. Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After` yang berisi jumlah detik sampai permintaan berikutnya diterima. Permintaan yang ditolak tetap dihitung, sehingga aplikasi yang terus mencoba harus menunggu lebih lama. Respons dari rute yang dibatasi juga memuat `X-RateLimit-Limit`, `X-RateLimit-Remaining` dan `X-RateLimit-Reset`. Proksi di depan API dapat menjawab `429` tanpa isi dan tanpa `Retry-After`, sehingga aplikasi memeriksa kode status lebih dulu, menunggu sekitar 30 detik jika header itu tidak ada, dan menggandakan waktunya pada tiap `429` berikutnya. Batas harian klaim sampah berbeda, yaitu `429` dengan `TRASH_DAILY_LIMIT_REACHED` tanpa `Retry-After`, dan batas itu mulai lagi pada hari lokal berikutnya.
+**Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Login dan registrasi dibatasi per email, atau per perangkat jika login membawa `deviceToken` yang valid, sedangkan token refresh dan logout dibatasi per token refresh, masing-masing 10 permintaan per 60 detik untuk tiap rute. Registrasi yang menyebut kode kelas juga berbagi satu batas untuk seluruh API (60 permintaan per 60 detik) agar kode kelas tidak dapat ditebak. Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After` yang berisi jumlah detik sampai permintaan berikutnya diterima. Permintaan yang ditolak tetap dihitung, sehingga aplikasi yang terus mencoba harus menunggu lebih lama. Login, registrasi, penggantian kata sandi dan penghapusan akun juga dapat dijawab `429` dengan `errorCode` `RATE_LIMITED` dan `Retry-After: 1` ketika server sedang sibuk memeriksa kata sandi, dan aplikasi cukup menunggu sebanyak header itu lalu mengirim permintaan yang sama sekali lagi. Respons dari rute yang dibatasi juga memuat `X-RateLimit-Limit`, `X-RateLimit-Remaining` dan `X-RateLimit-Reset`. Proksi di depan API dapat menjawab `429` tanpa isi dan tanpa `Retry-After`, misalnya karena batas per alamat IP untuk login dan registrasi, sehingga aplikasi memeriksa kode status lebih dulu, menunggu sekitar 30 detik jika header itu tidak ada, dan menggandakan waktunya pada tiap `429` berikutnya. Batas harian klaim sampah berbeda, yaitu `429` dengan `TRASH_DAILY_LIMIT_REACHED` tanpa `Retry-After`, dan batas itu mulai lagi pada hari lokal berikutnya.
+
+**Isi permintaan.** API menolak permintaan yang membawa header `Content-Encoding` selain `identity`, misalnya `gzip` atau `zstd`, dengan `415` dan `errorCode` `BAD_REQUEST`. Aplikasi mengirim JSON apa adanya tanpa kompresi.
 
 **Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
 
@@ -455,7 +457,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
 | `STORAGE_UNAVAILABLE`, `STORAGE_ERROR` | Penyimpanan berkas belum diatur atau gagal |
-| `RATE_LIMITED` | Batas laju terlewati |
+| `RATE_LIMITED` | Batas laju terlewati, atau server sedang sibuk memeriksa kata sandi (`Retry-After: 1`) |
+| `BAD_REQUEST` | Lapisan HTTP menolak permintaan yang tidak punya kode lain, termasuk `415` untuk `Content-Encoding` selain `identity` |
 
 ---
 
@@ -476,7 +479,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 - **Request Body (GURU):** `email`, `password`, `fullName`, `role: "GURU"`, `nip` dan `schoolName` yang opsional, serta `class` berisi `name` (wajib), `gradeLevel`, `academicYear` dan `schoolName`.
 - **Response 201 Created:** sama dengan respons login di bawah, dengan `message` `Registration successful`.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND` atau `CLASS_NO_ACTIVE_TEACHER`, `409` untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk seluruh API dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND` atau `CLASS_NO_ACTIVE_TEACHER`, `409` untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk seluruh API dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
 
 #### `POST /auth/login`
 - **Deskripsi:** Masuk ke akun sebagai Guru atau Wali Murid.
@@ -516,6 +519,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "errorCode": "AUTH_INVALID_CREDENTIALS"
 }
 ```
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `401` `AUTH_INVALID_CREDENTIALS` dan `429` `RATE_LIMITED`, baik karena batas per email atau per perangkat terlewati maupun karena server sedang sibuk memeriksa kata sandi (`Retry-After: 1`).
 - `deviceToken` bukan kredensial. Token ini hanya memberi perangkat anggaran login sendiri untuk email tersebut, dan aplikasi menyimpannya serta mengirimkannya pada login berikutnya.
 
 #### `POST /auth/refresh-token`
@@ -1043,20 +1047,20 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Deskripsi:** Mengganti kata sandi sendiri setelah kata sandi saat ini dikonfirmasi, untuk wali maupun guru (FR-7.1). Setiap sesi akun itu berakhir, sehingga aplikasi harus masuk lagi di setiap perangkat dengan kata sandi baru. Token akses yang sudah terbit tetap berlaku sampai masa berlakunya habis, tetapi token refresh tidak dapat dipakai lagi. Kata sandi baru mengikuti aturan registrasi (8 sampai 72 byte) dan harus berbeda dari yang sekarang. Rute ini dibatasi per akun seperti rute lain yang mengonfirmasi kata sandi.
 - **Request Body:** `{ "currentPassword": "PasswordRahasia123!", "newPassword": "PasswordBaru456!" }`
 - **Response 200 OK:** `{ "success": true, "message": "Password changed" }`
-- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk kata sandi baru yang sama dengan yang sekarang), `401` `AUTH_TOKEN_MISSING` atau `AUTH_TOKEN_INVALID`, `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND`, dan `429` `RATE_LIMITED`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk kata sandi baru yang sama dengan yang sekarang), `401` `AUTH_TOKEN_MISSING` atau `AUTH_TOKEN_INVALID`, `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND`, dan `429` `RATE_LIMITED`, juga ketika server sedang sibuk memeriksa kata sandi (`Retry-After: 1`).
 
 #### `DELETE /users/me`
 - **Deskripsi:** Menghapus akun sendiri. Akun dan data anak disembunyikan dengan `deleted_at`, sehingga email, NIP dan NISN dapat dipakai lagi setelahnya. Guru yang menjadi satu-satunya guru sebuah kelas yang punya anak aktif wajib menyebut `successorEmail`, yaitu email guru lain yang sudah terdaftar. Pengganti itu ditambahkan ke setiap kelas yang tidak diajar guru lain dan menjadi pemiliknya, sehingga kelas yang punya anak tidak pernah kehilangan guru terakhirnya. Jika `successorEmail` tidak disebut, kelas yang hanya diajar akun itu dan tidak punya anak aktif diarsipkan (`classes.archived_at`) dan kode gabungnya dijawab `CLASS_CODE_NOT_FOUND`, sedangkan jika `successorEmail` disebut, pengganti itu tetap menerima semua kelas termasuk yang kosong. Kelas yang juga diajar guru lain tetap bersama mereka, dan jika akun yang dihapus adalah pemiliknya, guru yang bergabung berikutnya menjadi pemilik. Penghapusan yang ditolak tidak mengubah apa pun.
 - **Request Body:** `{ "password": "PasswordRahasia123!", "successorEmail": "budi@example.com" }`. `successorEmail` opsional dan diabaikan untuk wali. Isinya tidak boleh email akun itu sendiri.
 - **Response 200 OK:** `{ "success": true, "message": "Account deleted" }`
-- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk email pengganti yang sama dengan akun itu), `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND` atau `TEACHER_NOT_FOUND` untuk email pengganti yang bukan akun guru aktif, `409` `SUCCESSOR_REQUIRED` (hanya untuk kelas yang punya anak aktif), dan `429` `RATE_LIMITED`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (termasuk email pengganti yang sama dengan akun itu), `403` `AUTH_PASSWORD_INCORRECT` atau `AUTH_FORBIDDEN`, `404` `PROFILE_NOT_FOUND` atau `TEACHER_NOT_FOUND` untuk email pengganti yang bukan akun guru aktif, `409` `SUCCESSOR_REQUIRED` (hanya untuk kelas yang punya anak aktif), dan `429` `RATE_LIMITED`, juga ketika server sedang sibuk memeriksa kata sandi (`Retry-After: 1`).
 
 ---
 
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.11.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.12.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
 - `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
