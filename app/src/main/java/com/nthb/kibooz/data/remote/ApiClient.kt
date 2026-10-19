@@ -4,6 +4,7 @@ import com.nthb.kibooz.BuildConfig
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.util.concurrent.TimeUnit
+import okhttp3.Authenticator
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -15,9 +16,12 @@ import retrofit2.converter.moshi.MoshiConverterFactory
  *
  * Log hanya mencetak baris request dan status, dengan header Authorization disamarkan. Body tidak
  * dicetak karena memuat kata sandi dan token. Naikkan [logLevel] secara lokal untuk memeriksa payload.
+ *
+ * [authenticator] menangani 401 (lihat [TokenAuthenticator]). Tanpa itu 401 langsung diteruskan.
  */
 class ApiClient(
     tokenProvider: TokenProvider,
+    authenticator: Authenticator? = null,
     baseUrl: String = BuildConfig.API_BASE_URL,
     logLevel: HttpLoggingInterceptor.Level =
         if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BASIC else HttpLoggingInterceptor.Level.NONE
@@ -29,6 +33,7 @@ class ApiClient(
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .addInterceptor(AuthTokenInterceptor(tokenProvider))
+        .apply { authenticator?.let { authenticator(it) } }
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = logLevel
             redactHeader("Authorization")

@@ -2,8 +2,11 @@
 <data-extraction>
     <cloud-backup>
         <include domain="root" />
+        <!-- Token sesi tidak boleh ikut backup -->
+        <exclude domain="file" path="datastore/" />
     </cloud-backup>
     <device-transfer>
         <include domain="root" />
+        <exclude domain="file" path="datastore/" />
     </device-transfer>
 </data-extraction>
