@@ -135,9 +135,9 @@ lifecycleScope.launch {
 
 ## 5. Rencana Kerja Tim Frontend (Work Breakdown)
 
-- [ ] **FE-01:** Konfigurasi Retrofit Network Client, OkHttp logging interceptor, dan AuthTokenInterceptor.
+- [x] **FE-01:** Konfigurasi Retrofit Network Client, OkHttp logging interceptor, dan AuthTokenInterceptor.
 - [ ] **FE-02:** Pembuatan Room Database (`KiboozDatabase`), Entity (`StudentEntity`, `MoodLogEntity`), dan DAO.
-- [ ] **FE-03:** Pembuatan `AuthRepository` dan penyimpanan sesi dengan Jetpack Preferences DataStore.
+- [ ] **FE-03:** Pembuatan `AuthRepository` dan penyimpanan sesi dengan Jetpack Preferences DataStore. Nilai token dienkripsi dengan kunci Android Keystore (DataStore tidak terenkripsi sendiri), file sesi dikeluarkan dari backup, dan pembaruan token penyegar dijalankan satu per satu.
 - [ ] **FE-04:** Refaktor `LoginActivity` ke `AuthViewModel`, penanganan pesan error jaringan, dan validasi form.
 - [ ] **FE-05:** Refaktor `DashboardWaliActivity` ke `WaliViewModel`, menghubungkan kartu mood dan poin nyata.
 - [ ] **FE-06:** Refaktor `DashboardGuruActivity` ke `GuruViewModel`, menghubungkan metrik kelas dinamis.
