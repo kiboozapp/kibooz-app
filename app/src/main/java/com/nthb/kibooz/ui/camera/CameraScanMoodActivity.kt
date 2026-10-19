@@ -16,6 +16,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.nthb.kibooz.BuildConfig
 import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityCameraScanMoodBinding
 import com.nthb.kibooz.ml.FrameSize
@@ -59,6 +60,14 @@ class CameraScanMoodActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Pengklasifikasi dan daftar siswa di sini masih contoh, jadi hasilnya tidak boleh sampai ke pengguna sungguhan
+        if (!BuildConfig.DEBUG) {
+            Toast.makeText(this, R.string.mood_belum_tersedia, Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
         binding = ActivityCameraScanMoodBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
@@ -88,7 +97,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        cameraPermission.onResume()
+        if (::cameraPermission.isInitialized) cameraPermission.onResume()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -232,12 +241,8 @@ class CameraScanMoodActivity : AppCompatActivity() {
         binding.faceOverlay.onFaceTapped = { trackingId -> showStudentPicker(trackingId) }
 
         binding.btnCaptureMood.setOnClickListener {
-            Toast.makeText(
-                this,
-                "Deteksi AI Berhasil! Data mood 2 siswa tercatat ke statistik kelas.",
-                Toast.LENGTH_LONG
-            ).show()
-            finish()
+            // Hasil belum dikirim ke server, jadi layar tidak boleh menutup seolah-olah sudah tersimpan
+            Toast.makeText(this, R.string.mood_simpan_belum_tersedia, Toast.LENGTH_LONG).show()
         }
     }
 

@@ -54,12 +54,8 @@ class CameraScanSampahActivity : AppCompatActivity() {
         }
 
         binding.btnClaimPoin.setOnClickListener {
-            Toast.makeText(
-                this,
-                "Luar biasa! +5 Poin kebaikan berhasil diklaim untuk Amelia!",
-                Toast.LENGTH_LONG
-            ).show()
-            finish()
+            // Belum ada pemindaian dan belum ada klaim ke server, jadi tidak ada poin yang boleh diumumkan
+            Toast.makeText(this, R.string.sampah_klaim_belum_tersedia, Toast.LENGTH_LONG).show()
         }
     }
 }
