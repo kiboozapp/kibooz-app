@@ -173,6 +173,17 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Camera Permission Denied Panel -->
+    <include
+        android:id="@+id/layoutIzinKamera"
+        layout="@layout/view_camera_permission_denied"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/clBottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clTopOverlay" />
+
     <!-- Bottom Action Controls -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clBottomControls"

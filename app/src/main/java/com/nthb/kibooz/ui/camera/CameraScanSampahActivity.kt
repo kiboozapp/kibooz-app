@@ -3,12 +3,14 @@ package com.nthb.kibooz.ui.camera
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityCameraScanSampahBinding
 import com.nthb.kibooz.util.InsetsUtil
 
 class CameraScanSampahActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityCameraScanSampahBinding
+    private lateinit var cameraPermission: CameraPermissionHelper
     private var isFlashOn = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,6 +25,21 @@ class CameraScanSampahActivity : AppCompatActivity() {
         )
 
         setupListeners()
+
+        cameraPermission = CameraPermissionHelper(
+            this,
+            binding.layoutIzinKamera,
+            R.string.izin_kamera_sampah
+        ) { granted ->
+            binding.btnClaimPoin.isEnabled = granted
+            binding.btnClaimPoin.alpha = if (granted) 1f else 0.4f
+        }
+        cameraPermission.start()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        cameraPermission.onResume()
     }
 
     private fun setupListeners() {
