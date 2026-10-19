@@ -51,11 +51,16 @@ class LoginActivity : AppCompatActivity() {
 
     private fun handleLogin() {
         if (selectedRole == "GURU") {
-            val intent = Intent(this, DashboardGuruActivity::class.java)
+            // Dasbor menjadi layar paling bawah, jadi tombol kembali tidak mengantar ke pilihan peran lagi
+            val intent = Intent(this, DashboardGuruActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
             startActivity(intent)
             finish()
         } else {
-            val intent = Intent(this, DashboardWaliActivity::class.java)
+            val intent = Intent(this, DashboardWaliActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
             startActivity(intent)
             finish()
         }

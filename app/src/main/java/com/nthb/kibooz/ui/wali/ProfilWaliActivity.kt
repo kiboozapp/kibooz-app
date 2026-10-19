@@ -85,7 +85,12 @@ class ProfilWaliActivity : AppCompatActivity() {
 
         // Bottom Navigation Tabs
         binding.tabHome.setOnClickListener {
-            startActivity(Intent(this, DashboardWaliActivity::class.java))
+            // Kembali ke dasbor yang sudah ada, bukan menumpuk dasbor baru
+            startActivity(
+                Intent(this, DashboardWaliActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
+            )
             finish()
         }
 
