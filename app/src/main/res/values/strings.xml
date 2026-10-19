@@ -49,6 +49,9 @@
     <string name="mood_belum_tersedia">Pemindaian mood belum tersedia di versi ini</string>
     <string name="mood_simpan_belum_tersedia">Penyimpanan hasil mood belum tersedia. Hasil pemindaian belum dikirim ke server.</string>
     <string name="sampah_klaim_belum_tersedia">Pemindaian sampah dan klaim poin belum tersedia di versi ini</string>
+    <string name="profil_ubah_belum_tersedia">Pengubahan profil belum tersedia di versi ini</string>
+    <string name="panduan_terapkan_belum_tersedia">Pencatatan panduan belum tersedia di versi ini</string>
+    <string name="kelas_gabung_belum_tersedia">Menggabung ke kelas belum tersedia di versi ini</string>
     <string name="mood_menganalisis">Menganalisis…</string>
     <string name="mood_ketuk_pilih_siswa">Ketuk untuk pilih siswa</string>
     <string name="mood_wajah_terdeteksi_desc">%1$d wajah terdeteksi</string>

@@ -39,7 +39,7 @@ class ProfilWaliActivity : AppCompatActivity() {
         binding.menuUbahSandi.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Ubah Kata Sandi")
-                .setMessage("Tautan penggantian kata sandi telah dikirimkan ke email terdaftar Anda (sarah.kartika@gmail.com).")
+                .setMessage("Pengubahan kata sandi belum tersedia di versi ini.")
                 .setPositiveButton("Mengerti", null)
                 .show()
         }
@@ -48,7 +48,7 @@ class ProfilWaliActivity : AppCompatActivity() {
         binding.menuSyaratKetentuan.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Syarat dan Ketentuan")
-                .setMessage("Ketentuan Layanan Aplikasi Kibooz:\n1. Penggunaan akun wali murid khusus untuk memantau aktivitas emosi dan kebiasaan pilah sampah anak di sekolah.\n2. Seluruh data siswa dilindungi oleh standar privasi dan keamanan terenkripsi.")
+                .setMessage("Ketentuan Layanan Aplikasi Kibooz:\n1. Penggunaan akun wali murid khusus untuk memantau aktivitas emosi dan kebiasaan pilah sampah anak di sekolah.\n2. Data siswa hanya digunakan untuk keperluan pendampingan anak di sekolah.")
                 .setPositiveButton("Tutup", null)
                 .show()
         }
@@ -57,7 +57,7 @@ class ProfilWaliActivity : AppCompatActivity() {
         binding.menuKebijakanPrivasi.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Kebijakan Privasi")
-                .setMessage("Kibooz memprioritaskan privasi data anak dan keluarga. Data mood serta rekaman kamera AI diproses secara aman untuk kebutuhan pendampingan anak.")
+                .setMessage("Kibooz memprioritaskan privasi data anak dan keluarga. Wajah anak dianalisis hanya di ponsel dan tidak disimpan atau dikirim. Yang dikirim hanya label emosi dan tingkat keyakinannya.")
                 .setPositiveButton("Tutup", null)
                 .show()
         }
