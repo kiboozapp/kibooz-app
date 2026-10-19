@@ -58,4 +58,11 @@ class MoodScanSession {
 
         return kept.values.toList() + visible
     }
+
+    /** [results] dibagi per [MAX_BATCH_ENTRIES] karena POST /guru/mood/log/batch menolak lebih dari 30 entri. */
+    fun resultBatches(): List<List<StudentMood>> = results().chunked(MAX_BATCH_ENTRIES)
+
+    companion object {
+        const val MAX_BATCH_ENTRIES = 30
+    }
 }

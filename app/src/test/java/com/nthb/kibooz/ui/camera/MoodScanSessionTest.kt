@@ -127,4 +127,18 @@ class MoodScanSessionTest {
 
         assertEquals(Emotion.SENANG, session.results().single().emotion.emotion)
     }
+
+    @Test
+    fun `results are split into batches the server accepts`() {
+        val faces = (1..65).map { FaceReading(it, happy()) }
+        session.onFaces(faces)
+        faces.forEach { session.assign(it.trackingId, Student("s${it.trackingId}", "Siswa ${it.trackingId}")) }
+
+        assertEquals(listOf(30, 30, 5), session.resultBatches().map { it.size })
+    }
+
+    @Test
+    fun `no results give no batches`() {
+        assertTrue(session.resultBatches().isEmpty())
+    }
 }
