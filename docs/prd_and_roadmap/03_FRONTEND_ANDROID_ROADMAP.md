@@ -146,4 +146,4 @@ lifecycleScope.launch {
 - [ ] **FE-09:** Refaktor `DetailPenangananMoodActivity` untuk mengirimkan payload `guidance/apply` ke server.
 - [ ] **FE-10:** Pembuatan `Formulir Edit Profil` (Siswa & Guru) dengan validasi masukan dan callback simpan data.
 - [ ] **FE-11:** Penambahan efek *Shimmer Loading Placeholder* pada dashboard saat data sedang diunduh dari jaringan.
-- [ ] **FE-12:** Penanganan kondisi jaringan putus (*offline banner*) dan tombol aksi coba lagi (*retry button*).
+- [ ] **FE-12:** Penanganan kondisi jaringan putus (*offline banner*) dan tombol aksi coba lagi (*retry button*). Saat server tidak tersedia (gagal terhubung, atau `502`, `503` dan `504` tanpa body JSON), aplikasi menampilkan layar "layanan tidak tersedia" dengan tautan ke halaman status https://status.syafahadyan.com/ dan mencoba lagi dengan jeda yang bertambah, aturannya ada di `docs/client-guide.md` repositori backend.
