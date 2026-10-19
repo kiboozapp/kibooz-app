@@ -60,7 +60,7 @@ graph TD
 
 ## 3. Konfigurasi Otomasi CI/CD (GitHub Actions)
 
-Berkas konfigurasi pipeline otomatis ditempatkan pada [.github/workflows/android-ci.yml](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/.github/workflows/android-ci.yml):
+Berkas konfigurasi pipeline otomatis ditempatkan pada [.github/workflows/android-ci.yml](../../.github/workflows/android-ci.yml):
 
 ```yaml
 name: Kibooz Android CI/CD Pipeline

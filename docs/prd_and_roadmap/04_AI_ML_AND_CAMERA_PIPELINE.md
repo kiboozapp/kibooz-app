@@ -140,8 +140,8 @@ class MoodAnalysisAnalyzer(
 - [ ] **ML-01:** Kurasi dataset emosi anak (ekspresi senang, sedih, bingung, marah) dengan variasi pencahayaan Asia Tenggara.
 - [ ] **ML-02:** Pelatihan model MobileNetV3 Emotion Classifier dengan transfer learning dan validasi akurasi minimal 88%.
 - [ ] **ML-03:** Kuantisasi model ke TFLite INT8 dan pengujian latensi di Android Studio Profiler (<70ms).
-- [ ] **ML-04:** Integrasi Google ML Kit Face Detection pada CameraX di [CameraScanMoodActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanMoodActivity.kt).
+- [ ] **ML-04:** Integrasi Google ML Kit Face Detection pada CameraX di [CameraScanMoodActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanMoodActivity.kt).
 - [ ] **ML-05:** Kurasi dataset sampah sekolah (botol plastik, kotak susu, daun, sisa buah) dan pelatihan YOLOv8-nano.
 - [ ] **ML-06:** Ekspor dan kuantisasi model deteksi sampah ke format TFLite dengan metadata input/output terdefinisi.
-- [ ] **ML-07:** Integrasi deteksi sampah langsung dengan bounding box overlay di [CameraScanSampahActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanSampahActivity.kt).
+- [ ] **ML-07:** Integrasi deteksi sampah langsung dengan bounding box overlay di [CameraScanSampahActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanSampahActivity.kt).
 - [ ] **ML-08:** Pembuatan dialog konfirmasi manual saat akurasi prediksi berada di bawah 75%.
