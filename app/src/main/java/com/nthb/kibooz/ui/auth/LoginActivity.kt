@@ -6,6 +6,7 @@ import android.text.method.HideReturnsTransformationMethod
 import android.text.method.PasswordTransformationMethod
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityLoginBinding
 import com.nthb.kibooz.ui.guru.DashboardGuruActivity
 import com.nthb.kibooz.ui.wali.DashboardWaliActivity
@@ -15,7 +16,7 @@ class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
     private var isPasswordVisible: Boolean = false
-    private var selectedRole: String = "ORANG_TUA"
+    private var selectedRole: Role = Role.WALI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +25,8 @@ class LoginActivity : AppCompatActivity() {
 
         InsetsUtil.applyRootBottomInsets(binding.root)
 
-        selectedRole = intent.getStringExtra("SELECTED_ROLE") ?: "ORANG_TUA"
+        // Hanya GURU dan WALI yang punya portal, nilai lain termasuk ADMIN jatuh ke WALI
+        selectedRole = if (intent.getStringExtra(EXTRA_SELECTED_ROLE) == Role.GURU.name) Role.GURU else Role.WALI
 
         // Password visibility toggle
         binding.ivTogglePassword.setOnClickListener {
@@ -50,7 +52,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun handleLogin() {
-        if (selectedRole == "GURU") {
+        if (selectedRole == Role.GURU) {
             // Dasbor menjadi layar paling bawah, jadi tombol kembali tidak mengantar ke pilihan peran lagi
             val intent = Intent(this, DashboardGuruActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -64,5 +66,10 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    companion object {
+        /** Nilai extra adalah nama [Role] seperti yang dikirim API, yaitu GURU atau WALI. */
+        const val EXTRA_SELECTED_ROLE = "SELECTED_ROLE"
     }
 }
