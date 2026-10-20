@@ -12,7 +12,7 @@ Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful A
 - **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil, foto bukti scan sampah dan video kelas. Video diunggah langsung ke bucket lewat alamat bertanda tangan, bukan melalui API. Unggahan nonaktif sampai konfigurasi S3 lengkap.
 - **Protokol Komunikasi:** RESTful JSON melalui HTTPS dengan header `Authorization: Bearer <JWT>`. Semua respons memakai satu amplop dan semua pesan berbahasa Inggris, sehingga klien bercabang pada `errorCode` dan tidak pada teks pesan.
 - **Alamat Layanan:** `https://kibooz-api.syafahadyan.com/api/v1`. Dokumentasi interaktif ada di `https://docs.kibooz.syafahadyan.com` dan dibangun dari `openapi.yaml` di repositori backend (`SyafaHadyan/kibooz-backend`), yang menjadi acuan jika ada perbedaan dengan dokumen ini.
-- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan. Guru kelas dapat mengubah dan menghapus video, dan pembuat postingan forum dapat mengubah postingannya sendiri. Berkas video yang diunggah menunggu di folder sementara sampai videonya ditambahkan, dan postingan forum yang diubah penulisnya ditandai dengan `editedAt`.
+- **Cakupan:** kontrak MVP di dokumen ini ditambah registrasi, token refresh, logout, unggah foto, hapus akun, video pembelajaran, forum diskusi kelas, pengelolaan kelas oleh guru, profil guru, profil anak dan statistik sampah. Video ditambahkan guru sebagai alamat https, baik tautan ke tempat lain maupun berkas yang diunggah langsung ke bucket lewat alamat bertanda tangan. Guru kelas dapat mengubah dan menghapus video, dan pembuat postingan forum dapat mengubah postingannya sendiri. Berkas video yang diunggah menunggu di folder sementara sampai videonya ditambahkan, dan postingan forum yang diubah penulisnya ditandai dengan `editedAt`. Guru dan wali yang berbagi kelas aktif dapat saling berkirim pesan teks pribadi lewat percakapan langsung, dan daftar orang yang dapat dihubungi dihitung dari kelas.
 
 ## 2. Diagram Relasi Entitas (ERD)
 
@@ -35,6 +35,10 @@ erDiagram
     CLASSES ||--o{ FORUM_POSTS : "memiliki forum diskusi"
     USERS ||--o{ FORUM_POSTS : "menulis postingan"
     FORUM_POSTS ||--o{ FORUM_POSTS : "dibalas oleh"
+    USERS ||--o{ CHAT_CONVERSATIONS : "berada dalam percakapan"
+    CHAT_CONVERSATIONS ||--o{ CHAT_MESSAGES : "berisi pesan"
+    USERS ||--o{ CHAT_MESSAGES : "mengirim pesan"
+    CHAT_CONVERSATIONS ||--o{ CHAT_READS : "tanda baca"
 
     USERS {
         uuid id PK
@@ -149,6 +153,29 @@ erDiagram
         timestamp edited_at "kosong sampai penulis mengubah isinya"
     }
 
+    CHAT_CONVERSATIONS {
+        uuid id PK
+        uuid user_low_id FK "id akun yang lebih kecil dari pasangan"
+        uuid user_high_id FK "id akun yang lebih besar dari pasangan"
+        timestamp created_at
+    }
+
+    CHAT_MESSAGES {
+        bigint id PK "terus bertambah dan dipakai sebagai kursor"
+        uuid conversation_id FK
+        uuid sender_id FK
+        string body "kosong untuk pesan yang dihapus"
+        timestamp created_at
+        timestamp deleted_at "terisi untuk pesan yang dihapus pengirimnya"
+    }
+
+    CHAT_READS {
+        uuid conversation_id PK
+        uuid user_id PK
+        bigint last_read_message_id "pesan terakhir yang sudah dibaca"
+        timestamp updated_at
+    }
+
     REFRESH_TOKENS {
         uuid id PK
         uuid user_id FK
@@ -158,7 +185,7 @@ erDiagram
     }
 ```
 
-Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru, baik tautan ke tempat lain maupun berkas yang diunggah ke bucket. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru. Kolom `forum_posts.edited_at` menandai kapan penulis terakhir mengubah judul atau isi postingan dan kosong untuk postingan yang belum pernah diubah. Berkas video yang baru diunggah menunggu di awalan `pending/` pada bucket dan disalin ke alamat permanennya di `videos/` saat video ditambahkan, sedangkan berkas yang tidak pernah ditambahkan dihapus bucket setelah satu hari.
+Tabel `class_teachers` sudah ada di ERD awal tetapi belum ada di DDL awal, sedangkan `guidance_applications` dan `refresh_tokens` ditambahkan oleh implementasi. Tabel `learning_videos` dan `forum_posts` ada di ERD awal tanpa DDL, sehingga keduanya dirancang di implementasi. Video adalah alamat https yang ditambahkan guru, baik tautan ke tempat lain maupun berkas yang diunggah ke bucket. Forum terdiri dari utas, yaitu postingan dengan judul, dan balasan, yaitu postingan tanpa judul yang menunjuk ke utas di kelas yang sama. Kolom `gurus.address` ditambahkan untuk alamat dinas guru. Kolom `forum_posts.edited_at` menandai kapan penulis terakhir mengubah judul atau isi postingan dan kosong untuk postingan yang belum pernah diubah. Berkas video yang baru diunggah menunggu di awalan `pending/` pada bucket dan disalin ke alamat permanennya di `videos/` saat video ditambahkan, sedangkan berkas yang tidak pernah ditambahkan dihapus bucket setelah satu hari. Tabel `chat_conversations`, `chat_messages` dan `chat_reads` ditambahkan oleh migrasi 000017. Satu baris `chat_conversations` adalah satu percakapan langsung untuk satu pasangan akun, dengan id yang lebih kecil selalu di `user_low_id`, sehingga kunci unik menangkap pasangan yang sama dari kedua sisi. Id `chat_messages` bertambah terus di dalam satu percakapan dan menjadi kursor bagi aplikasi, dan pesan ditulis di bawah kunci baris percakapan agar id tidak pernah terlewat. Pesan yang dihapus tetap ada dengan isi kosong dan `deleted_at`, sehingga percakapan menampilkan penanda.
 
 ---
 
@@ -409,6 +436,48 @@ CREATE INDEX idx_idempotency_keys_created_at ON idempotency_keys(created_at);
 -- Kelas yang tidak diajar siapa pun dan tidak punya anak aktif diarsipkan, tidak ditinggalkan dengan kode gabung yang
 -- masih menjawab. Kelas yang diarsipkan tetap menyimpan baris dan kodenya, sehingga kode itu tidak pernah dipakai kelas lain.
 ALTER TABLE classes ADD COLUMN archived_at TIMESTAMPTZ;
+
+-- 000016 class joining
+-- Guru dapat berhenti menerima anak baru tanpa mengganti kode gabung. Setiap kelas dimulai terbuka.
+ALTER TABLE classes ADD COLUMN join_open BOOLEAN NOT NULL DEFAULT TRUE;
+
+-- 000017 chat
+-- Seorang guru dan seorang wali berbicara dalam percakapan langsung. Ada satu baris untuk setiap pasangan akun, id yang
+-- lebih kecil selalu user_low_id, sehingga kunci unik menangkap pasangan itu dalam urutan apa pun.
+CREATE TABLE chat_conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_low_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    user_high_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    CHECK (user_low_id < user_high_id),
+    UNIQUE (user_low_id, user_high_id)
+);
+
+CREATE INDEX idx_chat_conversations_high ON chat_conversations(user_high_id);
+
+-- Id hanya bertambah dan menjadi kursor percakapan. Pengiriman mengunci baris percakapan lebih dulu, sehingga pesan satu
+-- percakapan mendapat id menurut urutan commit dan aplikasi yang memegang kursor tidak melewatkan satu pun. Pesan yang
+-- dihapus tetap punya baris dengan isi kosong, sehingga percakapan menampilkan penanda.
+CREATE TABLE chat_messages (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    conversation_id UUID NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+    sender_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    body TEXT NOT NULL CHECK (char_length(body) <= 4000),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMP WITH TIME ZONE,
+    CHECK ((deleted_at IS NULL AND char_length(body) > 0) OR (deleted_at IS NOT NULL AND body = ''))
+);
+
+CREATE INDEX idx_chat_messages_conversation ON chat_messages(conversation_id, id DESC);
+
+-- Pesan terakhir yang sudah dibaca setiap anggota, untuk jumlah belum dibaca dan tanda baca di sisi lawan bicara.
+CREATE TABLE chat_reads (
+    conversation_id UUID NOT NULL REFERENCES chat_conversations(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    last_read_message_id BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    PRIMARY KEY (conversation_id, user_id)
+);
 ```
 
 ---
@@ -427,11 +496,11 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Isi permintaan.** API menolak permintaan yang membawa header `Content-Encoding` selain `identity`, misalnya `gzip` atau `zstd`, dengan `415` dan `errorCode` `BAD_REQUEST`. Aplikasi mengirim JSON apa adanya tanpa kompresi. Isi JSON yang lebih dari 64 KB ditolak dengan `413` dan `errorCode` `BODY_TOO_LARGE` di semua rute kecuali dua unggahan foto (`POST /users/avatar` dan `POST /trash/scan-claim`), yang kelebihan ukurannya dijawab `413` `FILE_TOO_LARGE`. Permintaan yang wajar tidak pernah mendekati batas itu, sehingga aplikasi menganggapnya kesalahan di sisi aplikasi.
 
-**Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
+**Daftar berhalaman.** Daftar video, utas, balasan, kelas, murid, kontak dan percakapan memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
 
 **Poin semester.** Setiap anak punya `totalPoints` atau `currentPoints` untuk poin dari semua semester, dan `seasonPoints` untuk poin semester yang sedang berjalan. Papan peringkat dan `classRank` mengikuti `seasonPoints`. Pada hari pertama bulan awal semester (Januari dan Juli secara bawaan, diatur oleh `SEMESTER_START_MONTHS`) pukul 00.00 zona waktu server, `seasonPoints` semua anak kembali ke 0 dan peringkat dihitung ulang, sedangkan `totalPoints` tetap. Server menyimpan peringkat akhir semester yang berakhir di tabel `leaderboard_history`, dan `GET /leaderboard/history` membacanya kembali. Pemeriksaan kalender berjalan setiap menit, sehingga poin yang masuk dalam semenit setelah pergantian semester mungkin masih dihitung ke semester yang berakhir.
 
-**Aman diulang (`Idempotency-Key`).** Sepuluh rute yang membuat sesuatu menerima header opsional `Idempotency-Key` (8 sampai 64 karakter `A-Z`, `a-z`, `0-9`, `_` atau `-`, misalnya UUID). Rute itu adalah `POST /guru/mood/log`, `POST /guru/mood/log/batch`, `POST /trash/scan-claim`, `POST /wali/children`, `POST /wali/guidance/apply`, `POST /guru/classes`, `POST /guru/classes/{classId}/teachers`, `POST /classes/{classId}/videos`, `POST /classes/{classId}/forum` dan `POST /classes/{classId}/forum/{postId}/replies`. Aplikasi yang mengantrekan aksi saat offline membuat satu kunci acak untuk setiap aksi dan mengirim kunci yang sama pada setiap percobaan. Percobaan setelah yang berhasil mendapat respons pertama lagi dengan header `Idempotent-Replayed: true`, dan tidak ada yang dikerjakan dua kali. Kunci dimiliki pengguna yang masuk dan disimpan server selama 7 hari (`IDEMPOTENCY_TTL_HOURS`). Hanya respons `2xx` yang diingat, sehingga setelah respons lain kunci yang sama boleh dikirim lagi. Kunci yang sama dengan permintaan yang berbeda ditolak dengan `422` `IDEMPOTENCY_KEY_REUSED`, dan kunci yang sama selagi percobaan pertama masih berjalan ditolak dengan `409` `IDEMPOTENCY_IN_PROGRESS`, yang berarti aplikasi menunggu sebentar lalu mencoba lagi. Kunci yang bentuknya salah mendapat `400` `VALIDATION_ERROR`.
+**Aman diulang (`Idempotency-Key`).** Sebelas rute yang membuat sesuatu menerima header opsional `Idempotency-Key` (8 sampai 64 karakter `A-Z`, `a-z`, `0-9`, `_` atau `-`, misalnya UUID). Rute itu adalah `POST /guru/mood/log`, `POST /guru/mood/log/batch`, `POST /trash/scan-claim`, `POST /wali/children`, `POST /wali/guidance/apply`, `POST /guru/classes`, `POST /guru/classes/{classId}/teachers`, `POST /classes/{classId}/videos`, `POST /classes/{classId}/forum`, `POST /classes/{classId}/forum/{postId}/replies` dan `POST /chat/conversations/{conversationId}/messages`. Aplikasi yang mengantrekan aksi saat offline membuat satu kunci acak untuk setiap aksi dan mengirim kunci yang sama pada setiap percobaan. Percobaan setelah yang berhasil mendapat respons pertama lagi dengan header `Idempotent-Replayed: true`, dan tidak ada yang dikerjakan dua kali. Kunci dimiliki pengguna yang masuk dan disimpan server selama 7 hari (`IDEMPOTENCY_TTL_HOURS`). Hanya respons `2xx` yang diingat, sehingga setelah respons lain kunci yang sama boleh dikirim lagi. Kunci yang sama dengan permintaan yang berbeda ditolak dengan `422` `IDEMPOTENCY_KEY_REUSED`, dan kunci yang sama selagi percobaan pertama masih berjalan ditolak dengan `409` `IDEMPOTENCY_IN_PROGRESS`, yang berarti aplikasi menunggu sebentar lalu mencoba lagi. Kunci yang bentuknya salah mendapat `400` `VALIDATION_ERROR`.
 
 **Kode kesalahan.**
 
@@ -455,6 +524,9 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `IDEMPOTENCY_KEY_REUSED` | `Idempotency-Key` yang sama dipakai untuk permintaan yang berbeda (`422`) |
 | `IDEMPOTENCY_IN_PROGRESS` | Permintaan dengan `Idempotency-Key` yang sama masih berjalan, aplikasi mencoba lagi sebentar lagi (`409`) |
 | `STUDENT_NOT_FOUND`, `NO_CHILD_REGISTERED`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada. `NO_CHILD_REGISTERED` berarti wali tidak punya anak lagi karena semuanya sudah dihapus, sehingga dasbor dan statistik sampah tidak punya anak bawaan, dan aplikasi membuka layar tambah anak |
+| `CHAT_CONTACT_NOT_ALLOWED` | Percakapan baru butuh satu guru dan satu wali yang berbagi kelas aktif (`403`). Id yang bukan akun, akun yang sudah dihapus, peran yang sama dan pasangan tanpa kelas bersama mendapat jawaban yang sama |
+| `CHAT_CONVERSATION_NOT_FOUND`, `CHAT_MESSAGE_NOT_FOUND` | Percakapan tidak ada atau akun yang masuk bukan salah satu dari dua orangnya (`404`, jawabannya sama dengan sengaja), atau percakapan tidak punya pesan dengan id itu |
+| `CHAT_SENDING_CLOSED` | Dua orang itu tidak lagi berbagi kelas aktif atau akun lawan bicara sudah dihapus (`409`). Membaca tetap terbuka dan aplikasi mengganti kotak teks dengan keterangan |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
 | `BODY_TOO_LARGE` | Isi JSON lebih dari 64 KB (`413`), kecuali pada dua unggahan foto |
@@ -1371,6 +1443,107 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 ```
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk wali dan guru kelas lain, dan `401` tanpa token.
 
+### 4.8 Percakapan Guru dan Wali (`/chat`)
+
+Semua rute di bagian ini hanya untuk peran `GURU` dan `WALI`, dan peran lain menerima `403` `AUTH_FORBIDDEN`. Percakapan langsung hanya satu untuk setiap pasangan akun, sehingga seorang wali punya satu percakapan dengan setiap guru berapa pun jumlah anaknya. Percakapan baru hanya dapat dimulai antara satu guru dan satu wali yang berbagi kelas aktif, yaitu guru mengajar kelas yang belum diarsipkan dan wali punya anak aktif di kelas itu. Wali tidak dapat berkirim pesan pribadi dengan wali lain dan guru tidak dengan guru lain (`CHAT_CONTACT_NOT_ALLOWED`), dan ruang kelas untuk percakapan bersama menyusul. Pesan hanya berisi teks sampai 4000 karakter. Belum ada pengiriman langsung, sehingga aplikasi mengambil pesan baru dengan `after` selagi layar percakapan terbuka. Orang di luar sebuah percakapan menerima `404` `CHAT_CONVERSATION_NOT_FOUND`, jadi jawabannya tidak memberi tahu apakah percakapan itu ada.
+
+#### `GET /chat/contacts`
+- **Deskripsi:** Orang yang dapat diajak berbicara, diurutkan menurut nama. Guru menerima wali yang punya anak aktif di kelas yang ia ajar, dan wali menerima guru dari kelas anak-anaknya. Seseorang muncul begitu anaknya bergabung ke kelas dan hilang ketika anak keluar atau kelas diarsipkan, karena daftar ini dihitung dari kelas dan tidak disimpan. `children` berisi nama anak wali itu di kelas bersama, sehingga guru dapat menampilkan nama seperti `Siti (Rani)`, dan bagi wali isinya adalah anaknya sendiri. `conversationId` bernilai `null` sampai percakapan dengan orang itu ada.
+- **Query:** `page` dan `limit`, lihat 4.0.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "contacts": [
+      {
+        "id": "7b1d2c3e-4f56-4a78-9b01-2c3d4e5f6a7b",
+        "fullName": "Sarah Kartika",
+        "role": "WALI",
+        "avatarUrl": null,
+        "deleted": false,
+        "classes": [{ "id": "5e0c8a1b-2d3f-4a5b-8c6d-7e8f9a0b1c2d", "name": "Kelas A" }],
+        "children": ["Rani Putri"],
+        "conversationId": null
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `401` tanpa token dan `403` `AUTH_FORBIDDEN` untuk peran lain.
+
+#### `GET /chat/conversations`
+- **Deskripsi:** Percakapan yang punya sedikitnya satu pesan, dari yang pesan terbarunya paling baru. Percakapan yang dibuka dan belum pernah diisi tidak ditampilkan. `peer` adalah lawan bicara, dan akun yang sudah dihapus tampil dengan nama `Deleted account` tanpa foto dan `deleted` bernilai `true`. `unreadCount` menghitung pesan lawan bicara setelah tanda baca pengguna, dan `peerLastReadMessageId` adalah pesan terakhir yang sudah dibaca lawan bicara, sehingga aplikasi dapat menandai pesan sendiri sebagai terbaca sampai id itu. `canSend` bernilai `false` ketika dua orang itu tidak lagi berbagi kelas aktif atau akun lawan bicara sudah dihapus, dan riwayatnya tetap dapat dibaca.
+- **Query:** `page` dan `limit`, lihat 4.0.
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "conversations": [
+      {
+        "id": "0b8f6a52-3c4d-4e5f-8a6b-7c8d9e0f1a2b",
+        "peer": { "id": "7b1d2c3e-4f56-4a78-9b01-2c3d4e5f6a7b", "fullName": "Sarah Kartika", "role": "WALI", "avatarUrl": null, "deleted": false },
+        "lastMessage": { "id": 12, "conversationId": "0b8f6a52-3c4d-4e5f-8a6b-7c8d9e0f1a2b", "senderId": "7b1d2c3e-4f56-4a78-9b01-2c3d4e5f6a7b", "body": "Rani batuk hari ini", "deleted": false, "createdAt": "2026-10-20T09:00:00Z" },
+        "unreadCount": 1,
+        "peerLastReadMessageId": 9,
+        "canSend": true,
+        "createdAt": "2026-10-20T08:30:00Z"
+      }
+    ],
+    "page": 1,
+    "limit": 20,
+    "total": 1
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `401` tanpa token dan `403` `AUTH_FORBIDDEN` untuk peran lain.
+
+#### `POST /chat/conversations`
+- **Deskripsi:** Mengembalikan percakapan dengan seseorang dan membuatnya jika belum ada. Panggilan pertama menjawab `201` dan panggilan berikutnya untuk pasangan yang sama menjawab `200` dengan percakapan yang sama, juga ketika lawan bicara membukanya dari sisinya. Dua orang yang tidak lagi berbagi kelas masih dapat membuka percakapan lama mereka, dengan `canSend` bernilai `false`.
+- **Request Body:** `{ "userId": "7b1d2c3e-4f56-4a78-9b01-2c3d4e5f6a7b" }` dengan `userId` wajib dan berasal dari `id` pada daftar kontak.
+- **Response 201 Created atau 200 OK:** `data` berisi satu percakapan seperti pada daftar di atas, dengan `lastMessage` bernilai `null` untuk percakapan baru. `message` bernilai `Conversation started` pada `201`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` (juga untuk akun sendiri), `403` `CHAT_CONTACT_NOT_ALLOWED` dan `401` tanpa token.
+
+#### `GET /chat/conversations/{conversationId}/messages`
+- **Deskripsi:** Pesan sebuah percakapan, selalu menurut urutan pengiriman. Tanpa kursor, jawabannya adalah `limit` pesan terbaru. `before` berisi id pesan tertua yang sudah tampil untuk memuat yang lebih lama, dan `after` berisi id tertinggi yang dimiliki aplikasi untuk memuat yang datang sesudahnya, misalnya setelah aplikasi offline. Kirim salah satu, bukan keduanya. `hasMore` menyatakan apakah masih ada pesan ke arah yang diminta. Pesan yang dihapus tetap ada dengan `body` kosong dan `deleted` bernilai `true`.
+- **Query:** `after` (0 atau id pesan), `before` (id pesan) dan `limit` (1 sampai 100, bawaan 50).
+- **Response 200 OK:**
+```json
+{
+  "success": true,
+  "data": {
+    "messages": [
+      { "id": 11, "conversationId": "0b8f6a52-3c4d-4e5f-8a6b-7c8d9e0f1a2b", "senderId": "5a4b3c2d-1e0f-4a9b-8c7d-6e5f4a3b2c1d", "body": "Selamat pagi, Bu", "deleted": false, "createdAt": "2026-10-20T08:55:00Z" },
+      { "id": 12, "conversationId": "0b8f6a52-3c4d-4e5f-8a6b-7c8d9e0f1a2b", "senderId": "7b1d2c3e-4f56-4a78-9b01-2c3d4e5f6a7b", "body": "Rani batuk hari ini", "deleted": false, "createdAt": "2026-10-20T09:00:00Z" }
+    ],
+    "hasMore": false
+  }
+}
+```
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CHAT_CONVERSATION_NOT_FOUND` dan `401` tanpa token.
+
+#### `POST /chat/conversations/{conversationId}/messages`
+- **Deskripsi:** Mengirim pesan teks. Teks dipangkas di kedua ujung dan teks yang hanya berisi spasi ditolak. Pengiriman butuh kelas yang masih dibagi dan akun lawan bicara yang masih ada, sedangkan membaca tetap terbuka.
+- **Header:** `Idempotency-Key` opsional, lihat 4.0.
+- **Request Body:** `{ "body": "Rani batuk hari ini" }` dengan `body` wajib (maksimal 4000 karakter).
+- **Response 201 Created:** `message` bernilai `Message sent` dan `data` berisi satu pesan seperti pada daftar di atas.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CHAT_CONVERSATION_NOT_FOUND`, `409` `CHAT_SENDING_CLOSED` atau `IDEMPOTENCY_IN_PROGRESS`, `422` `IDEMPOTENCY_KEY_REUSED` dan `401` tanpa token.
+
+#### `DELETE /chat/conversations/{conversationId}/messages/{messageId}`
+- **Deskripsi:** Pengirim menghapus pesannya sendiri. Isi pesan dikosongkan dan penandanya tetap ada, sehingga kedua orang melihat bahwa sebuah pesan dihapus. Orang lain, termasuk lawan bicara, menerima `403`. Menghapus pesan yang sama lagi tidak mengubah apa pun dan tetap menjawab `200`, dan hal itu masih bisa dilakukan setelah dua orang itu tidak berbagi kelas.
+- **Response 200 OK:** `message` bernilai `Message deleted` dan `data` berisi pesan seperti sekarang, dengan `deleted` bernilai `true` dan `body` kosong.
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id pesan yang bukan angka positif, `403` `AUTH_FORBIDDEN`, `404` `CHAT_CONVERSATION_NOT_FOUND` atau `CHAT_MESSAGE_NOT_FOUND` dan `401` tanpa token.
+
+#### `PUT /chat/conversations/{conversationId}/read`
+- **Deskripsi:** Memajukan tanda baca pengguna ke sebuah pesan. Tanda hanya bergerak maju, nilai yang lebih kecil atau sama tidak mengubah apa pun, dan nilai di atas pesan terbaru dipotong ke pesan terbaru. Kirim 0 atau id pesan terbaru yang sudah ditampilkan. Jawabannya berisi tanda yang berlaku dan jumlah pesan lawan bicara yang masih belum dibaca.
+- **Request Body:** `{ "messageId": 12 }` dengan `messageId` berupa angka 0 atau lebih.
+- **Response 200 OK:** `{ "success": true, "data": { "lastReadMessageId": 12, "unreadCount": 0 } }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CHAT_CONVERSATION_NOT_FOUND` dan `401` tanpa token.
+
 ---
 
 ## 5. Daftar Tugas Tim Backend (Work Breakdown)
@@ -1397,3 +1570,4 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-20:** Rute ganti kata sandi (`PUT /users/me/password`) dan pengarsipan kelas tanpa anak aktif saat satu-satunya guru menghapus akun tanpa menyebut `successorEmail`.
 - [x] **BE-21:** Profil wali (`PATCH /wali/profile`), ubah nama atau NISN anak dan hapus anak oleh wali, nama guru yang dapat diubah, mengeluarkan anak dari kelas oleh guru, dan menutup atau membuka kelas untuk anak baru (`joinOpen`).
 - [x] **BE-22:** Batas pemakaian (60 anak per kelas, 20 kelas per guru, 20 catatan mood per anak per hari, 500 karakter untuk catatan, 64 KB untuk isi JSON dan 30 permintaan per menit untuk pencatatan mood massal), `userId` dan `isSelf` pada daftar guru, dan kode bergabung yang diganti saat guru keluar.
+- [x] **BE-23:** Percakapan langsung guru dan wali lewat REST (`GET /chat/contacts`, `GET` dan `POST /chat/conversations`, `GET` dan `POST /chat/conversations/{conversationId}/messages`, `DELETE` pada satu pesan dan `PUT .../read`), dengan tabel `chat_conversations`, `chat_messages` dan `chat_reads`, kontak yang dihitung dari kelas, kursor id pesan dan `Idempotency-Key` pada pengiriman. Pengiriman langsung lewat WebSocket, ruang kelas dan lampiran menyusul.
