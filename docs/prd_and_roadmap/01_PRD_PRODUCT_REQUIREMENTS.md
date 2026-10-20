@@ -106,6 +106,12 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-8.2 AI Scanner Mood:** Memproses bingkai wajah anak di perangkat. Model mengenali ekspresi dan memetakan ke salah satu dari 4 emosi.
 - **FR-8.3 AI Scanner Sampah:** Mendeteksi objek sampah di depan kamera, menentukan kategori (Organik, Anorganik atau B3), dan menampilkan kartu poin.
 
+### FR-9: Percakapan Guru dan Wali
+- **FR-9.1 Daftar Kontak:** Guru melihat wali dari anak-anak di kelas yang ia ajar, dan wali melihat guru dari kelas anak-anaknya. Seseorang muncul begitu anaknya bergabung ke kelas, sehingga tidak ada yang perlu dimintai izin lebih dulu. Wali tidak melihat wali lain dan guru tidak melihat guru lain.
+- **FR-9.2 Percakapan Pribadi:** Setiap pasangan guru dan wali punya satu percakapan pribadi berisi pesan teks (sampai 4000 karakter), berapa pun jumlah anak wali itu. Daftar percakapan menampilkan pesan terakhir dan jumlah yang belum dibaca. Pengirim dapat menghapus pesannya sendiri dan penanda tetap tampil. Tanda baca menunjukkan sampai mana lawan bicara sudah membaca.
+- **FR-9.3 Riwayat Tetap Terbaca:** Ketika dua orang tidak lagi berbagi kelas aktif, percakapan lama tetap dapat dibaca tetapi pengiriman ditutup dengan keterangan. Pesan dari akun yang sudah dihapus tetap ada dan pengirimnya tampil sebagai `Deleted account`.
+- **FR-9.4 Pesan Baru:** Selama pengiriman langsung belum ada, aplikasi mengambil pesan baru dengan kursor `after` secara berkala saat layar percakapan terbuka. Lampiran foto dan video, ruang kelas bersama, indikator mengetik dan notifikasi dorong menyusul.
+
 ---
 
 ## 4. Kebutuhan Non-Fungsional (Non-Functional Requirements)
@@ -128,3 +134,4 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru, yaitu pada hari pertama bulan awal semester (Januari dan Juli secara bawaan). Yang kembali ke nol adalah poin semester (`seasonPoints`) yang dipakai papan peringkat, sedangkan poin seluruh semester (`totalPoints`) tetap pada anak. Peringkat akhir semester yang berakhir disimpan di server.
 4. **BR-04 Konfirmasi Deteksi AI di Bawah Ambang Batas:** Skor keyakinan (*confidence score*) AI minimal 75%. Jika hasil di bawah 75%, sistem menampilkan dialog konfirmasi manual kepada pengguna. Langkah ini mencegah salah catat data.
 5. **BR-05 Batas Pemakaian:** Sebuah kelas berisi paling banyak 60 anak dan seorang guru mengajar paling banyak 20 kelas yang belum diarsipkan. Seorang anak punya paling banyak 20 catatan mood per hari, catatan mood dan catatan wali paling banyak 500 karakter, dan isi JSON paling banyak 64 KB kecuali pada unggahan foto.
+6. **BR-06 Akses Percakapan:** Hanya satu guru dan satu wali yang berbagi kelas aktif dapat memulai percakapan pribadi, dan hanya dua orang di dalam percakapan yang dapat membaca atau menulis di sana. Wali tidak berkirim pesan pribadi dengan wali lain, dan guru yang bukan salah satu dari dua orang itu tidak membaca percakapan itu.
