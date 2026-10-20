@@ -55,7 +55,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-1.1:** Sistem menyajikan slide onboarding bersama maskot Kibby.
 - **FR-1.2:** Pengguna memilih peran pada halaman Role Selection (Wali Murid atau Guru). Pilihan ini mengatur rute dashboard dan navigasi.
 - **FR-1.3:** Login memakai email dan kata sandi dengan validasi input langsung.
-- **FR-1.4:** Sistem menyimpan token JWT terenkripsi di DataStore. Pengguna tidak perlu login berulang kali.
+- **FR-1.4:** Sistem menyimpan token JWT di DataStore, dengan nilai token dienkripsi lebih dulu memakai kunci Android Keystore karena DataStore sendiri tidak terenkripsi. File sesi dikeluarkan dari backup. Token penyegar hanya berlaku sekali, jadi pembaruannya harus diserialkan dan disimpan sebelum permintaan diulang. Pengguna tidak perlu login berulang kali.
 - **FR-1.5:** Tombol keluar menghapus sesi dan membuka kembali layar pemilihan peran.
 
 ### FR-2: Portal dan Dashboard Guru
