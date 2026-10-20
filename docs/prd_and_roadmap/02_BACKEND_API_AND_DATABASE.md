@@ -423,9 +423,9 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Bahasa.** Pesan dan nama hari dalam respons memakai bahasa Inggris (`Monday` sampai `Friday`), dan nilai bawaan `gradeLevel` kelas baru adalah `Class A`. Aplikasi menerjemahkan teks tampilan di sisi klien.
 
-**Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Login dan registrasi dibatasi per email, atau per perangkat jika login membawa `deviceToken` yang valid, sedangkan token refresh dan logout dibatasi per token refresh, masing-masing 10 permintaan per 60 detik untuk tiap rute. Registrasi dan penambahan anak yang menyebut kode kelas juga punya batas sendiri, masing-masing satu batas untuk tiap rute yang dipakai bersama oleh semua pemanggil rute itu (60 permintaan per 60 detik), agar kode kelas tidak dapat ditebak. Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After` yang berisi jumlah detik sampai permintaan berikutnya diterima. Permintaan yang ditolak tetap dihitung, sehingga aplikasi yang terus mencoba harus menunggu lebih lama. Login, registrasi, penggantian kata sandi dan penghapusan akun juga dapat dijawab `429` dengan `errorCode` `RATE_LIMITED` dan `Retry-After: 1` ketika server sedang sibuk memeriksa kata sandi, dan aplikasi cukup menunggu sebanyak header itu lalu mengirim permintaan yang sama sekali lagi. Respons dari rute yang dibatasi juga memuat `X-RateLimit-Limit`, `X-RateLimit-Remaining` dan `X-RateLimit-Reset`. Proksi di depan API dapat menjawab `429` tanpa isi dan tanpa `Retry-After`, misalnya karena batas per alamat IP untuk login dan registrasi, sehingga aplikasi memeriksa kode status lebih dulu, menunggu sekitar 30 detik jika header itu tidak ada, dan menggandakan waktunya pada tiap `429` berikutnya. Batas harian klaim sampah berbeda, yaitu `429` dengan `TRASH_DAILY_LIMIT_REACHED` tanpa `Retry-After`, dan batas itu mulai lagi pada hari lokal berikutnya.
+**Batas laju.** Rute untuk pengguna yang sudah masuk dibatasi per pengguna (120 permintaan per 60 detik). Login dan registrasi dibatasi per email, atau per perangkat jika login membawa `deviceToken` yang valid, sedangkan token refresh dan logout dibatasi per token refresh, masing-masing 10 permintaan per 60 detik untuk tiap rute. Registrasi dan penambahan anak yang menyebut kode kelas juga punya batas sendiri, masing-masing satu batas untuk tiap rute yang dipakai bersama oleh semua pemanggil rute itu (60 permintaan per 60 detik), agar kode kelas tidak dapat ditebak. Tidak ada batas yang memakai alamat IP. Permintaan yang melewati batas mendapat `429` dengan `errorCode` `RATE_LIMITED` dan header `Retry-After` yang berisi jumlah detik sampai permintaan berikutnya diterima. Permintaan yang ditolak tetap dihitung, sehingga aplikasi yang terus mencoba harus menunggu lebih lama. Login, registrasi, penggantian kata sandi dan penghapusan akun juga dapat dijawab `429` dengan `errorCode` `RATE_LIMITED` dan `Retry-After: 1` ketika server sedang sibuk memeriksa kata sandi, dan aplikasi cukup menunggu sebanyak header itu lalu mengirim permintaan yang sama sekali lagi. `POST /guru/mood/log/batch` punya batas sendiri, yaitu 30 permintaan per 60 detik untuk setiap pengguna, di samping batas semua rute yang membutuhkan masuk, dan satu permintaan untuk satu kelas sudah cukup. Respons dari rute yang dibatasi juga memuat `X-RateLimit-Limit`, `X-RateLimit-Remaining` dan `X-RateLimit-Reset`. Proksi di depan API dapat menjawab `429` tanpa isi dan tanpa `Retry-After`, misalnya karena batas per alamat IP untuk login dan registrasi, sehingga aplikasi memeriksa kode status lebih dulu, menunggu sekitar 30 detik jika header itu tidak ada, dan menggandakan waktunya pada tiap `429` berikutnya. Batas harian klaim sampah berbeda, yaitu `429` dengan `TRASH_DAILY_LIMIT_REACHED` tanpa `Retry-After`, dan batas itu mulai lagi pada hari lokal berikutnya.
 
-**Isi permintaan.** API menolak permintaan yang membawa header `Content-Encoding` selain `identity`, misalnya `gzip` atau `zstd`, dengan `415` dan `errorCode` `BAD_REQUEST`. Aplikasi mengirim JSON apa adanya tanpa kompresi.
+**Isi permintaan.** API menolak permintaan yang membawa header `Content-Encoding` selain `identity`, misalnya `gzip` atau `zstd`, dengan `415` dan `errorCode` `BAD_REQUEST`. Aplikasi mengirim JSON apa adanya tanpa kompresi. Isi JSON yang lebih dari 64 KB ditolak dengan `413` dan `errorCode` `BODY_TOO_LARGE` di semua rute kecuali dua unggahan foto (`POST /users/avatar` dan `POST /trash/scan-claim`), yang kelebihan ukurannya dijawab `413` `FILE_TOO_LARGE`. Permintaan yang wajar tidak pernah mendekati batas itu, sehingga aplikasi menganggapnya kesalahan di sisi aplikasi.
 
 **Daftar berhalaman.** Daftar video, utas, balasan, kelas dan murid memakai query `page` (mulai dari 1) dan `limit` (1 sampai 50, bawaan 20). Respons memuat `page`, `limit` dan `total` di samping isi daftar, dan halaman setelah yang terakhir menghasilkan daftar kosong.
 
@@ -443,9 +443,10 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_REFRESH_INVALID` | Sesi sudah berakhir dan pengguna harus masuk lagi |
 | `AUTH_FORBIDDEN` | Peran tidak boleh melakukan aksi ini |
 | `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun atau mengganti kata sandi |
-| `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar |
-| `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER` | Masalah pada kode atau data kelas. Kode gabung milik kelas yang diarsipkan dijawab `CLASS_CODE_NOT_FOUND`, dan kelas yang diarsipkan tidak dapat ditambah guru (`CLASS_NOT_FOUND`) |
+| `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar, termasuk ketika wali mengubah NISN seorang anak menjadi NISN anak aktif lain |
+| `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL`, `CLASS_LIMIT_REACHED` | Masalah pada kode atau data kelas. Kode gabung milik kelas yang diarsipkan dijawab `CLASS_CODE_NOT_FOUND`, dan kelas yang diarsipkan tidak dapat ditambah guru (`CLASS_NOT_FOUND`). Guru kelas dapat menutup kelas untuk anak baru (`CLASS_JOINING_CLOSED`, kodenya tidak berubah), sebuah kelas berisi paling banyak 60 anak (`CLASS_FULL`), dan seorang guru mengajar paling banyak 20 kelas yang belum diarsipkan (`CLASS_LIMIT_REACHED`, juga ketika guru itu ditambahkan ke sebuah kelas) |
 | `CHILD_LIMIT_REACHED` | Wali sudah memiliki 10 anak, jumlah terbanyak |
+| `MOOD_LOG_LIMIT_REACHED` | Seorang anak sudah punya 20 catatan mood pada hari lokal itu (`409`). Pada pencatatan massal, `details` menamai entri anak yang tidak punya tempat lagi dan tidak ada entri yang tersimpan. Aplikasi tidak mengulang entri yang sama sampai hari berikutnya |
 | `TEACHER_NOT_FOUND`, `TEACHER_ALREADY_IN_CLASS` | Tidak ada akun guru aktif dengan email itu, baik saat menambah guru maupun saat menyebut pengganti, atau guru itu sudah mengajar kelas ini |
 | `TEACHER_NOT_IN_CLASS` | Guru yang dituju tidak mengajar kelas ini |
 | `CLASS_OWNER_REQUIRED` | Hanya pemilik kelas yang boleh melakukan aksi ini |
@@ -453,9 +454,10 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `SUCCESSOR_REQUIRED` | Akun adalah satu-satunya guru sebuah kelas yang punya anak aktif dan tidak menyebut `successorEmail` saat dihapus |
 | `IDEMPOTENCY_KEY_REUSED` | `Idempotency-Key` yang sama dipakai untuk permintaan yang berbeda (`422`) |
 | `IDEMPOTENCY_IN_PROGRESS` | Permintaan dengan `Idempotency-Key` yang sama masih berjalan, aplikasi mencoba lagi sebentar lagi (`409`) |
-| `STUDENT_NOT_FOUND`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada |
+| `STUDENT_NOT_FOUND`, `NO_CHILD_REGISTERED`, `PROFILE_NOT_FOUND`, `GUIDANCE_NOT_FOUND`, `FORUM_POST_NOT_FOUND`, `VIDEO_NOT_FOUND` | Data yang dicari tidak ada. `NO_CHILD_REGISTERED` berarti wali tidak punya anak lagi karena semuanya sudah dihapus, sehingga dasbor dan statistik sampah tidak punya anak bawaan, dan aplikasi membuka layar tambah anak |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
+| `BODY_TOO_LARGE` | Isi JSON lebih dari 64 KB (`413`), kecuali pada dua unggahan foto |
 | `STORAGE_UNAVAILABLE`, `STORAGE_ERROR` | Penyimpanan berkas belum diatur atau gagal |
 | `RATE_LIMITED` | Batas laju terlewati, atau server sedang sibuk memeriksa kata sandi (`Retry-After: 1`) |
 | `BAD_REQUEST` | Lapisan HTTP menolak permintaan yang tidak punya kode lain, termasuk `415` untuk `Content-Encoding` selain `identity` |
@@ -479,7 +481,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 - **Request Body (GURU):** `email`, `password`, `fullName`, `role: "GURU"`, `nip` dan `schoolName` yang opsional, serta `class` berisi `name` (wajib), `gradeLevel`, `academicYear` dan `schoolName`.
 - **Response 201 Created:** sama dengan respons login di bawah, dengan `message` `Registration successful`.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `CLASS_NO_ACTIVE_TEACHER` atau untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk rute itu dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk rute itu dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
 
 #### `POST /auth/login`
 - **Deskripsi:** Masuk ke akun sebagai Guru atau Wali Murid.
@@ -541,7 +543,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 #### `GET /wali/dashboard`
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `studentId=<uuid>` opsional, untuk wali yang memiliki lebih dari satu anak. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
-- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `bannerUrl` bernilai teks kosong jika alamat publik penyimpanan belum diatur di server. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`.
+- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `bannerUrl` bernilai teks kosong jika alamat publik penyimpanan belum diatur di server. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`. Wali yang semua anaknya sudah dihapus mendapat `404` `NO_CHILD_REGISTERED`.
 ```json
 {
   "success": true,
@@ -596,7 +598,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "message": "Handling status recorded"
 }
 ```
-- **Kegagalan:** `404` `STUDENT_NOT_FOUND` atau `GUIDANCE_NOT_FOUND`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, termasuk `parentNotes` yang lebih dari 500 karakter, serta `404` `STUDENT_NOT_FOUND` atau `GUIDANCE_NOT_FOUND`.
 
 #### `GET /wali/child/{studentId}`
 - **Deskripsi:** Data resmi seorang anak beserta kontak wali, untuk layar profil siswa. Hanya anak milik wali yang masuk yang dapat dilihat.
@@ -662,7 +664,32 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - **Response 201 Created:** `message` bernilai `Child added` dan `data` berisi satu anak dengan bentuk yang sama seperti isi `children` di atas.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `NISN_ALREADY_REGISTERED`, `CLASS_NO_ACTIVE_TEACHER` atau `CHILD_LIMIT_REACHED`, dan `429` `RATE_LIMITED` ketika batas kode kelas untuk rute ini sedang habis.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `NISN_ALREADY_REGISTERED`, `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau `CHILD_LIMIT_REACHED`, dan `429` `RATE_LIMITED` ketika batas kode kelas untuk rute ini sedang habis.
+
+#### `PATCH /wali/profile`
+- **Deskripsi:** Wali mengubah datanya sendiri. Kirim salah satu atau semua dari `fullName`, `phoneNumber`, `whatsappNumber` dan `address`. Kolom yang tidak dikirim dibiarkan apa adanya, dan teks kosong menghapus nomor telepon, nomor WhatsApp atau alamat. Nama tidak boleh kosong. Nomor telepon dan WhatsApp memakai pola yang sama seperti profil guru, yaitu angka dengan tanda plus di depan serta spasi, tanda hubung dan kurung, sepanjang 6 sampai 30 karakter. Email tidak dapat diubah dan foto diganti lewat `POST /users/avatar`.
+- **Request Body:**
+```json
+{
+  "fullName": "Sarah Kartika, S.Pd.",
+  "phoneNumber": "081234567890",
+  "whatsappNumber": "+6281234567890",
+  "address": "Jl. Kenanga 5, Malang"
+}
+```
+- **Response 200 OK:** `data` berisi data wali yang baru, dengan bentuk yang sama seperti `guardian` pada `GET /wali/child/{studentId}`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim, nama kosong atau nomor tidak valid, `403` `AUTH_FORBIDDEN` untuk peran selain wali, `404` jika profil wali tidak ditemukan, dan `429` `RATE_LIMITED`.
+
+#### `PATCH /wali/children/{studentId}`
+- **Deskripsi:** Wali mengubah nama atau NISN seorang anak. Kirim `fullName`, `nisn` atau keduanya, dan kolom yang tidak dikirim dibiarkan apa adanya. Nama berisi 2 sampai 150 karakter dan NISN berupa 5 sampai 30 angka, seperti saat registrasi. Anak tetap berada di kelasnya dan poinnya tidak berubah. Nama baru dapat menggeser peringkat anak, karena anak dengan poin sama diurutkan menurut nama, dan nama itu juga ditulis ke papan peringkat semester yang sudah berakhir, sehingga riwayat menampilkan nama yang baru. Hanya anak milik wali yang masuk yang dapat diubah.
+- **Request Body:** `{ "fullName": "Amelia Siti Zahra Putri", "nisn": "3124567899" }`
+- **Response 200 OK:** `data` berisi satu anak dengan bentuk yang sama seperti isi `children` pada `GET /wali/children`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim atau isinya tidak valid, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali, `409` `NISN_ALREADY_REGISTERED` jika anak aktif lain memiliki NISN itu, dan `429` `RATE_LIMITED`.
+
+#### `DELETE /wali/children/{studentId}`
+- **Deskripsi:** Wali menghapus seorang anak. Anak disembunyikan seperti akun yang dihapus, sehingga keluar dari daftar kelas, dasbor dan papan peringkat, peringkat kelas dihitung ulang, dan guru tidak lagi melihatnya. Catatan mood, pindaian dan laporan panduan tetap ada di basis data, begitu juga papan peringkat semester yang sudah berakhir. Foto profil anak dan foto pindaiannya dihapus dari penyimpanan dalam sekitar 10 menit. NISN dapat dipakai lagi. Wali boleh menghapus anak terakhir, dan akunnya lalu tidak punya anak sampai `POST /wali/children` menambahkan satu, sehingga rute yang memakai anak bawaan menjawab `404` `NO_CHILD_REGISTERED`. Anak yang dihapus tidak dapat dikembalikan, jadi aplikasi meminta konfirmasi lebih dulu.
+- **Response 200 OK:** `{ "success": true, "message": "Child deleted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali, dan `429` `RATE_LIMITED`.
 
 ---
 
@@ -671,7 +698,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 #### `GET /guru/dashboard`
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `classId=<uuid>` opsional, untuk guru yang mengajar lebih dari satu kelas.
-- **Response 200 OK:** `joinCode` adalah kode yang dibagikan guru kepada wali, dan `dominantMood` bernilai `null` selama belum ada catatan emosi hari itu.
+- **Response 200 OK:** `joinCode` adalah kode yang dibagikan guru kepada wali, dan `dominantMood` bernilai `null` selama belum ada catatan emosi hari itu. `joinOpen` bernilai `false` selama guru kelas menutup kelas untuk anak baru, sehingga aplikasi menampilkannya di samping kode.
 ```json
 {
   "success": true,
@@ -685,6 +712,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
       "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
       "className": "Class A (Mawar)",
       "joinCode": "KBZ48R2M",
+      "joinOpen": true,
       "totalStudents": 24,
       "presentStudents": 22,
       "dominantMood": "SENANG"
@@ -724,6 +752,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   }
 }
 ```
+- **Batas:** `notes` paling banyak 500 karakter. Seorang anak punya paling banyak 20 catatan mood pada satu hari lokal, dan catatan yang ke-21 dijawab `409` `MOOD_LOG_LIMIT_REACHED`. Aplikasi tidak mengulang catatan yang sama karena akan gagal sampai hari berikutnya.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` jika anak tidak ditemukan, `409` `MOOD_LOG_LIMIT_REACHED` atau `IDEMPOTENCY_IN_PROGRESS`, `422` `IDEMPOTENCY_KEY_REUSED`, dan `429` `RATE_LIMITED`.
 
 #### `POST /guru/mood/log/batch`
 - **Deskripsi:** Guru menyimpan mood beberapa anak dari satu kelas sekaligus, misalnya hasil pindai kamera untuk seluruh kelas. Setiap entri menjadi satu catatan mood, semuanya disimpan dalam satu transaksi dengan satu `recordedAt` yang sama, sehingga satu entri yang salah membuat tidak ada yang tersimpan. Guru harus mengajar kelas itu, setiap anak harus ada di kelas itu, dan seorang anak hanya boleh muncul satu kali. Berbeda dengan pencatatan tunggal, `source` bernilai `AI_CAMERA` jika tidak diisi, dan `confidenceScore` bernilai 1 untuk `MANUAL_INPUT` jika tidak diisi tetapi wajib untuk `AI_CAMERA`.
@@ -739,7 +769,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 - **Response 201 Created:** `data.logs` berisi satu `{ "logId", "studentId", "recordedAt" }` untuk setiap entri, sesuai urutan permintaan.
 - **Header:** `Idempotency-Key` opsional, lihat 4.0.
-- **Kegagalan:** `400` `VALIDATION_ERROR` dengan `details` yang menamai entri yang salah, misalnya `entries[1].studentId` untuk anak dari kelas lain, anak yang tidak ada atau anak yang muncul dua kali, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` (termasuk kelas guru lain), `409` `IDEMPOTENCY_IN_PROGRESS`, `422` `IDEMPOTENCY_KEY_REUSED`, dan `429` `RATE_LIMITED`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` dengan `details` yang menamai entri yang salah, misalnya `entries[1].studentId` untuk anak dari kelas lain, anak yang tidak ada atau anak yang muncul dua kali, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` (termasuk kelas guru lain), `409` `MOOD_LOG_LIMIT_REACHED` (`details` menamai entri anak yang tidak punya tempat lagi dan tidak ada entri yang tersimpan) atau `IDEMPOTENCY_IN_PROGRESS`, `422` `IDEMPOTENCY_KEY_REUSED`, dan `429` `RATE_LIMITED`. Rute ini punya batas laju sendiri sebesar 30 permintaan per 60 detik untuk setiap pengguna, di samping batas rute yang membutuhkan masuk. `notes` paling banyak 500 karakter.
 
 #### `GET /guru/mood/analytics`
 - **Query Params:** `classId=<uuid>` dan `range=weekly|monthly` (bawaan `weekly`). Keduanya opsional.
@@ -772,7 +802,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 
 #### `GET /guru/classes`
-- **Deskripsi:** Kelas yang diajar guru, dari yang paling lama, dengan kode bergabung dan jumlah anak.
+- **Deskripsi:** Kelas yang diajar guru, dari yang paling lama, dengan kode bergabung dan jumlah anak. `joinOpen` bernilai `false` selama guru kelas menutup kelas untuk anak baru.
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `page` dan `limit` opsional.
 - **Response 200 OK:**
@@ -788,6 +818,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
         "schoolName": "TK Pertiwi Harapan Bangsa",
         "academicYear": "2026/2027",
         "joinCode": "K7ZH2MQ4",
+        "joinOpen": true,
         "totalStudents": 24,
         "createdAt": "2026-10-01T07:00:00Z"
       }
@@ -811,13 +842,24 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - **Response 201 Created:** `message` bernilai `Class created` dan `data` berisi satu kelas dengan bentuk yang sama seperti isi `classes` di atas, dengan `totalStudents` 0.
-- **Kegagalan:** `400` `VALIDATION_ERROR`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` dan `409` `CLASS_LIMIT_REACHED` jika guru sudah mengajar 20 kelas yang belum diarsipkan.
 
 #### `POST /guru/classes/{classId}/join-code`
 - **Deskripsi:** Mengganti kode bergabung sebuah kelas dengan kode acak yang baru. Kode lama berhenti berlaku saat itu juga, sehingga wali yang belum bergabung memerlukan kode baru, sedangkan wali yang sudah bergabung tidak terpengaruh. Dipakai ketika kode terlanjur dibagikan terlalu luas atau berhasil ditebak. Hanya guru yang mengajar kelas itu yang dapat memakainya.
 - **Response 200 OK:** `{ "success": true, "message": "Join code replaced", "data": { "joinCode": "K7M2QX4R" } }`. Aplikasi menampilkan kode baru dan meminta guru membagikannya lagi.
 - **Catatan rilis 0.7.0:** kode bergabung kini terdiri dari 8 karakter, dan migrasi pada rilis itu mengganti setiap kode 6 karakter yang sudah ada dengan kode baru. Kode lama berhenti berlaku, sehingga guru perlu membagikan kode baru. Aplikasi selalu membaca `joinCode` dari dashboard dan tidak menyimpannya sendiri.
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu, dan `429` `RATE_LIMITED`.
+
+#### `PUT /guru/classes/{classId}/joining`
+- **Deskripsi:** Setiap guru kelas dapat menutup kelas untuk anak baru dan membukanya lagi, tanpa mengganti kode bergabung. Selama kelas ditutup, wali yang memasukkan kodenya mendapat `409` `CLASS_JOINING_CLOSED`, baik saat registrasi maupun saat menambah anak, dan anak yang sudah ada di kelas tidak terpengaruh. Setiap kelas dimulai dalam keadaan terbuka. Mengirim nilai yang sama lagi tidak mengubah apa pun. Nilainya juga ada di `joinOpen` pada kelas, sehingga aplikasi menampilkannya di samping kode bergabung.
+- **Request Body:** `{ "joinOpen": false }`
+- **Response 200 OK:** `data` berisi `{ "joinOpen": false }`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu, dan `429` `RATE_LIMITED`.
+
+#### `DELETE /guru/classes/{classId}/students/{studentId}`
+- **Deskripsi:** Setiap guru kelas dapat mengeluarkan seorang anak dari kelas. Anak disembunyikan seperti akun yang dihapus, sehingga keluar dari daftar kelas, dasbor dan papan peringkat, peringkat kelas dihitung ulang, dan wali tidak lagi melihat anak itu. Catatan mood dan pindaian tetap ada di basis data, sedangkan foto profil anak dan foto pindaiannya dihapus dari penyimpanan dalam sekitar 10 menit. Wali tetap memiliki akunnya dan NISN dapat dipakai lagi, sehingga wali dapat memasukkan anak ke kelas lain lewat `POST /wali/children`. Anak yang dikeluarkan tidak dapat dikembalikan, jadi aplikasi meminta konfirmasi lebih dulu. `studentId` adalah `id` salah satu isi `GET /classes/{classId}/students`.
+- **Response 200 OK:** `{ "success": true, "message": "Student removed" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu atau `STUDENT_NOT_FOUND` untuk anak yang tidak aktif di kelas itu, dan `429` `RATE_LIMITED`.
 
 #### `GET /guru/classes/{classId}/teachers`
 - **Deskripsi:** Daftar guru yang mengajar sebuah kelas milik guru yang masuk, guru yang bergabung paling awal di urutan pertama.
@@ -829,6 +871,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "teachers": [
       {
         "id": "7a2f5c1e-3b44-4c8d-9d0e-5f6a7b8c9d0e",
+        "userId": "7d1e6c52-0a3b-4c8e-9f21-5b6a7c8d9e0f",
+        "isSelf": true,
         "fullName": "Siti Rahayu, S.Pd.",
         "nip": "198001012005012001",
         "avatarUrl": null,
@@ -840,6 +884,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - `isOwner` bernilai `true` untuk tepat satu guru di setiap kelas, yaitu pemilik kelas. Guru yang membuat kelas menjadi pemiliknya, dan guru yang ditambahkan tidak pernah menjadi pemilik.
+- `id` adalah id guru pada rute kelas, yaitu `teacherId` untuk mengeluarkan guru atau menyerahkan kelas, dan bukan id akun. `userId` adalah id akun, nilai yang sama dengan `id` pada `GET /guru/profile` dan `author.id` pada utas forum. `isSelf` bernilai `true` untuk guru yang sedang masuk, sehingga aplikasi menandai "Anda" dan menawarkan "keluar dari kelas" pada entri itu.
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, dan `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu.
 
 #### `POST /guru/classes/{classId}/teachers`
@@ -847,10 +892,10 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Request Body:** `{ "email": "budi@example.com" }`
 - **Response 201 Created:** `message` bernilai `Teacher added` dan `data` berisi satu guru dengan bentuk yang sama seperti isi `teachers` di atas.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `TEACHER_NOT_FOUND`, dan `409` `TEACHER_ALREADY_IN_CLASS`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `TEACHER_NOT_FOUND`, dan `409` `TEACHER_ALREADY_IN_CLASS` atau `CLASS_LIMIT_REACHED` jika guru yang ditambahkan sudah mengajar 20 kelas.
 
 #### `DELETE /guru/classes/{classId}/teachers/{teacherId}`
-- **Deskripsi:** Pemilik kelas dapat mengeluarkan guru lain, dan setiap guru dapat keluar dari kelas dengan mengirim id dirinya sendiri. Guru yang keluar tidak lagi melihat kelas, anak, mood dan forum, sedangkan tulisannya tetap ada. Ketika pemilik keluar, guru yang bergabung berikutnya menjadi pemilik. Satu-satunya guru aktif sebuah kelas tidak dapat keluar, sehingga kelas selalu punya guru dan pemilik. Untuk menyerahkan kelas dengan sengaja, pakai `PUT /guru/classes/{classId}/owner` lebih dulu. `teacherId` adalah `id` salah satu isi `teachers` pada `GET /guru/classes/{classId}/teachers`.
+- **Deskripsi:** Pemilik kelas dapat mengeluarkan guru lain, dan setiap guru dapat keluar dari kelas dengan mengirim id dirinya sendiri. Guru yang keluar tidak lagi melihat kelas, anak, mood dan forum, sedangkan tulisannya tetap ada. Ketika pemilik keluar, guru yang bergabung berikutnya menjadi pemilik. Satu-satunya guru aktif sebuah kelas tidak dapat keluar, sehingga kelas selalu punya guru dan pemilik. Untuk menyerahkan kelas dengan sengaja, pakai `PUT /guru/classes/{classId}/owner` lebih dulu. `teacherId` adalah `id` salah satu isi `teachers` pada `GET /guru/classes/{classId}/teachers`. Kode bergabung kelas diganti setiap kali, karena guru yang pergi mengetahuinya. Wali yang sudah bergabung tidak terpengaruh dan guru yang tersisa membaca kode baru dari `GET /guru/classes/{classId}`. Menghapus akun guru tidak mengganti kode.
 - **Response 200 OK:** `{ "success": true, "message": "Teacher removed" }`
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru atau `CLASS_OWNER_REQUIRED` ketika guru yang bukan pemilik mengeluarkan orang lain, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu atau `TEACHER_NOT_IN_CLASS`, `409` `LAST_TEACHER`, dan `429` `RATE_LIMITED`.
 
@@ -873,6 +918,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "schoolName": "TK Pertiwi Harapan Bangsa",
     "academicYear": "2026/2027",
     "joinCode": "K7ZH2MQ4",
+    "joinOpen": true,
     "totalStudents": 24,
     "createdAt": "2026-10-01T07:00:00Z",
     "totalVideos": 3,
@@ -919,16 +965,17 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ```
 
 #### `PUT /guru/profile`
-- **Deskripsi:** Mengubah nomor telepon dan alamat. Kolom yang tidak dikirim dibiarkan apa adanya dan teks kosong menghapus nilainya. Foto diganti lewat `POST /users/avatar`.
-- **Request Body:** salah satu atau kedua kolom. Nomor telepon berisi 6 sampai 30 karakter berupa angka dengan tanda plus di depan, serta spasi, tanda hubung dan kurung.
+- **Deskripsi:** Mengubah nama, nomor telepon dan alamat. Kolom yang tidak dikirim dibiarkan apa adanya, dan teks kosong menghapus nomor telepon atau alamat. Nama tidak boleh kosong. NIP dan email tidak dapat diubah. Foto diganti lewat `POST /users/avatar`.
+- **Request Body:** salah satu atau semua dari `fullName`, `phoneNumber` dan `address`. Nomor telepon berisi 6 sampai 30 karakter berupa angka dengan tanda plus di depan, serta spasi, tanda hubung dan kurung.
 ```json
 {
+  "fullName": "Siti Rahayu, S.Pd.",
   "phoneNumber": "+62 812-3456-7890",
   "address": "Jl. Merdeka 1, Malang"
 }
 ```
 - **Response 200 OK:** `message` bernilai `Profile updated` dan `data` berisi data lengkap seperti `GET /guru/profile/detail`.
-- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim atau nomor telepon tidak valid.
+- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim, nama kosong atau nomor telepon tidak valid.
 
 ---
 
@@ -1014,7 +1061,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `GET /trash/stats`
 - **Deskripsi:** Statistik pemilahan sampah seorang anak. Hanya untuk wali.
-- **Query Params:** `studentId=<uuid>` opsional. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
+- **Query Params:** `studentId=<uuid>` opsional. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal, dan wali yang tidak punya anak lagi mendapat `404` `NO_CHILD_REGISTERED`.
 - **Response 200 OK:** `breakdown` selalu berisi tiga kategori dengan urutan `ORGANIK`, `ANORGANIK` dan `B3`.
 ```json
 {
@@ -1348,3 +1395,5 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
 - [x] **BE-18:** Pemilik kelas, mengeluarkan guru dan keluar dari kelas, pengganti wajib saat satu-satunya guru menghapus akun, dan rute riwayat papan peringkat per semester.
 - [x] **BE-19:** Pencatatan mood massal (`POST /guru/mood/log/batch`), `recordedAt` opsional pada pencatatan mood, dan `Idempotency-Key` pada sepuluh rute yang membuat sesuatu agar antrean offline aman diulang.
 - [x] **BE-20:** Rute ganti kata sandi (`PUT /users/me/password`) dan pengarsipan kelas tanpa anak aktif saat satu-satunya guru menghapus akun tanpa menyebut `successorEmail`.
+- [x] **BE-21:** Profil wali (`PATCH /wali/profile`), ubah nama atau NISN anak dan hapus anak oleh wali, nama guru yang dapat diubah, mengeluarkan anak dari kelas oleh guru, dan menutup atau membuka kelas untuk anak baru (`joinOpen`).
+- [x] **BE-22:** Batas pemakaian (60 anak per kelas, 20 kelas per guru, 20 catatan mood per anak per hari, 500 karakter untuk catatan, 64 KB untuk isi JSON dan 30 permintaan per menit untuk pencatatan mood massal), `userId` dan `isSelf` pada daftar guru, dan kode bergabung yang diganti saat guru keluar.

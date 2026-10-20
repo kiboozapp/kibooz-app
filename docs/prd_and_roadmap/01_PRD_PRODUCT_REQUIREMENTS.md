@@ -61,7 +61,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 ### FR-2: Portal dan Dashboard Guru
 - **FR-2.1:** Menampilkan ringkasan metrik kelas: jumlah total siswa, persentase kehadiran, dan tren mood kelas.
 - **FR-2.2:** Menyediakan jalan pintas ke Ruang Kelas, Input Mood Manual, dan Kamera Scan AI.
-- **FR-2.3:** Mengelola daftar kelas (tambah kelas dan daftar siswa).
+- **FR-2.3:** Mengelola daftar kelas (tambah kelas dan daftar siswa), menutup atau membuka kelas untuk anak baru, dan mengeluarkan anak dari kelas.
 - **FR-2.4:** Menyediakan akses modul video pembelajaran dan forum diskusi pendidik.
 
 ### FR-3: Visualisasi Analitik Mood
@@ -99,6 +99,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-7.2 Profil Siswa:** Menampilkan NISN resmi (Nomor Induk Siswa Nasional), nama lengkap, kelas, kontak darurat, dan alamat rumah.
 - **FR-7.3 Profil Guru:** Menampilkan NIP (Nomor Induk Pegawai), email dinas, nomor telepon, alamat, dan grafik mood kelas bimbingan.
 - **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil. Aplikasi memperkecil foto sebelum mengunggahnya.
+- **FR-7.5:** Wali dapat mengubah nama, nomor telepon, nomor WhatsApp dan alamatnya, mengubah nama atau NISN seorang anak, dan menghapus anak, termasuk anak terakhir. Wali yang tidak punya anak lagi diarahkan ke layar tambah anak. Guru dapat mengubah nama, nomor telepon dan alamatnya, sedangkan NIP dan email tetap.
 
 ### FR-8: Sistem Kamera AI (Computer Vision)
 - **FR-8.1 Viewfinder Kamera:** Antarmuka layar penuh CameraX dengan rasio bingkai stabil 30fps.
@@ -126,3 +127,4 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 2. **BR-02 Hak Akses Data Emosi:** Guru kelas dan wali murid berhak melihat data emosi siswa terkait. Guru atau wali lain tidak memiliki izin akses riwayat ini.
 3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru, yaitu pada hari pertama bulan awal semester (Januari dan Juli secara bawaan). Yang kembali ke nol adalah poin semester (`seasonPoints`) yang dipakai papan peringkat, sedangkan poin seluruh semester (`totalPoints`) tetap pada anak. Peringkat akhir semester yang berakhir disimpan di server.
 4. **BR-04 Konfirmasi Deteksi AI di Bawah Ambang Batas:** Skor keyakinan (*confidence score*) AI minimal 75%. Jika hasil di bawah 75%, sistem menampilkan dialog konfirmasi manual kepada pengguna. Langkah ini mencegah salah catat data.
+5. **BR-05 Batas Pemakaian:** Sebuah kelas berisi paling banyak 60 anak dan seorang guru mengajar paling banyak 20 kelas yang belum diarsipkan. Seorang anak punya paling banyak 20 catatan mood per hari, catatan mood dan catatan wali paling banyak 500 karakter, dan isi JSON paling banyak 64 KB kecuali pada unggahan foto.
