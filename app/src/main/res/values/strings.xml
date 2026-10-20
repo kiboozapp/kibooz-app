@@ -25,6 +25,7 @@
     <string name="hint_password">Masukkan Kata sandi kamu</string>
     <string name="forgot_password">Lupa kata sandi?</string>
     <string name="btn_login">Masuk</string>
+    <string name="login_google_belum_tersedia">Masuk dengan Google belum tersedia di versi ini</string>
     <string name="login_with_google">Google</string>
     <string name="or_login_with">Atau Masuk dengan</string>
 
