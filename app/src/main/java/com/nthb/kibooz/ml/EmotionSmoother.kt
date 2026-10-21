@@ -1,13 +1,17 @@
 package com.nthb.kibooz.ml
 
 /**
- * Menerima label emosi hanya setelah bertahan [holdMillis] untuk wajah yang sama, supaya gambar blur atau
- * ekspresi sekilas tidak langsung mengunci hasil. Keyakinan hasil adalah rata-rata selama label itu bertahan.
+ * Menerima label emosi hanya setelah muncul di [minFrames] frame berturut-turut dan bertahan [holdMillis]
+ * untuk wajah yang sama, supaya gambar blur atau ekspresi sekilas tidak langsung mengunci hasil.
+ * Keyakinan hasil adalah rata-rata selama label itu bertahan.
  *
  * Label yang sudah diterima tetap tampil sampai label lain bertahan cukup lama menggantikannya.
  * Tidak aman dipakai dari beberapa thread, panggil dari thread analyzer saja.
  */
-class EmotionSmoother(private val holdMillis: Long = DEFAULT_HOLD_MILLIS) {
+class EmotionSmoother(
+    private val holdMillis: Long = DEFAULT_HOLD_MILLIS,
+    private val minFrames: Int = DEFAULT_MIN_FRAMES
+) {
 
     private class Track(
         var emotion: Emotion,
@@ -31,7 +35,7 @@ class EmotionSmoother(private val holdMillis: Long = DEFAULT_HOLD_MILLIS) {
         track.confidenceSum += result.confidence
         track.frames++
 
-        if (nowMillis - track.since >= holdMillis) {
+        if (track.frames >= minFrames && nowMillis - track.since >= holdMillis) {
             track.accepted = EmotionResult(track.emotion, track.confidenceSum / track.frames)
         }
 
@@ -45,5 +49,8 @@ class EmotionSmoother(private val holdMillis: Long = DEFAULT_HOLD_MILLIS) {
 
     companion object {
         const val DEFAULT_HOLD_MILLIS = 300L
+
+        /** Penyaringan kestabilan 3 frame berturut-turut dari PRD (04_AI_ML_AND_CAMERA_PIPELINE). */
+        const val DEFAULT_MIN_FRAMES = 3
     }
 }
