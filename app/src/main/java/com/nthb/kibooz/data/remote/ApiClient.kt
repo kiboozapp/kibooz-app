@@ -30,6 +30,7 @@ class ApiClient(
     val moshi: Moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
 
     val okHttpClient: OkHttpClient = OkHttpClient.Builder()
+        .connectionSpecs(connectionSpecsFor(baseUrl))
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
