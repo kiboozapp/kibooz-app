@@ -582,6 +582,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun atau mengganti kata sandi |
 | `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar, termasuk ketika wali mengubah NISN seorang anak menjadi NISN anak aktif lain |
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL`, `CLASS_LIMIT_REACHED` | Masalah pada kode atau data kelas. Kode gabung milik kelas yang diarsipkan dijawab `CLASS_CODE_NOT_FOUND`, dan kelas yang diarsipkan tidak dapat ditambah guru (`CLASS_NOT_FOUND`). Guru kelas dapat menutup kelas untuk anak baru (`CLASS_JOINING_CLOSED`, kodenya tidak berubah), sebuah kelas berisi paling banyak 60 anak (`CLASS_FULL`), dan seorang guru mengajar paling banyak 20 kelas yang belum diarsipkan (`CLASS_LIMIT_REACHED`, juga ketika guru itu ditambahkan ke sebuah kelas) |
+| `ALREADY_IN_CLASS`, `MOVE_REQUEST_PENDING`, `MOVE_REQUEST_NOT_FOUND` | Permintaan pindah kelas. Anak sudah berada di kelas yang kodenya dikirim, anak sudah punya permintaan yang menunggu, atau permintaan tidak ditemukan karena sudah diputuskan, ditarik atau bukan milik pengguna itu. Kode `404` hanya untuk `MOVE_REQUEST_NOT_FOUND`, dan dua lainnya `409`. |
 | `CHILD_LIMIT_REACHED` | Wali sudah memiliki 10 anak, jumlah terbanyak |
 | `MOOD_LOG_LIMIT_REACHED` | Seorang anak sudah punya 20 catatan mood pada hari lokal itu (`409`). Pada pencatatan massal, `details` menamai entri anak yang tidak punya tempat lagi dan tidak ada entri yang tersimpan. Aplikasi tidak mengulang entri yang sama sampai hari berikutnya |
 | `TEACHER_NOT_FOUND`, `TEACHER_ALREADY_IN_CLASS` | Tidak ada akun guru aktif dengan email itu, baik saat menambah guru maupun saat menyebut pengganti, atau guru itu sudah mengajar kelas ini |
@@ -833,6 +834,22 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Response 200 OK:** `{ "success": true, "message": "Child deleted" }`
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali, dan `429` `RATE_LIMITED`.
 
+#### `POST /wali/children/{studentId}/move-requests`
+- **Deskripsi:** Wali meminta anaknya pindah ke kelas lain dengan kode kelas tujuan. Pendaftaran pertama dengan kode kelas tetap langsung berlaku, tetapi perpindahan harus diterima oleh seorang guru kelas tujuan, dan tidak ada yang berubah sebelum itu. Seorang anak hanya boleh punya satu permintaan yang menunggu. Permintaan ditolak dengan sendirinya ketika kelas tujuan menutup pendaftaran atau diarsipkan, dan wali boleh mengajukan lagi tanpa batas selain pembatas laju. Rute ini punya anggaran pembatas laju sendiri untuk permintaan yang menyebut kode kelas, dan menerima `Idempotency-Key`.
+- **Request Body:** `{ "classCode": "K7M2QX4R" }`
+- **Response 201 Created:** `message` bernilai `Move requested` dan `data` berisi `id`, `studentId`, `classId`, `className`, `status` bernilai `pending`, dan `requestedAt`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND` atau `CLASS_CODE_NOT_FOUND`, `409` `ALREADY_IN_CLASS`, `MOVE_REQUEST_PENDING`, `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau `IDEMPOTENCY_IN_PROGRESS`, `422` `IDEMPOTENCY_KEY_REUSED`, dan `429` `RATE_LIMITED`.
+
+#### `GET /wali/children/{studentId}/move-requests`
+- **Deskripsi:** Permintaan pindah seorang anak yang masih menunggu guru atau yang ditolak, yang terbaru lebih dahulu dan paling banyak 20. Permintaan yang diterima tidak ditampilkan, karena anak sudah berada di kelas baru dan aplikasi cukup membaca ulang `classId` anak itu. Permintaan yang ditarik hilang dari daftar.
+- **Response 200 OK:** `data.requests` berisi objek yang sama seperti respons `POST`, dengan `status` bernilai `pending` atau `rejected` dan `decidedAt` yang terisi untuk yang ditolak.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND`, dan `429` `RATE_LIMITED`.
+
+#### `DELETE /wali/children/{studentId}/move-requests/{requestId}`
+- **Deskripsi:** Wali menarik permintaan yang belum diputuskan guru. Permintaan itu dihapus.
+- **Response 200 OK:** `{ "success": true, "message": "Move request cancelled" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `MOVE_REQUEST_NOT_FOUND` untuk permintaan yang sudah diputuskan, sudah ditarik, atau bukan milik wali, dan `429` `RATE_LIMITED`.
+
 ---
 
 ### 4.3 Portal Guru (`/guru`)
@@ -1002,6 +1019,21 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Deskripsi:** Setiap guru kelas dapat mengeluarkan seorang anak dari kelas. Anak disembunyikan seperti akun yang dihapus, sehingga keluar dari daftar kelas, dasbor dan papan peringkat, peringkat kelas dihitung ulang, dan wali tidak lagi melihat anak itu. Catatan mood dan pindaian tetap ada di basis data, sedangkan foto profil anak dan foto pindaiannya dihapus dari penyimpanan dalam sekitar 10 menit. Wali tetap memiliki akunnya dan NISN dapat dipakai lagi, sehingga wali dapat memasukkan anak ke kelas lain lewat `POST /wali/children`. Anak yang dikeluarkan tidak dapat dikembalikan, jadi aplikasi meminta konfirmasi lebih dulu. `studentId` adalah `id` salah satu isi `GET /classes/{classId}/students`.
 - **Response 200 OK:** `{ "success": true, "message": "Student removed" }`
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu atau `STUDENT_NOT_FOUND` untuk anak yang tidak aktif di kelas itu, dan `429` `RATE_LIMITED`.
+
+#### `GET /guru/classes/{classId}/move-requests`
+- **Deskripsi:** Permintaan orang tua agar anaknya pindah ke kelas ini dan masih menunggu seorang guru kelas, yang terlama lebih dahulu. Guru melihat nama anak dan waktu permintaan. Setiap guru kelas boleh memutuskan.
+- **Response 200 OK:** `data.requests` berisi objek dengan `id`, `studentId`, `studentName`, dan `requestedAt`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu, dan `429` `RATE_LIMITED`.
+
+#### `POST /guru/classes/{classId}/move-requests/{requestId}/accept`
+- **Deskripsi:** Memindahkan anak ke kelas ini dalam satu langkah. Di kelas baru anak mulai dari nol, yaitu tanpa poin, tanpa poin semester dan tanpa pindaian, dan peringkat kedua kelas dihitung ulang. Poin, peringkat dan jumlah pindaian di kelas lama disimpan pada pendaftaran yang berakhir. Papan peringkat dan statistik kelas baru hanya menghitung pindaian setelah perpindahan. Catatan mood dan riwayat lain tidak dipindahkan atau dihapus.
+- **Response 200 OK:** `{ "success": true, "message": "Move accepted" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `MOVE_REQUEST_NOT_FOUND`, `409` `CLASS_FULL`, dan `429` `RATE_LIMITED`.
+
+#### `POST /guru/classes/{classId}/move-requests/{requestId}/reject`
+- **Deskripsi:** Menolak permintaan. Anak tetap di kelasnya dan wali melihat permintaan itu sebagai ditolak.
+- **Response 200 OK:** `{ "success": true, "message": "Move rejected" }`
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `MOVE_REQUEST_NOT_FOUND`, dan `429` `RATE_LIMITED`.
 
 #### `GET /guru/classes/{classId}/teachers`
 - **Deskripsi:** Daftar guru yang mengajar sebuah kelas milik guru yang masuk, guru yang bergabung paling awal di urutan pertama.
