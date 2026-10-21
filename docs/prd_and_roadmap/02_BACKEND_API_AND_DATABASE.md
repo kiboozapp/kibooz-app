@@ -845,6 +845,11 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Response 200 OK:** `data.requests` berisi objek yang sama seperti respons `POST`, dengan `status` bernilai `pending` atau `rejected` dan `decidedAt` yang terisi untuk yang ditolak.
 - **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND`, dan `429` `RATE_LIMITED`.
 
+#### `GET /wali/children/{studentId}/previous-classes`
+- **Deskripsi:** Kelas yang pernah dimasuki seorang anak sebelum kelasnya sekarang, yang terakhir ditinggalkan lebih dahulu. Daftar ini lengkap dan tidak dibagi per halaman, dan kosong untuk anak yang belum pernah pindah. Angka di setiap kelas disimpan saat guru menerima perpindahan, sedangkan anak mulai dari nol di kelas berikutnya.
+- **Response 200 OK:** `data.classes` berisi objek dengan `classId`, `className`, `gradeLevel`, `schoolName`, `academicYear`, `startedAt` (kapan anak masuk kelas itu), `endedAt` (kapan anak keluar), `totalPoints` (poin semua semester saat keluar), `seasonPoints` (poin semester terakhir), `classRank` dan `totalScans`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND`, dan `429` `RATE_LIMITED`.
+
 #### `DELETE /wali/children/{studentId}/move-requests/{requestId}`
 - **Deskripsi:** Wali menarik permintaan yang belum diputuskan guru. Permintaan itu dihapus.
 - **Response 200 OK:** `{ "success": true, "message": "Move request cancelled" }`
