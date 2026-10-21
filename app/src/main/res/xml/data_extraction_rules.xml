@@ -2,11 +2,15 @@
 <data-extraction>
     <cloud-backup>
         <include domain="root" />
-        <!-- Token sesi tidak boleh ikut backup -->
+        <!-- Token sesi sekali pakai, jadi hasil restore di ponsel lain mengakhiri sesi di kedua ponsel -->
         <exclude domain="file" path="datastore/" />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
     </cloud-backup>
     <device-transfer>
         <include domain="root" />
         <exclude domain="file" path="datastore/" />
+        <exclude domain="database" path="." />
+        <exclude domain="sharedpref" path="." />
     </device-transfer>
 </data-extraction>
