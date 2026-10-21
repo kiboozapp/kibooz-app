@@ -667,7 +667,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - `deviceToken` bukan kredensial. Token ini hanya memberi perangkat anggaran login sendiri untuk email tersebut, dan aplikasi menyimpannya serta mengirimkannya pada login berikutnya.
 
 #### `POST /auth/refresh-token`
-- **Deskripsi:** Menukar token refresh dengan pasangan token baru. Setiap token refresh hanya berlaku sekali, jadi aplikasi harus mengganti yang tersimpan dengan yang baru pada setiap panggilan yang berhasil.
+- **Deskripsi:** Menukar token refresh dengan pasangan token baru. Setiap token refresh hanya berlaku sekali, jadi aplikasi harus mengganti yang tersimpan dengan yang baru pada setiap panggilan yang berhasil. Token akses berlaku 15 menit secara bawaan (`JWT_ACCESS_EXPIRED_MINUTES`), jadi aplikasi menukar token refresh di balik layar sebelum atau saat token akses habis, dan soket percakapan juga ditutup setiap 15 menit lalu disambung lagi dengan token baru.
 - **Request Body:** `{ "refreshToken": "d8f8a123-bc42-4b21-8931..." }`
 - **Response 200 OK:** `message` `Token refreshed` dan `data` yang sama dengan respons login.
 - **Response 401 Unauthorized:** `AUTH_REFRESH_INVALID`, artinya sesi berakhir dan pengguna harus masuk lagi.
