@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Android 11 ke bawah. Isinya sama dengan data_extraction_rules.xml -->
 <full-backup-content>
-    <include domain="sharedpref" path="."/>
+    <exclude domain="file" path="datastore/" />
+    <exclude domain="database" path="." />
+    <exclude domain="sharedpref" path="." />
 </full-backup-content>

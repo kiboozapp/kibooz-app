@@ -70,10 +70,16 @@ class MoodAnalysisAnalyzer(
 
             smoother.retain(tracked.mapTo(mutableSetOf()) { it.trackingId })
             listener.onFaces(upright, tracked)
-        } catch (e: ExecutionException) {
-            Log.w(TAG, "Deteksi wajah gagal, frame dilewati", e)
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
+        } catch (e: ExecutionException) {
+            Log.w(TAG, "Deteksi wajah gagal, frame dilewati", e)
+        } catch (e: Exception) {
+            // Galat model TFLite, bitmap tidak valid atau callback yang melempar tidak boleh menjatuhkan proses
+            Log.w(TAG, "Analisis frame gagal, frame dilewati", e)
+        } catch (e: OutOfMemoryError) {
+            // Bitmap satu frame penuh bisa gagal dialokasikan di ponsel kecil. Lewati frame ini dan coba lagi di frame berikutnya
+            Log.w(TAG, "Memori habis saat menganalisis frame, frame dilewati", e)
         } finally {
             imageProxy.close()
         }
