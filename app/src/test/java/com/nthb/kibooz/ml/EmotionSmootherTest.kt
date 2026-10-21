@@ -7,7 +7,7 @@ import org.junit.Test
 
 class EmotionSmootherTest {
 
-    private val smoother = EmotionSmoother(holdMillis = 300)
+    private val smoother = EmotionSmoother(holdMillis = 300, minFrames = 3)
 
     private fun result(emotion: Emotion, confidence: Float = 0.9f) = EmotionResult(emotion, confidence)
 
@@ -19,8 +19,9 @@ class EmotionSmootherTest {
     }
 
     @Test
-    fun `label is accepted once it has held for the full time`() {
+    fun `label is accepted once it has held for the full time over three frames`() {
         smoother.update(1, result(Emotion.SENANG), 0)
+        smoother.update(1, result(Emotion.SENANG), 150)
 
         val accepted = smoother.update(1, result(Emotion.SENANG), 300)
 
@@ -29,9 +30,18 @@ class EmotionSmootherTest {
     }
 
     @Test
-    fun `a different label restarts the clock`() {
+    fun `two frames are not enough however long they are apart`() {
+        smoother.update(1, result(Emotion.SENANG), 0)
+
+        assertNull(smoother.update(1, result(Emotion.SENANG), 500))
+        assertEquals(Emotion.SENANG, smoother.update(1, result(Emotion.SENANG), 600)!!.emotion)
+    }
+
+    @Test
+    fun `a different label restarts the clock and the frame count`() {
         smoother.update(1, result(Emotion.SENANG), 0)
         smoother.update(1, result(Emotion.SEDIH), 200)
+        smoother.update(1, result(Emotion.SEDIH), 300)
 
         assertNull(smoother.update(1, result(Emotion.SEDIH), 450))
         assertEquals(Emotion.SEDIH, smoother.update(1, result(Emotion.SEDIH), 500)!!.emotion)
@@ -40,10 +50,12 @@ class EmotionSmootherTest {
     @Test
     fun `an accepted label stays until another one has held long enough`() {
         smoother.update(1, result(Emotion.SENANG), 0)
+        smoother.update(1, result(Emotion.SENANG), 150)
         smoother.update(1, result(Emotion.SENANG), 300)
 
         // Satu frame berbeda tidak boleh menghapus label yang sudah diterima
         assertEquals(Emotion.SENANG, smoother.update(1, result(Emotion.MARAH), 400)!!.emotion)
+        assertEquals(Emotion.SENANG, smoother.update(1, result(Emotion.MARAH), 500)!!.emotion)
         assertEquals(Emotion.SENANG, smoother.update(1, result(Emotion.MARAH), 650)!!.emotion)
         assertEquals(Emotion.MARAH, smoother.update(1, result(Emotion.MARAH), 700)!!.emotion)
     }
@@ -74,15 +86,18 @@ class EmotionSmootherTest {
     fun `faces are tracked independently`() {
         smoother.update(1, result(Emotion.SENANG), 0)
         smoother.update(2, result(Emotion.SEDIH), 100)
+        smoother.update(1, result(Emotion.SENANG), 150)
 
         assertEquals(Emotion.SENANG, smoother.update(1, result(Emotion.SENANG), 300)!!.emotion)
         assertNull(smoother.update(2, result(Emotion.SEDIH), 300))
+        assertNull(smoother.update(2, result(Emotion.SEDIH), 350))
         assertEquals(Emotion.SEDIH, smoother.update(2, result(Emotion.SEDIH), 400)!!.emotion)
     }
 
     @Test
     fun `a face that left the frame starts over when it returns`() {
         smoother.update(1, result(Emotion.SENANG), 0)
+        smoother.update(1, result(Emotion.SENANG), 150)
         smoother.update(1, result(Emotion.SENANG), 300)
 
         smoother.retain(emptySet())
@@ -97,6 +112,7 @@ class EmotionSmootherTest {
 
         smoother.retain(setOf(1))
 
+        smoother.update(1, result(Emotion.SENANG), 150)
         assertEquals(Emotion.SENANG, smoother.update(1, result(Emotion.SENANG), 300)!!.emotion)
         assertNull(smoother.update(2, result(Emotion.SEDIH), 300))
     }

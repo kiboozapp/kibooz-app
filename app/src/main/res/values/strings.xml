@@ -52,6 +52,8 @@
     <string name="profil_ubah_belum_tersedia">Pengubahan profil belum tersedia di versi ini</string>
     <string name="panduan_terapkan_belum_tersedia">Pencatatan panduan belum tersedia di versi ini</string>
     <string name="kelas_gabung_belum_tersedia">Menggabung ke kelas belum tersedia di versi ini</string>
+    <string name="kelas_kode_kosong">Kode kelas tidak boleh kosong</string>
+    <string name="kelas_kode_tidak_valid">Kode kelas berisi 4 sampai 12 huruf atau angka tanpa tanda hubung</string>
     <!-- Aturan isian, dipakai FormRules.kt. Angka batas mengikuti openapi.yaml backend -->
     <string name="form_email_kosong">Email tidak boleh kosong</string>
     <string name="form_email_tidak_valid">Format email belum benar</string>
@@ -70,10 +72,46 @@
     <string name="form_judul_terlalu_panjang">Judul paling panjang 150 karakter</string>
     <string name="form_isi_kosong">Isi tidak boleh kosong</string>
     <string name="form_isi_terlalu_panjang">Isi paling panjang 5000 karakter</string>
-
     <string name="mood_menganalisis">Menganalisis…</string>
     <string name="mood_ketuk_pilih_siswa">Ketuk untuk pilih siswa</string>
     <string name="mood_wajah_terdeteksi_desc">%1$d wajah terdeteksi</string>
     <string name="pilih_siswa_judul">Pilih siswa</string>
     <string name="pilih_siswa_sudah_dipilih">%1$s (sudah dipilih)</string>
+
+    <!-- Pesan galat dari API, dipetakan di ApiErrorMessages.kt -->
+    <string name="error_invalid_credentials">Email atau kata sandi salah</string>
+    <string name="error_password_incorrect">Kata sandi salah</string>
+    <string name="error_session_ended">Sesi telah berakhir, silakan masuk kembali</string>
+    <string name="error_forbidden">Akun ini tidak boleh membuka halaman tersebut</string>
+    <string name="error_email_taken">Email sudah terdaftar</string>
+    <string name="error_nisn_taken">NISN anak ini sudah terdaftar</string>
+    <string name="error_nip_taken">NIP sudah terdaftar</string>
+    <string name="error_child_limit">Satu akun wali murid paling banyak mendaftarkan 10 anak</string>
+    <string name="error_class_code_not_found">Kode kelas tidak ditemukan</string>
+    <string name="error_class_joining_closed">Guru kelas ini sedang menutup pendaftaran murid baru</string>
+    <string name="error_class_full">Kelas sudah penuh, paling banyak 60 anak</string>
+    <string name="error_class_limit">Satu guru paling banyak mengajar di 20 kelas</string>
+    <string name="error_class_no_teacher">Kelas ini belum punya guru aktif</string>
+    <string name="error_class_gone">Kelas tidak ditemukan atau Anda sudah tidak ada di kelas ini</string>
+    <string name="error_not_found">Data tidak ditemukan</string>
+    <string name="error_no_child">Belum ada anak yang terdaftar</string>
+    <string name="error_trash_daily_limit">Batas pindai sampah hari ini sudah habis, coba lagi besok</string>
+    <string name="error_mood_log_limit">Seorang anak paling banyak punya 20 catatan mood per hari</string>
+    <string name="error_rate_limited">Terlalu banyak percobaan, tunggu sebentar lalu coba lagi</string>
+    <string name="error_request_in_progress">Permintaan sebelumnya masih diproses, tunggu sebentar</string>
+    <string name="error_key_reused">Permintaan tidak bisa dikirim ulang, ulangi dari awal</string>
+    <string name="error_file_too_large">Berkas terlalu besar</string>
+    <string name="error_image_too_large">Dimensi foto terlalu besar</string>
+    <string name="error_image_invalid">Berkas bukan foto yang bisa dibaca</string>
+    <string name="error_validation">Data yang dikirim belum benar, periksa kembali isian</string>
+    <string name="error_storage_unavailable">Penyimpanan berkas sedang tidak tersedia, coba lagi nanti</string>
+    <string name="error_last_teacher">Guru ini satu-satunya di kelas, tunjuk guru lain lebih dulu</string>
+    <string name="error_successor_required">Tunjuk guru pengganti untuk kelas yang masih punya anak</string>
+    <string name="error_owner_required">Hanya pemilik kelas yang boleh melakukan ini</string>
+    <string name="error_teacher_already">Guru ini sudah mengajar di kelas tersebut</string>
+    <string name="error_teacher_not_in_class">Guru ini tidak mengajar di kelas tersebut</string>
+    <string name="error_server">Server sedang bermasalah, coba lagi nanti</string>
+    <string name="error_unavailable">Layanan sedang tidak tersedia, coba lagi nanti</string>
+    <string name="error_network">Tidak ada koneksi internet, periksa jaringan lalu coba lagi</string>
+    <string name="error_unknown">Terjadi kesalahan, coba lagi</string>
 </resources>
