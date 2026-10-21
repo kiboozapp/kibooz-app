@@ -16,7 +16,7 @@ class MoodScanSessionTest {
 
     private fun happy(confidence: Float = 0.9f) = EmotionResult(Emotion.SENANG, confidence)
 
-    private fun sad() = EmotionResult(Emotion.SEDIH, 0.8f)
+    private fun sad(confidence: Float = 0.8f) = EmotionResult(Emotion.SEDIH, confidence)
 
     @Test
     fun `a student can be assigned to a face`() {
@@ -140,5 +140,93 @@ class MoodScanSessionTest {
     @Test
     fun `no results give no batches`() {
         assertTrue(session.resultBatches().isEmpty())
+    }
+
+    // BR-04
+
+    private fun assignWithResult(result: EmotionResult, student: Student = amelia, trackingId: Int = 1) {
+        session.assign(trackingId, student)
+        session.onFaces(listOf(FaceReading(trackingId, result)))
+    }
+
+    @Test
+    fun `a result at or above 75 percent needs no confirmation`() {
+        assignWithResult(happy(0.75f))
+
+        assertFalse(session.results().single().needsConfirmation)
+        assertTrue(session.pendingConfirmation().isEmpty())
+    }
+
+    @Test
+    fun `a result under 75 percent waits for the teacher and is not saved yet`() {
+        assignWithResult(happy(0.74f))
+
+        val pending = session.pendingConfirmation().single()
+        assertEquals(amelia, pending.student)
+        assertEquals(MoodSource.AI_CAMERA, pending.source)
+        assertTrue(session.resultBatches().isEmpty())
+    }
+
+    @Test
+    fun `confirming keeps the AI source and the real confidence and lets it be saved`() {
+        assignWithResult(happy(0.6f))
+
+        session.confirm("a")
+
+        val mood = session.results().single()
+        assertEquals(MoodSource.AI_CAMERA, mood.source)
+        assertEquals(0.6f, mood.emotion.confidence, 0.0001f)
+        assertTrue(mood.confirmed)
+        assertEquals(1, session.resultBatches().single().size)
+    }
+
+    @Test
+    fun `a confirmation does not cover a different label that the camera accepts later`() {
+        assignWithResult(happy(0.6f))
+        session.confirm("a")
+
+        session.onFaces(listOf(FaceReading(1, sad(0.6f))))
+
+        assertEquals(Emotion.SEDIH, session.pendingConfirmation().single().emotion.emotion)
+    }
+
+    @Test
+    fun `changing the label makes a manual result that the camera no longer changes`() {
+        assignWithResult(happy(0.6f))
+
+        session.override("a", Emotion.MARAH)
+        session.onFaces(listOf(FaceReading(1, sad(0.9f))))
+
+        val mood = session.results().single()
+        assertEquals(Emotion.MARAH, mood.emotion.emotion)
+        assertEquals(MoodSource.MANUAL_INPUT, mood.source)
+        assertFalse(mood.needsConfirmation)
+        assertEquals(1, session.resultBatches().single().size)
+    }
+
+    @Test
+    fun `a manual result for a student whose face left stays`() {
+        assignWithResult(happy(0.6f))
+        session.override("a", Emotion.BINGUNG)
+
+        session.onFaces(emptyList())
+
+        assertEquals(MoodSource.MANUAL_INPUT, session.results().single().source)
+    }
+
+    @Test
+    fun `confirming a student without a result does nothing`() {
+        session.confirm("a")
+
+        assertTrue(session.results().isEmpty())
+    }
+
+    @Test
+    fun `only the confirmed results of a mixed session are batched`() {
+        assignWithResult(happy(0.9f), amelia, 1)
+        assignWithResult(happy(0.5f), farhan, 2)
+
+        assertEquals(listOf("a"), session.resultBatches().single().map { it.student.id })
+        assertEquals(listOf("f"), session.pendingConfirmation().map { it.student.id })
     }
 }
