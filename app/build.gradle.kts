@@ -16,13 +16,20 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Ganti dengan -Pkibooz.apiBaseUrl=... (http:// lokal butuh cleartext, emulator memakai 10.0.2.2)
+        // Ganti dengan -Pkibooz.apiBaseUrl=... (http:// hanya diizinkan ke 10.0.2.2 di build debug lewat network_security_config)
         val apiBaseUrl = providers.gradleProperty("kibooz.apiBaseUrl")
             .getOrElse("https://kibooz-api.syafahadyan.com/api/v1/")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
-        // Build rilis harus https agar token dan kata sandi tidak terkirim tanpa enkripsi
-        val releaseRequested = gradle.startParameter.taskNames.any { it.contains("release", ignoreCase = true) }
+        // Build selain debug harus https agar token dan kata sandi tidak terkirim tanpa enkripsi. Tugas tanpa
+        // nama varian seperti assemble, build dan bundle juga membangun varian rilis, jadi ikut diperiksa.
+        val releaseRequested = gradle.startParameter.taskNames.any { task ->
+            val name = task.substringAfterLast(':').lowercase()
+            val buildsVariant = name.startsWith("assemble") || name.startsWith("bundle") || name.startsWith("package")
+            name.contains("release") ||
+                name in setOf("assemble", "build", "bundle", "install") ||
+                (buildsVariant && !name.contains("debug") && !name.contains("androidtest"))
+        }
         check(!releaseRequested || apiBaseUrl.startsWith("https://")) {
             "kibooz.apiBaseUrl harus diawali https:// untuk build rilis, nilai sekarang $apiBaseUrl"
         }

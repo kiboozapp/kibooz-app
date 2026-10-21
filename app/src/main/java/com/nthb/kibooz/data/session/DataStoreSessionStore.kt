@@ -12,11 +12,16 @@ private val Context.sessionDataStore: DataStore<Preferences> by preferencesDataS
 
 /**
  * [SessionStore] di atas Preferences DataStore. Berkas berada di `files/datastore/` dan
- * dikeluarkan dari backup lewat `data_extraction_rules.xml`. Isinya belum dienkripsi.
+ * dikeluarkan dari backup lewat `data_extraction_rules.xml`. Access token, refresh token dan
+ * `deviceToken` dienkripsi dengan [cipher] sebelum ditulis, data profil tidak. Nilai yang tidak bisa
+ * didekripsi, misalnya karena kunci Keystore hilang, dianggap tidak ada dan sesinya dihapus.
  */
-class DataStoreSessionStore(private val dataStore: DataStore<Preferences>) : SessionStore {
+class DataStoreSessionStore(
+    private val dataStore: DataStore<Preferences>,
+    private val cipher: ValueCipher
+) : SessionStore {
 
-    constructor(context: Context) : this(context.applicationContext.sessionDataStore)
+    constructor(context: Context) : this(context.applicationContext.sessionDataStore, KeystoreValueCipher())
 
     override suspend fun readSession(): Session? {
         val prefs = dataStore.data.first()
@@ -31,13 +36,18 @@ class DataStoreSessionStore(private val dataStore: DataStore<Preferences>) : Ses
             return null
         }
 
-        return Session(access, refresh, SessionUser(id, email, fullName, role, prefs[USER_AVATAR]))
+        return try {
+            Session(cipher.decrypt(access), cipher.decrypt(refresh), SessionUser(id, email, fullName, role, prefs[USER_AVATAR]))
+        } catch (e: UndecryptableException) {
+            clearSession()
+            null
+        }
     }
 
     override suspend fun writeSession(session: Session) {
         dataStore.edit { prefs ->
-            prefs[ACCESS_TOKEN] = session.accessToken
-            prefs[REFRESH_TOKEN] = session.refreshToken
+            prefs[ACCESS_TOKEN] = cipher.encrypt(session.accessToken)
+            prefs[REFRESH_TOKEN] = cipher.encrypt(session.refreshToken)
             prefs[USER_ID] = session.user.id
             prefs[USER_EMAIL] = session.user.email
             prefs[USER_NAME] = session.user.fullName
@@ -53,11 +63,17 @@ class DataStoreSessionStore(private val dataStore: DataStore<Preferences>) : Ses
         }
     }
 
-    override suspend fun readDeviceToken(email: String): String? =
-        dataStore.data.first()[deviceTokenKey(email)]
+    override suspend fun readDeviceToken(email: String): String? {
+        val stored = dataStore.data.first()[deviceTokenKey(email)] ?: return null
+        return try {
+            cipher.decrypt(stored)
+        } catch (e: UndecryptableException) {
+            null
+        }
+    }
 
     override suspend fun writeDeviceToken(email: String, deviceToken: String) {
-        dataStore.edit { it[deviceTokenKey(email)] = deviceToken }
+        dataStore.edit { it[deviceTokenKey(email)] = cipher.encrypt(deviceToken) }
     }
 
     private fun deviceTokenKey(email: String) =
