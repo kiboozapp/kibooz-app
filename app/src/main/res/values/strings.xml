@@ -54,6 +54,24 @@
     <string name="kelas_gabung_belum_tersedia">Menggabung ke kelas belum tersedia di versi ini</string>
     <string name="kelas_kode_kosong">Kode kelas tidak boleh kosong</string>
     <string name="kelas_kode_tidak_valid">Kode kelas berisi 4 sampai 12 huruf atau angka tanpa tanda hubung</string>
+    <!-- Aturan isian, dipakai FormRules.kt. Angka batas mengikuti openapi.yaml backend -->
+    <string name="form_email_kosong">Email tidak boleh kosong</string>
+    <string name="form_email_tidak_valid">Format email belum benar</string>
+    <string name="form_email_terlalu_panjang">Email paling panjang 255 karakter</string>
+    <string name="form_password_kosong">Kata sandi tidak boleh kosong</string>
+    <string name="form_password_terlalu_pendek">Kata sandi paling sedikit 8 karakter</string>
+    <string name="form_password_terlalu_panjang">Kata sandi terlalu panjang, paling banyak 72 byte</string>
+    <string name="form_nama_terlalu_pendek">Nama paling sedikit 2 karakter</string>
+    <string name="form_nama_terlalu_panjang">Nama paling panjang 150 karakter</string>
+    <string name="form_nisn_tidak_valid">NISN hanya berisi 5 sampai 30 angka</string>
+    <string name="form_nama_kelas_kosong">Nama kelas tidak boleh kosong</string>
+    <string name="form_nama_kelas_terlalu_panjang">Nama kelas paling panjang 50 karakter</string>
+    <string name="form_telepon_tidak_valid">Nomor telepon berisi angka, boleh diawali plus, paling panjang 30 karakter</string>
+    <string name="form_alamat_terlalu_panjang">Alamat paling panjang 1000 karakter</string>
+    <string name="form_judul_kosong">Judul tidak boleh kosong</string>
+    <string name="form_judul_terlalu_panjang">Judul paling panjang 150 karakter</string>
+    <string name="form_isi_kosong">Isi tidak boleh kosong</string>
+    <string name="form_isi_terlalu_panjang">Isi paling panjang 5000 karakter</string>
     <string name="mood_menganalisis">Menganalisis…</string>
     <string name="mood_ketuk_pilih_siswa">Ketuk untuk pilih siswa</string>
     <string name="mood_wajah_terdeteksi_desc">%1$d wajah terdeteksi</string>
