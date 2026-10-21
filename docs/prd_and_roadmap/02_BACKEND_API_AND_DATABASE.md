@@ -1152,7 +1152,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Kegagalan:** `400` `INVALID_IMAGE` atau `IMAGE_DIMENSIONS_TOO_LARGE` untuk foto yang tidak valid, dan `429` `TRASH_DAILY_LIMIT_REACHED` ketika batas harian anak sudah tercapai.
 
 #### `GET /leaderboard`
-- **Query Params:** `classId=<uuid>` opsional.
+- **Query Params:** `classId=<uuid>` opsional dan `period=today|week|month` opsional.
 - **Response 200 OK:**
 ```json
 {
@@ -1171,6 +1171,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - `points` adalah poin semester yang sedang berjalan (`seasonPoints`), dan peringkat mengikuti poin itu. Hasil disimpan di cache selama `LEADERBOARD_CACHE_SECONDS` (300 detik) dan cache dihapus setiap kali peringkat berubah, termasuk saat semester baru dimulai.
+- Dengan `period`, peringkat memakai poin dari awal hari (00:00), awal minggu (Senin 00:00) atau awal bulan (tanggal 1 pukul 00:00) dalam zona waktu Asia/Jakarta. Semua anak di kelas tetap tampil dan anak tanpa pindaian pada periode itu punya `points` 0. Hasil periode tidak disimpan di cache, dan nilai `period` selain ketiganya mendapat `400` `VALIDATION_ERROR`.
 
 #### `GET /leaderboard/history`
 - **Deskripsi:** Podium dan peringkat akhir setiap semester yang sudah berakhir untuk sebuah kelas, semester terbaru di urutan pertama. Semester diberi nama bulan awalnya, misalnya `2026-07`, dan baru muncul setelah berakhir, sehingga semester yang sedang berjalan hanya ada di `GET /leaderboard`. Anak memakai nama dan poin yang ia punya saat semester berakhir. Anak yang akunnya sudah dihapus tidak ditampilkan, sehingga sebuah peringkat bisa hilang dari daftar dan sebuah semester bisa tidak punya peringkat tersisa. Wali melihat kelas anaknya dan guru melihat kelas yang ia ajar.
@@ -1203,7 +1204,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 #### `GET /trash/stats`
 - **Deskripsi:** Statistik pemilahan sampah seorang anak. Hanya untuk wali.
-- **Query Params:** `studentId=<uuid>` opsional. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal, dan wali yang tidak punya anak lagi mendapat `404` `NO_CHILD_REGISTERED`.
+- **Query Params:** `studentId=<uuid>` opsional dan `period=today|week|month` opsional. Tanpa `studentId`, yang dikembalikan adalah anak yang terdaftar paling awal, dan wali yang tidak punya anak lagi mendapat `404` `NO_CHILD_REGISTERED`.
 - **Response 200 OK:** `breakdown` selalu berisi tiga kategori dengan urutan `ORGANIK`, `ANORGANIK` dan `B3`.
 ```json
 {
@@ -1225,6 +1226,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   }
 }
 ```
+- Dengan `period`, `breakdown` dan `totalScans` hanya menghitung pindaian pada periode itu (batas waktunya sama dengan `GET /leaderboard`), `periodPoints` berisi poinnya dan `period` mengulang namanya. `totalPoints`, `seasonPoints` dan `classRank` tidak berubah. Tanpa `period`, jawabannya tidak memuat `period` maupun `periodPoints`.
 - **Kegagalan:** `400` `VALIDATION_ERROR` dan `404` `STUDENT_NOT_FOUND`.
 
 ---
