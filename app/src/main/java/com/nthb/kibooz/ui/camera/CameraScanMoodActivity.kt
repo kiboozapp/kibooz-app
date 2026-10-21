@@ -178,7 +178,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
     }
 
     private fun showFaces(frame: FrameSize, faces: List<TrackedFace>) {
-        session.onFaces(faces.map { FaceReading(it.trackingId, it.emotion) })
+        session.onFaces(faces.map { FaceReading(it.trackingId, it.emotion, FaceBox(it.box.left, it.box.top, it.box.right, it.box.bottom)) })
         lastFrame = frame
         lastFaces = faces
         render()

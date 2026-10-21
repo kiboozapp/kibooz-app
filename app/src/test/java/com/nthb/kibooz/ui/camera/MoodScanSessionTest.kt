@@ -10,7 +10,8 @@ import org.junit.Test
 
 class MoodScanSessionTest {
 
-    private val session = MoodScanSession()
+    private var now = 0L
+    private val session = MoodScanSession(graceMillis = 1_000, nowMillis = { now })
     private val amelia = Student("a", "Amelia")
     private val farhan = Student("f", "Farhan")
 
@@ -228,5 +229,121 @@ class MoodScanSessionTest {
 
         assertEquals(listOf("a"), session.resultBatches().single().map { it.student.id })
         assertEquals(listOf("f"), session.pendingConfirmation().map { it.student.id })
+    }
+
+    // Masa tenggang dan menautkan ulang wajah
+
+    private fun box(left: Int, top: Int = 0, size: Int = 100) = FaceBox(left, top, left + size, top + size)
+
+    @Test
+    fun `a face missing for one frame keeps its student and its result`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(0.9f), box(0))))
+
+        now = 100
+        session.onFaces(emptyList())
+        now = 200
+        session.onFaces(listOf(FaceReading(1, null, box(0))))
+
+        assertEquals(amelia, session.studentAt(1))
+        assertEquals(Emotion.SENANG, session.results().single().emotion.emotion)
+    }
+
+    @Test
+    fun `a face that stays away longer than the grace period is released with its result kept`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(0.9f), box(0))))
+
+        now = 100
+        session.onFaces(emptyList())
+        now = 1_101
+        session.onFaces(emptyList())
+
+        assertNull(session.studentAt(1))
+        assertFalse(session.isAssigned("a"))
+        assertEquals(amelia, session.results().single().student)
+    }
+
+    @Test
+    fun `a new tracking id on the same spot takes over the student`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(0.9f), box(0))))
+
+        now = 100
+        session.onFaces(listOf(FaceReading(5, null, box(10))))
+
+        assertEquals(amelia, session.studentAt(5))
+        assertNull(session.studentAt(1))
+        assertEquals(Emotion.SENANG, session.results().single().emotion.emotion)
+        assertTrue(session.isAssigned("a"))
+    }
+
+    @Test
+    fun `a face somewhere else is not linked to the missing student`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(0.9f), box(0))))
+
+        now = 100
+        session.onFaces(listOf(FaceReading(5, null, box(500))))
+
+        assertNull(session.studentAt(5))
+        assertEquals(amelia, session.studentAt(1))
+    }
+
+    @Test
+    fun `a face without a box is never linked by position`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(0.9f), box(0))))
+
+        now = 100
+        session.onFaces(listOf(FaceReading(5, null)))
+
+        assertNull(session.studentAt(5))
+    }
+
+    @Test
+    fun `a new face is not linked after the grace period`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(0.9f), box(0))))
+
+        now = 100
+        session.onFaces(emptyList())
+        now = 1_200
+        session.onFaces(listOf(FaceReading(5, null, box(0))))
+
+        assertNull(session.studentAt(5))
+    }
+
+    @Test
+    fun `two missing students go to the faces that overlap them most`() {
+        session.assign(1, amelia)
+        session.assign(2, farhan)
+        session.onFaces(listOf(FaceReading(1, happy(), box(0)), FaceReading(2, sad(), box(300))))
+
+        now = 100
+        session.onFaces(listOf(FaceReading(8, null, box(305)), FaceReading(9, null, box(5))))
+
+        assertEquals(farhan, session.studentAt(8))
+        assertEquals(amelia, session.studentAt(9))
+    }
+
+    @Test
+    fun `a missing student can be given to another face right away`() {
+        session.assign(1, amelia)
+        session.onFaces(listOf(FaceReading(1, happy(), box(0))))
+        now = 100
+        session.onFaces(emptyList())
+
+        assertTrue(session.assign(7, amelia))
+
+        assertNull(session.studentAt(1))
+        assertEquals(amelia, session.studentAt(7))
+    }
+
+    @Test
+    fun `the overlap of boxes is zero apart and one when equal`() {
+        assertEquals(0f, box(0).overlap(box(200)), 0.0001f)
+        assertEquals(1f, box(0).overlap(box(0)), 0.0001f)
+        assertEquals(1f / 3f, box(0).overlap(box(50, size = 100).copy(top = 0, bottom = 100)), 0.0001f)
     }
 }
