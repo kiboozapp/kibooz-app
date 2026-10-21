@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import com.nthb.kibooz.data.repository.MoodRepository
 import com.nthb.kibooz.ml.EmotionResult
 
 data class Student(val id: String, val name: String)
@@ -63,6 +64,6 @@ class MoodScanSession {
     fun resultBatches(): List<List<StudentMood>> = results().chunked(MAX_BATCH_ENTRIES)
 
     companion object {
-        const val MAX_BATCH_ENTRIES = 30
+        const val MAX_BATCH_ENTRIES = MoodRepository.MAX_BATCH_ENTRIES
     }
 }

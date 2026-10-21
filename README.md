@@ -177,7 +177,7 @@ KiboozApp/
 5. Sambungkan perangkat Android atau aktifkan emulator.
 6. Tekan tombol **Run** (`Shift + F10`).
 
-Secara bawaan aplikasi memakai server `https://kibooz-api.syafahadyan.com/api/v1/`. Untuk memakai server lain, beri properti Gradle `-Pkibooz.apiBaseUrl=...`. Build rilis wajib memakai alamat `https://`. Pengujian unit dijalankan dengan `./gradlew testDebugUnitTest`.
+Secara bawaan aplikasi memakai server `https://kibooz-api.syafahadyan.com/api/v1/`. Untuk memakai server lain, beri properti Gradle `-Pkibooz.apiBaseUrl=...`. Build selain debug wajib memakai alamat `https://`, dan build debug hanya boleh memakai `http://` ke `10.0.2.2` (alamat mesin pengembang dari emulator). Pengujian unit dijalankan dengan `./gradlew testDebugUnitTest`.
 
 ---
 

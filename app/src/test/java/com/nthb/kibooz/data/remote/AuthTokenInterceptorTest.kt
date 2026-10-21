@@ -16,7 +16,7 @@ class AuthTokenInterceptorTest {
     private var token: String? = null
 
     private val client by lazy {
-        OkHttpClient.Builder().addInterceptor(AuthTokenInterceptor { token }).build()
+        OkHttpClient.Builder().addInterceptor(AuthTokenInterceptor({ token }, server.url("/api/v1/"))).build()
     }
 
     @Before
@@ -32,8 +32,8 @@ class AuthTokenInterceptorTest {
         server.shutdown()
     }
 
-    private fun send(request: Request.Builder = Request.Builder()): String? {
-        client.newCall(request.url(server.url("/api/v1/ping")).build()).execute().close()
+    private fun send(request: Request.Builder = Request.Builder(), path: String = "/api/v1/ping"): String? {
+        client.newCall(request.url(server.url(path)).build()).execute().close()
         return server.takeRequest().getHeader("Authorization")
     }
 
@@ -73,5 +73,29 @@ class AuthTokenInterceptorTest {
         server.enqueue(MockResponse().setBody("{}"))
         token = "second"
         assertEquals("Bearer second", send())
+    }
+
+    @Test
+    fun `sends no token to the auth routes`() {
+        token = "stored"
+
+        assertNull(send(path = "/api/v1/auth/login"))
+    }
+
+    @Test
+    fun `sends no token to another host or port`() {
+        token = "stored"
+        val other = MockWebServer().apply {
+            enqueue(MockResponse().setBody("{}"))
+            start()
+        }
+
+        try {
+            client.newCall(Request.Builder().url(other.url("/api/v1/ping")).build()).execute().close()
+
+            assertNull(other.takeRequest().getHeader("Authorization"))
+        } finally {
+            other.shutdown()
+        }
     }
 }
