@@ -11,6 +11,7 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityRuangKelasWaliBinding
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.guru.DetailKelasActivity
+import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.InsetsUtil
 
 class RuangKelasWaliActivity : AppCompatActivity() {
@@ -99,13 +100,14 @@ class RuangKelasWaliActivity : AppCompatActivity() {
             .setMessage("Masukkan kode kelas yang diberikan oleh wali kelas:")
             .setView(container)
             .setPositiveButton("Gabung") { _, _ ->
-                val kode = input.text.toString().trim()
-                if (kode.isNotEmpty()) {
+                val raw = input.text.toString()
+                val message = when {
+                    raw.isBlank() -> R.string.kelas_kode_kosong
+                    ClassCode.normalize(raw) == null -> R.string.kelas_kode_tidak_valid
                     // Belum ada pemanggilan ke server, jadi kelas belum terhubung
-                    Toast.makeText(this, R.string.kelas_gabung_belum_tersedia, Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Kode kelas tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    else -> R.string.kelas_gabung_belum_tersedia
                 }
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Batal", null)
             .show()
