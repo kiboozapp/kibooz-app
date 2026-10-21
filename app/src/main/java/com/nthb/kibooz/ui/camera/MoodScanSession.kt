@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import com.nthb.kibooz.data.repository.MoodRepository
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ml.EmotionResult
 
@@ -201,7 +202,8 @@ class MoodScanSession(
         results().filterNot { it.needsConfirmation }.chunked(MAX_BATCH_ENTRIES)
 
     companion object {
-        const val MAX_BATCH_ENTRIES = 30
+        const val MAX_BATCH_ENTRIES = MoodRepository.MAX_BATCH_ENTRIES
+
         /** Berapa lama pasangan wajah yang hilang dipertahankan sebelum dilepas. */
         const val DEFAULT_GRACE_MILLIS = 1_500L
 
