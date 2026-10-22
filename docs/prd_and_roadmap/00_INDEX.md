@@ -66,7 +66,7 @@ Status sisi backend untuk setiap fase dicatat di [ROADMAP.md](https://github.com
 - **Tujuan:** Menjamin keandalan aplikasi pada lingkungan sekolah nyata.
 - **Hasil:**
   - Caching lokal Room Database untuk mode offline.
-  - Notifikasi push (FCM) saat guru mencatat emosi anak atau ada tugas kelas baru.
+  - Notifikasi push (FCM) hanya sebagai pemicu bangun saat pesan percakapan baru masuk, dan aplikasi mengambil isi pesan dari API.
   - Cakupan unit test mencapai minimal 80% dengan pipeline CI/CD otomatis.
   - Berkas bundle AAB siap rilis.
 

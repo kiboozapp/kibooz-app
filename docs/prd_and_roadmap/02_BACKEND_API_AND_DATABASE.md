@@ -7,8 +7,8 @@ Panduan ini memuat diagram relasi entitas, DDL skema database, kontrak RESTful A
 ## 1. Arsitektur Layanan Backend
 
 - **Runtime:** Go dengan Fiber v3 dan GORM. Satu binary menjalankan API dan menerapkan migrasi SQL yang tertanam saat mulai.
-- **Basis Data Utama:** PostgreSQL 15 (relasional, ACID untuk pencatatan poin dan log mood). Token refresh juga disimpan di sini dalam bentuk hash SHA-256.
-- **In-Memory Caching:** Redis 7 bersifat opsional. Redis mempercepat penolakan token yang dipakai ulang, batas laju yang dipakai bersama dan cache leaderboard. API tetap berjalan tanpa Redis dan `GET /healthz` melaporkan status `degraded`.
+- **Basis Data Utama:** PostgreSQL 18 (relasional, ACID untuk pencatatan poin dan log mood). Token refresh juga disimpan di sini dalam bentuk hash SHA-256.
+- **In-Memory Caching:** Redis 8 bersifat opsional. Redis mempercepat penolakan token yang dipakai ulang, batas laju yang dipakai bersama dan cache leaderboard. API tetap berjalan tanpa Redis dan `GET /healthz` melaporkan status `degraded`.
 - **Penyimpanan Berkas (Object Storage):** Bucket yang kompatibel dengan S3 (Cloudflare R2 secara bawaan) untuk foto profil, foto bukti scan sampah dan video kelas. Video diunggah langsung ke bucket lewat alamat bertanda tangan, bukan melalui API. Unggahan nonaktif sampai konfigurasi S3 lengkap.
 - **Protokol Komunikasi:** RESTful JSON melalui HTTPS dengan header `Authorization: Bearer <JWT>`. Semua respons memakai satu amplop dan semua pesan berbahasa Inggris, sehingga klien bercabang pada `errorCode` dan tidak pada teks pesan.
 - **Alamat Layanan:** `https://kibooz-api.syafahadyan.com/api/v1`. Dokumentasi interaktif ada di `https://docs.kibooz.syafahadyan.com` dan dibangun dari `openapi.yaml` di repositori backend (`SyafaHadyan/kibooz-backend`), yang menjadi acuan jika ada perbedaan dengan dokumen ini.
@@ -599,6 +599,20 @@ CREATE TRIGGER students_close_enrollment AFTER UPDATE OF deleted_at ON students
 CREATE TRIGGER classes_reject_requests AFTER UPDATE OF join_open, archived_at ON classes
     FOR EACH ROW WHEN ((OLD.join_open AND NOT NEW.join_open) OR (OLD.archived_at IS NULL AND NEW.archived_at IS NOT NULL))
     EXECUTE FUNCTION enrollments_reject_for_class();
+
+-- 000023 musim kelas
+-- Setiap kelas menyimpan label semester yang menjadi pemilik poinnya, sehingga reset papan peringkat dapat memproses satu kelas dalam
+-- transaksi pendek sendiri, salinan API mana pun dapat melanjutkan reset yang dihentikan salinan lain, dan kelas tidak pernah direset dua kali.
+CREATE TABLE class_seasons (
+    class_id UUID PRIMARY KEY REFERENCES classes(id) ON DELETE CASCADE,
+    season_label TEXT
+);
+CREATE TRIGGER classes_open_season AFTER INSERT ON classes
+    FOR EACH ROW EXECUTE FUNCTION class_seasons_open();
+
+-- 000024 riwayat papan peringkat unik
+-- Satu kelas menyimpan klasemen sebuah semester satu kali untuk setiap anak. Salinan yang lebih baru dihapus saat indeks dibuat.
+CREATE UNIQUE INDEX leaderboard_history_unique ON leaderboard_history (student_id, class_id, season_label);
 ```
 
 ---
@@ -621,7 +635,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 
 **Poin semester.** Setiap anak punya `totalPoints` atau `currentPoints` untuk poin dari semua semester, dan `seasonPoints` untuk poin semester yang sedang berjalan. Papan peringkat dan `classRank` mengikuti `seasonPoints`. Pada hari pertama bulan awal semester (Januari dan Juli secara bawaan, diatur oleh `SEMESTER_START_MONTHS`) pukul 00.00 zona waktu server, `seasonPoints` semua anak kembali ke 0 dan peringkat dihitung ulang, sedangkan `totalPoints` tetap. Server menyimpan peringkat akhir semester yang berakhir di tabel `leaderboard_history`, dan `GET /leaderboard/history` membacanya kembali. Pemeriksaan kalender berjalan setiap menit, sehingga poin yang masuk dalam semenit setelah pergantian semester mungkin masih dihitung ke semester yang berakhir.
 
-**Aman diulang (`Idempotency-Key`).** Sebelas rute yang membuat sesuatu menerima header opsional `Idempotency-Key` (8 sampai 64 karakter `A-Z`, `a-z`, `0-9`, `_` atau `-`, misalnya UUID). Rute itu adalah `POST /guru/mood/log`, `POST /guru/mood/log/batch`, `POST /trash/scan-claim`, `POST /wali/children`, `POST /wali/guidance/apply`, `POST /guru/classes`, `POST /guru/classes/{classId}/teachers`, `POST /classes/{classId}/videos`, `POST /classes/{classId}/forum`, `POST /classes/{classId}/forum/{postId}/replies` dan `POST /chat/conversations/{conversationId}/messages`. Aplikasi yang mengantrekan aksi saat offline membuat satu kunci acak untuk setiap aksi dan mengirim kunci yang sama pada setiap percobaan. Percobaan setelah yang berhasil mendapat respons pertama lagi dengan header `Idempotent-Replayed: true`, dan tidak ada yang dikerjakan dua kali. Kunci dimiliki pengguna yang masuk dan disimpan server selama 7 hari (`IDEMPOTENCY_TTL_HOURS`). Hanya respons `2xx` yang diingat, sehingga setelah respons lain kunci yang sama boleh dikirim lagi. Kunci yang sama dengan permintaan yang berbeda ditolak dengan `422` `IDEMPOTENCY_KEY_REUSED`, dan kunci yang sama selagi percobaan pertama masih berjalan ditolak dengan `409` `IDEMPOTENCY_IN_PROGRESS`, yang berarti aplikasi menunggu sebentar lalu mencoba lagi. Kunci yang bentuknya salah mendapat `400` `VALIDATION_ERROR`.
+**Aman diulang (`Idempotency-Key`).** Dua belas rute yang membuat sesuatu menerima header opsional `Idempotency-Key` (8 sampai 64 karakter `A-Z`, `a-z`, `0-9`, `_` atau `-`, misalnya UUID). Rute itu adalah `POST /guru/mood/log`, `POST /guru/mood/log/batch`, `POST /trash/scan-claim`, `POST /wali/children`, `POST /wali/children/{studentId}/move-requests`, `POST /wali/guidance/apply`, `POST /guru/classes`, `POST /guru/classes/{classId}/teachers`, `POST /classes/{classId}/videos`, `POST /classes/{classId}/forum`, `POST /classes/{classId}/forum/{postId}/replies` dan `POST /chat/conversations/{conversationId}/messages`. Aplikasi yang mengantrekan aksi saat offline membuat satu kunci acak untuk setiap aksi dan mengirim kunci yang sama pada setiap percobaan. Percobaan setelah yang berhasil mendapat respons pertama lagi dengan header `Idempotent-Replayed: true`, dan tidak ada yang dikerjakan dua kali. Kunci dimiliki pengguna yang masuk dan disimpan server selama 7 hari (`IDEMPOTENCY_TTL_HOURS`). Hanya respons `2xx` yang diingat, sehingga setelah respons lain kunci yang sama boleh dikirim lagi. Kunci yang sama dengan permintaan yang berbeda ditolak dengan `422` `IDEMPOTENCY_KEY_REUSED`, dan kunci yang sama selagi percobaan pertama masih berjalan ditolak dengan `409` `IDEMPOTENCY_IN_PROGRESS`, yang berarti aplikasi menunggu sebentar lalu mencoba lagi. Kunci yang bentuknya salah mendapat `400` `VALIDATION_ERROR`.
 
 **Kode kesalahan.**
 
@@ -654,7 +668,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `UPGRADE_REQUIRED` | Permintaan biasa sampai ke rute soket `GET /chat/ws` yang hanya menerima jabat tangan WebSocket (`426`) |
 | `TRASH_DAILY_LIMIT_REACHED` | Batas klaim harian anak sudah tercapai |
 | `INVALID_IMAGE`, `IMAGE_DIMENSIONS_TOO_LARGE`, `FILE_TOO_LARGE` | Berkas bukan gambar, ukuran pikselnya terlalu besar, atau ukuran berkasnya terlalu besar |
-| `BODY_TOO_LARGE` | Isi JSON lebih dari 64 KB (`413`), kecuali pada dua unggahan foto |
+| `BODY_TOO_LARGE` | Isi JSON lebih dari 64 KB (`413`), kecuali pada tiga unggahan foto (avatar, klaim pindaian dan foto percakapan) |
 | `STORAGE_UNAVAILABLE`, `STORAGE_ERROR` | Penyimpanan berkas belum diatur atau gagal |
 | `RATE_LIMITED` | Batas laju terlewati, atau server sedang sibuk memeriksa kata sandi (`Retry-After: 1`) |
 | `BAD_REQUEST` | Lapisan HTTP menolak permintaan yang tidak punya kode lain, termasuk `415` untuk `Content-Encoding` selain `identity` |
@@ -1791,7 +1805,7 @@ Rute di bagian ini hanya untuk peran `GURU` dan `WALI`, dan berjalan juga ketika
 
 ## 5. Daftar Tugas Tim Backend (Work Breakdown)
 
-- [x] **BE-01:** Setup environment backend dan konfigurasi Docker Compose untuk PostgreSQL 15 & Redis 7.
+- [x] **BE-01:** Setup environment backend dan konfigurasi Docker Compose untuk PostgreSQL 18 & Redis 8.
 - [x] **BE-02:** Migrasi skema database relasional (migrasi SQL tertanam di binary Go).
 - [x] **BE-03:** Pembuatan modul autentikasi JWT (login multi-peran, registrasi, token refresh sekali pakai, logout, bcrypt password hash).
 - [x] **BE-04:** Pembuatan endpoint Dashboard Wali Murid dan pemantauan mood harian anak.
@@ -1809,7 +1823,7 @@ Rute di bagian ini hanya untuk peran `GURU` dan `WALI`, dan berjalan juga ketika
 - [x] **BE-16:** Daftar dan tambah anak untuk wali, daftar dan tambah guru untuk kelas, dan laporan panduan untuk guru.
 - [x] **BE-17:** Pemeriksaan tulis penyimpanan pada `/healthz` dan antrean penghapusan berkas akun yang dihapus.
 - [x] **BE-18:** Pemilik kelas, mengeluarkan guru dan keluar dari kelas, pengganti wajib saat satu-satunya guru menghapus akun, dan rute riwayat papan peringkat per semester.
-- [x] **BE-19:** Pencatatan mood massal (`POST /guru/mood/log/batch`), `recordedAt` opsional pada pencatatan mood, dan `Idempotency-Key` pada sepuluh rute yang membuat sesuatu agar antrean offline aman diulang.
+- [x] **BE-19:** Pencatatan mood massal (`POST /guru/mood/log/batch`), `recordedAt` opsional pada pencatatan mood, dan `Idempotency-Key` pada dua belas rute yang membuat sesuatu agar antrean offline aman diulang.
 - [x] **BE-20:** Rute ganti kata sandi (`PUT /users/me/password`) dan pengarsipan kelas tanpa anak aktif saat satu-satunya guru menghapus akun tanpa menyebut `successorEmail`.
 - [x] **BE-21:** Profil wali (`PATCH /wali/profile`), ubah nama atau NISN anak dan hapus anak oleh wali, nama guru yang dapat diubah, mengeluarkan anak dari kelas oleh guru, dan menutup atau membuka kelas untuk anak baru (`joinOpen`).
 - [x] **BE-22:** Batas pemakaian (60 anak per kelas, 20 kelas per guru, 20 catatan mood per anak per hari, 500 karakter untuk catatan, 64 KB untuk isi JSON dan 30 permintaan per menit untuk pencatatan mood massal), `userId` dan `isSelf` pada daftar guru, dan kode bergabung yang diganti saat guru keluar.
