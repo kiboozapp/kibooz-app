@@ -107,7 +107,7 @@ lifecycleScope.launch {
 
 ---
 
-## 4. Matriks Integrasi Layar-ke-API (19 Activity)
+## 4. Matriks Integrasi Layar-ke-API (20 Activity)
 
 | No | Activity File | Sumber Data / Endpoint | Aksi Pengguna Utama |
 | :---: | :--- | :--- | :--- |
@@ -130,6 +130,7 @@ lifecycleScope.launch {
 | **17** | [StatistikSampahActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/wali/StatistikSampahActivity.kt) | `GET /api/v1/trash/stats` | Menampilkan rincian statistik pemilahan Organik vs Anorganik dan total poin. |
 | **18** | [LeaderboardActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/wali/LeaderboardActivity.kt) | `GET /api/v1/leaderboard` | Mengisi data podium 3D juara 1-3 dan daftar peringkat siswa sekelas. |
 | **19** | [ProfilSiswaActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/wali/ProfilSiswaActivity.kt) | `GET /api/v1/wali/child/{id}` | Menampilkan identitas resmi anak, NISN, nama wali, email, dan alamat rumah. |
+| **20** | [ReviewScanMoodActivity.kt](file:///c:/Users/anang/Downloads/Semester%205/PAPB/Projek%20Kelas/Hasil/KiboozApp/app/src/main/java/com/nthb/kibooz/ui/camera/ReviewScanMoodActivity.kt) | `POST /api/v1/guru/mood/batch` | Meninjau hasil scan multi-wajah, mengoreksi emosi, menambah catatan, dan menyimpan batch. |
 
 ---
 

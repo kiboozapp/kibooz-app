@@ -102,6 +102,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-8.1 Viewfinder Kamera:** Antarmuka layar penuh CameraX dengan rasio bingkai stabil 30fps.
 - **FR-8.2 AI Scanner Mood:** Memproses bingkai wajah anak di perangkat. Model mengenali ekspresi dan memetakan ke salah satu dari 4 emosi.
 - **FR-8.3 AI Scanner Sampah:** Mendeteksi objek sampah di depan kamera, menentukan kategori (Organik vs Anorganik), dan menampilkan kartu poin.
+- **FR-8.4 Review Hasil Scan Mood (Batch Validation):** Menyediakan layar peninjauan hasil scan multi-wajah bagi guru untuk memeriksa akurasi, mengoreksi emosi, menambah catatan, dan menyimpan seluruh data sekaligus.
 
 ---
 

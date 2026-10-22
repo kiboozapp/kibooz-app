@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -37,11 +38,8 @@ class CameraScanMoodActivity : AppCompatActivity() {
         }
 
         binding.btnCaptureMood.setOnClickListener {
-            Toast.makeText(
-                this,
-                "Deteksi AI Berhasil! Data mood 2 siswa tercatat ke statistik kelas.",
-                Toast.LENGTH_LONG
-            ).show()
+            val intent = Intent(this, ReviewScanMoodActivity::class.java)
+            startActivity(intent)
             finish()
         }
     }

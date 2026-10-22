@@ -95,7 +95,7 @@ graph TD
 | **FE-G03** | Wiring Dashboard Guru ke API | 5 SP (2 hari) | BE-05 | `DashboardGuruActivity` menampilkan metrik kelas riil dari `GuruViewModel`. |
 | **FE-G04** | Integrasi Multi-Chart Statistik Mood | 5 SP (2 hari) | BE-05 | `DonutMoodChart` & `WeeklyLineChart` menerima data persentase dinamis dari API. |
 | **FE-G05** | Wiring Ruang Kelas & Roster Siswa | 5 SP (2 hari) | BE-05 | `RuangKelasGuruActivity` dan `PesertaKelasActivity` fungsional dengan dialog input mood. |
-| **FE-G06** | Integrasi CameraX & Analyzer Mood | 8 SP (3 hari) | ML-02 | `CameraScanMoodActivity` menjalankan `MoodAnalysisAnalyzer` dan mengunci emosi anak. |
+| **FE-G06** | Integrasi CameraX & Layar Review Mood | 8 SP (3 hari) | ML-02 | `CameraScanMoodActivity` dan `ReviewScanMoodActivity` untuk validasi batch. |
 | **FE-G07** | Wiring Video & Forum Edukasi | 3 SP (1 hari) | BE-05 | Pemutar video `VideoPembelajaranActivity` dan recycler view `ForumDiskusiActivity`. |
 
 ---
