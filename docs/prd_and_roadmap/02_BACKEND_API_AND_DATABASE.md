@@ -546,6 +546,59 @@ CREATE TABLE push_tokens (
 );
 
 CREATE INDEX idx_push_tokens_user ON push_tokens(user_id, updated_at DESC);
+
+-- 000021 pendaftaran kelas
+-- Satu baris untuk setiap masa seorang anak di sebuah kelas, sehingga anak dapat pindah kelas tanpa kehilangan riwayatnya.
+-- Status `pending` adalah permintaan pindah yang menunggu guru kelas tujuan, `active` adalah kelas anak sekarang (paling banyak
+-- satu), `ended` adalah kelas yang sudah ditinggalkan dengan angka terakhirnya, dan `rejected` adalah permintaan yang ditolak.
+-- Anak yang sudah ada diberi satu baris `active` oleh isi ulang yang aman diulang. Poin, peringkat dan pindaian di sebuah
+-- pendaftaran hanya dihitung sejak `activated_at`.
+CREATE TABLE enrollments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    class_id UUID NOT NULL REFERENCES classes(id) ON DELETE RESTRICT,
+    status VARCHAR(10) NOT NULL CHECK (status IN ('pending', 'active', 'ended', 'rejected')),
+    requested_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+    decided_at TIMESTAMP WITH TIME ZONE,
+    decided_by_guru_id UUID REFERENCES gurus(id) ON DELETE SET NULL,
+    activated_at TIMESTAMP WITH TIME ZONE,
+    ended_at TIMESTAMP WITH TIME ZONE,
+    final_points INTEGER CHECK (final_points >= 0),
+    final_season_points INTEGER CHECK (final_season_points >= 0),
+    final_rank INTEGER CHECK (final_rank >= 0),
+    final_scans INTEGER CHECK (final_scans >= 0),
+    CONSTRAINT enrollments_activated_check CHECK ((status IN ('active', 'ended')) = (activated_at IS NOT NULL)),
+    CONSTRAINT enrollments_ended_check CHECK (
+        (status = 'ended') = (ended_at IS NOT NULL AND final_points IS NOT NULL AND final_season_points IS NOT NULL
+            AND final_rank IS NOT NULL AND final_scans IS NOT NULL)
+    ),
+    CONSTRAINT enrollments_final_only_when_ended_check CHECK (
+        status = 'ended' OR (ended_at IS NULL AND final_points IS NULL AND final_season_points IS NULL
+            AND final_rank IS NULL AND final_scans IS NULL)
+    )
+);
+
+-- satu kelas aktif dan satu permintaan yang menunggu untuk setiap anak
+CREATE UNIQUE INDEX enrollments_active_child_key ON enrollments (student_id) WHERE status = 'active';
+CREATE UNIQUE INDEX enrollments_pending_child_key ON enrollments (student_id) WHERE status = 'pending';
+CREATE INDEX idx_enrollments_student ON enrollments (student_id, requested_at DESC);
+CREATE INDEX idx_enrollments_class_status ON enrollments (class_id, status, requested_at);
+
+-- pemicu pada `students`. Anak baru mendapat baris `active` di kelasnya. Ketika anak disembunyikan (`deleted_at` terisi),
+-- baris `active` menjadi `ended` dengan poin, poin semester, peringkat dan jumlah pindaian yang ia punya saat itu, dan
+-- permintaan yang menunggu dihapus.
+CREATE TRIGGER students_open_enrollment AFTER INSERT ON students
+    FOR EACH ROW EXECUTE FUNCTION enrollments_open_for_student();
+CREATE TRIGGER students_close_enrollment AFTER UPDATE OF deleted_at ON students
+    FOR EACH ROW WHEN (OLD.deleted_at IS NULL AND NEW.deleted_at IS NOT NULL)
+    EXECUTE FUNCTION enrollments_close_for_student();
+
+-- 000022 permintaan pindah
+-- Permintaan yang menunggu ditolak oleh basis data ketika kelas tujuan menutup pendaftaran (`join_open` menjadi false) atau
+-- diarsipkan, dan jumlah pindaian yang disimpan saat pendaftaran berakhir hanya menghitung pindaian sejak `activated_at`.
+CREATE TRIGGER classes_reject_requests AFTER UPDATE OF join_open, archived_at ON classes
+    FOR EACH ROW WHEN ((OLD.join_open AND NOT NEW.join_open) OR (OLD.archived_at IS NULL AND NEW.archived_at IS NOT NULL))
+    EXECUTE FUNCTION enrollments_reject_for_class();
 ```
 
 ---
@@ -687,7 +740,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 #### `GET /wali/dashboard`
 - **Header:** `Authorization: Bearer <token>`
 - **Query Params:** `studentId=<uuid>` opsional, untuk wali yang memiliki lebih dari satu anak. Tanpa parameter ini, yang dikembalikan adalah anak yang terdaftar paling awal.
-- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `bannerUrl` bernilai teks kosong jika alamat publik penyimpanan belum diatur di server. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`. Wali yang semua anaknya sudah dihapus mendapat `404` `NO_CHILD_REGISTERED`.
+- **Response 200 OK:** `classId` dipakai wali untuk rute `/classes/{classId}`. `bannerUrl` bernilai teks kosong jika alamat publik penyimpanan belum diatur di server. `label`, `title` dan `category` berasal dari katalog tetap di backend dan berbahasa Inggris. Ada empat panduan, satu untuk setiap mood (`guidance-senang-4step`, `guidance-sedih-4step`, `guidance-marah-4step` dan `guidance-bingung-4step`), dan `bannerUrl` dibentuk dari alamat publik bucket ditambah `guidance/banner_ceria.png`, `banner_temani.png`, `banner_tenang.png` atau `banner_aman.png`. `className` berbentuk `<jenjang> • <nama sekolah>`. Wali yang semua anaknya sudah dihapus mendapat `404` `NO_CHILD_REGISTERED`. `student.classArchivedAt` terisi ketika kelas anak diarsipkan (hanya dapat dibaca), dan kosong atau tidak ada ketika tidak.
 ```json
 {
   "success": true,
@@ -777,7 +830,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID dan `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali.
 
 #### `GET /wali/children`
-- **Deskripsi:** Daftar anak milik wali yang masuk, yang terdaftar paling awal di urutan pertama. `id` dipakai sebagai `studentId` pada rute lain yang menerimanya, seperti `GET /wali/dashboard`.
+- **Deskripsi:** Daftar anak milik wali yang masuk, yang terdaftar paling awal di urutan pertama. `id` dipakai sebagai `studentId` pada rute lain yang menerimanya, seperti `GET /wali/dashboard`. Anak di kelas yang diarsipkan membawa `classArchivedAt` (waktu pengarsipan, kolom itu tidak ada untuk kelas yang tidak diarsipkan), sehingga aplikasi dapat menyembunyikan aksi tulis.
 - **Response 200 OK:**
 ```json
 {
@@ -904,7 +957,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
   "notes": "Anak tersenyum lepas saat menyanyikan lagu pembuka."
 }
 ```
-- **`recordedAt` (opsional):** waktu mood itu terlihat, untuk catatan yang diantrekan saat offline (NFR-3). Bawaannya adalah waktu server saat ini. Waktunya tidak boleh di masa depan (waktu yang kurang dari 5 menit di depan dihitung sebagai sekarang) dan tidak boleh lebih tua dari 7 hari, karena itu selaras dengan lama `Idempotency-Key` disimpan. Hanya mood terakhir seorang anak pada setiap hari lokal yang dihitung di dasbor dan grafik, sehingga pengulangan yang terlambat tidak menggantikan mood yang lebih baru.
+- **`recordedAt` (opsional):** waktu mood itu terlihat, untuk catatan yang diantrekan saat offline (NFR-3). Bawaannya adalah waktu server saat ini. Waktunya tidak boleh di masa depan (waktu yang kurang dari 5 menit di depan dihitung sebagai sekarang) dan tidak boleh lebih tua dari 7 hari, karena itu selaras dengan lama `Idempotency-Key` disimpan. Hanya mood terakhir seorang anak pada setiap hari lokal yang dihitung di dasbor dan grafik, sehingga pengulangan yang terlambat tidak menggantikan mood yang lebih baru. Catatan mood tidak punya kelas dan dibedakan dengan tanggalnya, sehingga untuk anak yang pernah pindah kelas, `recordedAt` yang lebih awal dari waktu anak masuk kelasnya sekarang ditolak dengan `400` `VALIDATION_ERROR` pada kolom `recordedAt`. Aturan yang sama berlaku pada pencatatan massal, dan kelas yang diarsipkan menjawab `409` `CLASS_ARCHIVED`.
 - **Header:** `Idempotency-Key` opsional, lihat 4.0.
 - **Response 201 Created:**
 ```json
@@ -1310,7 +1363,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.14.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.18.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
 - `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
@@ -1765,3 +1818,4 @@ Rute di bagian ini hanya untuk peran `GURU` dan `WALI`, dan berjalan juga ketika
 - [x] **BE-25:** Lampiran satu foto atau satu video pada pesan di bucket privat (`S3_PRIVATE_BUCKET_NAME`). Foto lewat API dengan metadata dibuang (`POST .../media/photo`), video langsung ke bucket lewat alamat bertanda tangan (`POST .../media/video-upload`), dan pesan menyebut `mediaKey`. Pembaca menerima `media.url` bertanda tangan yang kedaluwarsa, dan menghapus pesan menghapus berkasnya.
 - [x] **BE-26:** Pengiriman langsung lewat WebSocket `GET /chat/ws` untuk pesan baru, pesan dihapus, tanda baca dan indikator mengetik pada percakapan langsung, dengan Redis pub/sub antarsalinan API, ping setiap 25 detik dan penutupan dengan kode `4001` ketika token akses habis.
 - [x] **BE-27:** Token dorong (`POST` dan `DELETE /push/tokens`) dan pengiriman notifikasi dorong lewat Firebase tanpa teks pesan, aktif ketika `FIREBASE_CREDENTIALS_FILE` diisi.
+- [x] **BE-28:** Pendaftaran kelas (`enrollments`, migrasi 000021 dan 000022), permintaan pindah oleh wali dan keputusan oleh guru kelas tujuan, kelas sebelumnya untuk wali, riwayat anak untuk guru kelas baru, kelas yang diarsipkan hanya dapat dibaca (`CLASS_ARCHIVED`) dengan rute arsip dan pulihkan, dan percakapan langsung yang tetap terbuka setelah kelas diarsipkan.
