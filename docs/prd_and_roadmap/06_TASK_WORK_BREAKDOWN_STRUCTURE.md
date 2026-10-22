@@ -113,6 +113,7 @@ graph TD
 | **BE-25** | Lampiran Percakapan | 8 SP (3 hari) | BE-24 | Bucket privat `S3_PRIVATE_BUCKET_NAME`, unggah foto lewat API, alamat unggah video bertanda tangan, `mediaKey` pada pengiriman, alamat baca bertanda tangan dan penghapusan berkas bersama pesannya. |
 | **BE-26** | Soket Percakapan | 8 SP (3 hari) | BE-24 | `GET /chat/ws` dengan paket `internal/chatlive`, Redis pub/sub antarsalinan, ping, penutupan `4001` saat token habis, batas soket dan metrik, serta halaman `docs/websocket.md`. |
 | **BE-27** | Token dan Notifikasi Dorong | 8 SP (3 hari) | BE-26 | Tabel `push_tokens`, rute `POST` dan `DELETE /push/tokens`, pengiriman data tanpa teks lewat FCM HTTP v1 dengan akun layanan (`FIREBASE_CREDENTIALS_FILE`) dan penghapusan token yang sudah tidak dikenal Firebase. |
+| **BE-28** | Pindah Kelas & Arsip Kelas | 13 SP (5 hari) | BE-21, BE-24 | Tabel `enrollments` dengan pemicu pada `students` dan `classes` (migrasi 000021 dan 000022), rute permintaan pindah wali dan keputusan guru kelas tujuan (`/wali/children/{studentId}/move-requests`, `/guru/classes/{classId}/move-requests`), `GET /wali/children/{studentId}/previous-classes`, `GET /guru/classes/{classId}/students/{studentId}/history`, kelas yang diarsipkan hanya dapat dibaca dengan `POST /guru/classes/{classId}/archive` dan `/restore`, serta `classArchivedAt` dan `archivedAt`. |
 ---
 
 ### 3.2 Track 2: Frontend Guru & Kamera (Engineer B)
