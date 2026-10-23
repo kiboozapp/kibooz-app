@@ -7,9 +7,11 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityRuangKelasWaliBinding
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.guru.DetailKelasActivity
+import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.InsetsUtil
 
 class RuangKelasWaliActivity : AppCompatActivity() {
@@ -84,7 +86,7 @@ class RuangKelasWaliActivity : AppCompatActivity() {
 
     private fun showGabungKelasDialog() {
         val input = EditText(this).apply {
-            hint = "Contoh: SENI-A1"
+            hint = "Contoh: K7M2QX4R"
             setSingleLine()
             setPadding(48, 24, 48, 24)
         }
@@ -95,15 +97,17 @@ class RuangKelasWaliActivity : AppCompatActivity() {
 
         AlertDialog.Builder(this)
             .setTitle("Gabung Kelas Si Kecil")
-            .setMessage("Masukkan kode kelas 6 karakter yang diberikan oleh wali kelas:")
+            .setMessage("Masukkan kode kelas yang diberikan oleh wali kelas:")
             .setView(container)
             .setPositiveButton("Gabung") { _, _ ->
-                val kode = input.text.toString().trim()
-                if (kode.isNotEmpty()) {
-                    Toast.makeText(this, "Berhasil terhubung ke kelas $kode!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Kode kelas tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                val raw = input.text.toString()
+                val message = when {
+                    raw.isBlank() -> R.string.kelas_kode_kosong
+                    ClassCode.normalize(raw) == null -> R.string.kelas_kode_tidak_valid
+                    // Belum ada pemanggilan ke server, jadi kelas belum terhubung
+                    else -> R.string.kelas_gabung_belum_tersedia
                 }
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Batal", null)
             .show()

@@ -51,7 +51,7 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Camera Viewport / Detection Area Simulated -->
+    <!-- Camera Viewport: live preview, face overlay and hints -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/clCameraViewport"
         android:layout_width="match_parent"
@@ -59,101 +59,35 @@
         app:layout_constraintBottom_toTopOf="@+id/clBottomControls"
         app:layout_constraintTop_toBottomOf="@+id/clTopOverlay">
 
-        <!-- Visual scanning line / grid subtle overlay -->
-        <View
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#205D40B3" />
+            app:scaleType="fillCenter" />
 
-        <!-- Detected Face 1: Amelia (Happy) -->
-        <LinearLayout
-            android:layout_width="140dp"
-            android:layout_height="170dp"
-            android:background="@drawable/bg_input_field"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:padding="6dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+        <com.nthb.kibooz.ui.common.FaceOverlayView
+            android:id="@+id/faceOverlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <!-- Low Light Warning -->
+        <TextView
+            android:id="@+id/tvLowLight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="#CCE53935"
+            android:fontFamily="@font/baloo2"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="@string/mood_cahaya_rendah"
+            android:textColor="@color/kibooz_white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.15"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.3">
-
-            <!-- Detection Bounding Box Border -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="110dp"
-                android:background="@drawable/bg_button_google" />
-
-            <!-- AI Emotion Badge -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:background="#FFC107"
-                android:fontFamily="@font/baloo2"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:text="😊 Happy (94%)"
-                android:textColor="#000000"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/baloo2"
-                android:text="Amelia Siti Zahra"
-                android:textColor="@color/kibooz_white"
-                android:textSize="11sp" />
-
-        </LinearLayout>
-
-        <!-- Detected Face 2: Kenzo (Kalem) -->
-        <LinearLayout
-            android:layout_width="140dp"
-            android:layout_height="170dp"
-            android:background="@drawable/bg_input_field"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:padding="6dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.85"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.25">
-
-            <!-- Detection Bounding Box Border -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="110dp"
-                android:background="@drawable/bg_button_google" />
-
-            <!-- AI Emotion Badge -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:background="#4CAF50"
-                android:fontFamily="@font/baloo2"
-                android:paddingHorizontal="8dp"
-                android:paddingVertical="2dp"
-                android:text="😌 Kalem (89%)"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/baloo2"
-                android:text="Kenzo Putra"
-                android:textColor="@color/kibooz_white"
-                android:textSize="11sp" />
-
-        </LinearLayout>
+            app:layout_constraintTop_toTopOf="parent" />
 
         <!-- Center AI Guidance Notice -->
         <TextView
@@ -172,6 +106,17 @@
             app:layout_constraintStart_toStartOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Camera Permission Denied Panel -->
+    <include
+        android:id="@+id/layoutIzinKamera"
+        layout="@layout/view_camera_permission_denied"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/clBottomControls"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/clTopOverlay" />
 
     <!-- Bottom Action Controls -->
     <androidx.constraintlayout.widget.ConstraintLayout

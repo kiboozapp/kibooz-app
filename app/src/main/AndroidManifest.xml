@@ -10,10 +10,12 @@
         android:required="false" />
 
     <application
+        android:name=".KiboozApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -33,64 +35,64 @@
         <!-- 2. Onboarding Screen -->
         <activity
             android:name=".ui.onboarding.OnboardingActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 3. Role Selection Screen (Orang Tua vs Guru) -->
         <activity
             android:name=".ui.auth.RoleSelectionActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 4. Login Screen -->
         <activity
             android:name=".ui.auth.LoginActivity"
-            android:exported="true"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
         <!-- 5. Guru Flow: Dashboard Guru -->
         <activity
             android:name=".ui.guru.DashboardGuruActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 6. Guru Flow: Multi-Chart Statistik Mood -->
         <activity
             android:name=".ui.guru.StatistikMoodActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 7. Guru Flow: Ruang Kelas (6 Mapel 3D) -->
         <activity
             android:name=".ui.guru.RuangKelasGuruActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 8. Guru Flow: Detail Kelas & Modul -->
         <activity
             android:name=".ui.guru.DetailKelasActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 8b. Guru Flow: Video Pembelajaran Kelas -->
         <activity
             android:name=".ui.guru.VideoPembelajaranActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 8c. Guru Flow: Peserta Kelas (Guru & Siswa) -->
         <activity
             android:name=".ui.guru.PesertaKelasActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 9. Guru Flow: Forum Diskusi Kelas -->
         <activity
             android:name=".ui.guru.ForumDiskusiActivity"
-            android:exported="true"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
         <!-- 10. Guru Flow: Profil & Kinerja Guru -->
         <activity
             android:name=".ui.guru.ProfilGuruActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 10b. Guru Flow: Detail Profil Guru -->
         <activity
             android:name=".ui.guru.DetailProfilGuruActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 11. Guru Flow: Edit Profil Guru -->
         <activity
@@ -101,53 +103,55 @@
         <!-- 12. Wali Flow: Dashboard Wali & Siswa -->
         <activity
             android:name=".ui.wali.DashboardWaliActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 13. Wali Flow: Ruang Kelas Si Kecil (Screenshot 154028) -->
         <activity
             android:name=".ui.wali.RuangKelasWaliActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 14. Wali Flow: Detail Panduan Penanganan Mood 4-Langkah -->
         <activity
             android:name=".ui.wali.DetailPenangananMoodActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 15. Wali Flow: Statistik Pilah Sampah Organik vs Anorganik -->
         <activity
             android:name=".ui.wali.StatistikSampahActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 16. Wali Flow: Leaderboard Podium Juara & Peringkat Poin -->
         <activity
             android:name=".ui.wali.LeaderboardActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 17. Wali Flow: Profil Wali (Settings-First) -->
         <activity
             android:name=".ui.wali.ProfilWaliActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 18. Wali Flow: Profil Siswa & NISN -->
         <activity
             android:name=".ui.wali.ProfilSiswaActivity"
-            android:exported="true" />
+            android:exported="false" />
 
         <!-- 19. Wali Flow: Edit Profil Siswa & Wali -->
         <activity
             android:name=".ui.wali.EditProfilSiswaActivity"
-            android:exported="true"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
         <!-- 18. AI Camera Overlay: Scan Mood Kelas (Guru) -->
         <activity
             android:name=".ui.camera.CameraScanMoodActivity"
-            android:exported="true" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- 19. AI Camera Overlay: Scan Sampah & Klaim Poin (Wali/Siswa) -->
         <activity
             android:name=".ui.camera.CameraScanSampahActivity"
-            android:exported="true" />
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <!-- 20. Guru Flow: Review Hasil Scan Mood Siswa -->
         <activity

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityDetailPenangananMoodBinding
 import com.nthb.kibooz.util.InsetsUtil
 
@@ -43,12 +44,8 @@ class DetailPenangananMoodActivity : AppCompatActivity() {
         }
 
         binding.btnTerapkanPanduan.setOnClickListener {
-            Toast.makeText(
-                this,
-                "Panduan berhasil dicatat! Status penanganan telah diteruskan ke Guru Kelas A.",
-                Toast.LENGTH_LONG
-            ).show()
-            finish()
+            // Belum ada pemanggilan ke server, jadi guru tidak menerima apa pun
+            Toast.makeText(this, R.string.panduan_terapkan_belum_tersedia, Toast.LENGTH_LONG).show()
         }
     }
 }

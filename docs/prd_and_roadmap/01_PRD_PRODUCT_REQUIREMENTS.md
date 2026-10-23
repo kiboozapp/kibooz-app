@@ -55,14 +55,15 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-1.1:** Sistem menyajikan slide onboarding bersama maskot Kibby.
 - **FR-1.2:** Pengguna memilih peran pada halaman Role Selection (Wali Murid atau Guru). Pilihan ini mengatur rute dashboard dan navigasi.
 - **FR-1.3:** Login memakai email dan kata sandi dengan validasi input langsung.
-- **FR-1.4:** Sistem menyimpan token JWT terenkripsi di DataStore. Pengguna tidak perlu login berulang kali.
+- **FR-1.4:** Sistem menyimpan token JWT di DataStore, dengan nilai token dienkripsi lebih dulu memakai kunci Android Keystore karena DataStore sendiri tidak terenkripsi. File sesi dikeluarkan dari backup. Token penyegar hanya berlaku sekali, jadi pembaruannya harus diserialkan dan disimpan sebelum permintaan diulang. Pengguna tidak perlu login berulang kali.
 - **FR-1.5:** Tombol keluar menghapus sesi dan membuka kembali layar pemilihan peran.
 
 ### FR-2: Portal dan Dashboard Guru
 - **FR-2.1:** Menampilkan ringkasan metrik kelas: jumlah total siswa, persentase kehadiran, dan tren mood kelas.
 - **FR-2.2:** Menyediakan jalan pintas ke Ruang Kelas, Input Mood Manual, dan Kamera Scan AI.
-- **FR-2.3:** Mengelola daftar kelas (tambah kelas, mata pelajaran, dan daftar siswa).
+- **FR-2.3:** Mengelola daftar kelas (tambah kelas dan daftar siswa), menutup atau membuka kelas untuk anak baru, dan mengeluarkan anak dari kelas.
 - **FR-2.4:** Menyediakan akses modul video pembelajaran dan forum diskusi pendidik.
+- **FR-2.5 Pindah Kelas dan Arsip:** Guru kelas tujuan menerima atau menolak permintaan pindah dan membaca riwayat anak di kelas yang ia tinggalkan setelah permintaan diterima. Pemilik kelas dapat mengarsipkan kelas, dan guru mana pun di kelas itu dapat memulihkannya dengan kode gabung yang baru.
 
 ### FR-3: Visualisasi Analitik Mood
 - **FR-3.1 Donut Mood Chart:** Menampilkan proporsi empat emosi anak (Senang, Sedih, Marah, Bingung) dalam diagram donat.
@@ -71,8 +72,9 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 - **FR-3.4 Interaktivitas Grafik:** Sentuhan pada segmen grafik menampilkan angka detail dan nama kategori emosi.
 
 ### FR-4: Video Pembelajaran dan Forum Diskusi
-- **FR-4.1:** Menampilkan video edukasi anak dengan pemutar media terintegrasi (*Media3 ExoPlayer*).
-- **FR-4.2:** Forum diskusi kelas memfasilitasi pertukaran pesan guru dan wali seputar tumbuh kembang siswa.
+- **FR-4.1:** Menampilkan video edukasi anak dengan pemutar media terintegrasi (*Media3 ExoPlayer*). Video berupa alamat https, baik tautan ke tempat lain maupun berkas yang diunggah guru.
+- **FR-4.2:** Forum diskusi kelas memfasilitasi pertukaran pesan guru dan wali seputar tumbuh kembang siswa, dalam bentuk utas dan balasan. Postingan yang pernah diubah penulisnya diberi label diedit.
+- **FR-4.3:** Guru kelas dapat mengubah dan menghapus video pembelajaran. Pembuat sebuah utas atau balasan dapat mengubahnya, dan pembuatnya atau guru kelas dapat menghapusnya.
 
 ### FR-5: Portal dan Dashboard Wali Murid
 - **FR-5.1:** Menampilkan status mood anak hari ini lengkap dengan catatan guru pendamping.
@@ -83,26 +85,39 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
   3. Ajak berbicara santai dengan kalimat pendek.
   4. Berikan sentuhan menenangkan dan pelukan hangat.
 - **FR-5.4:** Tombol aksi konfirmasi "Terapkan Panduan & Laporkan ke Guru" memberitahu guru bahwa langkah penanganan sudah berjalan di rumah.
+- **FR-5.5 Pindah Kelas:** Wali meminta anaknya pindah dengan kode kelas tujuan, menarik permintaan yang belum diputuskan dan melihat kelas yang pernah dimasuki anaknya. Di kelas baru anak mulai dari nol.
 
 ### FR-6: Ekosistem Gamifikasi Pilah Sampah
-- **FR-6.1:** Pencatatan aktivitas pilah sampah kategori Organik dan Anorganik.
+- **FR-6.1:** Pencatatan aktivitas pilah sampah kategori Organik dan Anorganik, serta B3 (bahan berbahaya dan beracun, seperti baterai bekas) yang dicatat tanpa poin.
 - **FR-6.2:** Aturan perhitungan poin:
   - Sampah Organik: 10 poin per aksi terverifikasi.
   - Sampah Anorganik: 15 poin per aksi terverifikasi.
+  - Sampah B3: tidak diberi poin dan anak diarahkan ke kotak khusus (nilai bawaan 0 poin yang dapat diatur).
 - **FR-6.3 Leaderboard Podium:** Menampilkan 3 besar siswa terbaik pada panggung podium dengan lencana juara.
 - **FR-6.4 Daftar Peringkat Lanjutan:** Menampilkan urutan ranking kelas dan skor masing-masing anak.
 
 ### FR-7: Profil Pengguna dan Data Siswa
-- **FR-7.1 Profil Wali:** Menampilkan identitas wali murid, nama anak asuh, tautan ubah sandi, dan syarat ketentuan.
+- **FR-7.1 Profil Wali:** Menampilkan identitas wali murid, nama anak asuh, tautan ubah sandi (layar ganti kata sandi yang memanggil `PUT /users/me/password` dan mengakhiri semua sesi), dan syarat ketentuan.
 - **FR-7.2 Profil Siswa:** Menampilkan NISN resmi (Nomor Induk Siswa Nasional), nama lengkap, kelas, kontak darurat, dan alamat rumah.
 - **FR-7.3 Profil Guru:** Menampilkan NIP (Nomor Induk Pegawai), email dinas, nomor telepon, alamat, dan grafik mood kelas bimbingan.
-- **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil.
+- **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil. Aplikasi memperkecil foto sebelum mengunggahnya.
+- **FR-7.5:** Wali dapat mengubah nama, nomor telepon, nomor WhatsApp dan alamatnya, mengubah nama atau NISN seorang anak, dan menghapus anak, termasuk anak terakhir. Wali yang tidak punya anak lagi diarahkan ke layar tambah anak. Guru dapat mengubah nama, nomor telepon dan alamatnya, sedangkan NIP dan email tetap.
 
 ### FR-8: Sistem Kamera AI (Computer Vision)
 - **FR-8.1 Viewfinder Kamera:** Antarmuka layar penuh CameraX dengan rasio bingkai stabil 30fps.
 - **FR-8.2 AI Scanner Mood:** Memproses bingkai wajah anak di perangkat. Model mengenali ekspresi dan memetakan ke salah satu dari 4 emosi.
-- **FR-8.3 AI Scanner Sampah:** Mendeteksi objek sampah di depan kamera, menentukan kategori (Organik vs Anorganik), dan menampilkan kartu poin.
+- **FR-8.3 AI Scanner Sampah:** Mendeteksi objek sampah di depan kamera, menentukan kategori (Organik, Anorganik atau B3), dan menampilkan kartu poin.
 - **FR-8.4 Review Hasil Scan Mood (Batch Validation):** Menyediakan layar peninjauan hasil scan multi-wajah bagi guru untuk memeriksa akurasi, mengoreksi emosi, menambah catatan, dan menyimpan seluruh data sekaligus.
+
+### FR-9: Percakapan Guru dan Wali
+- **FR-9.1 Daftar Kontak:** Guru melihat wali dari anak-anak di kelas yang ia ajar, dan wali melihat guru dari kelas anak-anaknya. Seseorang muncul begitu anaknya bergabung ke kelas, sehingga tidak ada yang perlu dimintai izin lebih dulu. Wali tidak melihat wali lain dan guru tidak melihat guru lain.
+- **FR-9.2 Percakapan Pribadi:** Setiap pasangan guru dan wali punya satu percakapan pribadi berisi pesan teks (sampai 4000 karakter), berapa pun jumlah anak wali itu. Daftar percakapan menampilkan pesan terakhir dan jumlah yang belum dibaca. Pengirim dapat menghapus pesannya sendiri dan penanda tetap tampil. Tanda baca menunjukkan sampai mana lawan bicara sudah membaca.
+- **FR-9.3 Riwayat Tetap Terbaca:** Ketika dua orang tidak lagi berbagi kelas (kelas yang diarsipkan masih dihitung), percakapan lama tetap dapat dibaca tetapi pengiriman ditutup dengan keterangan. Pesan dari akun yang sudah dihapus tetap ada dan pengirimnya tampil sebagai `Deleted account`.
+- **FR-9.4 Pesan Baru:** Aplikasi membuka satu soket (`GET /chat/ws`) yang mendorong pesan baru, pesan yang dihapus, tanda baca dan indikator mengetik. Soket hanyalah jalan pintas, sehingga ketika terputus atau aplikasi kembali dari latar belakang, aplikasi mengambil pesan yang terlewat dengan kursor `after`.
+- **FR-9.5 Ruang Kelas:** Setiap kelas punya satu ruang bersama untuk guru kelas itu dan wali yang punya anak aktif di dalamnya. Anggota baru hanya melihat pesan yang dikirim setelah ia bergabung, wali kehilangan ruang ketika anak terakhirnya keluar dari kelas tetapi percakapan pribadinya tetap ada, dan ruang kelas yang diarsipkan tetap terbaca tanpa pengiriman. Pengirim tampil dengan nama, peran dan fotonya.
+- **FR-9.6 Foto dan Video:** Sebuah pesan membawa paling banyak satu foto (sampai 4 MiB, metadatanya dibuang server) atau satu video (sampai 25 MiB). Berkas disimpan di bucket privat dan dibaca lewat alamat bertanda tangan yang cepat kedaluwarsa, sehingga hanya anggota percakapan yang dapat melihatnya.
+- **FR-9.7 Mengetik:** Indikator mengetik hanya ada pada percakapan pribadi, tidak pada ruang kelas.
+- **FR-9.8 Notifikasi Dorong:** Aplikasi yang tertutup dibangunkan oleh dorongan data tanpa teks, berisi hanya id percakapan dan id pesan. Aplikasi mengambil pesannya dari API dan menampilkan notifikasi di perangkat, dengan pratinjau yang dapat dimatikan dan tampilan layar kunci yang privat. Teks pesan tidak pernah melewati Google.
 
 ---
 
@@ -112,7 +127,7 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 | :--- | :--- | :--- |
 | **NFR-1** | **Performa** | Cold start aplikasi di bawah 2.0 detik pada RAM 4GB. Render UI dan chart stabil pada 60fps tanpa lagging. |
 | **NFR-2** | **Keamanan & Privasi** | Patuh aturan privasi anak (COPPA). Data foto wajah mentah tidak dikirim ke server. Jaringan wajib HTTPS dengan TLS 1.3. |
-| **NFR-3** | **Keandalan Offline** | Data profil, ringkasan kelas, dan panduan emosi tersimpan di cache Room DB. Aksi offline masuk ke antrean sinkronisasi. |
+| **NFR-3** | **Keandalan Offline** | Data profil, ringkasan kelas, dan panduan emosi tersimpan di cache Room DB. Aksi offline masuk ke antrean sinkronisasi. Setiap aksi membawa satu `Idempotency-Key`, sehingga percobaan ulang tidak mengerjakannya dua kali, dan catatan mood membawa waktu terlihat lewat `recordedAt`. |
 | **NFR-4** | **Kompatibilitas** | Mendukung Android versi 7.0 (API Level 24) hingga Android 15 (API Level 35). Mendukung rasio layar modern lewat `InsetsUtil`. |
 | **NFR-5** | **Aksesibilitas** | Teks memenuhi rasio kontras minimal 4.5:1 (WCAG AA). Tombol dan ikon memiliki atribut `contentDescription` untuk TalkBack. |
 | **NFR-6** | **Bahasa** | Antarmuka memakai Bahasa Indonesia santun, ramah anak, dan bebas istilah asing yang membingungkan. |
@@ -123,5 +138,9 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 
 1. **BR-01 Batas Klaim Poin Harian:** Siswa dapat mengklaim poin pilah sampah maksimal 5 kali per hari. Batasan ini mencegah eksploitasi poin buatan.
 2. **BR-02 Hak Akses Data Emosi:** Guru kelas dan wali murid berhak melihat data emosi siswa terkait. Guru atau wali lain tidak memiliki izin akses riwayat ini.
-3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru.
+3. **BR-03 Pembaruan Papan Peringkat:** Papan peringkat langsung diperbarui setiap ada poin masuk. Sistem mereset peringkat pada awal semester baru, yaitu pada hari pertama bulan awal semester (Januari dan Juli secara bawaan). Yang kembali ke nol adalah poin semester (`seasonPoints`) yang dipakai papan peringkat, sedangkan poin seluruh semester (`totalPoints`) tetap pada anak. Peringkat akhir semester yang berakhir disimpan di server.
 4. **BR-04 Konfirmasi Deteksi AI di Bawah Ambang Batas:** Skor keyakinan (*confidence score*) AI minimal 75%. Jika hasil di bawah 75%, sistem menampilkan dialog konfirmasi manual kepada pengguna. Langkah ini mencegah salah catat data.
+5. **BR-05 Batas Pemakaian:** Sebuah kelas berisi paling banyak 60 anak dan seorang guru mengajar paling banyak 20 kelas yang belum diarsipkan. Seorang anak punya paling banyak 20 catatan mood per hari, catatan mood dan catatan wali paling banyak 500 karakter, dan isi JSON paling banyak 64 KB kecuali pada unggahan foto.
+6. **BR-06 Akses Percakapan:** Hanya satu guru dan satu wali yang berbagi kelas (kelas yang diarsipkan masih dihitung) dapat memulai percakapan pribadi, dan hanya dua orang di dalam percakapan yang dapat membaca atau menulis di sana. Wali tidak berkirim pesan pribadi dengan wali lain, dan guru yang bukan salah satu dari dua orang itu tidak membaca percakapan itu. Ruang kelas hanya dibaca oleh guru kelas itu dan wali yang punya anak aktif di sana, dan masing-masing hanya melihat pesan sejak ia bergabung.
+7. **BR-07 Perpindahan Kelas:** Seorang anak punya satu kelas aktif dan paling banyak satu permintaan pindah yang menunggu. Hanya guru kelas tujuan yang memutuskan. Setelah diterima, anak mulai dari nol di kelas baru (poin, poin semester dan pindaian), angka di kelas lama disimpan sebagai kelas sebelumnya, dan papan peringkat kedua kelas dihitung ulang. Permintaan yang menunggu ditolak sendiri ketika kelas tujuan menutup pendaftaran atau diarsipkan.
+8. **BR-08 Kelas Diarsipkan:** Hanya pemilik kelas yang mengarsipkannya, berapa pun jumlah anaknya, dan guru mana pun di kelas itu dapat memulihkannya dengan kode gabung baru. Kelas yang diarsipkan hanya dapat dibaca, kode gabungnya tidak berlaku, ruang kelasnya tertutup untuk pengiriman, dan percakapan pribadi guru dan wali tetap terbuka. Memulihkan kelas dihitung dalam batas 20 kelas setiap guru kelas.

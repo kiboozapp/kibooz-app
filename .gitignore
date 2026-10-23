@@ -70,3 +70,11 @@ Desktop.ini
 /*.jpg
 /*.jpeg
 /*.mp4
+
+# Signing and secrets (the release signing in DO-02 will create these)
+keystore.properties
+secrets.properties
+google-services.json
+*.p12
+*.pem
+.env

@@ -9,6 +9,8 @@
 
 Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubungkan guru dengan wali murid. Fitur intinya mencakup pemantauan kondisi emosional anak dan pembiasaan pilah sampah berhadiah poin reward.
 
+> **Status saat ini:** sebagian besar layar masih purwarupa dengan data contoh dan belum terhubung ke server. Lapisan jaringan (`data/remote`) sudah ada, tetapi login, penyimpanan sesi, dan pemanggilan API belum dipasang. Pemindai mood hanya aktif pada build debug dan memakai pengklasifikasi contoh, sedangkan pemindai sampah masih berupa tampilan contoh. Kontrak server ada di repositori [kibooz-backend](https://github.com/SyafaHadyan/kibooz-backend) (`openapi.yaml` dan `docs/client-guide.md`), dan rencana kerjanya ada di `docs/prd_and_roadmap`.
+
 ---
 
 ## Daftar Isi
@@ -50,7 +52,7 @@ Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubun
   - Kotak dialog tambah kelas baru.
   - Pencarian dan filter kategori kelas.
 - **Detail dan Peserta Kelas:**
-  - Rincian mata pelajaran (Seni, Bahasa, Sosial, Sains).
+  - Rincian mata pelajaran contoh (Seni, Bahasa, Sosial, Logika, Motorik, Agama).
   - Daftar siswa lengkap dengan perolehan poin dan status emosional.
 - **Statistik Mood Siswa:**
   - Grafik kustom dengan Android Canvas:
@@ -94,7 +96,7 @@ Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubun
 
 | Komponen | Spesifikasi / Pustaka | Keterangan |
 | :--- | :--- | :--- |
-| **Bahasa Pemrograman** | Kotlin 1.9+ | Bahasa utama proyek |
+| **Bahasa Pemrograman** | Kotlin 2.0 | Bahasa utama proyek |
 | **Arsitektur UI** | MVC dengan ViewBinding | Pengikatan tampilan tanpa `findViewById` |
 | **Komponen UI** | Material Design 3 (M3) | MaterialCardView, ShapeableImageView |
 | **Grafik Kustom** | Custom View 2D Canvas | DonutMoodChart, WeeklyLineChart, MonthlyBarChart |
@@ -166,7 +168,7 @@ KiboozApp/
 ### Langkah Setup
 1. Clone repositori ini:
    ```bash
-   git clone https://github.com/NTHB/kibooz-app.git
+   git clone https://github.com/ValentinusMarvel/kibooz-app.git
    cd kibooz-app
    ```
 2. Buka Android Studio.
@@ -174,6 +176,8 @@ KiboozApp/
 4. Tunggu sinkronisasi Gradle selesai. Android Studio membuat file `local.properties` secara otomatis.
 5. Sambungkan perangkat Android atau aktifkan emulator.
 6. Tekan tombol **Run** (`Shift + F10`).
+
+Secara bawaan aplikasi memakai server `https://kibooz-api.syafahadyan.com/api/v1/`. Untuk memakai server lain, beri properti Gradle `-Pkibooz.apiBaseUrl=...`. Build selain debug wajib memakai alamat `https://`, dan build debug hanya boleh memakai `http://` ke `10.0.2.2` (alamat mesin pengembang dari emulator). Pengujian unit dijalankan dengan `./gradlew testDebugUnitTest`.
 
 ---
 

@@ -5,7 +5,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.nthb.kibooz.databinding.ActivityProfilSiswaBinding
-import com.nthb.kibooz.ui.auth.RoleSelectionActivity
+import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.util.InsetsUtil
 
@@ -38,11 +38,7 @@ class ProfilSiswaActivity : AppCompatActivity() {
                 .setTitle("Keluar Akun Wali")
                 .setMessage("Apakah Anda yakin ingin keluar dari akun Kibooz Orang Tua?")
                 .setPositiveButton("Ya, Keluar") { _, _ ->
-                    val intent = Intent(this, RoleSelectionActivity::class.java).apply {
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                    }
-                    startActivity(intent)
-                    finish()
+                    sessionManager.signOut()
                 }
                 .setNegativeButton("Batal", null)
                 .show()
@@ -50,7 +46,10 @@ class ProfilSiswaActivity : AppCompatActivity() {
 
         // Bottom Navigation
         binding.tabHome.setOnClickListener {
-            val intent = Intent(this, DashboardWaliActivity::class.java)
+            // Kembali ke dasbor yang sudah ada, bukan menumpuk dasbor baru
+            val intent = Intent(this, DashboardWaliActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            }
             startActivity(intent)
             finish()
         }

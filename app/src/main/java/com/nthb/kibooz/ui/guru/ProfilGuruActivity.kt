@@ -6,7 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.nthb.kibooz.databinding.ActivityProfilGuruBinding
-import com.nthb.kibooz.ui.auth.RoleSelectionActivity
+import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.util.InsetsUtil
 
@@ -40,7 +40,7 @@ class ProfilGuruActivity : AppCompatActivity() {
         binding.menuUbahSandi.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Ubah Kata Sandi")
-                .setMessage("Tautan penggantian kata sandi telah dikirimkan ke email terdaftar Anda (siti.rahayu@kiboozguru.id).")
+                .setMessage("Pengubahan kata sandi belum tersedia di versi ini.")
                 .setPositiveButton("Mengerti", null)
                 .show()
         }
@@ -49,7 +49,7 @@ class ProfilGuruActivity : AppCompatActivity() {
         binding.menuSyaratKetentuan.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Syarat dan Ketentuan")
-                .setMessage("Ketentuan Layanan Aplikasi Kibooz:\n1. Penggunaan akun guru khusus untuk kepentingan bimbingan belajar dan evaluasi emosi anak.\n2. Seluruh data siswa dilindungi oleh kebijakan privasi terenkripsi.")
+                .setMessage("Ketentuan Layanan Aplikasi Kibooz:\n1. Penggunaan akun guru khusus untuk kepentingan bimbingan belajar dan evaluasi emosi anak.\n2. Data siswa hanya digunakan untuk keperluan pendampingan anak di sekolah.")
                 .setPositiveButton("Tutup", null)
                 .show()
         }
@@ -58,7 +58,7 @@ class ProfilGuruActivity : AppCompatActivity() {
         binding.menuKebijakanPrivasi.setOnClickListener {
             AlertDialog.Builder(this)
                 .setTitle("Kebijakan Privasi")
-                .setMessage("Kibooz memprioritaskan privasi data anak dan pendidik. Data mood dan foto wajah diproses secara lokal dengan standar keamanan tinggi.")
+                .setMessage("Kibooz memprioritaskan privasi data anak dan pendidik. Wajah siswa dianalisis hanya di ponsel dan tidak disimpan atau dikirim. Yang dikirim hanya label emosi dan tingkat keyakinannya.")
                 .setPositiveButton("Tutup", null)
                 .show()
         }
@@ -74,11 +74,7 @@ class ProfilGuruActivity : AppCompatActivity() {
                 .setTitle("Keluar Akun Guru")
                 .setMessage("Apakah Anda yakin ingin keluar dari akun Kibooz Guru?")
                 .setPositiveButton("Ya, Keluar") { _, _ ->
-                val intent = Intent(this, RoleSelectionActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                }
-                startActivity(intent)
-                finish()
+                    sessionManager.signOut()
             }
                 .setNegativeButton("Batal", null)
                 .show()
@@ -86,7 +82,12 @@ class ProfilGuruActivity : AppCompatActivity() {
 
         // Bottom Navigation Tabs
         binding.tabHome.setOnClickListener {
-            startActivity(Intent(this, DashboardGuruActivity::class.java))
+            // Kembali ke dasbor yang sudah ada, bukan menumpuk dasbor baru
+            startActivity(
+                Intent(this, DashboardGuruActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                }
+            )
             finish()
         }
 

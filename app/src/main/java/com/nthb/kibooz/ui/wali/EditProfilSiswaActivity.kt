@@ -3,6 +3,7 @@ package com.nthb.kibooz.ui.wali
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityEditProfilSiswaBinding
 import com.nthb.kibooz.util.InsetsUtil
 
@@ -39,8 +40,8 @@ class EditProfilSiswaActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            Toast.makeText(this, "Data profil siswa & wali berhasil diperbarui!", Toast.LENGTH_SHORT).show()
-            finish()
+            // Belum ada pemanggilan ke server, jadi perubahan tidak boleh dinyatakan tersimpan
+            Toast.makeText(this, R.string.profil_ubah_belum_tersedia, Toast.LENGTH_SHORT).show()
         }
     }
 }
