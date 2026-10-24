@@ -3,13 +3,17 @@ package com.nthb.kibooz.ui.camera
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.EditText
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
+import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityReviewScanMoodBinding
 import com.nthb.kibooz.model.ScannedStudentMood
 import com.nthb.kibooz.ui.guru.DashboardGuruActivity
@@ -17,13 +21,18 @@ import com.nthb.kibooz.util.InsetsUtil
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.UUID
+import kotlinx.coroutines.launch
 
 class ReviewScanMoodActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityReviewScanMoodBinding
     private val studentList = mutableListOf<ScannedStudentMood>()
     private lateinit var adapter: ReviewScanMoodAdapter
+
+    private val viewModel: ReviewMoodViewModel by viewModels { ReviewMoodViewModel.Factory(appContainer.moodRepository) }
+    private val classId: String? get() = intent.getStringExtra(EXTRA_CLASS_ID)
+
+    private var saving = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,53 +51,21 @@ class ReviewScanMoodActivity : AppCompatActivity() {
         setupRecyclerView()
         setupListeners()
         updateSummaryStats()
+        observeSaveState()
     }
 
     private fun setupDateHeader() {
         val dateFormat = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID"))
-        val formattedDate = dateFormat.format(Date())
-        binding.tvSubHeaderInfo.text = "Kelas A • $formattedDate"
+        binding.tvSubHeaderInfo.text = dateFormat.format(Date())
     }
 
     private fun loadScannedData() {
-        // Ambil data dari Intent jika tersedia, atau gunakan data deteksi kamera multi-wajah
+        // Hanya hasil dari kamera yang ditampilkan. Tanpa hasil, layar menampilkan keadaan kosong
         @Suppress("DEPRECATION")
         val passedList = intent.getSerializableExtra(EXTRA_STUDENTS) as? ArrayList<ScannedStudentMood>
 
         if (!passedList.isNullOrEmpty()) {
             studentList.addAll(passedList)
-        } else {
-            // Simulasi hasil pemindaian multi-wajah CameraX (Amelia, Kenzo, Farhan)
-            studentList.add(
-                ScannedStudentMood(
-                    id = UUID.randomUUID().toString(),
-                    studentName = "Amelia Siti Zahra",
-                    avatarRes = R.drawable.img_avatar_siswa,
-                    currentMood = "SENANG",
-                    confidenceScore = 0.94f,
-                    teacherNotes = "Datang tepat waktu dan ceria"
-                )
-            )
-            studentList.add(
-                ScannedStudentMood(
-                    id = UUID.randomUUID().toString(),
-                    studentName = "Kenzo Putra",
-                    avatarRes = R.drawable.img_avatar_siswa,
-                    currentMood = "KALEM",
-                    confidenceScore = 0.89f,
-                    teacherNotes = ""
-                )
-            )
-            studentList.add(
-                ScannedStudentMood(
-                    id = UUID.randomUUID().toString(),
-                    studentName = "Farhan Al-Fatih",
-                    avatarRes = R.drawable.img_avatar_siswa,
-                    currentMood = "BINGUNG",
-                    confidenceScore = 0.71f, // Ambang batas <75% memicu badge 'Perlu Dicek' (BR-04)
-                    teacherNotes = "Tampak ragu saat masuk gerbang sekolah"
-                )
-            )
         }
     }
 
@@ -96,6 +73,9 @@ class ReviewScanMoodActivity : AppCompatActivity() {
         adapter = ReviewScanMoodAdapter(
             students = studentList,
             onMoodChanged = { _, _ ->
+                updateSummaryStats()
+            },
+            onConfirmed = { _ ->
                 updateSummaryStats()
             },
             onDeleteClicked = { student, position ->
@@ -117,13 +97,10 @@ class ReviewScanMoodActivity : AppCompatActivity() {
             finish()
         }
 
-        binding.btnTambahSiswaManual.setOnClickListener {
-            showAddStudentDialog()
-        }
-
-        binding.ivAddStudent.setOnClickListener {
-            showAddStudentDialog()
-        }
+        // Siswa yang terlewat harus dipilih dari daftar kelas yang sebenarnya (id dari server), bukan dari
+        // nama yang diketik. Pemilih itu menyusul bersama pengambilan daftar siswa di layar kamera
+        binding.btnTambahSiswaManual.visibility = View.GONE
+        binding.ivAddStudent.visibility = View.GONE
 
         binding.btnConfirmAll.setOnClickListener {
             confirmAndSaveAll()
@@ -132,8 +109,13 @@ class ReviewScanMoodActivity : AppCompatActivity() {
 
     private fun updateSummaryStats() {
         val total = studentList.size
+        val unconfirmed = studentList.count { it.needsConfirmation() }
         binding.tvTotalDetected.text = "$total Siswa Siap Disimpan"
-        binding.btnConfirmAll.text = "Simpan Data ($total Siswa)"
+        binding.btnConfirmAll.text = when {
+            saving -> getString(R.string.review_menyimpan)
+            unconfirmed > 0 -> getString(R.string.review_konfirmasi_dulu, unconfirmed)
+            else -> getString(R.string.review_simpan, total)
+        }
 
         if (total == 0) {
             binding.rvScannedStudents.visibility = View.GONE
@@ -148,7 +130,8 @@ class ReviewScanMoodActivity : AppCompatActivity() {
 
         binding.rvScannedStudents.visibility = View.VISIBLE
         binding.llEmptyState.visibility = View.GONE
-        binding.btnConfirmAll.isEnabled = true
+        // BR-04: hasil di bawah 75% harus dikonfirmasi atau diganti dulu
+        binding.btnConfirmAll.isEnabled = !saving && unconfirmed == 0
 
         val happyCount = studentList.count { it.currentMood == "SENANG" }
         val kalemCount = studentList.count { it.currentMood == "KALEM" }
@@ -175,63 +158,57 @@ class ReviewScanMoodActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showAddStudentDialog() {
-        val input = EditText(this).apply {
-            hint = "Nama siswa (contoh: Zhafira Bilqis)"
-            setPadding(40, 30, 40, 30)
-        }
-
-        MaterialAlertDialogBuilder(this)
-            .setTitle("Tambah Siswa Manual")
-            .setMessage("Masukkan nama siswa yang terlewat dari pemindaian kamera:")
-            .setView(input)
-            .setPositiveButton("Tambahkan") { _, _ ->
-                val name = input.text.toString().trim()
-                if (name.isNotEmpty()) {
-                    val newStudent = ScannedStudentMood(
-                        id = UUID.randomUUID().toString(),
-                        studentName = name,
-                        avatarRes = R.drawable.img_avatar_siswa,
-                        currentMood = "SENANG",
-                        confidenceScore = 1.0f,
-                        teacherNotes = "Ditambahkan manual oleh guru"
-                    )
-                    studentList.add(newStudent)
-                    adapter.notifyItemInserted(studentList.size - 1)
-                    updateSummaryStats()
-                    binding.rvScannedStudents.smoothScrollToPosition(studentList.size - 1)
-                    Toast.makeText(this, "$name berhasil ditambahkan", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(this, "Nama siswa tidak boleh kosong", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .setNegativeButton("Batal", null)
-            .show()
-    }
-
     private fun confirmAndSaveAll() {
         MaterialAlertDialogBuilder(this)
             .setTitle("Simpan Data Presensi Mood?")
             .setMessage("Seluruh data mood ${studentList.size} siswa akan disimpan ke statistik kelas dan dibagikan ke wali murid.")
-            .setPositiveButton("Ya, Simpan") { _, _ ->
-                Toast.makeText(
-                    this,
-                    "Berhasil menyimpan data mood ${studentList.size} siswa ke statistik kelas!",
-                    Toast.LENGTH_LONG
-                ).show()
-
-                // Navigasi tuntas kembali ke Dashboard Guru
-                val intent = Intent(this, DashboardGuruActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                }
-                startActivity(intent)
-                finish()
-            }
+            .setPositiveButton("Ya, Simpan") { _, _ -> viewModel.save(classId, studentList) }
             .setNegativeButton("Periksa Lagi", null)
             .show()
     }
 
+    private fun observeSaveState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    saving = state.saving
+                    updateSummaryStats()
+
+                    state.savedCount?.let { count -> onSaved(count) }
+                    state.error?.let { error -> showError(error, state.limitReachedFor) }
+                }
+            }
+        }
+    }
+
+    private fun onSaved(count: Int) {
+        Toast.makeText(this, getString(R.string.review_berhasil, count), Toast.LENGTH_LONG).show()
+
+        // Navigasi tuntas kembali ke Dashboard Guru
+        val intent = Intent(this, DashboardGuruActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        }
+        startActivity(intent)
+        finish()
+    }
+
+    private fun showError(errorRes: Int, limitReachedFor: List<String>) {
+        val names = studentList.filter { it.id in limitReachedFor }.joinToString { it.studentName }
+        val message = if (names.isNotEmpty()) {
+            getString(R.string.review_batas_siswa, names)
+        } else {
+            getString(errorRes)
+        }
+
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_INDEFINITE)
+            .setAnchorView(binding.clBottomBar)
+            .setAction(R.string.review_coba_lagi) { viewModel.save(classId, studentList) }
+            .show()
+        viewModel.errorShown()
+    }
+
     companion object {
         const val EXTRA_STUDENTS = "EXTRA_STUDENTS"
+        const val EXTRA_CLASS_ID = "EXTRA_CLASS_ID"
     }
 }

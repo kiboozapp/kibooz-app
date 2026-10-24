@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import com.nthb.kibooz.data.remote.MoodSource
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ml.EmotionResult
 import org.junit.Assert.assertEquals

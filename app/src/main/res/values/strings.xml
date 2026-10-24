@@ -49,6 +49,17 @@
     <string name="mood_siswa_sudah_dipilih">Siswa ini sudah dipilih untuk wajah lain</string>
     <string name="mood_belum_tersedia">Pemindaian mood belum tersedia di versi ini</string>
     <string name="mood_simpan_belum_tersedia">Penyimpanan hasil mood belum tersedia. Hasil pemindaian belum dikirim ke server.</string>
+    <string name="review_perlu_dicek">Perlu Dicek • ketuk untuk konfirmasi</string>
+    <string name="review_dipilih_guru">Dipilih guru</string>
+    <string name="review_konfirmasi_dulu">Konfirmasi %1$d siswa dulu</string>
+    <string name="review_simpan">Simpan Data (%1$d Siswa)</string>
+    <string name="review_menyimpan">Menyimpan…</string>
+    <string name="review_berhasil">Mood %1$d siswa tersimpan</string>
+    <string name="review_coba_lagi">Coba lagi</string>
+    <string name="review_kelas_belum_dipilih">Kelas untuk pemindaian ini belum diketahui, hasil belum bisa disimpan</string>
+    <string name="review_kosong">Belum ada siswa yang bisa disimpan</string>
+    <string name="review_perlu_konfirmasi">Konfirmasi dulu hasil yang ditandai Perlu Dicek</string>
+    <string name="review_batas_siswa">Batas 20 catatan mood hari ini tercapai untuk: %1$s. Hapus mereka dari daftar lalu simpan lagi.</string>
     <string name="sampah_klaim_belum_tersedia">Pemindaian sampah dan klaim poin belum tersedia di versi ini</string>
     <string name="profil_ubah_belum_tersedia">Pengubahan profil belum tersedia di versi ini</string>
     <string name="panduan_terapkan_belum_tersedia">Pencatatan panduan belum tersedia di versi ini</string>

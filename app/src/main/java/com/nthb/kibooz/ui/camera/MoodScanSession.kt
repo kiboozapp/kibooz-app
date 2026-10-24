@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import com.nthb.kibooz.data.remote.MoodSource
 import com.nthb.kibooz.data.repository.MoodRepository
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ml.EmotionResult
@@ -26,9 +27,6 @@ data class FaceBox(val left: Int, val top: Int, val right: Int, val bottom: Int)
 
 /** Satu wajah di frame terakhir. [emotion] kosong selama label belum diterima, [box] kosong jika tidak diketahui. */
 data class FaceReading(val trackingId: Int, val emotion: EmotionResult?, val box: FaceBox? = null)
-
-/** Nilai `source` di API. */
-enum class MoodSource { AI_CAMERA, MANUAL_INPUT }
 
 /** BR-04, hasil AI di bawah 75% harus dikonfirmasi guru sebelum disimpan. */
 const val MIN_CONFIDENCE = 0.75f
