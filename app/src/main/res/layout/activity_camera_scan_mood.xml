@@ -151,7 +151,7 @@
             android:fontFamily="@font/baloo2"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="Simpan Hasil Mood Siswa"
+            android:text="Tinjau Hasil Scan (2 Siswa)"
             android:textAllCaps="false"
             android:textColor="@color/kibooz_white"
             android:textSize="15sp"

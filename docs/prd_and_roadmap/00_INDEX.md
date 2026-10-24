@@ -23,7 +23,7 @@ Susunan dokumen bersifat modular. Anggota tim (Backend, Frontend, AI/ML, QA, Dev
 
 Fondasi antarmuka dan komponen dasar sudah siap di repositori utama:
 
-1. **Struktur Layar Utuh (19 Activity):**
+1. **Struktur Layar Utuh (20 Activity):**
    - Layar onboarding carousel interaktif dengan maskot beruang Kibby.
    - Portal otentikasi multi-peran (Wali Murid dan Guru).
    - Dashboard Wali Murid dan Dashboard Guru terpisah.
@@ -31,6 +31,7 @@ Fondasi antarmuka dan komponen dasar sudah siap di repositori utama:
    - Visualisasi analitik kustom berbasis Android 2D Canvas (DonutMoodChart, WeeklyLineChart, MonthlyBarChart).
    - Sistem leaderboard dengan podium 3D, lencana poin, dan peringkat siswa.
    - Scanner kamera ganda (Mood AI dan Pilah Sampah).
+   - Layar Review Hasil Scan Mood Siswa untuk validasi batch sebelum disimpan.
 2. **Sistem Desain Terstandarisasi:**
    - Palet warna konsisten (`#5D40B3`, `#FD9C27`, `#724AE2`, `#EFEBFF`).
    - Penanganan bilah status dan navigasi modern memakai helper [InsetsUtil.kt](../../app/src/main/java/com/nthb/kibooz/util/InsetsUtil.kt).

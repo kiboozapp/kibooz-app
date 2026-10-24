@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Size
 import android.widget.Toast
@@ -23,6 +24,7 @@ import com.nthb.kibooz.ml.FrameSize
 import com.nthb.kibooz.ml.MoodAnalysisAnalyzer
 import com.nthb.kibooz.ml.StubEmotionClassifier
 import com.nthb.kibooz.ml.TrackedFace
+import com.nthb.kibooz.model.ScannedStudentMood
 import com.nthb.kibooz.ui.common.OverlayFace
 import com.nthb.kibooz.ui.common.badgeText
 import com.nthb.kibooz.util.InsetsUtil
@@ -241,8 +243,24 @@ class CameraScanMoodActivity : AppCompatActivity() {
         binding.faceOverlay.onFaceTapped = { trackingId -> showStudentPicker(trackingId) }
 
         binding.btnCaptureMood.setOnClickListener {
-            // Hasil belum dikirim ke server, jadi layar tidak boleh menutup seolah-olah sudah tersimpan
-            Toast.makeText(this, R.string.mood_simpan_belum_tersedia, Toast.LENGTH_LONG).show()
+            val intent = Intent(this, ReviewScanMoodActivity::class.java)
+            val results = session.results()
+            if (results.isNotEmpty()) {
+                val scannedList = ArrayList(results.map { mood ->
+                    ScannedStudentMood(
+                        id = mood.student.id,
+                        studentName = mood.student.name,
+                        avatarRes = R.drawable.img_avatar_siswa,
+                        currentMood = mood.emotion.emotion.name,
+                        confidenceScore = mood.emotion.confidence,
+                        teacherNotes = "",
+                        isConfirmed = mood.confirmed
+                    )
+                })
+                intent.putExtra(ReviewScanMoodActivity.EXTRA_STUDENTS, scannedList)
+            }
+            startActivity(intent)
+            finish()
         }
     }
 

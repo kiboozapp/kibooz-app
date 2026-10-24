@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@color/kibooz_white"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="1.5dp"
+    app:strokeColor="#ECEAF5"
+    app:strokeWidth="1dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Top Header: Avatar, Name, Accuracy Badge, Delete Action -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeColor="#E2E8F0"
+                app:strokeWidth="1dp">
+
+                <ImageView
+                    android:id="@+id/ivAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="Avatar Siswa"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/img_avatar_siswa" />
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvStudentName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Amelia Siti Zahra"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- AI Accuracy Pill -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvAiDetectionBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="#FFF9C4"
+                        android:fontFamily="@font/baloo2"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="1dp"
+                        android:text="AI: Senang (94%)"
+                        android:textColor="#B78103"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvLowConfidenceWarning"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:background="#FFEBEE"
+                        android:fontFamily="@font/baloo2"
+                        android:paddingHorizontal="6dp"
+                        android:paddingVertical="1dp"
+                        android:text="Perlu Dicek"
+                        android:textColor="#C62828"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivDeleteStudent"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Hapus dari daftar scan"
+                android:padding="7dp"
+                android:src="@drawable/ic_trash_delete" />
+
+        </LinearLayout>
+
+        <!-- Divider Line -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="12dp"
+            android:background="#F1F5F9" />
+
+        <!-- Mood Correction Section -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/baloo2"
+            android:text="Pilihan Mood Terkonfirmasi:"
+            android:textColor="@color/kibooz_text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <!-- 4 Mood Selection Chips in a Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <!-- Happy -->
+            <TextView
+                android:id="@+id/btnMoodHappy"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_chip_mood_happy"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="😊 Senang"
+                android:textColor="#7A4F01"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Kalem -->
+            <TextView
+                android:id="@+id/btnMoodKalem"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_chip_mood_unselected"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="😌 Kalem"
+                android:textColor="@color/kibooz_text_dark"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Bingung -->
+            <TextView
+                android:id="@+id/btnMoodBingung"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_chip_mood_unselected"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="🤔 Ragu"
+                android:textColor="@color/kibooz_text_dark"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <!-- Marah -->
+            <TextView
+                android:id="@+id/btnMoodMarah"
+                android:layout_width="0dp"
+                android:layout_height="36dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_chip_mood_unselected"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="😠 Kesal"
+                android:textColor="@color/kibooz_text_dark"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <!-- Optional Teacher Notes Input -->
+        <EditText
+            android:id="@+id/etTeacherNotes"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_input_field"
+            android:fontFamily="@font/baloo2"
+            android:hint="Tambah catatan guru (opsional)..."
+            android:importantForAutofill="no"
+            android:inputType="textCapSentences"
+            android:maxLines="1"
+            android:paddingHorizontal="12dp"
+            android:textColor="@color/kibooz_text_dark"
+            android:textColorHint="@color/kibooz_text_muted"
+            android:textSize="12sp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
