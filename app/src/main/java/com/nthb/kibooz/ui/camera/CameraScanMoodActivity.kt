@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Size
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
@@ -16,9 +17,14 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.BuildConfig
 import com.nthb.kibooz.R
+import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityCameraScanMoodBinding
 import com.nthb.kibooz.ml.FrameSize
 import com.nthb.kibooz.ml.MoodAnalysisAnalyzer
@@ -30,6 +36,7 @@ import com.nthb.kibooz.ui.common.badgeText
 import com.nthb.kibooz.util.InsetsUtil
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import kotlinx.coroutines.launch
 
 class CameraScanMoodActivity : AppCompatActivity() {
 
@@ -38,11 +45,15 @@ class CameraScanMoodActivity : AppCompatActivity() {
 
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private val session = MoodScanSession()
-    private val studentSource: StudentSource = FakeStudentSource()
+    private val viewModel: CameraScanMoodViewModel by viewModels {
+        CameraScanMoodViewModel.Factory(appContainer.classRepository)
+    }
 
     private var camera: Camera? = null
     private var analyzer: MoodAnalysisAnalyzer? = null
     private var consentDialog: AlertDialog? = null
+    private var classDialog: AlertDialog? = null
+    private var errorBar: Snackbar? = null
     private var consentAccepted = false
     private var isFlashOn = false
 
@@ -63,7 +74,8 @@ class CameraScanMoodActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Pengklasifikasi dan daftar siswa di sini masih contoh, jadi hasilnya tidak boleh sampai ke pengguna sungguhan
+        // Pengklasifikasi emosinya masih contoh (StubEmotionClassifier menjawab "Senang 92%" untuk semua wajah), jadi
+        // hasilnya tidak boleh sampai ke pengguna sungguhan. Hapus gerbang ini setelah model asli terpasang
         if (!BuildConfig.DEBUG) {
             Toast.makeText(this, R.string.mood_belum_tersedia, Toast.LENGTH_LONG).show()
             finish()
@@ -83,6 +95,8 @@ class CameraScanMoodActivity : AppCompatActivity() {
         binding.tvDetectionStatus.setText(R.string.mood_status_mencari)
 
         setupListeners()
+        viewModel.start(intent.getStringExtra(EXTRA_CLASS_ID))
+        observeScanState()
 
         cameraPermission = CameraPermissionHelper(
             this,
@@ -109,6 +123,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         consentDialog?.dismiss()
+        classDialog?.dismiss()
 
         // Tutup analyzer di thread-nya sendiri setelah frame yang sedang diproses selesai
         analyzer?.let { analysisExecutor.execute { it.close() } }
@@ -125,6 +140,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
             .setPositiveButton(R.string.konsen_mood_mulai) { _, _ ->
                 consentAccepted = true
                 cameraPermission.start()
+                showClassChoiceIfNeeded()
             }
             .setNegativeButton(R.string.konsen_batal) { _, _ -> finish() }
             .show()
@@ -208,12 +224,61 @@ class CameraScanMoodActivity : AppCompatActivity() {
         }
     }
 
+    private fun observeScanState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect { state ->
+                    errorBar?.dismiss()
+                    errorBar = null
+
+                    state.error?.let { showLoadError(it) }
+                    showClassChoiceIfNeeded()
+                }
+            }
+        }
+    }
+
+    private fun showLoadError(messageRes: Int) {
+        errorBar = Snackbar.make(binding.root, messageRes, Snackbar.LENGTH_INDEFINITE)
+            .setAnchorView(binding.clBottomControls)
+            .setAction(R.string.review_coba_lagi) { viewModel.retry() }
+            .also { it.show() }
+    }
+
+    /** Guru yang mengajar beberapa kelas memilih satu. Baru ditampilkan setelah persetujuan agar dialognya tidak bertumpuk. */
+    private fun showClassChoiceIfNeeded() {
+        val choices = viewModel.state.value.classChoices
+        if (choices.isEmpty() || !consentAccepted || classDialog?.isShowing == true) return
+
+        classDialog = MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.kelas_pilih_judul)
+            .setCancelable(false)
+            .setItems(choices.map { "${it.name} • ${it.gradeLevel}" }.toTypedArray()) { _, which ->
+                viewModel.selectClass(choices[which].id)
+            }
+            .setNegativeButton(R.string.konsen_batal) { _, _ -> finish() }
+            .show()
+    }
+
     private fun showStudentPicker(trackingId: Int) {
         val current = session.studentAt(trackingId)
+        val students = viewModel.state.value.students
+
+        if (students.isEmpty()) {
+            val state = viewModel.state.value
+            val message = when {
+                state.loading -> R.string.siswa_memuat
+                state.error != null -> state.error
+                state.classId == null -> R.string.review_kelas_belum_dipilih
+                else -> R.string.siswa_kelas_kosong
+            }
+            Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+            return
+        }
 
         StudentPickerDialog.show(
             this,
-            studentSource.students(),
+            students,
             isTaken = { student -> session.isAssigned(student.id) && student.id != current?.id },
             onPick = { student ->
                 if (!session.assign(trackingId, student)) {
@@ -243,6 +308,13 @@ class CameraScanMoodActivity : AppCompatActivity() {
         binding.faceOverlay.onFaceTapped = { trackingId -> showStudentPicker(trackingId) }
 
         binding.btnCaptureMood.setOnClickListener {
+            val classId = viewModel.state.value.classId
+            if (classId == null) {
+                Toast.makeText(this, R.string.review_kelas_belum_dipilih, Toast.LENGTH_SHORT).show()
+                showClassChoiceIfNeeded()
+                return@setOnClickListener
+            }
+
             val intent = Intent(this, ReviewScanMoodActivity::class.java)
             val results = session.results()
             if (results.isNotEmpty()) {
@@ -259,8 +331,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
                     )
                 })
                 intent.putExtra(ReviewScanMoodActivity.EXTRA_STUDENTS, scannedList)
-                // Belum ada layar yang mengirim kelas ini, jadi review akan menolak menyimpan sampai ada
-                intent.putExtra(ReviewScanMoodActivity.EXTRA_CLASS_ID, this.intent.getStringExtra(EXTRA_CLASS_ID))
+                intent.putExtra(ReviewScanMoodActivity.EXTRA_CLASS_ID, classId)
             }
             startActivity(intent)
             finish()
@@ -268,7 +339,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
     }
 
     companion object {
-        /** Kelas yang dipindai, dikirim oleh layar peluncur dan diteruskan ke layar review. */
+        /** Kelas yang dipindai. Opsional: tanpa ini layar menanyakan daftar kelas Guru ke server. */
         const val EXTRA_CLASS_ID = "EXTRA_CLASS_ID"
 
         private const val STATE_CONSENT_ACCEPTED = "consent_accepted"
