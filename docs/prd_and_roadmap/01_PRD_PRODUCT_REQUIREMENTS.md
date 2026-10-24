@@ -98,7 +98,8 @@ Kibooz memadukan aplikasi Android dan karakter maskot beruang ungu (*Kibby*):
 
 ### FR-7: Profil Pengguna dan Data Siswa
 - **FR-7.1 Profil Wali:** Menampilkan identitas wali murid, nama anak asuh, tautan ubah sandi (layar ganti kata sandi yang memanggil `PUT /users/me/password` dan mengakhiri semua sesi), dan syarat ketentuan.
-- **FR-7.2 Profil Siswa:** Menampilkan NISN resmi (Nomor Induk Siswa Nasional), nama lengkap, kelas, kontak darurat, dan alamat rumah.
+- **FR-7.2 Profil Siswa:** Menampilkan NISN resmi (Nomor Induk Siswa Nasional), nama lengkap, kelas, kontak darurat, dan alamat rumah. NISN yang sudah diverifikasi guru diberi tanda (`nisnVerified`), dan NISN yang kosong karena diambil guru untuk anak lain ditandai `nisnNeedsUpdate` sehingga wali diminta mengisi nomor yang benar.
+- **FR-7.2a Verifikasi NISN:** Guru kelas dapat memverifikasi atau mencabut verifikasi NISN seorang anak dari daftar peserta kelas. NISN hanya unik di antara anak yang terverifikasi, sehingga wali tidak tertutup jalannya oleh nomor yang dipakai orang lain secara asal, dan guru yang memverifikasi mengambil nomor itu dari pemegang yang belum terverifikasi.
 - **FR-7.3 Profil Guru:** Menampilkan NIP (Nomor Induk Pegawai), email dinas, nomor telepon, alamat, dan grafik mood kelas bimbingan.
 - **FR-7.4:** Formulir edit profil memvalidasi input teks dan memperbarui foto profil. Aplikasi memperkecil foto sebelum mengunggahnya.
 - **FR-7.5:** Wali dapat mengubah nama, nomor telepon, nomor WhatsApp dan alamatnya, mengubah nama atau NISN seorang anak, dan menghapus anak, termasuk anak terakhir. Wali yang tidak punya anak lagi diarahkan ke layar tambah anak. Guru dapat mengubah nama, nomor telepon dan alamatnya, sedangkan NIP dan email tetap.

@@ -86,7 +86,9 @@ erDiagram
         uuid id PK
         uuid wali_id FK
         uuid class_id FK
-        string nisn UK
+        string nisn "unik hanya untuk NISN terverifikasi"
+        timestamptz nisn_verified_at
+        uuid nisn_verified_by FK
         string full_name
         string avatar_url
         integer current_points
@@ -613,6 +615,21 @@ CREATE TRIGGER classes_open_season AFTER INSERT ON classes
 -- 000024 riwayat papan peringkat unik
 -- Satu kelas menyimpan klasemen sebuah semester satu kali untuk setiap anak. Salinan yang lebih baru dihapus saat indeks dibuat.
 CREATE UNIQUE INDEX leaderboard_history_unique ON leaderboard_history (student_id, class_id, season_label);
+
+-- 000026 verifikasi NISN
+-- Guru dapat menandai NISN seorang anak di kelasnya sebagai terverifikasi. Aturan unik hanya berlaku untuk anak yang terverifikasi, sehingga
+-- wali yang NISN-nya sudah dipakai orang lain secara asal tidak tertutup jalannya. Guru yang memverifikasi mengambil nomor itu dari setiap
+-- pemegang yang belum terverifikasi, dan anak yang kehilangannya tetap punya catatan dengan NISN kosong, karena itu kolom tetap NOT NULL.
+ALTER TABLE students ADD COLUMN nisn_verified_at TIMESTAMPTZ;
+ALTER TABLE students ADD CONSTRAINT students_nisn_verified_not_empty CHECK (nisn_verified_at IS NULL OR nisn <> '');
+DROP INDEX students_nisn_key;
+CREATE UNIQUE INDEX students_nisn_verified_key ON students (nisn) WHERE deleted_at IS NULL AND nisn_verified_at IS NOT NULL;
+CREATE INDEX idx_students_nisn ON students (nisn) WHERE deleted_at IS NULL;
+
+-- 000027 siapa yang memverifikasi NISN
+-- Guru yang menjamin sebuah NISN dicatat, supaya verifikasi yang mengambil nomor dari anak lain dapat ditelusuri. Kolom kosong untuk NISN
+-- yang belum terverifikasi, dikosongkan bersama verifikasinya, dan tetap berisi guru yang pertama jika guru lain memverifikasi lagi.
+ALTER TABLE students ADD COLUMN nisn_verified_by UUID REFERENCES gurus (id) ON DELETE SET NULL;
 ```
 
 ---
@@ -647,7 +664,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 | `AUTH_REFRESH_INVALID` | Sesi sudah berakhir dan pengguna harus masuk lagi |
 | `AUTH_FORBIDDEN` | Peran tidak boleh melakukan aksi ini |
 | `AUTH_PASSWORD_INCORRECT` | Kata sandi salah saat menghapus akun atau mengganti kata sandi |
-| `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar, termasuk ketika wali mengubah NISN seorang anak menjadi NISN anak aktif lain |
+| `EMAIL_ALREADY_REGISTERED`, `NIP_ALREADY_REGISTERED`, `NISN_ALREADY_REGISTERED` | Data sudah terdaftar. Untuk NISN, artinya seorang guru sudah memverifikasi NISN itu untuk anak aktif lain, termasuk ketika wali mengubah NISN seorang anak atau guru memverifikasi NISN yang sudah terverifikasi untuk anak lain |
+| `NISN_NOT_SET` | Guru memverifikasi NISN seorang anak yang NISN-nya kosong (`nisnNeedsUpdate` bernilai `true`) |
 | `CLASS_CODE_NOT_FOUND`, `CLASS_NOT_FOUND`, `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL`, `CLASS_LIMIT_REACHED` | Masalah pada kode atau data kelas. Kode gabung milik kelas yang diarsipkan dijawab `CLASS_CODE_NOT_FOUND`, dan kelas yang diarsipkan tidak dapat ditambah guru (`CLASS_NOT_FOUND`). Guru kelas dapat menutup kelas untuk anak baru (`CLASS_JOINING_CLOSED`, kodenya tidak berubah), sebuah kelas berisi paling banyak 60 anak (`CLASS_FULL`), dan seorang guru mengajar paling banyak 20 kelas yang belum diarsipkan (`CLASS_LIMIT_REACHED`, juga ketika guru itu ditambahkan ke sebuah kelas) |
 | `CLASS_ARCHIVED`, `CLASS_NOT_ARCHIVED` | Kelas yang diarsipkan hanya dapat dibaca, sehingga setiap perubahan di dalamnya dijawab `409` `CLASS_ARCHIVED` (juga ketika mengarsipkan kelas yang sudah diarsipkan), dan `409` `CLASS_NOT_ARCHIVED` untuk memulihkan kelas yang tidak diarsipkan. Aplikasi menyembunyikan aksi tulis untuk kelas yang diarsipkan, dan wali membaca `classArchivedAt` pada anaknya di `GET /wali/dashboard` dan `GET /wali/children` |
 | `ALREADY_IN_CLASS`, `MOVE_REQUEST_PENDING`, `MOVE_REQUEST_NOT_FOUND` | Permintaan pindah kelas. Anak sudah berada di kelas yang kodenya dikirim, anak sudah punya permintaan yang menunggu, atau permintaan tidak ditemukan karena sudah diputuskan, ditarik atau bukan milik pengguna itu. Kode `404` hanya untuk `MOVE_REQUEST_NOT_FOUND`, dan dua lainnya `409`. |
@@ -694,7 +712,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Request Body (GURU):** `email`, `password`, `fullName`, `role: "GURU"`, `nip` dan `schoolName` yang opsional, serta `class` berisi `name` (wajib), `gradeLevel`, `academicYear` dan `schoolName`.
 - **Aturan kata sandi:** 8 sampai 72 byte, bukan salah satu dari sekitar 1400 kata sandi umum (daftar bawaan, huruf besar dan kecil tidak dibedakan), dan tidak memuat email, bagian email sebelum `@`, nama, nomor telepon atau nomor WhatsApp pendaftar. Pada guru NIP juga diperiksa, dan pada wali NISN dan nama anak yang didaftarkan juga diperiksa. Detail yang lebih pendek dari enam karakter diabaikan. Pelanggaran dijawab `400` `VALIDATION_ERROR` pada kolom `password`.
 - **Response 201 Created:** sama dengan respons login di bawah, dengan `message` `Registration successful`.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau untuk email, NIP atau NISN yang sudah terdaftar, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk rute itu dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau untuk email atau NIP yang sudah terdaftar atau NISN yang sudah diverifikasi guru untuk anak lain, dan `429` `RATE_LIMITED` ketika batas pendaftaran dengan kode kelas sedang habis. Batas ini berlaku untuk rute itu dan bukan per pengguna, sehingga aplikasi menampilkan pesan agar mencoba lagi nanti sesuai header `Retry-After`. Server yang sedang sibuk memeriksa kata sandi juga menjawab `429` `RATE_LIMITED` dengan `Retry-After: 1`.
 
 #### `POST /auth/login`
 - **Deskripsi:** Masuk ke akun sebagai Guru atau Wali Murid.
@@ -767,7 +785,9 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
       "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
       "className": "Class A • TK Pertiwi Harapan Bangsa",
       "avatarUrl": "https://kibooz-media.syafahadyan.com/avatars/amelia.png",
-      "nisn": "3124567890"
+      "nisn": "3124567890",
+      "nisnVerified": false,
+      "nisnNeedsUpdate": false
     },
     "todayMood": {
       "moodType": "BINGUNG",
@@ -824,6 +844,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
     "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
     "fullName": "Amelia Siti Zahra",
     "nisn": "3124567890",
+    "nisnVerified": false,
+    "nisnNeedsUpdate": false,
     "avatarUrl": null,
     "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
     "className": "Mawar",
@@ -857,6 +879,8 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
         "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
         "fullName": "Amelia Siti Zahra",
         "nisn": "3124567890",
+        "nisnVerified": false,
+        "nisnNeedsUpdate": false,
         "avatarUrl": null,
         "classId": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
         "className": "Mawar"
@@ -877,7 +901,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 }
 ```
 - **Response 201 Created:** `message` bernilai `Child added` dan `data` berisi satu anak dengan bentuk yang sama seperti isi `children` di atas.
-- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `NISN_ALREADY_REGISTERED`, `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau `CHILD_LIMIT_REACHED`, dan `429` `RATE_LIMITED` ketika batas kode kelas untuk rute ini sedang habis.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `404` `CLASS_CODE_NOT_FOUND`, `409` `NISN_ALREADY_REGISTERED` (hanya jika guru sudah memverifikasi NISN itu untuk anak lain), `CLASS_NO_ACTIVE_TEACHER`, `CLASS_JOINING_CLOSED`, `CLASS_FULL` atau `CHILD_LIMIT_REACHED`, dan `429` `RATE_LIMITED` ketika batas kode kelas untuk rute ini sedang habis.
 
 #### `PATCH /wali/profile`
 - **Deskripsi:** Wali mengubah datanya sendiri. Kirim salah satu atau semua dari `fullName`, `phoneNumber`, `whatsappNumber` dan `address`. Kolom yang tidak dikirim dibiarkan apa adanya, dan teks kosong menghapus nomor telepon, nomor WhatsApp atau alamat. Nama tidak boleh kosong. Nomor telepon dan WhatsApp memakai pola yang sama seperti profil guru, yaitu angka dengan tanda plus di depan serta spasi, tanda hubung dan kurung, sepanjang 6 sampai 30 karakter. Email tidak dapat diubah dan foto diganti lewat `POST /users/avatar`.
@@ -894,10 +918,10 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim, nama kosong atau nomor tidak valid, `403` `AUTH_FORBIDDEN` untuk peran selain wali, `404` jika profil wali tidak ditemukan, dan `429` `RATE_LIMITED`.
 
 #### `PATCH /wali/children/{studentId}`
-- **Deskripsi:** Wali mengubah nama atau NISN seorang anak. Kirim `fullName`, `nisn` atau keduanya, dan kolom yang tidak dikirim dibiarkan apa adanya. Nama berisi 2 sampai 150 karakter dan NISN berupa 5 sampai 30 angka, seperti saat registrasi. Anak tetap berada di kelasnya dan poinnya tidak berubah. Nama baru dapat menggeser peringkat anak, karena anak dengan poin sama diurutkan menurut nama, dan nama itu juga ditulis ke papan peringkat semester yang sudah berakhir, sehingga riwayat menampilkan nama yang baru. Hanya anak milik wali yang masuk yang dapat diubah.
+- **Deskripsi:** Wali mengubah nama atau NISN seorang anak. Kirim `fullName`, `nisn` atau keduanya, dan kolom yang tidak dikirim dibiarkan apa adanya. Nama berisi 2 sampai 150 karakter dan NISN berupa 5 sampai 30 angka, seperti saat registrasi. NISN yang diverifikasi guru untuk anak aktif lain ditolak. NISN baru mencabut verifikasi (`nisnVerified` menjadi `false`) karena guru hanya menjamin nomor yang lama, sedangkan nomor yang sama sekali lagi tidak mengubah apa pun. Anak tetap berada di kelasnya dan poinnya tidak berubah. Nama baru dapat menggeser peringkat anak, karena anak dengan poin sama diurutkan menurut nama, dan nama itu juga ditulis ke papan peringkat semester yang sudah berakhir, sehingga riwayat menampilkan nama yang baru. Hanya anak milik wali yang masuk yang dapat diubah.
 - **Request Body:** `{ "fullName": "Amelia Siti Zahra Putri", "nisn": "3124567899" }`
 - **Response 200 OK:** `data` berisi satu anak dengan bentuk yang sama seperti isi `children` pada `GET /wali/children`.
-- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim atau isinya tidak valid, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali, `409` `NISN_ALREADY_REGISTERED` jika anak aktif lain memiliki NISN itu, dan `429` `RATE_LIMITED`.
+- **Kegagalan:** `400` `VALIDATION_ERROR` jika tidak ada kolom yang dikirim atau isinya tidak valid, `403` `AUTH_FORBIDDEN`, `404` `STUDENT_NOT_FOUND` untuk anak yang bukan milik wali, `409` `NISN_ALREADY_REGISTERED` jika guru sudah memverifikasi NISN itu untuk anak aktif lain, dan `429` `RATE_LIMITED`.
 
 #### `DELETE /wali/children/{studentId}`
 - **Deskripsi:** Wali menghapus seorang anak. Anak disembunyikan seperti akun yang dihapus, sehingga keluar dari daftar kelas, dasbor dan papan peringkat, peringkat kelas dihitung ulang, dan guru tidak lagi melihatnya. Catatan mood, pindaian dan laporan panduan tetap ada di basis data, begitu juga papan peringkat semester yang sudah berakhir. Foto profil anak dan foto pindaiannya dihapus dari penyimpanan dalam sekitar 10 menit. NISN dapat dipakai lagi. Wali boleh menghapus anak terakhir, dan akunnya lalu tidak punya anak sampai `POST /wali/children` menambahkan satu, sehingga rute yang memakai anak bawaan menjawab `404` `NO_CHILD_REGISTERED`. Anak yang dihapus tidak dapat dikembalikan, jadi aplikasi meminta konfirmasi lebih dulu.
@@ -1094,6 +1118,16 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 - **Deskripsi:** Setiap guru kelas dapat mengeluarkan seorang anak dari kelas. Anak disembunyikan seperti akun yang dihapus, sehingga keluar dari daftar kelas, dasbor dan papan peringkat, peringkat kelas dihitung ulang, dan wali tidak lagi melihat anak itu. Catatan mood dan pindaian tetap ada di basis data, sedangkan foto profil anak dan foto pindaiannya dihapus dari penyimpanan dalam sekitar 10 menit. Wali tetap memiliki akunnya dan NISN dapat dipakai lagi, sehingga wali dapat memasukkan anak ke kelas lain lewat `POST /wali/children`. Anak yang dikeluarkan tidak dapat dikembalikan, jadi aplikasi meminta konfirmasi lebih dulu. `studentId` adalah `id` salah satu isi `GET /classes/{classId}/students`.
 - **Response 200 OK:** `{ "success": true, "message": "Student removed" }`
 - **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu atau `STUDENT_NOT_FOUND` untuk anak yang tidak aktif di kelas itu, dan `429` `RATE_LIMITED`.
+
+#### `POST /guru/classes/{classId}/students/{studentId}/nisn-verification`
+- **Deskripsi:** Guru kelas mencocokkan NISN seorang anak dengan data sekolah lalu menandainya terverifikasi. NISN hanya unik di antara anak yang terverifikasi, sehingga sebelum itu siapa pun masih dapat mendaftarkan nomor yang sama. Verifikasi mengambil nomor itu dari setiap anak lain yang memegangnya dan belum terverifikasi, di kelas mana pun. Anak-anak itu tetap memiliki catatannya, `nisn` mereka menjadi kosong dan `nisnNeedsUpdate` bernilai `true` sampai wali mengisi nomor yang benar. Nomor yang sudah terverifikasi untuk seorang anak tidak pernah diambil. Memverifikasi anak yang sudah terverifikasi tidak mengubah apa pun dan tetap mencatat guru yang pertama. Backend hanya menyimpan siapa yang memverifikasi dan tidak pernah mengembalikannya di API.
+- **Response 200 OK:** `data` berisi `{ "nisnVerified": true, "displaced": 1 }`, dengan `displaced` adalah jumlah anak lain yang kehilangan nomor itu.
+- **Kegagalan:** `400` `VALIDATION_ERROR` untuk id yang bukan UUID, `403` `AUTH_FORBIDDEN` untuk peran selain guru, `404` `CLASS_NOT_FOUND` untuk kelas yang tidak diajar guru itu atau `STUDENT_NOT_FOUND` untuk anak yang tidak aktif di kelas itu, `409` `NISN_NOT_SET` jika NISN anak kosong, `NISN_ALREADY_REGISTERED` jika anak lain sudah memegang nomor itu sebagai nomor terverifikasi, atau `CLASS_ARCHIVED` untuk kelas yang diarsipkan, dan `429` `RATE_LIMITED`.
+
+#### `DELETE /guru/classes/{classId}/students/{studentId}/nisn-verification`
+- **Deskripsi:** Guru mencabut tanda terverifikasi dari NISN seorang anak, misalnya setelah salah klik. Nomor itu tidak unik lagi dan tidak dikembalikan kepada anak-anak yang kehilangannya saat verifikasi. Mencabut anak yang belum terverifikasi tidak mengubah apa pun. Wali yang mengubah NISN anaknya menjadi nomor baru juga mencabut verifikasi.
+- **Response 200 OK:** `data` berisi `{ "nisnVerified": false, "displaced": 0 }`.
+- **Kegagalan:** `400` `VALIDATION_ERROR`, `403` `AUTH_FORBIDDEN`, `404` `CLASS_NOT_FOUND` atau `STUDENT_NOT_FOUND`, `409` `CLASS_ARCHIVED` untuk kelas yang diarsipkan, dan `429` `RATE_LIMITED`.
 
 #### `GET /guru/classes/{classId}/move-requests`
 - **Deskripsi:** Permintaan orang tua agar anaknya pindah ke kelas ini dan masih menunggu seorang guru kelas, yang terlama lebih dahulu. Guru melihat nama anak dan waktu permintaan. Setiap guru kelas boleh memutuskan.
@@ -1379,7 +1413,7 @@ Semua alamat di bawah ini relatif terhadap `https://kibooz-api.syafahadyan.com/a
 ### 4.6 Kesehatan Layanan
 
 #### `GET /healthz` (di akar, tanpa `/api/v1` dan tanpa token)
-- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.20.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
+- **Response 200 OK:** (nilai `version` hanya contoh dan mengikuti versi rilis) `{ "success": true, "status": "ok", "version": "0.21.0", "checks": { "database": "ok", "redis": "ok", "storage": "ok" } }`
 - `status` bernilai `degraded` jika Redis mati atau bucket menolak penulisan (tetap `200`), dan `down` dengan `503` jika basis data mati. Nilai `storage` adalah `ok`, `disabled` jika konfigurasi S3 belum lengkap (tidak memengaruhi `status`), atau `down` jika server gagal menulis lalu menghapus objek kecil di bawah `healthcheck/`. Hasil pemeriksaan penyimpanan dipakai ulang selama satu menit, sehingga kredensial yang tidak bisa menulis terlihat di sini dan tidak baru pada unggahan pertama.
 
 ---
@@ -1596,6 +1630,8 @@ Semua rute di bagian ini memakai `classId` dari kelas yang diikuti pengguna. Gur
         "id": "c4b3a981-5502-4f32-8231-10c970a03bd7",
         "fullName": "Amelia Siti Zahra",
         "nisn": "3124567890",
+        "nisnVerified": true,
+        "nisnNeedsUpdate": false,
         "avatarUrl": null,
         "currentPoints": 340,
         "seasonPoints": 120,
@@ -1835,3 +1871,4 @@ Rute di bagian ini hanya untuk peran `GURU` dan `WALI`, dan berjalan juga ketika
 - [x] **BE-26:** Pengiriman langsung lewat WebSocket `GET /chat/ws` untuk pesan baru, pesan dihapus, tanda baca dan indikator mengetik pada percakapan langsung, dengan Redis pub/sub antarsalinan API, ping setiap 25 detik dan penutupan dengan kode `4001` ketika token akses habis.
 - [x] **BE-27:** Token dorong (`POST` dan `DELETE /push/tokens`) dan pengiriman notifikasi dorong lewat Firebase tanpa teks pesan, aktif ketika `FIREBASE_CREDENTIALS_FILE` diisi.
 - [x] **BE-28:** Pendaftaran kelas (`enrollments`, migrasi 000021 dan 000022), permintaan pindah oleh wali dan keputusan oleh guru kelas tujuan, kelas sebelumnya untuk wali, riwayat anak untuk guru kelas baru, kelas yang diarsipkan hanya dapat dibaca (`CLASS_ARCHIVED`) dengan rute arsip dan pulihkan, dan percakapan langsung yang tetap terbuka setelah kelas diarsipkan.
+- [x] **BE-29:** Verifikasi NISN oleh guru (`POST` dan `DELETE /guru/classes/{classId}/students/{studentId}/nisn-verification`, migrasi 000026 dan 000027). NISN hanya unik untuk anak yang terverifikasi, verifikasi mengambil nomor dari pemegang lain yang belum terverifikasi (`nisnNeedsUpdate`), `nisnVerified` dan `nisnNeedsUpdate` pada setiap objek anak, `NISN_NOT_SET`, dan NISN baru dari wali mencabut verifikasi.
