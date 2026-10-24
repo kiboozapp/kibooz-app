@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.camera
 
+import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -7,12 +8,14 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
 import com.nthb.kibooz.R
+import com.nthb.kibooz.data.remote.MoodSource
 import com.nthb.kibooz.databinding.ItemReviewScanStudentBinding
 import com.nthb.kibooz.model.ScannedStudentMood
 
 class ReviewScanMoodAdapter(
     private val students: MutableList<ScannedStudentMood>,
     private val onMoodChanged: (student: ScannedStudentMood, newMood: String) -> Unit,
+    private val onConfirmed: (student: ScannedStudentMood) -> Unit,
     private val onDeleteClicked: (student: ScannedStudentMood, position: Int) -> Unit
 ) : RecyclerView.Adapter<ReviewScanMoodAdapter.StudentViewHolder>() {
 
@@ -23,15 +26,20 @@ class ReviewScanMoodAdapter(
             binding.tvStudentName.text = student.studentName
             binding.ivAvatar.setImageResource(student.avatarRes)
 
-            // AI Confidence Score Badge
+            // AI Confidence Score Badge. Label pilihan guru tidak punya skor model
             val confidencePct = (student.confidenceScore * 100).toInt()
-            binding.tvAiDetectionBadge.text = "AI: ${student.currentMood} ($confidencePct%)"
-
-            // Warning if confidence is below 75% (Aturan Bisnis BR-04)
-            if (student.confidenceScore < 0.75f) {
-                binding.tvLowConfidenceWarning.visibility = View.VISIBLE
+            binding.tvAiDetectionBadge.text = if (student.source == MoodSource.MANUAL_INPUT) {
+                binding.root.context.getString(R.string.review_dipilih_guru)
             } else {
-                binding.tvLowConfidenceWarning.visibility = View.GONE
+                "AI: ${student.detectedMood} ($confidencePct%)"
+            }
+
+            // Aturan Bisnis BR-04: di bawah 75% guru harus mengonfirmasi atau mengganti labelnya
+            updateConfirmationWarning(student)
+            binding.tvLowConfidenceWarning.setOnClickListener {
+                student.isConfirmed = true
+                updateConfirmationWarning(student)
+                onConfirmed(student)
             }
 
             // Sync notes
@@ -39,6 +47,7 @@ class ReviewScanMoodAdapter(
                 binding.etTeacherNotes.setText(student.teacherNotes)
             }
 
+            binding.etTeacherNotes.filters = arrayOf(InputFilter.LengthFilter(MAX_NOTES_LENGTH))
             binding.etTeacherNotes.doAfterTextChanged { text ->
                 student.teacherNotes = text?.toString().orEmpty()
             }
@@ -51,6 +60,7 @@ class ReviewScanMoodAdapter(
                 if (student.currentMood != "SENANG") {
                     student.currentMood = "SENANG"
                     updateMoodSelectionUI("SENANG")
+                    updateConfirmationWarning(student)
                     onMoodChanged(student, "SENANG")
                 }
             }
@@ -59,6 +69,7 @@ class ReviewScanMoodAdapter(
                 if (student.currentMood != "KALEM") {
                     student.currentMood = "KALEM"
                     updateMoodSelectionUI("KALEM")
+                    updateConfirmationWarning(student)
                     onMoodChanged(student, "KALEM")
                 }
             }
@@ -67,6 +78,7 @@ class ReviewScanMoodAdapter(
                 if (student.currentMood != "BINGUNG") {
                     student.currentMood = "BINGUNG"
                     updateMoodSelectionUI("BINGUNG")
+                    updateConfirmationWarning(student)
                     onMoodChanged(student, "BINGUNG")
                 }
             }
@@ -75,6 +87,7 @@ class ReviewScanMoodAdapter(
                 if (student.currentMood != "MARAH") {
                     student.currentMood = "MARAH"
                     updateMoodSelectionUI("MARAH")
+                    updateConfirmationWarning(student)
                     onMoodChanged(student, "MARAH")
                 }
             }
@@ -86,6 +99,11 @@ class ReviewScanMoodAdapter(
                     onDeleteClicked(student, currentPos)
                 }
             }
+        }
+
+        private fun updateConfirmationWarning(student: ScannedStudentMood) {
+            binding.tvLowConfidenceWarning.text = binding.root.context.getString(R.string.review_perlu_dicek)
+            binding.tvLowConfidenceWarning.visibility = if (student.needsConfirmation()) View.VISIBLE else View.GONE
         }
 
         private fun updateMoodSelectionUI(selectedMood: String) {

@@ -254,17 +254,23 @@ class CameraScanMoodActivity : AppCompatActivity() {
                         currentMood = mood.emotion.emotion.name,
                         confidenceScore = mood.emotion.confidence,
                         teacherNotes = "",
-                        isConfirmed = mood.confirmed
+                        isConfirmed = mood.confirmed,
+                        source = mood.source
                     )
                 })
                 intent.putExtra(ReviewScanMoodActivity.EXTRA_STUDENTS, scannedList)
+                // Belum ada layar yang mengirim kelas ini, jadi review akan menolak menyimpan sampai ada
+                intent.putExtra(ReviewScanMoodActivity.EXTRA_CLASS_ID, this.intent.getStringExtra(EXTRA_CLASS_ID))
             }
             startActivity(intent)
             finish()
         }
     }
 
-    private companion object {
-        const val STATE_CONSENT_ACCEPTED = "consent_accepted"
+    companion object {
+        /** Kelas yang dipindai, dikirim oleh layar peluncur dan diteruskan ke layar review. */
+        const val EXTRA_CLASS_ID = "EXTRA_CLASS_ID"
+
+        private const val STATE_CONSENT_ACCEPTED = "consent_accepted"
     }
 }
