@@ -136,11 +136,59 @@ class ClassRepositoryTest {
         assertTrue((repository.children() as ApiResult.Success).data.isEmpty())
     }
 
+    private fun classJson(id: String, name: String, grade: String) = """
+        {"id":"$id","name":"$name","gradeLevel":"$grade","schoolName":"SD Kibooz","academicYear":"2026/2027",
+         "joinCode":"ABC23456","joinOpen":true,"totalStudents":22,"createdAt":"2026-07-01T00:00:00Z"}
+    """.trimIndent()
+
+    private fun classPage(page: Int, limit: Int, total: Int, vararg classes: String) =
+        """{"success":true,"data":{"page":$page,"limit":$limit,"total":$total,"classes":[${classes.joinToString(",")}]}}"""
+
+    @Test
+    fun `lists the classes of the teacher`() = runBlocking {
+        server.enqueue(jsonResponse(classPage(1, 50, 2, classJson("c1", "Bunga", "Class A"), classJson("c2", "Mawar", "Class B"))))
+
+        val result = repository.teacherClasses() as ApiResult.Success
+
+        assertEquals("/api/v1/guru/classes?page=1&limit=50", server.takeRequest().path)
+        assertEquals(listOf("Bunga", "Mawar"), result.data.map { it.name })
+        assertEquals("Class B", result.data[1].gradeLevel)
+        assertEquals(22, result.data[0].totalStudents)
+    }
+
+    @Test
+    fun `teacherClasses reads every page and stops at the total`() = runBlocking {
+        server.enqueue(jsonResponse(classPage(1, 1, 2, classJson("c1", "Bunga", "Class A"))))
+        server.enqueue(jsonResponse(classPage(2, 1, 2, classJson("c2", "Mawar", "Class B"))))
+
+        val result = repository.teacherClasses(pageSize = 1) as ApiResult.Success
+
+        assertEquals(listOf("c1", "c2"), result.data.map { it.id })
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `a teacher without classes gets an empty list`() = runBlocking {
+        server.enqueue(jsonResponse(classPage(1, 50, 0)))
+
+        assertTrue((repository.teacherClasses() as ApiResult.Success).data.isEmpty())
+    }
+
+    @Test
+    fun `a parent asking for the teacher classes is forbidden`() = runBlocking {
+        server.enqueue(jsonResponse(failureJson("AUTH_FORBIDDEN"), 403))
+
+        val result = repository.teacherClasses() as ApiResult.Failure
+
+        assertEquals("AUTH_FORBIDDEN", result.errorCode)
+    }
+
     @Test
     fun `offline is a network error`() = runBlocking {
         server.shutdown()
 
         assertTrue(repository.children() is ApiResult.NetworkError)
         assertTrue(repository.allStudents("class-1") is ApiResult.NetworkError)
+        assertTrue(repository.teacherClasses() is ApiResult.NetworkError)
     }
 }

@@ -22,6 +22,26 @@ data class ClassStudent(
     val todayMood: Emotion?
 )
 
+/** `data` dari `GET /guru/classes`: halaman kelas yang diajar Guru beserta `page`, `limit` dan `total`. */
+data class ClassList(
+    val page: Int,
+    val limit: Int,
+    val total: Int,
+    val classes: List<ClassSummary>
+)
+
+data class ClassSummary(
+    val id: String,
+    val name: String,
+    val gradeLevel: String,
+    val schoolName: String,
+    val academicYear: String,
+    val joinCode: String,
+    val joinOpen: Boolean,
+    val totalStudents: Int,
+    val createdAt: String
+)
+
 data class ChildList(val children: List<ChildSummary>)
 
 /** Anak milik Wali. [className] di sini berupa nama kelas biasa, bukan format dashboard. */
