@@ -22,6 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import okhttp3.Headers.Companion.headersOf
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
@@ -70,6 +71,8 @@ class TrashScanViewModelTest {
     }
 
     private val trashApi = FakeTrashApi()
+    private val pauses = mutableListOf<Long>()
+    private val ticks = mutableListOf<Int?>()
     private val classApi = FakeClassApi()
     private lateinit var viewModel: TrashScanViewModel
 
@@ -84,11 +87,31 @@ class TrashScanViewModelTest {
 
     private val offline: () -> Response<ApiEnvelope<ScanClaimData>> = { throw IOException("offline") }
 
+    /** 429 dengan atau tanpa `Retry-After`, dan dengan atau tanpa body JSON (misalnya dari proxy). */
+    private fun rateLimited(retryAfter: String? = null, json: Boolean = true): () -> Response<ApiEnvelope<ScanClaimData>> = {
+        val raw = okhttp3.Response.Builder()
+            .request(okhttp3.Request.Builder().url("http://localhost/").build())
+            .protocol(okhttp3.Protocol.HTTP_1_1)
+            .code(429)
+            .message("Too Many Requests")
+            .headers(if (retryAfter == null) headersOf() else headersOf("Retry-After", retryAfter))
+            .build()
+        val body = if (json) """{"success":false,"message":"x","errorCode":"RATE_LIMITED"}""" else "<html>Too many</html>"
+        Response.error(body.toResponseBody("application/json".toMediaType()), raw)
+    }
+
     @Before
     fun setUp() {
         Dispatchers.setMain(Dispatchers.Unconfined)
         val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
-        viewModel = TrashScanViewModel(ClassRepository(classApi, moshi), TrashRepository(trashApi, moshi))
+        viewModel = TrashScanViewModel(
+            ClassRepository(classApi, moshi),
+            TrashRepository(trashApi, moshi),
+            pause = { millis ->
+                pauses += millis
+                ticks += viewModel.state.value.retryInSeconds
+            }
+        )
     }
 
     @After
@@ -366,5 +389,60 @@ class TrashScanViewModelTest {
 
         assertNull(viewModel.state.value.error)
         assertTrue(viewModel.state.value.canRetry)
+    }
+
+    @Test
+    fun `a rate limit waits for Retry-After and resends the same claim with the same key`() {
+        trashApi.replies += rateLimited("2")
+        readyToClaim(TrashResult(TrashCategory.ORGANIK, 0.9f))
+
+        viewModel.claim()
+
+        assertEquals(2, trashApi.claims.size)
+        assertEquals(trashApi.claims[0].key, trashApi.claims[1].key)
+        assertEquals(listOf(1000L, 1000L), pauses)
+        assertEquals(listOf<Int?>(2, 1), ticks)
+        assertNotNull(viewModel.state.value.claimed)
+        assertNull(viewModel.state.value.retryInSeconds)
+        assertNull(viewModel.state.value.error)
+    }
+
+    @Test
+    fun `a proxy 429 without a body waits 30 then 60 seconds`() {
+        trashApi.replies += rateLimited(json = false)
+        trashApi.replies += rateLimited(json = false)
+        readyToClaim()
+
+        viewModel.claim()
+
+        assertEquals(3, trashApi.claims.size)
+        assertEquals(90, pauses.size)
+        assertNotNull(viewModel.state.value.claimed)
+    }
+
+    @Test
+    fun `the daily limit is never waited for`() {
+        trashApi.replies += failure(429, "TRASH_DAILY_LIMIT_REACHED")
+        readyToClaim()
+
+        viewModel.claim()
+
+        assertTrue(pauses.isEmpty())
+        assertEquals(1, trashApi.claims.size)
+        assertEquals(R.string.error_trash_daily_limit, viewModel.state.value.error)
+    }
+
+    @Test
+    fun `after three automatic retries the claim stays retryable by hand`() {
+        repeat(4) { trashApi.replies += rateLimited("1") }
+        readyToClaim()
+
+        viewModel.claim()
+
+        assertEquals(4, trashApi.claims.size)
+        assertEquals(R.string.error_rate_limited, viewModel.state.value.error)
+        assertTrue(viewModel.state.value.canRetry)
+        assertNull(viewModel.state.value.retryInSeconds)
+        assertFalse(viewModel.state.value.claiming)
     }
 }

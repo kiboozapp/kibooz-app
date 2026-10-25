@@ -231,13 +231,13 @@ class CameraScanSampahActivity : AppCompatActivity() {
             )
         }
 
-        binding.btnClaimPoin.setText(
-            when {
-                claimed != null -> R.string.sampah_klaim_lagi
-                state.claiming -> R.string.sampah_memproses
-                else -> R.string.sampah_klaim_tombol
-            }
-        )
+        val label = when {
+            claimed != null -> R.string.sampah_klaim_lagi
+            state.retryInSeconds != null -> R.string.batas_laju_menunggu
+            state.claiming -> R.string.sampah_memproses
+            else -> R.string.sampah_klaim_tombol
+        }
+        binding.btnClaimPoin.text = state.retryInSeconds?.let { getString(label, it) } ?: getString(label)
         val enabled = cameraGranted && !state.claiming && !state.loadingChildren
         binding.btnClaimPoin.isEnabled = enabled
         binding.btnClaimPoin.alpha = if (enabled) 1f else 0.4f
