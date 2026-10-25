@@ -22,13 +22,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.nthb.kibooz.BuildConfig
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityCameraScanMoodBinding
 import com.nthb.kibooz.ml.FrameSize
 import com.nthb.kibooz.ml.MoodAnalysisAnalyzer
-import com.nthb.kibooz.ml.StubEmotionClassifier
+import com.nthb.kibooz.ml.ClassifierProvider
+import com.nthb.kibooz.ml.isScanAllowed
 import com.nthb.kibooz.ml.TrackedFace
 import com.nthb.kibooz.model.ScannedStudentMood
 import com.nthb.kibooz.ui.common.OverlayFace
@@ -74,9 +74,11 @@ class CameraScanMoodActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Pengklasifikasi emosinya masih contoh (StubEmotionClassifier menjawab "Senang 92%" untuk semua wajah), jadi
-        // hasilnya tidak boleh sampai ke pengguna sungguhan. Hapus gerbang ini setelah model asli terpasang
-        if (!BuildConfig.DEBUG) {
+        // Model emosi yang terpasang masih pengganti sementara (lihat ModelConfig.placeholder), jadi hasilnya tidak
+        // boleh sampai ke pengguna sungguhan. Gerbang ini otomatis terbuka saat berkas model sungguhan terpasang
+        // dengan placeholder=false. Modelnya dimuat sebentar hanya untuk memeriksa itu, lalu dimuat lagi di startCamera
+        val placeholder = ClassifierProvider.emotion(this)?.use { it.isPlaceholder }
+        if (placeholder == null || !isScanAllowed(placeholder)) {
             Toast.makeText(this, R.string.mood_belum_tersedia, Toast.LENGTH_LONG).show()
             finish()
             return
@@ -93,6 +95,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
 
         consentAccepted = savedInstanceState?.getBoolean(STATE_CONSENT_ACCEPTED) ?: false
         binding.tvDetectionStatus.setText(R.string.mood_status_mencari)
+        binding.tvModelContoh.isVisible = placeholder
 
         setupListeners()
         viewModel.start(intent.getStringExtra(EXTRA_CLASS_ID))
@@ -169,7 +172,13 @@ class CameraScanMoodActivity : AppCompatActivity() {
             val preview = Preview.Builder().setResolutionSelector(resolution).build()
                 .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
 
-            val moodAnalyzer = MoodAnalysisAnalyzer(StubEmotionClassifier(), analysisListener)
+            val classifier = ClassifierProvider.emotion(this)
+            if (classifier == null) {
+                showCameraError()
+                return@addListener
+            }
+
+            val moodAnalyzer = MoodAnalysisAnalyzer(classifier, analysisListener)
             val analysis = ImageAnalysis.Builder()
                 .setResolutionSelector(resolution)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

@@ -16,5 +16,8 @@ data class TrashResult(val category: TrashCategory, val confidence: Float)
 interface TrashClassifier : AutoCloseable {
     fun classify(frame: Bitmap): TrashResult
 
+    /** True selama modelnya pengganti sementara (lihat [ModelConfig.placeholder]). Pengganti selalu dianggap contoh. */
+    val isPlaceholder: Boolean get() = true
+
     override fun close() {}
 }

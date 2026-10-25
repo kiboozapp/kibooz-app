@@ -22,11 +22,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.nthb.kibooz.BuildConfig
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityCameraScanSampahBinding
-import com.nthb.kibooz.ml.StubTrashClassifier
+import com.nthb.kibooz.ml.ClassifierProvider
+import com.nthb.kibooz.ml.isScanAllowed
 import com.nthb.kibooz.ml.TrashAnalyzer
 import com.nthb.kibooz.ml.TrashCategory
 import com.nthb.kibooz.ml.TrashResult
@@ -68,9 +68,11 @@ class CameraScanSampahActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Pengklasifikasi sampahnya masih contoh (StubTrashClassifier selalu menjawab Anorganik 90%), jadi poin tidak
-        // boleh diklaim dari hasilnya oleh pengguna sungguhan. Hapus gerbang ini setelah model asli terpasang
-        if (!BuildConfig.DEBUG) {
+        // Model sampah yang terpasang masih pengganti sementara (lihat ModelConfig.placeholder), jadi poin tidak boleh
+        // diklaim dari hasilnya oleh pengguna sungguhan. Gerbang ini otomatis terbuka saat berkas model sungguhan
+        // terpasang dengan placeholder=false. Modelnya dimuat sebentar hanya untuk memeriksa itu, lalu dimuat lagi di startCamera
+        val placeholder = ClassifierProvider.trash(this)?.use { it.isPlaceholder }
+        if (placeholder == null || !isScanAllowed(placeholder)) {
             Toast.makeText(this, R.string.sampah_klaim_belum_tersedia, Toast.LENGTH_LONG).show()
             finish()
             return
@@ -85,6 +87,7 @@ class CameraScanSampahActivity : AppCompatActivity() {
             bottomBar = binding.clBottomControls
         )
 
+        binding.tvModelContoh.isVisible = placeholder
         viewModel.start(intent.getStringExtra(EXTRA_STUDENT_ID))
         setupListeners()
         observeState()
@@ -160,7 +163,13 @@ class CameraScanSampahActivity : AppCompatActivity() {
             val preview = Preview.Builder().setResolutionSelector(resolution).build()
                 .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
 
-            val trashAnalyzer = TrashAnalyzer(StubTrashClassifier(), analysisListener)
+            val classifier = ClassifierProvider.trash(this)
+            if (classifier == null) {
+                showCameraError()
+                return@addListener
+            }
+
+            val trashAnalyzer = TrashAnalyzer(classifier, analysisListener)
             val analysis = ImageAnalysis.Builder()
                 .setResolutionSelector(resolution)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)

@@ -21,6 +21,12 @@ android {
             .getOrElse("https://kibooz-api.syafahadyan.com/api/v1/")
         buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
 
+        // Build internal (demo) boleh membuka layar kamera dengan model pengganti: -Pkibooz.allowPlaceholderModels=true
+        val allowPlaceholderModels = providers.gradleProperty("kibooz.allowPlaceholderModels")
+            .map { it.toBoolean() }
+            .getOrElse(false)
+        buildConfigField("boolean", "ALLOW_PLACEHOLDER_MODELS", allowPlaceholderModels.toString())
+
         // Build selain debug harus https agar token dan kata sandi tidak terkirim tanpa enkripsi. Tugas tanpa
         // nama varian seperti assemble, build dan bundle juga membangun varian rilis, jadi ikut diperiksa.
         val releaseRequested = gradle.startParameter.taskNames.any { task ->
