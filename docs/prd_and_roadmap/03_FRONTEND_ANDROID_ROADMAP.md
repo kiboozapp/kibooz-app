@@ -130,7 +130,7 @@ lifecycleScope.launch {
 | **17** | [StatistikSampahActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/wali/StatistikSampahActivity.kt) | `GET /api/v1/trash/stats` | Menampilkan rincian statistik pemilahan per kategori (Organik, Anorganik dan B3) beserta total poin dan sisa pindaian hari ini. |
 | **18** | [LeaderboardActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/wali/LeaderboardActivity.kt) | `GET /api/v1/leaderboard` | Mengisi data podium 3D juara 1-3 dan daftar peringkat siswa sekelas. |
 | **19** | [ProfilSiswaActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/wali/ProfilSiswaActivity.kt) | `GET /api/v1/wali/child/{id}` | Menampilkan identitas resmi anak, NISN, kelas, serta nama, email, nomor telepon, WhatsApp, dan alamat rumah wali. |
-| **20** | [ReviewScanMoodActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/ReviewScanMoodActivity.kt) | `POST /api/v1/guru/mood/batch` | Meninjau hasil scan multi-wajah, mengoreksi emosi, menambah catatan, dan menyimpan batch. |
+| **20** | [ReviewScanMoodActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/ReviewScanMoodActivity.kt) | `POST /api/v1/guru/mood/log/batch` | Meninjau hasil scan multi-wajah, mengonfirmasi hasil di bawah 75% (BR-04) atau mengoreksi emosi, menambah catatan, dan menyimpan batch per 30 siswa. Perubahan emosi dikirim sebagai `MANUAL_INPUT`, dan label Kalem dikirim sebagai `SENANG`. |
 
 ---
 
@@ -138,8 +138,8 @@ lifecycleScope.launch {
 
 - [x] **FE-01:** Konfigurasi Retrofit Network Client, OkHttp logging interceptor, dan AuthTokenInterceptor.
 - [ ] **FE-02:** Pembuatan Room Database (`KiboozDatabase`), Entity (`StudentEntity`, `MoodLogEntity`), dan DAO.
-- [ ] **FE-03:** Pembuatan `AuthRepository` dan penyimpanan sesi dengan Jetpack Preferences DataStore. Nilai token dienkripsi dengan kunci Android Keystore (DataStore tidak terenkripsi sendiri), file sesi dikeluarkan dari backup, dan pembaruan token penyegar dijalankan satu per satu.
-- [ ] **FE-04:** Refaktor `LoginActivity` ke `AuthViewModel`, penanganan pesan error jaringan, dan validasi form.
+- [x] **FE-03:** Pembuatan `AuthRepository` dan penyimpanan sesi dengan Jetpack Preferences DataStore. Nilai token dienkripsi dengan kunci Android Keystore (DataStore tidak terenkripsi sendiri), file sesi dikeluarkan dari backup, dan pembaruan token penyegar dijalankan satu per satu.
+- [x] **FE-04:** Refaktor `LoginActivity` ke `AuthViewModel`, penanganan pesan error jaringan, dan validasi form.
 - [ ] **FE-05:** Refaktor `DashboardWaliActivity` ke `WaliViewModel`, menghubungkan kartu mood dan poin nyata.
 - [ ] **FE-06:** Refaktor `DashboardGuruActivity` ke `GuruViewModel`, menghubungkan metrik kelas dinamis.
 - [ ] **FE-07:** Integrasi data dinamis pada grafik kustom `DonutMoodChart`, `WeeklyLineChart`, dan `MonthlyBarChart`.

@@ -122,6 +122,8 @@ class MoodAnalysisAnalyzer(
 }
 ```
 
+> **Catatan implementasi.** Contoh di atas hanya cetak biru untuk satu wajah. `MoodAnalysisAnalyzer` di aplikasi menganalisis sampai 10 wajah per frame dan memakai ID pelacakan ML Kit, sehingga setiap wajah punya label sendiri yang baru diterima setelah 3 frame berturut-turut dan bertahan 300 ms (`EmotionSmoother`). Ambang `setMinFaceSize` di aplikasi adalah 0,1 dan bukan 0,2 karena banyak anak dalam satu frame membuat tiap wajah lebih kecil. Angka ini belum diuji di perangkat. Wajah tidak dikenali: guru mengetuk kotak wajah untuk memasangkannya ke siswa dari daftar kelas (`GET /classes/{classId}/students`).
+
 ---
 
 ## 5. Penanganan Kondisi Khusus dan Kasus Ekstrem (*Edge Cases*)
@@ -129,7 +131,7 @@ class MoodAnalysisAnalyzer(
 | Skenario | Permasalahan | Solusi Sistem Kibooz |
 | :--- | :--- | :--- |
 | **Cahaya Rendah (Remang)** | Akurasi deteksi wajah menurun drastis. | Sistem mendeteksi rata-rata luminans di bawah ambang batas (Luma < 40) dan memunculkan tombol toggle lampu senter (*torch*) serta peringatan "Arahkan ke tempat terang". |
-| **Banyak Wajah di Kelas** | Kamera mendeteksi 5-10 wajah siswa sekaligus. | Algoritma memilih wajah dengan luas *bounding box* terbesar yang berada paling dekat dengan titik tengah viewfinder (*primary subject prioritization*). |
+| **Banyak Wajah di Kelas** | Kamera mendeteksi 5-10 wajah siswa sekaligus. | Semua wajah dianalisis (paling banyak 10 per frame, diambil dari kotak terbesar) dan dilacak dengan ID ML Kit. Guru memasangkan tiap kotak wajah ke siswa, satu siswa hanya untuk satu wajah. Pasangan bertahan 1,5 detik jika wajah hilang dari frame, dan dipindahkan ke ID baru jika kotaknya bertumpuk dengan wajah yang hilang. |
 | **Objek Bergerak Cepat** | Gambar blur menghasilkan prediksi acak. | Sistem menerapkan penyaringan kestabilan 3-frame berturut-turut (*temporal smoothing*). Hasil baru dikunci setelah prediksi konsisten selama minimal 300ms. |
 | **Klaim Sampah Palsu** | Siswa memindai foto sampah dari layar HP lain. | Menerapkan pengecekan kilau layar reflektif (*moire effect*) dan mewajibkan pergerakan objek selama 1 detik sebelum tombol klaim terbuka. |
 
@@ -137,11 +139,13 @@ class MoodAnalysisAnalyzer(
 
 ## 6. Rencana Kerja Tim AI/ML (Work Breakdown)
 
+**Status implementasi.** Alur kamera sudah lengkap sampai server, tetapi pengklasifikasinya masih contoh: `StubEmotionClassifier` menjawab "Senang 92%" untuk setiap wajah dan `StubTrashClassifier` menjawab "Anorganik 90%". Belum ada berkas `.tflite` di `app/src/main/assets/`. Karena itu kedua layar kamera hanya bisa dibuka di build debug (gerbang `BuildConfig.DEBUG`), supaya hasil contoh tidak tersimpan atau diklaim sebagai poin oleh pengguna sungguhan. Gerbang itu dihapus setelah ML-03 dan ML-06 selesai dan model terpasang. Nama berkas model sampah mengikuti dokumen ini (`kibooz_trash_classifier_v1.tflite`).
+
 - [ ] **ML-01:** Kurasi dataset emosi anak (ekspresi senang, sedih, bingung, marah) dengan variasi pencahayaan Asia Tenggara.
 - [ ] **ML-02:** Pelatihan model MobileNetV3 Emotion Classifier dengan transfer learning dan validasi akurasi minimal 88%.
 - [ ] **ML-03:** Kuantisasi model ke TFLite INT8 dan pengujian latensi di Android Studio Profiler (<70ms).
-- [ ] **ML-04:** Integrasi Google ML Kit Face Detection pada CameraX di [CameraScanMoodActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanMoodActivity.kt).
+- [x] **ML-04:** Integrasi Google ML Kit Face Detection pada CameraX di [CameraScanMoodActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanMoodActivity.kt).
 - [ ] **ML-05:** Kurasi dataset sampah sekolah (botol plastik, kotak susu, daun, sisa buah) dan pelatihan YOLOv8-nano.
 - [ ] **ML-06:** Ekspor dan kuantisasi model deteksi sampah ke format TFLite dengan metadata input/output terdefinisi.
 - [ ] **ML-07:** Integrasi deteksi sampah langsung dengan bounding box overlay di [CameraScanSampahActivity.kt](../../app/src/main/java/com/nthb/kibooz/ui/camera/CameraScanSampahActivity.kt).
-- [ ] **ML-08:** Pembuatan dialog konfirmasi manual saat akurasi prediksi berada di bawah 75%.
+- [x] **ML-08:** Pembuatan dialog konfirmasi manual saat akurasi prediksi berada di bawah 75%.
