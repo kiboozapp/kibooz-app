@@ -139,7 +139,7 @@ class MoodAnalysisAnalyzer(
 
 ## 6. Rencana Kerja Tim AI/ML (Work Breakdown)
 
-**Status implementasi.** Alur kamera sudah lengkap sampai server, tetapi pengklasifikasinya masih contoh: `StubEmotionClassifier` menjawab "Senang 92%" untuk setiap wajah dan `StubTrashClassifier` menjawab "Anorganik 90%". Belum ada berkas `.tflite` di `app/src/main/assets/`. Karena itu kedua layar kamera hanya bisa dibuka di build debug (gerbang `BuildConfig.DEBUG`), supaya hasil contoh tidak tersimpan atau diklaim sebagai poin oleh pengguna sungguhan. Gerbang itu dihapus setelah ML-03 dan ML-06 selesai dan model terpasang. Nama berkas model sampah mengikuti dokumen ini (`kibooz_trash_classifier_v1.tflite`).
+**Status implementasi.** Alur kamera sudah lengkap sampai server. Modelnya masih pengganti pra-latih (emosi: DeepFace dari NXP, sampah: EfficientNet-Lite0 ImageNet dengan pemetaan label), bukan model Kibooz hasil pelatihan sendiri. Sumber, lisensi, pemetaan, hasil uji dan keterbatasannya ada di [MODEL_PLACEHOLDERS.md](../MODEL_PLACEHOLDERS.md). Selama modelnya pengganti, kedua layar kamera menampilkan "Model contoh" dan hanya bisa dibuka di build debug atau build internal (`-Pkibooz.allowPlaceholderModels=true`), supaya hasil contoh tidak tersimpan atau diklaim sebagai poin oleh pengguna sungguhan. Gerbang itu terbuka sendiri saat berkas konfigurasi model sungguhan memakai `"placeholder": false`, setelah ML-03 dan ML-06 selesai. Nama berkas model sampah mengikuti dokumen ini (`kibooz_trash_classifier_v1.tflite`).
 
 - [ ] **ML-01:** Kurasi dataset emosi anak (ekspresi senang, sedih, bingung, marah) dengan variasi pencahayaan Asia Tenggara.
 - [ ] **ML-02:** Pelatihan model MobileNetV3 Emotion Classifier dengan transfer learning dan validasi akurasi minimal 88%.

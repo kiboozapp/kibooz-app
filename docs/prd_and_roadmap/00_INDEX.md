@@ -38,7 +38,7 @@ Fondasi antarmuka dan komponen dasar sudah siap di repositori utama:
 3. **Keterbatasan Saat Ini (Jarak Menuju 100%):**
    - Sebagian besar layar masih memakai data dummy statis di dalam activity. Yang sudah tersambung ke API adalah login dan sesi, pemindai mood (kelas, siswa, review, dan simpan batch) serta pemindai sampah (pilih anak dan klaim poin).
    - Server backend dan basis data sudah tersedia di repositori backend (`SyafaHadyan/kibooz-backend`). Yang tersisa adalah menghubungkan aplikasi ke API tersebut.
-   - Kamera mood dan sampah sudah memakai CameraX dan alur lengkap sampai server, tetapi pengklasifikasinya masih contoh (stub) karena model TFLite belum ada. Karena itu kedua layar hanya bisa dibuka di build debug.
+   - Kamera mood dan sampah sudah memakai CameraX dan alur lengkap sampai server, tetapi memakai model pra-latih pengganti (lihat [MODEL_PLACEHOLDERS.md](../MODEL_PLACEHOLDERS.md)) sampai model Kibooz sendiri selesai dilatih. Karena itu kedua layar hanya bisa dibuka di build debug atau build internal.
    - Belum ada caching Room. ViewModel dengan StateFlow baru dipakai di login dan alur kamera.
 
 ---
