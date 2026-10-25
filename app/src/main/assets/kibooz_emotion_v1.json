@@ -1,0 +1,16 @@
+{
+  "name": "deepface-emotion-imx (NXP), pengganti sementara",
+  "placeholder": true,
+  "colorMode": "GRAYSCALE",
+  "centerCrop": false,
+  "mean": 0,
+  "std": 255,
+  "softmax": false,
+  "labels": ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"],
+  "groups": {
+    "SENANG": ["happy", "neutral"],
+    "SEDIH": ["sad"],
+    "MARAH": ["angry", "disgust"],
+    "BINGUNG": ["fear", "surprise"]
+  }
+}

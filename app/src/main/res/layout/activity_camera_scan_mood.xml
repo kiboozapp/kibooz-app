@@ -89,6 +89,25 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
+        <!-- Penanda model pengganti, tampil selama modelnya masih contoh -->
+        <TextView
+            android:id="@+id/tvModelContoh"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="52dp"
+            android:background="#CCF57C00"
+            android:fontFamily="@font/baloo2"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:text="@string/model_contoh_banner"
+            android:textColor="@color/kibooz_white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Center AI Guidance Notice -->
         <TextView
             android:layout_width="wrap_content"

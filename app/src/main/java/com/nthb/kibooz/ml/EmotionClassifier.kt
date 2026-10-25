@@ -16,5 +16,8 @@ data class EmotionResult(val emotion: Emotion, val confidence: Float)
 interface EmotionClassifier : AutoCloseable {
     fun classify(face: Bitmap): EmotionResult
 
+    /** True selama modelnya pengganti sementara (lihat [ModelConfig.placeholder]). Pengganti selalu dianggap contoh. */
+    val isPlaceholder: Boolean get() = true
+
     override fun close() {}
 }
