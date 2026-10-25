@@ -36,10 +36,10 @@ Fondasi antarmuka dan komponen dasar sudah siap di repositori utama:
    - Palet warna konsisten (`#5D40B3`, `#FD9C27`, `#724AE2`, `#EFEBFF`).
    - Penanganan bilah status dan navigasi modern memakai helper [InsetsUtil.kt](../../app/src/main/java/com/nthb/kibooz/util/InsetsUtil.kt).
 3. **Keterbatasan Saat Ini (Jarak Menuju 100%):**
-   - Data masih berupa dummy statis di dalam activity.
+   - Sebagian besar layar masih memakai data dummy statis di dalam activity. Yang sudah tersambung ke API adalah login dan sesi, pemindai mood (kelas, siswa, review, dan simpan batch) serta pemindai sampah (pilih anak dan klaim poin).
    - Server backend dan basis data sudah tersedia di repositori backend (`SyafaHadyan/kibooz-backend`). Yang tersisa adalah menghubungkan aplikasi ke API tersebut.
-   - Viewfinder kamera baru menampilkan grafis overlay tanpa inferensi model machine learning.
-   - Belum ada caching Room dan manajemen state MVVM formal.
+   - Kamera mood dan sampah sudah memakai CameraX dan alur lengkap sampai server, tetapi pengklasifikasinya masih contoh (stub) karena model TFLite belum ada. Karena itu kedua layar hanya bisa dibuka di build debug.
+   - Belum ada caching Room. ViewModel dengan StateFlow baru dipakai di login dan alur kamera.
 
 ---
 
