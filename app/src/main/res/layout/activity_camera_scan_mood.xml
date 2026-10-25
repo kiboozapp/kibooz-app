@@ -170,7 +170,7 @@
             android:fontFamily="@font/baloo2"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="Tinjau Hasil Scan (2 Siswa)"
+            android:text="@string/mood_tinjau_kosong"
             android:textAllCaps="false"
             android:textColor="@color/kibooz_white"
             android:textSize="15sp"

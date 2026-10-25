@@ -211,7 +211,18 @@ class CameraScanMoodActivity : AppCompatActivity() {
         render()
     }
 
+    /** Jumlah di tombol adalah siswa yang sudah dipasangkan ke wajah dan labelnya sudah diterima. */
+    private fun updateReviewButton() {
+        val count = session.results().size
+        binding.btnCaptureMood.text = if (count == 0) {
+            getString(R.string.mood_tinjau_kosong)
+        } else {
+            getString(R.string.mood_tinjau, count)
+        }
+    }
+
     private fun render() {
+        updateReviewButton()
         val frame = lastFrame ?: return
 
         binding.faceOverlay.setFaces(
