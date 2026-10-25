@@ -59,6 +59,31 @@
         app:layout_constraintBottom_toTopOf="@+id/clBottomControls"
         app:layout_constraintTop_toBottomOf="@+id/clTopOverlay">
 
+        <androidx.camera.view.PreviewView
+            android:id="@+id/previewView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:scaleType="fillCenter" />
+
+        <!-- Low Light Warning -->
+        <TextView
+            android:id="@+id/tvLowLight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:background="#CCE53935"
+            android:fontFamily="@font/baloo2"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="6dp"
+            android:text="@string/mood_cahaya_rendah"
+            android:textColor="@color/kibooz_white"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <!-- Center Scanning Viewfinder Frame -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/clTargetFrame"
@@ -72,15 +97,18 @@
 
             <!-- Detection Result Badge Inside Reticle -->
             <LinearLayout
+                android:id="@+id/llDeteksi"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="#D9C62828"
                 android:gravity="center"
                 android:orientation="vertical"
                 android:padding="10dp"
+                android:visibility="gone"
                 app:layout_constraintTop_toTopOf="parent">
 
                 <TextView
+                    android:id="@+id/tvKategori"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/baloo2"
@@ -90,10 +118,11 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvDetail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/baloo2"
-                    android:text="Botol Plastik Bekas • Akurasi 98.2%"
+                    android:text="Akurasi"
                     android:textColor="#FFEBEE"
                     android:textSize="12sp" />
 
@@ -103,6 +132,7 @@
 
         <!-- Instructions under viewfinder -->
         <TextView
+            android:id="@+id/tvPetunjuk"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
@@ -110,7 +140,7 @@
             android:fontFamily="@font/baloo2"
             android:paddingHorizontal="16dp"
             android:paddingVertical="6dp"
-            android:text="Arahkan ke tong sampah Anorganik (Merah)"
+            android:text="@string/sampah_mencari"
             android:textColor="@color/kibooz_white"
             android:textSize="13sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -147,6 +177,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            android:visibility="gone"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
@@ -157,11 +188,12 @@
                 android:src="@drawable/ic_flame" />
 
             <TextView
+                android:id="@+id/tvPoin"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:fontFamily="@font/baloo2"
-                android:text="+5 Poin Siap Diklaim!"
+                android:text="@string/sampah_poin_siap"
                 android:textColor="#F67E02"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -177,7 +209,7 @@
             android:fontFamily="@font/baloo2"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="Klaim +5 Poin &amp; Buang Sampah"
+            android:text="@string/sampah_klaim_tombol"
             android:textAllCaps="false"
             android:textColor="@color/kibooz_white"
             android:textSize="15sp"
