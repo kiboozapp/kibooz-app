@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import okhttp3.Headers.Companion.headersOf
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.After
@@ -53,12 +54,20 @@ class ReviewMoodViewModelTest {
     private lateinit var api: FakeMoodApi
     private lateinit var viewModel: ReviewMoodViewModel
     private val classId = "class-1"
+    private val pauses = mutableListOf<Long>()
+    private val ticks = mutableListOf<Int?>()
 
     @Before
     fun setUp() {
         Dispatchers.setMain(Dispatchers.Unconfined)
         api = FakeMoodApi()
-        viewModel = ReviewMoodViewModel(MoodRepository(api, moshi))
+        viewModel = ReviewMoodViewModel(
+            MoodRepository(api, moshi),
+            pause = { millis ->
+                pauses += millis
+                ticks += viewModel.state.value.retryInSeconds
+            }
+        )
     }
 
     @After
@@ -79,6 +88,20 @@ class ReviewMoodViewModelTest {
     }
 
     private val offline = { throw IOException("offline") }
+
+    private fun rateLimited(retryAfter: String? = null) = {
+        val raw = okhttp3.Response.Builder()
+            .request(okhttp3.Request.Builder().url("http://localhost/").build())
+            .protocol(okhttp3.Protocol.HTTP_1_1)
+            .code(429)
+            .message("Too Many Requests")
+            .headers(if (retryAfter == null) headersOf() else headersOf("Retry-After", retryAfter))
+            .build()
+        Response.error<ApiEnvelope<LogMoodBatchData>>(
+            """{"success":false,"message":"x","errorCode":"RATE_LIMITED"}""".toResponseBody("application/json".toMediaType()),
+            raw
+        )
+    }
 
     @Test
     fun `saves a class in one batch and reports the count`() {
@@ -194,8 +217,8 @@ class ReviewMoodViewModelTest {
     }
 
     @Test
-    fun `a rate limit shows the rate limit message and keeps the list`() {
-        api.replies += failure(429, "RATE_LIMITED")
+    fun `a rate limit that cannot be waited for shows the message and no limit names`() {
+        api.replies += rateLimited("600")
 
         viewModel.save(classId, rows(2))
 
@@ -211,5 +234,53 @@ class ReviewMoodViewModelTest {
         viewModel.errorShown()
 
         assertNull(viewModel.state.value.error)
+    }
+
+    @Test
+    fun `a rate limit waits for Retry-After and resends with the same key`() {
+        api.replies += rateLimited("2")
+
+        viewModel.save(classId, rows(2))
+
+        assertEquals(2, api.calls.size)
+        assertEquals(api.calls[0].key, api.calls[1].key)
+        assertEquals(listOf(1000L, 1000L), pauses)
+        assertEquals(listOf<Int?>(2, 1), ticks)
+        assertEquals(2, viewModel.state.value.savedCount)
+        assertNull(viewModel.state.value.retryInSeconds)
+        assertNull(viewModel.state.value.error)
+    }
+
+    @Test
+    fun `without Retry-After it waits 30 seconds first`() {
+        api.replies += rateLimited()
+
+        viewModel.save(classId, rows(1))
+
+        assertEquals(30, pauses.size)
+        assertEquals(1, viewModel.state.value.savedCount)
+    }
+
+    @Test
+    fun `after three automatic retries it stops and shows the rate limit message`() {
+        repeat(4) { api.replies += rateLimited("1") }
+
+        viewModel.save(classId, rows(1))
+
+        assertEquals(4, api.calls.size)
+        assertEquals(R.string.error_rate_limited, viewModel.state.value.error)
+        assertNull(viewModel.state.value.retryInSeconds)
+        assertFalse(viewModel.state.value.saving)
+    }
+
+    @Test
+    fun `a very long Retry-After is not waited for`() {
+        api.replies += rateLimited("600")
+
+        viewModel.save(classId, rows(1))
+
+        assertEquals(1, api.calls.size)
+        assertTrue(pauses.isEmpty())
+        assertEquals(R.string.error_rate_limited, viewModel.state.value.error)
     }
 }

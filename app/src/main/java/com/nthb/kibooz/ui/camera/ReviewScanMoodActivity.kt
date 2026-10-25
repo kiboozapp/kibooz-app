@@ -33,6 +33,7 @@ class ReviewScanMoodActivity : AppCompatActivity() {
     private val classId: String? get() = intent.getStringExtra(EXTRA_CLASS_ID)
 
     private var saving = false
+    private var retryInSeconds: Int? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,6 +113,7 @@ class ReviewScanMoodActivity : AppCompatActivity() {
         val unconfirmed = studentList.count { it.needsConfirmation() }
         binding.tvTotalDetected.text = "$total Siswa Siap Disimpan"
         binding.btnConfirmAll.text = when {
+            retryInSeconds != null -> getString(R.string.batas_laju_menunggu, retryInSeconds)
             saving -> getString(R.string.review_menyimpan)
             unconfirmed > 0 -> getString(R.string.review_konfirmasi_dulu, unconfirmed)
             else -> getString(R.string.review_simpan, total)
@@ -172,6 +174,7 @@ class ReviewScanMoodActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
                     saving = state.saving
+                    retryInSeconds = state.retryInSeconds
                     updateSummaryStats()
 
                     state.savedCount?.let { count -> onSaved(count) }

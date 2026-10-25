@@ -8,9 +8,11 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.LogMoodBatchEntry
 import com.nthb.kibooz.data.remote.errorMessageRes
+import com.nthb.kibooz.data.remote.retryWhenRateLimited
 import com.nthb.kibooz.data.repository.MoodRepository
 import com.nthb.kibooz.data.repository.PendingMoodBatch
 import com.nthb.kibooz.model.ScannedStudentMood
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -18,6 +20,8 @@ import kotlinx.coroutines.launch
 
 data class ReviewSaveState(
     val saving: Boolean = false,
+    /** Sisa detik sebelum simpan dicoba ulang otomatis setelah terkena batas laju (429), null jika tidak menunggu. */
+    val retryInSeconds: Int? = null,
     /** Terisi setelah semua siswa tersimpan, berisi jumlahnya. */
     val savedCount: Int? = null,
     @StringRes val error: Int? = null,
@@ -26,12 +30,16 @@ data class ReviewSaveState(
 )
 
 /**
- * Menyimpan hasil review lewat [MoodRepository], dibagi per 30 entri. Setiap kelompok entri yang sama
+ * Menyimpan hasil review lewat [MoodRepository], dibagi per 30 entri. Terkena batas laju (429) menunggu sesuai
+ * `Retry-After` lalu mengirim ulang otomatis dengan kunci yang sama. Setiap kelompok entri yang sama
  * memakai [PendingMoodBatch] yang sama, jadi tombol coba lagi memakai `Idempotency-Key` yang sama dan tidak
  * menyimpan dua kali. Kelompok yang sudah tersimpan tidak dikirim lagi, dan entri yang diubah guru setelah
  * gagal mendapat kunci baru.
  */
-class ReviewMoodViewModel(private val repository: MoodRepository) : ViewModel() {
+class ReviewMoodViewModel(
+    private val repository: MoodRepository,
+    private val pause: suspend (millis: Long) -> Unit = { delay(it) }
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ReviewSaveState())
     val state: StateFlow<ReviewSaveState> = _state.asStateFlow()
@@ -60,7 +68,12 @@ class ReviewMoodViewModel(private val repository: MoodRepository) : ViewModel() 
             for (chunk in entries.filter { it !in saved }.chunked(MoodRepository.MAX_BATCH_ENTRIES)) {
                 val batch = pending.getOrPut(classId to chunk) { PendingMoodBatch(classId, chunk) }
 
-                when (val result = repository.saveBatch(batch)) {
+                val result = retryWhenRateLimited(
+                    onWait = { left -> _state.value = ReviewSaveState(saving = true, retryInSeconds = left.takeIf { it > 0 }) },
+                    pause = pause
+                ) { repository.saveBatch(batch) }
+
+                when (result) {
                     is ApiResult.Success -> {
                         saved += chunk
                         pending.remove(classId to chunk)

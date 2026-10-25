@@ -9,12 +9,14 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ChildSummary
 import com.nthb.kibooz.data.remote.ScanClaimData
 import com.nthb.kibooz.data.remote.errorMessageRes
+import com.nthb.kibooz.data.remote.retryWhenRateLimited
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.PendingTrashClaim
 import com.nthb.kibooz.data.repository.TrashRepository
 import com.nthb.kibooz.ml.TrashCategory
 import com.nthb.kibooz.ml.TrashResult
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +33,8 @@ data class TrashScanState(
     /** Keyakinan di bawah 75%: pengguna harus memilih organik atau anorganik sendiri. */
     val askCategory: Boolean = false,
     val claiming: Boolean = false,
+    /** Sisa detik sebelum klaim dicoba ulang otomatis setelah terkena batas laju (429), null jika tidak menunggu. */
+    val retryInSeconds: Int? = null,
     /** Hasil klaim yang berhasil, dipakai untuk kartu poin. Poinnya dari server, bukan dihitung di aplikasi. */
     val claimed: ScanClaimData? = null,
     @StringRes val error: Int? = null,
@@ -40,13 +44,15 @@ data class TrashScanState(
 
 /**
  * Alur satu layar pemindai sampah: menentukan anak, menerima hasil kamera, meminta pilihan manual di bawah 75%
- * (BR-04) lalu mengirim klaim lewat [TrashRepository]. Klaim yang gagal karena jaringan atau server sibuk dikirim
+ * (BR-04) lalu mengirim klaim lewat [TrashRepository]. Terkena batas laju (429) menunggu sesuai `Retry-After`
+ * lalu mengirim ulang otomatis. Klaim yang gagal karena jaringan atau server sibuk dikirim
  * ulang dengan [PendingTrashClaim] dan `Idempotency-Key` yang sama, jadi klaim yang sebenarnya sudah masuk tidak
  * terhitung dua kali. Tidak ada foto yang dikirim.
  */
 class TrashScanViewModel(
     private val classRepository: ClassRepository,
-    private val trashRepository: TrashRepository
+    private val trashRepository: TrashRepository,
+    private val pause: suspend (millis: Long) -> Unit = { delay(it) }
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(TrashScanState())
@@ -143,22 +149,29 @@ class TrashScanViewModel(
         _state.value = _state.value.copy(claiming = true, error = null, canRetry = false)
 
         viewModelScope.launch {
-            when (val result = trashRepository.claim(claim)) {
+            val result = retryWhenRateLimited(
+                onWait = { left -> _state.value = _state.value.copy(claiming = true, retryInSeconds = left.takeIf { it > 0 }) },
+                pause = pause
+            ) { trashRepository.claim(claim) }
+
+            when (result) {
                 is ApiResult.Success -> {
                     pending = null
-                    _state.value = _state.value.copy(claiming = false, claimed = result.data)
+                    _state.value = _state.value.copy(claiming = false, retryInSeconds = null, claimed = result.data)
                 }
                 is ApiResult.Failure -> {
                     val retryable = result.isRetryable()
                     if (!retryable) pending = null
                     _state.value = _state.value.copy(
                         claiming = false,
+                        retryInSeconds = null,
                         error = result.errorMessageRes(),
                         canRetry = retryable
                     )
                 }
                 is ApiResult.NetworkError -> _state.value = _state.value.copy(
                     claiming = false,
+                    retryInSeconds = null,
                     error = result.errorMessageRes(),
                     canRetry = true
                 )
