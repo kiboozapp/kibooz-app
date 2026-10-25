@@ -1,7 +1,6 @@
 package com.nthb.kibooz.ml
 
 import android.graphics.Bitmap
-import android.graphics.Matrix
 import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
@@ -103,7 +102,7 @@ class MoodAnalysisAnalyzer(
     }
 
     private fun classify(imageProxy: ImageProxy, rotation: Int, faces: List<Face>): List<TrackedFace> {
-        val frame = uprightBitmap(imageProxy, rotation)
+        val frame = imageProxy.toUprightBitmap(rotation)
 
         try {
             return faces.mapNotNull { classifyFace(frame, it) }
@@ -131,18 +130,6 @@ class MoodAnalysisAnalyzer(
         }
 
         return TrackedFace(trackingId, box, smoother.update(trackingId, result, nowMillis()))
-    }
-
-    // ImageProxy.toBitmap tidak memutar gambar, sedangkan kotak wajah ML Kit sudah dalam arah tegak
-    private fun uprightBitmap(imageProxy: ImageProxy, rotation: Int): Bitmap {
-        val bitmap = imageProxy.toBitmap()
-        if (rotation == 0) return bitmap
-
-        val matrix = Matrix().apply { postRotate(rotation.toFloat()) }
-        val rotated = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        if (rotated !== bitmap) bitmap.recycle()
-
-        return rotated
     }
 
     companion object {
