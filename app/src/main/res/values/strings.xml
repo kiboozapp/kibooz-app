@@ -94,6 +94,10 @@
     <string name="kelas_kosong">Anda belum mengajar kelas mana pun</string>
     <string name="siswa_memuat">Daftar siswa masih dimuat, coba lagi sebentar</string>
     <string name="siswa_kelas_kosong">Kelas ini belum punya siswa</string>
+    <string name="sapaan_pagi">Selamat Pagi</string>
+    <string name="sapaan_siang">Selamat Siang</string>
+    <string name="sapaan_sore">Selamat Sore</string>
+    <string name="sapaan_malam">Selamat Malam</string>
     <!-- Aturan isian, dipakai FormRules.kt. Angka batas mengikuti openapi.yaml backend -->
     <string name="form_email_kosong">Email tidak boleh kosong</string>
     <string name="form_email_tidak_valid">Format email belum benar</string>
