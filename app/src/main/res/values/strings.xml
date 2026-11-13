@@ -98,6 +98,12 @@
     <string name="sapaan_siang">Selamat Siang</string>
     <string name="sapaan_sore">Selamat Sore</string>
     <string name="sapaan_malam">Selamat Malam</string>
+    <string name="dashboard_tanpa_data">–</string>
+    <string name="dashboard_total_siswa">🎯 %1$d</string>
+    <string name="dashboard_kehadiran">✅ %1$d%%</string>
+    <string name="dashboard_mood_belum_ada">Belum ada</string>
+    <string name="dashboard_legenda">%1$s (%2$d)</string>
+    <string name="dashboard_mood_tercatat">Mood tercatat: %1$d dari %2$d siswa</string>
     <!-- Aturan isian, dipakai FormRules.kt. Angka batas mengikuti openapi.yaml backend -->
     <string name="form_email_kosong">Email tidak boleh kosong</string>
     <string name="form_email_tidak_valid">Format email belum benar</string>

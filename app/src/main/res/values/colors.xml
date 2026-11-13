@@ -29,6 +29,7 @@
     <color name="mood_kalem">#4CAF50</color>
     <color name="mood_bingung">#FF9800</color>
     <color name="mood_marah">#E53935</color>
+    <color name="mood_sedih">#5856D6</color>
     <color name="kibooz_mood_happy">#FFC107</color>
     <color name="kibooz_mood_kalem">#4CAF50</color>
     <color name="kibooz_mood_bingung">#FF9800</color>

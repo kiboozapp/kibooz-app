@@ -91,7 +91,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/img_avatar_guru"
-                        android:contentDescription="Foto Ibu Siti Rahayu" />
+                        android:contentDescription="Foto Guru" />
 
                 </androidx.cardview.widget.CardView>
 
@@ -106,18 +106,22 @@
                     app:layout_constraintTop_toTopOf="@+id/cvAvatar">
 
                     <TextView
+                        android:id="@+id/tvGreeting"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/baloo2"
-                        android:text="Selamat Pagi"
+                        android:text="@string/sapaan_pagi"
                         android:textColor="#E5DEFF"
                         android:textSize="13sp" />
 
                     <TextView
+                        android:id="@+id/tvTeacherName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:ellipsize="end"
                         android:fontFamily="@font/baloo2"
-                        android:text="Ibu Siti Rahayu"
+                        android:maxLines="1"
+                        android:text=""
                         android:textColor="@color/kibooz_white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -129,7 +133,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/baloo2"
-                    android:text="Senin, 22 Mei 2025"
+                    android:text=""
                     android:textColor="#E5DEFF"
                     android:textSize="12sp"
                     app:layout_constraintBottom_toBottomOf="@+id/cvAvatar"
@@ -172,11 +176,12 @@
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvTotalSiswa"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🎯 20"
+                            android:text="@string/dashboard_tanpa_data"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -200,16 +205,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Rata² Happy"
+                            android:text="Kehadiran"
                             android:textColor="@color/kibooz_text_secondary"
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvKehadiran"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="😄 80%"
+                            android:text="@string/dashboard_tanpa_data"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -233,16 +239,17 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Sampah terScan"
+                            android:text="Mood Dominan"
                             android:textColor="@color/kibooz_text_secondary"
                             android:textSize="12sp" />
 
                         <TextView
+                            android:id="@+id/tvMoodDominan"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="♻️ 389"
+                            android:text="@string/dashboard_tanpa_data"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -252,6 +259,52 @@
                 </LinearLayout>
 
             </androidx.cardview.widget.CardView>
+
+            <!-- Status memuat dan galat, dengan tombol coba lagi -->
+            <LinearLayout
+                android:id="@+id/llStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <ProgressBar
+                    android:id="@+id/pbLoading"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:indeterminateTint="@color/kibooz_primary_purple" />
+
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/baloo2"
+                    android:textColor="@color/kibooz_red_danger"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/btnRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:background="@drawable/bg_tag_lavender"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/baloo2"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:text="@string/review_coba_lagi"
+                    android:textColor="@color/kibooz_primary_purple"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
 
             <!-- Card: Mood Kelas Hari Ini -->
             <androidx.cardview.widget.CardView
@@ -354,11 +407,12 @@
                                     android:backgroundTint="@color/mood_happy" />
 
                                 <TextView
+                                    android:id="@+id/tvLegendSenang"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:fontFamily="@font/baloo2"
-                                    android:text="Happy"
+                                    android:text="Senang"
                                     android:textColor="@color/kibooz_text_primary"
                                     android:textSize="13sp" />
 
@@ -379,6 +433,7 @@
                                     android:backgroundTint="@color/mood_bingung" />
 
                                 <TextView
+                                    android:id="@+id/tvLegendBingung"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
@@ -401,14 +456,15 @@
                                     android:layout_width="12dp"
                                     android:layout_height="12dp"
                                     android:background="@drawable/bg_dot_active"
-                                    android:backgroundTint="@color/mood_kalem" />
+                                    android:backgroundTint="@color/mood_sedih" />
 
                                 <TextView
+                                    android:id="@+id/tvLegendSedih"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:fontFamily="@font/baloo2"
-                                    android:text="Kalem"
+                                    android:text="Sedih"
                                     android:textColor="@color/kibooz_text_primary"
                                     android:textSize="13sp" />
 
@@ -429,6 +485,7 @@
                                     android:backgroundTint="@color/mood_marah" />
 
                                 <TextView
+                                    android:id="@+id/tvLegendMarah"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
@@ -445,12 +502,13 @@
 
                     <!-- Subtext -->
                     <TextView
+                        android:id="@+id/tvMoodTercatat"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="end"
                         android:layout_marginTop="12dp"
                         android:fontFamily="@font/baloo2"
-                        android:text="Terakhir scan : 09.00 WIB hari ini"
+                        android:text=""
                         android:textColor="@color/kibooz_text_muted"
                         android:textSize="11sp" />
 

@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import androidx.annotation.ColorInt
 
 /**
  * DonutMoodChartView - Custom Donut Chart untuk memvisualisasikan 4 kategori mood
@@ -74,16 +75,27 @@ class DonutMoodChartView @JvmOverloads constructor(
         var startAngle = -90f
 
         // Draw each arc
-        canvas.drawArc(rectF, startAngle, happyAngle, false, paintHappy)
+        drawSegment(canvas, startAngle, happyAngle, paintHappy)
         startAngle += happyAngle
 
-        canvas.drawArc(rectF, startAngle, bingungAngle, false, paintBingung)
+        drawSegment(canvas, startAngle, bingungAngle, paintBingung)
         startAngle += bingungAngle
 
-        canvas.drawArc(rectF, startAngle, kalemAngle, false, paintKalem)
+        drawSegment(canvas, startAngle, kalemAngle, paintKalem)
         startAngle += kalemAngle
 
-        canvas.drawArc(rectF, startAngle, marahAngle, false, paintMarah)
+        drawSegment(canvas, startAngle, marahAngle, paintMarah)
+    }
+
+    /** Busur tanpa sudut dilewati, karena ujung bulat membuatnya tergambar sebagai titik. */
+    private fun drawSegment(canvas: Canvas, startAngle: Float, sweep: Float, paint: Paint) {
+        if (sweep > 0f) canvas.drawArc(rectF, startAngle, sweep, false, paint)
+    }
+
+    /** Mengganti warna segmen ketiga, hijau (Kalem) secara bawaan. Dasbor Guru memakainya untuk Sedih. */
+    fun setThirdSegmentColor(@ColorInt color: Int) {
+        paintKalem.color = color
+        invalidate()
     }
 
     fun updateData(happy: Float, bingung: Float, kalem: Float, marah: Float) {
