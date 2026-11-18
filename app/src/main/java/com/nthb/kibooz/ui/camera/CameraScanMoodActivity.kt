@@ -211,7 +211,18 @@ class CameraScanMoodActivity : AppCompatActivity() {
         render()
     }
 
+    /** Jumlah di tombol adalah siswa yang sudah dipasangkan ke wajah dan labelnya sudah diterima. */
+    private fun updateReviewButton() {
+        val count = session.results().size
+        binding.btnCaptureMood.text = if (count == 0) {
+            getString(R.string.mood_tinjau_kosong)
+        } else {
+            getString(R.string.mood_tinjau, count)
+        }
+    }
+
     private fun render() {
+        updateReviewButton()
         val frame = lastFrame ?: return
 
         binding.faceOverlay.setFaces(
@@ -324,24 +335,35 @@ class CameraScanMoodActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            val intent = Intent(this, ReviewScanMoodActivity::class.java)
+            // Hasil hanya ada untuk wajah yang sudah dipasangkan ke siswa dan labelnya sudah diterima. Tanpa itu
+            // layar review kosong, jadi beri tahu apa yang harus dilakukan dan tetap di kamera
             val results = session.results()
-            if (results.isNotEmpty()) {
-                val scannedList = ArrayList(results.map { mood ->
-                    ScannedStudentMood(
-                        id = mood.student.id,
-                        studentName = mood.student.name,
-                        avatarRes = R.drawable.img_avatar_siswa,
-                        currentMood = mood.emotion.emotion.name,
-                        confidenceScore = mood.emotion.confidence,
-                        teacherNotes = "",
-                        isConfirmed = mood.confirmed,
-                        source = mood.source
-                    )
-                })
-                intent.putExtra(ReviewScanMoodActivity.EXTRA_STUDENTS, scannedList)
-                intent.putExtra(ReviewScanMoodActivity.EXTRA_CLASS_ID, classId)
+            if (results.isEmpty()) {
+                val state = viewModel.state.value
+                val message = if (!state.loading && state.error == null && state.students.isEmpty()) {
+                    R.string.siswa_kelas_kosong
+                } else {
+                    R.string.mood_belum_ada_hasil
+                }
+                Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                return@setOnClickListener
             }
+
+            val scannedList = ArrayList(results.map { mood ->
+                ScannedStudentMood(
+                    id = mood.student.id,
+                    studentName = mood.student.name,
+                    avatarRes = R.drawable.img_avatar_siswa,
+                    currentMood = mood.emotion.emotion.name,
+                    confidenceScore = mood.emotion.confidence,
+                    teacherNotes = "",
+                    isConfirmed = mood.confirmed,
+                    source = mood.source
+                )
+            })
+            val intent = Intent(this, ReviewScanMoodActivity::class.java)
+                .putExtra(ReviewScanMoodActivity.EXTRA_STUDENTS, scannedList)
+                .putExtra(ReviewScanMoodActivity.EXTRA_CLASS_ID, classId)
             startActivity(intent)
             finish()
         }
