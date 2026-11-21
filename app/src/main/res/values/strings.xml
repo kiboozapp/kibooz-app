@@ -84,8 +84,7 @@
     <string name="sampah_pilih_anak_judul">Siapa yang membuang sampah?</string>
     <string name="sampah_anak_belum_dipilih">Pilih dulu anak yang membuang sampah</string>
     <string name="sampah_belum_terdeteksi">Belum ada sampah yang terdeteksi, arahkan kamera dan tunggu sebentar</string>
-    <string name="sampah_manual_judul">Aplikasi kurang yakin</string>
-    <string name="sampah_manual_pesan">Pilih jenis sampah yang benar</string>
+    <string name="sampah_manual_judul">Aplikasi kurang yakin, pilih jenis sampahnya</string>
     <string name="sampah_organik">Organik</string>
     <string name="sampah_anorganik">Anorganik</string>
     <string name="profil_ubah_belum_tersedia">Pengubahan profil belum tersedia di versi ini</string>
@@ -220,4 +219,9 @@
     <string name="sampah_banner_judul">%1$d poin semester ini</string>
     <string name="sampah_banner_isi">%1$s sudah memilah %2$d sampah, total %3$d poin dan peringkat #%4$d di kelas. Sisa scan hari ini %5$d dari %6$d.</string>
     <string name="sampah_banner_isi_tanpa_peringkat">%1$s sudah memilah %2$d sampah, total %3$d poin. Sisa scan hari ini %4$d dari %5$d.</string>
+    <string name="sampah_pilihan_b3">B3 (berbahaya, misalnya baterai)</string>
+    <string name="review_tambah_memuat">Daftar siswa masih dimuat, coba lagi sebentar</string>
+    <string name="review_tambah_semua_ada">Semua siswa kelas ini sudah ada di daftar</string>
+    <string name="review_tambah_pilih_mood">Mood %1$s hari ini</string>
+    <string name="review_tambah_berhasil">%1$s ditambahkan</string>
 </resources>

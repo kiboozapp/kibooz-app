@@ -133,7 +133,7 @@ class MoodAnalysisAnalyzer(
 | **Cahaya Rendah (Remang)** | Akurasi deteksi wajah menurun drastis. | Sistem mendeteksi rata-rata luminans di bawah ambang batas (Luma < 40) dan memunculkan tombol toggle lampu senter (*torch*) serta peringatan "Arahkan ke tempat terang". |
 | **Banyak Wajah di Kelas** | Kamera mendeteksi 5-10 wajah siswa sekaligus. | Semua wajah dianalisis (paling banyak 10 per frame, diambil dari kotak terbesar) dan dilacak dengan ID ML Kit. Guru memasangkan tiap kotak wajah ke siswa, satu siswa hanya untuk satu wajah. Pasangan bertahan 1,5 detik jika wajah hilang dari frame, dan dipindahkan ke ID baru jika kotaknya bertumpuk dengan wajah yang hilang. |
 | **Objek Bergerak Cepat** | Gambar blur menghasilkan prediksi acak. | Sistem menerapkan penyaringan kestabilan 3-frame berturut-turut (*temporal smoothing*). Hasil baru dikunci setelah prediksi konsisten selama minimal 300ms. |
-| **Klaim Sampah Palsu** | Siswa memindai foto sampah dari layar HP lain. | Menerapkan pengecekan kilau layar reflektif (*moire effect*) dan mewajibkan pergerakan objek selama 1 detik sebelum tombol klaim terbuka. |
+| **Klaim Sampah Palsu** | Siswa memindai foto sampah dari layar HP lain. | Rencana: pengecekan kilau layar reflektif (*moire effect*) dan pergerakan objek selama 1 detik sebelum tombol klaim terbuka. **Belum diterapkan di v1.** Perlindungan yang ada saat ini hanya akses khusus Wali dan batas 5 klaim per anak per hari. |
 
 ---
 

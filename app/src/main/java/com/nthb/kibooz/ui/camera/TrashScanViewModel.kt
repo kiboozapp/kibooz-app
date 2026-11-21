@@ -22,6 +22,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+/**
+ * Pilihan manual di bawah 75%, urut seperti di dialog. B3 ikut supaya barang berbahaya yang terbaca ragu tidak
+ * tercatat sebagai organik atau anorganik. B3 tetap tidak diberi poin oleh server.
+ */
+val MANUAL_TRASH_CHOICES = listOf(TrashCategory.ORGANIK, TrashCategory.ANORGANIK, TrashCategory.B3)
+
 data class TrashScanState(
     val loadingChildren: Boolean = true,
     /** Anak yang membuang sampah. Null selama belum diketahui atau belum dipilih. */
@@ -30,7 +36,7 @@ data class TrashScanState(
     val childChoices: List<ChildSummary> = emptyList(),
     /** Hasil terakhir dari kamera yang sudah stabil, null jika belum ada. */
     val detected: TrashResult? = null,
-    /** Keyakinan di bawah 75%: pengguna harus memilih organik atau anorganik sendiri. */
+    /** Keyakinan di bawah 75%: pengguna harus memilih sendiri salah satu dari [MANUAL_TRASH_CHOICES]. */
     val askCategory: Boolean = false,
     val claiming: Boolean = false,
     /** Sisa detik sebelum klaim dicoba ulang otomatis setelah terkena batas laju (429), null jika tidak menunggu. */

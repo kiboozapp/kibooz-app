@@ -242,6 +242,23 @@ class TrashScanViewModelTest {
     }
 
     @Test
+    fun `an unsure item can be marked as B3 by hand`() {
+        readyToClaim(TrashResult(TrashCategory.ANORGANIK, 0.46f))
+        viewModel.claim()
+        assertTrue(viewModel.state.value.askCategory)
+
+        viewModel.claimManual(TrashCategory.B3)
+
+        assertEquals(TrashCategory.B3, trashApi.claims.single().request.trashType)
+    }
+
+    @Test
+    fun `the manual choice offers all three categories`() {
+        assertEquals(TrashCategory.entries.toSet(), MANUAL_TRASH_CHOICES.toSet())
+        assertEquals(TrashCategory.B3, MANUAL_TRASH_CHOICES.last())
+    }
+
+    @Test
     fun `cancelling the manual choice sends nothing and closes the dialog`() {
         readyToClaim(TrashResult(TrashCategory.B3, 0.6f))
         viewModel.claim()

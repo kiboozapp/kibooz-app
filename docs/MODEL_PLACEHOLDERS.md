@@ -55,7 +55,7 @@ Hanya buah yang jelas yang diklaim otomatis. Benda lain jatuh ke dialog pilihan 
 - **Akurasi emosi sekitar 57%** pada FER2013, yaitu data wajah dewasa. Pada anak kecil hampir pasti lebih rendah dan belum diukur.
 - **Keyakinan emosi tidak terkalibrasi.** Model memberi "happy 0,996" bahkan pada gambar derau acak. Karena itu ambang 75% (BR-04) hampir tidak pernah menangkap kesalahannya, dan konfirmasi guru di layar review adalah satu-satunya pengaman nyata.
 - **Pengenalan sampah kasar.** Model ImageNet tidak dilatih untuk sampah. Kaleng, kertas dan banyak benda lain tidak dikenali, dan B3 praktis hanya muncul karena kebetulan.
-- **B3 tidak bisa dipilih manual.** Dialog di bawah 75% hanya menawarkan organik dan anorganik (sesuai rancangan), jadi barang berbahaya yang terbaca ragu akan tercatat salah.
+- **Hampir semua benda jatuh ke pilihan manual.** Di bawah 75% orang tua memilih sendiri organik, anorganik atau B3. Model pengganti jarang yakin pada benda selain buah, jadi pilihan manual inilah yang menentukan kategori sebagian besar klaim.
 - **Ketentuan data ImageNet** untuk penggunaan komersial belum diperiksa. Periksa dengan pihak hukum sebelum model ini dirilis ke publik. Pemeriksaan hukum soal inferensi emosi pada anak juga masih terbuka.
 - **Belum diuji di perangkat.** Pemuatan interpreter TFLite di Android hanya diuji lewat hitungan di JVM dan lewat padanannya di LiteRT. Jalankan layar kamera di ponsel sebelum percaya hasilnya.
 
