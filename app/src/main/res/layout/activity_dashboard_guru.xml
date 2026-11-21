@@ -109,7 +109,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/baloo2"
-                        android:text="Selamat Pagi"
+                        android:id="@+id/tvGreeting"
+                        android:text="Selamat datang"
                         android:textColor="#E5DEFF"
                         android:textSize="13sp" />
 
@@ -117,7 +118,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/baloo2"
-                        android:text="Ibu Siti Rahayu"
+                        android:id="@+id/tvTeacherName"
+                        android:text="…"
                         android:textColor="@color/kibooz_white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -129,7 +131,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/baloo2"
-                    android:text="Senin, 22 Mei 2025"
+                    android:text=""
                     android:textColor="#E5DEFF"
                     android:textSize="12sp"
                     app:layout_constraintBottom_toBottomOf="@+id/cvAvatar"
@@ -176,7 +178,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🎯 20"
+                            android:id="@+id/tvTotalSiswa"
+                            android:text="…"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -200,7 +203,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Rata² Happy"
+                            android:text="Senang hari ini"
                             android:textColor="@color/kibooz_text_secondary"
                             android:textSize="12sp" />
 
@@ -209,7 +212,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="😄 80%"
+                            android:id="@+id/tvSenangPct"
+                            android:text="…"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -233,7 +237,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Sampah terScan"
+                            android:text="Hadir hari ini"
                             android:textColor="@color/kibooz_text_secondary"
                             android:textSize="12sp" />
 
@@ -242,7 +246,8 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="♻️ 389"
+                            android:id="@+id/tvHadir"
+                            android:text="…"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
                             android:textStyle="bold" />
@@ -358,7 +363,8 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:fontFamily="@font/baloo2"
-                                    android:text="Happy"
+                                    android:id="@+id/tvLegendSenang"
+                                    android:text="Senang"
                                     android:textColor="@color/kibooz_text_primary"
                                     android:textSize="13sp" />
 
@@ -383,6 +389,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:fontFamily="@font/baloo2"
+                                    android:id="@+id/tvLegendBingung"
                                     android:text="Bingung"
                                     android:textColor="@color/kibooz_text_primary"
                                     android:textSize="13sp" />
@@ -401,14 +408,15 @@
                                     android:layout_width="12dp"
                                     android:layout_height="12dp"
                                     android:background="@drawable/bg_dot_active"
-                                    android:backgroundTint="@color/mood_kalem" />
+                                    android:backgroundTint="@color/mood_sedih" />
 
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:fontFamily="@font/baloo2"
-                                    android:text="Kalem"
+                                    android:id="@+id/tvLegendSedih"
+                                    android:text="Sedih"
                                     android:textColor="@color/kibooz_text_primary"
                                     android:textSize="13sp" />
 
@@ -433,6 +441,7 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginStart="8dp"
                                     android:fontFamily="@font/baloo2"
+                                    android:id="@+id/tvLegendMarah"
                                     android:text="Marah"
                                     android:textColor="@color/kibooz_text_primary"
                                     android:textSize="13sp" />
@@ -450,7 +459,8 @@
                         android:layout_gravity="end"
                         android:layout_marginTop="12dp"
                         android:fontFamily="@font/baloo2"
-                        android:text="Terakhir scan : 09.00 WIB hari ini"
+                        android:id="@+id/tvKelasInfo"
+                        android:text=""
                         android:textColor="@color/kibooz_text_muted"
                         android:textSize="11sp" />
 

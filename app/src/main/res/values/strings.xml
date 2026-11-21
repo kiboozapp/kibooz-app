@@ -157,4 +157,20 @@
     <string name="error_unavailable">Layanan sedang tidak tersedia, coba lagi nanti</string>
     <string name="error_network">Tidak ada koneksi internet, periksa jaringan lalu coba lagi</string>
     <string name="error_unknown">Terjadi kesalahan, coba lagi</string>
+    <string name="coba_lagi">Coba lagi</string>
+    <string name="sapaan_pagi">Selamat pagi</string>
+    <string name="sapaan_siang">Selamat siang</string>
+    <string name="sapaan_sore">Selamat sore</string>
+    <string name="sapaan_malam">Selamat malam</string>
+    <string name="guru_kelas_info">%1$s · Kode gabung %2$s</string>
+    <string name="guru_siswa_hadir">%1$d/%2$d</string>
+    <string name="guru_belum_ada_mood">Belum ada mood tercatat hari ini</string>
+    <string name="mood_belum_dicatat">Belum dicatat</string>
+    <string name="stat_belum_ada_siswa">Belum ada siswa di kelas ini</string>
+    <string name="stat_siswa_tidak_ditemukan">Tidak ada siswa dengan nama itu</string>
+    <string name="stat_irisan_detail">%1$s: %2$s</string>
+    <string name="legend_senang">Senang</string>
+    <string name="legend_bingung">Bingung</string>
+    <string name="legend_sedih">Sedih</string>
+    <string name="legend_marah">Marah</string>
 </resources>
