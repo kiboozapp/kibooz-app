@@ -98,6 +98,7 @@
                                 android:orientation="horizontal">
 
                                 <com.nthb.kibooz.ui.common.DonutMoodChartView
+                                    android:id="@+id/donutMoodChart"
                                     android:layout_width="120dp"
                                     android:layout_height="120dp" />
 
@@ -107,10 +108,14 @@
                                     android:layout_marginStart="16dp"
                                     android:orientation="vertical">
 
-                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:text="🟡 Happy (40%)" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
-                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="@font/baloo2" android:text="🟠 Bingung (20%)" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
-                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="@font/baloo2" android:text="🟢 Kalem (30%)" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
-                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="@font/baloo2" android:text="🔴 Marah (10%)" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
+                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:id="@+id/tvLegendSenang"
+                                        android:text="🟡 Senang" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
+                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="@font/baloo2" android:id="@+id/tvLegendBingung"
+                                        android:text="🟠 Bingung" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
+                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="@font/baloo2" android:id="@+id/tvLegendSedih"
+                                        android:text="🔵 Sedih" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
+                                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:fontFamily="@font/baloo2" android:id="@+id/tvLegendMarah"
+                                        android:text="🔴 Marah" android:textColor="@color/kibooz_text_primary" android:textSize="12sp" />
 
                                 </LinearLayout>
 
@@ -145,6 +150,7 @@
                                 android:textStyle="bold" />
 
                             <com.nthb.kibooz.ui.common.WeeklyLineChartView
+                                android:id="@+id/weeklyLineChart"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_marginTop="8dp" />
@@ -177,6 +183,7 @@
                                 android:textStyle="bold" />
 
                             <com.nthb.kibooz.ui.common.MonthlyBarChartView
+                                android:id="@+id/monthlyBarChart"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:layout_marginTop="8dp" />
@@ -209,6 +216,7 @@
                     android:textStyle="bold" />
 
                 <LinearLayout
+                    android:id="@+id/btnScanUlang"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_tag_lavender"
@@ -236,30 +244,6 @@
 
             </LinearLayout>
 
-            <!-- Date Selector Pills -->
-            <HorizontalScrollView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:clipToPadding="false"
-                android:paddingHorizontal="16dp"
-                android:scrollbars="none">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal">
-
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/bg_pill_date_inactive" android:fontFamily="@font/baloo2" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="24 Mei" android:textColor="@color/kibooz_text_muted" android:textSize="13sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:background="@drawable/bg_pill_date_inactive" android:fontFamily="@font/baloo2" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="25 Mei" android:textColor="@color/kibooz_text_muted" android:textSize="13sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:background="@drawable/bg_pill_date_active" android:fontFamily="@font/baloo2" android:paddingHorizontal="16dp" android:paddingVertical="6dp" android:text="26 Mei" android:textColor="@color/kibooz_white" android:textSize="13sp" android:textStyle="bold" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:background="@drawable/bg_pill_date_inactive" android:fontFamily="@font/baloo2" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="27 Mei" android:textColor="@color/kibooz_text_muted" android:textSize="13sp" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:background="@drawable/bg_pill_date_inactive" android:fontFamily="@font/baloo2" android:paddingHorizontal="14dp" android:paddingVertical="6dp" android:text="28 Mei" android:textColor="@color/kibooz_text_muted" android:textSize="13sp" />
-
-                </LinearLayout>
-
-            </HorizontalScrollView>
-
             <!-- Search Bar + Laporan Button -->
             <LinearLayout
                 android:layout_width="match_parent"
@@ -284,6 +268,7 @@
                         android:src="@drawable/ic_search" />
 
                     <EditText
+                        android:id="@+id/etCariSiswa"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_marginStart="8dp"
@@ -299,6 +284,7 @@
 
                 <LinearLayout
                     android:id="@+id/btnDownloadLaporan"
+                    android:visibility="gone"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
@@ -348,63 +334,15 @@
                         <TextView android:layout_width="32dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:text="No" android:textColor="@color/kibooz_white" android:textSize="12sp" android:textStyle="bold" />
                         <TextView android:layout_width="48dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:text="Foto" android:textColor="@color/kibooz_white" android:textSize="12sp" android:textStyle="bold" />
                         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:fontFamily="@font/baloo2" android:text="Nama Lengkap" android:textColor="@color/kibooz_white" android:textSize="12sp" android:textStyle="bold" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:gravity="center" android:text="Mood Awal" android:textColor="@color/kibooz_white" android:textSize="12sp" android:textStyle="bold" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:gravity="center" android:text="Mood Akhir" android:textColor="@color/kibooz_white" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="120dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:gravity="center" android:text="Mood Hari Ini" android:textColor="@color/kibooz_white" android:textSize="12sp" android:textStyle="bold" />
 
                     </LinearLayout>
 
-                    <!-- Row 1: Novita Sari -->
                     <LinearLayout
+                        android:id="@+id/llStudentRows"
                         android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView android:layout_width="32dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:text="1" android:textColor="@color/kibooz_text_primary" android:textSize="13sp" />
-                        <ImageView android:layout_width="32dp" android:layout_height="32dp" android:scaleType="centerCrop" android:src="@drawable/img_avatar_siswa" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:fontFamily="@font/baloo2" android:text="Novita Sari" android:textColor="@color/kibooz_text_primary" android:textSize="13sp" android:textStyle="bold" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:gravity="center" android:text="😄" android:textSize="20sp" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:gravity="center" android:text="😢" android:textSize="20sp" />
-
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/kibooz_border" />
-
-                    <!-- Row 2: Melarini -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:background="#FAF9FE"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView android:layout_width="32dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:text="2" android:textColor="@color/kibooz_text_primary" android:textSize="13sp" />
-                        <ImageView android:layout_width="32dp" android:layout_height="32dp" android:scaleType="centerCrop" android:src="@drawable/img_avatar_siswa" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:fontFamily="@font/baloo2" android:text="Melarini" android:textColor="@color/kibooz_text_primary" android:textSize="13sp" android:textStyle="bold" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:gravity="center" android:text="😊" android:textSize="20sp" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:gravity="center" android:text="😟" android:textSize="20sp" />
-
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:background="@color/kibooz_border" />
-
-                    <!-- Row 3: Amelia Siti Zahra -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="52dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="12dp">
-
-                        <TextView android:layout_width="32dp" android:layout_height="wrap_content" android:fontFamily="@font/baloo2" android:text="3" android:textColor="@color/kibooz_text_primary" android:textSize="13sp" />
-                        <ImageView android:layout_width="32dp" android:layout_height="32dp" android:scaleType="centerCrop" android:src="@drawable/img_avatar_siswa" />
-                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="16dp" android:layout_weight="1" android:fontFamily="@font/baloo2" android:text="Amelia Siti Zahra" android:textColor="@color/kibooz_text_primary" android:textSize="13sp" android:textStyle="bold" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:gravity="center" android:text="😄" android:textSize="20sp" />
-                        <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:gravity="center" android:text="😄" android:textSize="20sp" />
-
-                    </LinearLayout>
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
 
                 </LinearLayout>
 

@@ -7,9 +7,12 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import com.nthb.kibooz.data.remote.MonthlyCount
+import com.nthb.kibooz.ml.Emotion
 
 /**
- * MonthlyBarChartView - Grafik Batang Bulanan (Jan - Agu)
+ * Batang jumlah catatan tiap emosi selama satu bulan (FR-3.3). Jumlahnya ditulis di atas batang
+ * sehingga detailnya terbaca tanpa menyentuh (FR-3.4).
  */
 class MonthlyBarChartView @JvmOverloads constructor(
     context: Context,
@@ -17,17 +20,21 @@ class MonthlyBarChartView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val months = arrayOf("Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu")
+    private var counts: Map<Emotion, Int> = MoodChartMath.ORDER.associateWith { 0 }
 
-    private val paintHappy = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FFC107") }
-    private val paintKalem = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#4CAF50") }
-    private val paintBingung = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#FF9800") }
-    private val paintMarah = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#E53935") }
+    private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#9CA3AF")
-        textSize = 24f
+        color = Color.parseColor("#6B7280")
+        textSize = 28f
         textAlign = Paint.Align.CENTER
+    }
+
+    fun setData(distribution: List<MonthlyCount>) {
+        counts = MoodChartMath.ORDER.associateWith { emotion ->
+            distribution.filter { it.mood == emotion }.sumOf { it.count }
+        }
+        invalidate()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -35,30 +42,29 @@ class MonthlyBarChartView @JvmOverloads constructor(
         val w = width.toFloat()
         val h = height.toFloat()
 
-        val leftPad = 40f
-        val bottomPad = 50f
-        val topPad = 20f
+        val sidePad = 30f
+        val bottomPad = 60f
+        val topPad = 40f
 
         val chartHeight = h - topPad - bottomPad
-        val groupWidth = (w - leftPad - 20f) / months.size
-        val barWidth = groupWidth / 5.5f
+        val slot = (w - 2 * sidePad) / MoodChartMath.ORDER.size
+        val barWidth = slot * 0.5f
+        val max = counts.values.maxOrNull() ?: 0
 
-        for (i in months.indices) {
-            val groupStartX = leftPad + (i * groupWidth)
+        MoodChartMath.ORDER.forEachIndexed { index, emotion ->
+            val count = counts.getValue(emotion)
+            val centerX = sidePad + slot * index + slot / 2f
+            val barHeight = MoodChartMath.barFraction(count, max) * chartHeight
 
-            // 4 bars per month (Marah, Happy, Kalem, Bingung)
-            val hMarah = (floatArrayOf(5f, 5f, 10f, 5f, 10f, 15f, 5f, 5f)[i] / 20f) * chartHeight
-            val hHappy = (floatArrayOf(20f, 15f, 15f, 20f, 15f, 20f, 20f, 20f)[i] / 20f) * chartHeight
-            val hKalem = (floatArrayOf(15f, 20f, 10f, 15f, 10f, 10f, 5f, 15f)[i] / 20f) * chartHeight
-            val hBingung = (floatArrayOf(10f, 5f, 15f, 5f, 20f, 8f, 20f, 10f)[i] / 20f) * chartHeight
-
-            canvas.drawRoundRect(RectF(groupStartX, topPad + chartHeight - hMarah, groupStartX + barWidth, topPad + chartHeight), 4f, 4f, paintMarah)
-            canvas.drawRoundRect(RectF(groupStartX + barWidth * 1.2f, topPad + chartHeight - hHappy, groupStartX + barWidth * 2.2f, topPad + chartHeight), 4f, 4f, paintHappy)
-            canvas.drawRoundRect(RectF(groupStartX + barWidth * 2.4f, topPad + chartHeight - hKalem, groupStartX + barWidth * 3.4f, topPad + chartHeight), 4f, 4f, paintKalem)
-            canvas.drawRoundRect(RectF(groupStartX + barWidth * 3.6f, topPad + chartHeight - hBingung, groupStartX + barWidth * 4.6f, topPad + chartHeight), 4f, 4f, paintBingung)
-
-            // Month text
-            canvas.drawText(months[i], groupStartX + (groupWidth / 2f), h - 15f, textPaint)
+            barPaint.color = MoodColors.of(emotion)
+            canvas.drawRoundRect(
+                RectF(centerX - barWidth / 2f, topPad + chartHeight - barHeight, centerX + barWidth / 2f, topPad + chartHeight),
+                8f,
+                8f,
+                barPaint
+            )
+            canvas.drawText("$count", centerX, topPad + chartHeight - barHeight - 12f, textPaint)
+            canvas.drawText(emotion.displayName(), centerX, h - 15f, textPaint)
         }
     }
 }

@@ -2,15 +2,17 @@ package com.nthb.kibooz.ui.common
 
 import android.content.Context
 import android.graphics.Canvas
-import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
+import android.view.MotionEvent
 import android.view.View
+import com.nthb.kibooz.data.remote.DailyMoodDistribution
+import com.nthb.kibooz.ml.Emotion
 
 /**
- * DonutMoodChartView - Custom Donut Chart untuk memvisualisasikan 4 kategori mood
- * (Happy: Kuning, Bingung: Oranye, Kalem: Hijau, Marah: Merah)
+ * Donat proporsi empat emosi (Senang kuning, Bingung oranye, Sedih biru, Marah merah). Menyentuh sebuah irisan
+ * memanggil [onSliceSelected] dengan emosi dan persentasenya (FR-3.4). Tanpa data digambar cincin abu-abu.
  */
 class DonutMoodChartView @JvmOverloads constructor(
     context: Context,
@@ -18,47 +20,19 @@ class DonutMoodChartView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    // Nilai persentase masing-masing mood (total 100)
-    var happyPct: Float = 40f
-    var bingungPct: Float = 20f
-    var kalemPct: Float = 30f
-    var marahPct: Float = 10f
+    private var percentages: Map<Emotion, Float> = MoodChartMath.ORDER.associateWith { 0f }
+
+    /** Dipanggil dengan irisan yang disentuh. Sentuhan di luar irisan tidak memanggilnya. */
+    var onSliceSelected: ((Emotion, Float) -> Unit)? = null
 
     private val rectF = RectF()
     private val strokeWidthDp = 22f
-
-    private val paintHappy = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = Color.parseColor("#FFC107") // Happy - Yellow
-        strokeCap = Paint.Cap.ROUND
-    }
-
-    private val paintBingung = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = Color.parseColor("#FF9800") // Bingung - Orange
-        strokeCap = Paint.Cap.ROUND
-    }
-
-    private val paintKalem = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = Color.parseColor("#4CAF50") // Kalem - Green
-        strokeCap = Paint.Cap.ROUND
-    }
-
-    private val paintMarah = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        style = Paint.Style.STROKE
-        color = Color.parseColor("#E53935") // Marah - Red
-        strokeCap = Paint.Cap.ROUND
-    }
+    private val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         val strokePx = strokeWidthDp * resources.displayMetrics.density
-        paintHappy.strokeWidth = strokePx
-        paintBingung.strokeWidth = strokePx
-        paintKalem.strokeWidth = strokePx
-        paintMarah.strokeWidth = strokePx
-
+        paint.strokeWidth = strokePx
         val pad = strokePx / 2f + 4f
         rectF.set(pad, pad, w - pad, h - pad)
     }
@@ -66,31 +40,54 @@ class DonutMoodChartView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        val happyAngle = (happyPct / 100f) * 360f
-        val bingungAngle = (bingungPct / 100f) * 360f
-        val kalemAngle = (kalemPct / 100f) * 360f
-        val marahAngle = (marahPct / 100f) * 360f
+        if (percentages.values.sum() <= 0f) {
+            paint.color = MoodColors.EMPTY
+            canvas.drawArc(rectF, 0f, 360f, false, paint)
+            return
+        }
 
         var startAngle = -90f
-
-        // Draw each arc
-        canvas.drawArc(rectF, startAngle, happyAngle, false, paintHappy)
-        startAngle += happyAngle
-
-        canvas.drawArc(rectF, startAngle, bingungAngle, false, paintBingung)
-        startAngle += bingungAngle
-
-        canvas.drawArc(rectF, startAngle, kalemAngle, false, paintKalem)
-        startAngle += kalemAngle
-
-        canvas.drawArc(rectF, startAngle, marahAngle, false, paintMarah)
+        for (emotion in MoodChartMath.ORDER) {
+            val sweep = percentages.getValue(emotion) * 3.6f
+            if (sweep <= 0f) continue
+            paint.color = MoodColors.of(emotion)
+            canvas.drawArc(rectF, startAngle, sweep, false, paint)
+            startAngle += sweep
+        }
     }
 
-    fun updateData(happy: Float, bingung: Float, kalem: Float, marah: Float) {
-        this.happyPct = happy
-        this.bingungPct = bingung
-        this.kalemPct = kalem
-        this.marahPct = marah
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked != MotionEvent.ACTION_UP) return event.actionMasked == MotionEvent.ACTION_DOWN
+
+        val dx = event.x - width / 2f
+        val dy = event.y - height / 2f
+        val radius = rectF.width() / 2f
+        val distance = kotlin.math.hypot(dx, dy)
+        val half = strokeWidthDp * resources.displayMetrics.density / 2f
+
+        // Hanya cincin yang bisa disentuh, bukan lubang di tengah atau ruang di luarnya
+        if (distance in (radius - half)..(radius + half)) {
+            MoodChartMath.sliceAt(MoodChartMath.angleFromTop(dx, dy), percentages)?.let { emotion ->
+                onSliceSelected?.invoke(emotion, percentages.getValue(emotion))
+                performClick()
+            }
+        }
+        return true
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        return true
+    }
+
+    fun setDistribution(distribution: DailyMoodDistribution) {
+        percentages = MoodChartMath.percentages(distribution)
+        invalidate()
+    }
+
+    /** Persentase langsung dari server (`donutSummary`). Emosi yang tidak ada dianggap 0. */
+    fun setPercentages(values: Map<Emotion, Float>) {
+        percentages = MoodChartMath.ORDER.associateWith { values[it] ?: 0f }
         invalidate()
     }
 }

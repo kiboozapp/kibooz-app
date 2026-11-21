@@ -7,9 +7,11 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.util.AttributeSet
 import android.view.View
+import com.nthb.kibooz.data.remote.WeeklyPoint
 
 /**
- * WeeklyLineChartView - Grafik Garis Tren 4 Emosi (Senin - Sabtu)
+ * Garis skor kebahagiaan rata-rata kelas, Senin sampai Jumat, 0 sampai 100 (FR-3.2). Angka tiap titik
+ * ditulis di atas titiknya sehingga detailnya terbaca tanpa menyentuh (FR-3.4).
  */
 class WeeklyLineChartView @JvmOverloads constructor(
     context: Context,
@@ -17,79 +19,74 @@ class WeeklyLineChartView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
-    private val days = arrayOf("Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu")
-
-    // Data points per emotion (values 0 - 20)
-    private val dataHappy = floatArrayOf(10f, 15f, 15f, 20f, 20f, 15f)
-    private val dataKalem = floatArrayOf(5f, 10f, 10f, 15f, 15f, 10f)
-    private val dataBingung = floatArrayOf(15f, 12f, 10f, 10f, 7f, 5f)
-    private val dataMarah = floatArrayOf(10f, 7f, 5f, 5f, 5f, 5f)
+    private var labels: List<String> = emptyList()
+    private var values: List<Int> = emptyList()
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#9CA3AF")
+        color = Color.parseColor("#6B7280")
         textSize = 28f
         textAlign = Paint.Align.CENTER
     }
 
     private val gridPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor("#F1F5F9")
+        color = Color.parseColor("#E5E7EB")
         strokeWidth = 2f
     }
 
-    private fun createLinePaint(hexColor: String) = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        color = Color.parseColor(hexColor)
-        strokeWidth = 5f
+    private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = MoodColors.SENANG
+        strokeWidth = 8f
         style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
     }
 
-    private val paintHappy = createLinePaint("#FFC107")
-    private val paintKalem = createLinePaint("#4CAF50")
-    private val paintBingung = createLinePaint("#FF9800")
-    private val paintMarah = createLinePaint("#E53935")
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = MoodColors.SENANG }
+
+    fun setData(points: List<WeeklyPoint>) {
+        labels = points.map { MoodChartMath.dayLabel(it.day) }
+        values = points.map { it.averageHappyScore.coerceIn(0, 100) }
+        invalidate()
+    }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val w = width.toFloat()
         val h = height.toFloat()
 
-        val leftPad = 60f
+        val leftPad = 70f
         val rightPad = 40f
-        val topPad = 30f
+        val topPad = 40f
         val bottomPad = 60f
 
         val chartWidth = w - leftPad - rightPad
         val chartHeight = h - topPad - bottomPad
 
-        // Draw horizontal grid lines (0, 5, 10, 15, 20)
+        textPaint.textAlign = Paint.Align.RIGHT
         for (i in 0..4) {
             val y = topPad + chartHeight - (i * chartHeight / 4)
             canvas.drawLine(leftPad, y, w - rightPad, y, gridPaint)
-            canvas.drawText("${i * 5}", leftPad - 25f, y + 10f, textPaint)
+            canvas.drawText("${i * 25}", leftPad - 14f, y + 10f, textPaint)
         }
+        textPaint.textAlign = Paint.Align.CENTER
 
-        val stepX = chartWidth / (days.size - 1)
+        if (values.isEmpty()) return
 
-        // Draw day labels
-        for (i in days.indices) {
-            val x = leftPad + (i * stepX)
-            canvas.drawText(days[i], x, h - 15f, textPaint)
+        val stepX = if (values.size > 1) chartWidth / (values.size - 1) else 0f
+        val path = Path()
+        for (i in values.indices) {
+            val x = if (values.size > 1) leftPad + i * stepX else leftPad + chartWidth / 2f
+            val y = topPad + chartHeight - (values[i] / 100f) * chartHeight
+            if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            canvas.drawText(labels[i], x, h - 15f, textPaint)
         }
+        canvas.drawPath(path, linePaint)
 
-        // Helper to draw a line
-        fun drawDataLine(data: FloatArray, paint: Paint) {
-            val path = Path()
-            for (i in data.indices) {
-                val x = leftPad + (i * stepX)
-                val y = topPad + chartHeight - ((data[i] / 20f) * chartHeight)
-                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                canvas.drawCircle(x, y, 6f, paint)
-            }
-            canvas.drawPath(path, paint)
+        for (i in values.indices) {
+            val x = if (values.size > 1) leftPad + i * stepX else leftPad + chartWidth / 2f
+            val y = topPad + chartHeight - (values[i] / 100f) * chartHeight
+            canvas.drawCircle(x, y, 9f, dotPaint)
+            canvas.drawText("${values[i]}", x, y - 18f, textPaint)
         }
-
-        drawDataLine(dataHappy, paintHappy)
-        drawDataLine(dataKalem, paintKalem)
-        drawDataLine(dataBingung, paintBingung)
-        drawDataLine(dataMarah, paintMarah)
     }
 }
