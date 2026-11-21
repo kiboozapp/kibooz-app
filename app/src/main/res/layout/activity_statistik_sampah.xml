@@ -56,8 +56,10 @@
             android:paddingTop="16dp"
             android:paddingBottom="24dp">
 
-            <!-- Filter Pills (Hari Ini, Minggu Ini, Bulan Ini) -->
+            <!-- Filter Pills (Hari Ini, Minggu Ini, Bulan Ini): API hanya punya angka semester berjalan -->
             <LinearLayout
+                android:id="@+id/llPeriodPills"
+                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -170,7 +172,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:fontFamily="@font/baloo2"
-                                android:text="28 Item (58%)"
+                                android:id="@+id/tvOrganik"
+                                android:text="…"
                                 android:textColor="#1B5E20"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
@@ -209,7 +212,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:fontFamily="@font/baloo2"
-                                android:text="20 Item (42%)"
+                                android:id="@+id/tvAnorganik"
+                                android:text="…"
                                 android:textColor="#B71C1C"
                                 android:textSize="18sp"
                                 android:textStyle="bold" />
@@ -225,6 +229,17 @@
                         </LinearLayout>
 
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvB3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="#FFF3E0"
+                        android:fontFamily="@font/baloo2"
+                        android:padding="12dp"
+                        android:textColor="#E65100"
+                        android:textSize="13sp" />
 
                 </LinearLayout>
 
@@ -263,7 +278,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Hebat! 1.4 kg Karbon Dikurangi"
+                            android:id="@+id/tvBannerTitle"
+                            android:text="…"
                             android:textColor="@color/kibooz_primary_purple"
                             android:textSize="14sp"
                             android:textStyle="bold" />
@@ -272,211 +288,12 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Amelia telah berkontribusi menjaga kelestarian bumi dan mengumpulkan 240 poin hari ini!"
+                            android:id="@+id/tvBannerBody"
+                            android:text="…"
                             android:textColor="@color/kibooz_text_muted"
                             android:textSize="12sp" />
 
                     </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Riwayat Pilah Sampah List -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Riwayat Scan Sampah Terkini"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <!-- Item 1: Botol Plastik -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                app:cardBackgroundColor="@color/kibooz_white"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="40dp"
-                        android:background="#C62828" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Botol Plastik Air Mineral"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Anorganik • 09:15 WIB"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="#FFF9C4"
-                        android:fontFamily="@font/baloo2"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="3dp"
-                        android:text="+5 Poin"
-                        android:textColor="#F57F17"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Item 2: Daun Kering -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:cardBackgroundColor="@color/kibooz_white"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="40dp"
-                        android:background="#2E7D32" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Daun Kering Halaman Sekolah"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Organik • 09:40 WIB"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="#FFF9C4"
-                        android:fontFamily="@font/baloo2"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="3dp"
-                        android:text="+5 Poin"
-                        android:textColor="#F57F17"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <!-- Item 3: Kotak Susu UHT -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                app:cardBackgroundColor="@color/kibooz_white"
-                app:cardCornerRadius="14dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <View
-                        android:layout_width="8dp"
-                        android:layout_height="40dp"
-                        android:background="#C62828" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Kotak Susu UHT Bekas"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Anorganik • 10:10 WIB"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="12sp" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:background="#FFF9C4"
-                        android:fontFamily="@font/baloo2"
-                        android:paddingHorizontal="10dp"
-                        android:paddingVertical="3dp"
-                        android:text="+5 Poin"
-                        android:textColor="#F57F17"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
 
                 </LinearLayout>
 

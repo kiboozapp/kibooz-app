@@ -2,16 +2,28 @@ package com.nthb.kibooz.ui.wali
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
+import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.TrashStats
 import com.nthb.kibooz.databinding.ActivityStatistikSampahBinding
+import com.nthb.kibooz.ml.TrashCategory
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.util.InsetsUtil
+import kotlinx.coroutines.launch
 
+/** Statistik pilah sampah seorang anak untuk semester yang berjalan. API tidak punya filter harian atau mingguan. */
 class StatistikSampahActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityStatistikSampahBinding
+    private val viewModel: TrashStatsViewModel by viewModels {
+        TrashStatsViewModel.Factory(appContainer.trashRepository, intent.getStringExtra(EXTRA_STUDENT_ID))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,22 +38,23 @@ class StatistikSampahActivity : AppCompatActivity() {
         )
 
         setupListeners()
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.state.collect(::render)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Kembali dari pemindai membawa pindaian dan poin yang baru
+        if (!viewModel.state.value.loading) viewModel.load()
     }
 
     private fun setupListeners() {
         binding.ivBack.setOnClickListener {
             finish()
-        }
-
-        // Toggle Period Pills
-        binding.pillHariIni.setOnClickListener {
-            updatePills(0)
-        }
-        binding.pillMingguIni.setOnClickListener {
-            updatePills(1)
-        }
-        binding.pillBulanIni.setOnClickListener {
-            updatePills(2)
         }
 
         // Bottom Navigation
@@ -57,23 +70,59 @@ class StatistikSampahActivity : AppCompatActivity() {
             finish()
         }
         binding.fabScannerSampah.setOnClickListener {
-            startActivity(Intent(this, CameraScanSampahActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanSampahActivity::class.java)
+                    .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, intent.getStringExtra(EXTRA_STUDENT_ID))
+            )
         }
     }
 
-    private fun updatePills(selectedIndex: Int) {
-        val activeBg = R.drawable.bg_pill_date_active
-        val inactiveBg = R.drawable.bg_pill_date_inactive
-        val whiteColor = ContextCompat.getColor(this, R.color.kibooz_white)
-        val mutedColor = ContextCompat.getColor(this, R.color.kibooz_text_muted)
+    private fun render(state: TrashStatsState) {
+        state.stats?.let(::showStats)
 
-        binding.pillHariIni.setBackgroundResource(if (selectedIndex == 0) activeBg else inactiveBg)
-        binding.pillHariIni.setTextColor(if (selectedIndex == 0) whiteColor else mutedColor)
+        if (state.noChild) {
+            Snackbar.make(binding.root, R.string.error_no_child, Snackbar.LENGTH_INDEFINITE).show()
+        }
 
-        binding.pillMingguIni.setBackgroundResource(if (selectedIndex == 1) activeBg else inactiveBg)
-        binding.pillMingguIni.setTextColor(if (selectedIndex == 1) whiteColor else mutedColor)
+        state.error?.let {
+            Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.coba_lagi) { viewModel.load() }
+                .show()
+            viewModel.errorShown()
+        }
+    }
 
-        binding.pillBulanIni.setBackgroundResource(if (selectedIndex == 2) activeBg else inactiveBg)
-        binding.pillBulanIni.setTextColor(if (selectedIndex == 2) whiteColor else mutedColor)
+    private fun showStats(stats: TrashStats) {
+        binding.tvOrganik.text = countText(stats, TrashCategory.ORGANIK)
+        binding.tvAnorganik.text = countText(stats, TrashCategory.ANORGANIK)
+        binding.tvB3.text = getString(R.string.sampah_b3_ringkas, stats.scansOf(TrashCategory.B3))
+
+        binding.tvBannerTitle.text = getString(R.string.sampah_banner_judul, stats.seasonPoints)
+        binding.tvBannerBody.text = if (stats.classRank > 0) {
+            getString(
+                R.string.sampah_banner_isi,
+                stats.student.fullName, stats.totalScans, stats.totalPoints, stats.classRank,
+                stats.remainingDailyScans, stats.dailyLimit
+            )
+        } else {
+            getString(
+                R.string.sampah_banner_isi_tanpa_peringkat,
+                stats.student.fullName, stats.totalScans, stats.totalPoints, stats.remainingDailyScans, stats.dailyLimit
+            )
+        }
+    }
+
+    private fun countText(stats: TrashStats, category: TrashCategory): String {
+        val scans = stats.scansOf(category)
+        return if (stats.totalScans > 0) {
+            getString(R.string.sampah_item_persen, scans, stats.percentOf(category))
+        } else {
+            getString(R.string.sampah_item, scans)
+        }
+    }
+
+    companion object {
+        /** Anak yang ditampilkan. Tanpa extra ini server memakai anak yang paling lama terdaftar. */
+        const val EXTRA_STUDENT_ID = "STUDENT_ID"
     }
 }

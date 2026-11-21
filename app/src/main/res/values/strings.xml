@@ -214,4 +214,10 @@
     <string name="leaderboard_judul">Ranking Poin Semester Ini</string>
     <string name="leaderboard_kosong">Belum ada siswa di kelas ini</string>
     <string name="leaderboard_poin">🔥 %1$d Poin</string>
+    <string name="sampah_item_persen">%1$d item (%2$d%%)</string>
+    <string name="sampah_item">%1$d item</string>
+    <string name="sampah_b3_ringkas">Sampah B3: %1$d item, diserahkan ke orang dewasa dan tidak diberi poin</string>
+    <string name="sampah_banner_judul">%1$d poin semester ini</string>
+    <string name="sampah_banner_isi">%1$s sudah memilah %2$d sampah, total %3$d poin dan peringkat #%4$d di kelas. Sisa scan hari ini %5$d dari %6$d.</string>
+    <string name="sampah_banner_isi_tanpa_peringkat">%1$s sudah memilah %2$d sampah, total %3$d poin. Sisa scan hari ini %4$d dari %5$d.</string>
 </resources>

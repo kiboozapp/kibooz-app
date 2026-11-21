@@ -4,6 +4,7 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ScanClaimData
 import com.nthb.kibooz.data.remote.ScanClaimRequest
 import com.nthb.kibooz.data.remote.TrashApi
+import com.nthb.kibooz.data.remote.TrashStats
 import com.nthb.kibooz.data.remote.newIdempotencyKey
 import com.nthb.kibooz.data.remote.safeApiCall
 import com.nthb.kibooz.ml.TrashCategory
@@ -31,4 +32,6 @@ class TrashRepository(private val api: TrashApi, private val moshi: Moshi) {
 
         return safeApiCall(moshi) { api.scanClaim(claim.idempotencyKey, request) }
     }
+
+    suspend fun stats(studentId: String? = null): ApiResult<TrashStats> = safeApiCall(moshi) { api.stats(studentId) }
 }

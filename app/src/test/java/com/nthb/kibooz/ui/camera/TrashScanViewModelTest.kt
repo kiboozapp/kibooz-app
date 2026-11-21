@@ -10,6 +10,7 @@ import com.nthb.kibooz.data.remote.ClassStudentList
 import com.nthb.kibooz.data.remote.ScanClaimData
 import com.nthb.kibooz.data.remote.ScanClaimRequest
 import com.nthb.kibooz.data.remote.TrashApi
+import com.nthb.kibooz.data.remote.TrashStats
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.TrashRepository
 import com.nthb.kibooz.ml.TrashCategory
@@ -54,6 +55,8 @@ class TrashScanViewModelTest {
             replies.removeFirstOrNull()?.let { return it() }
             return Response.success(ApiEnvelope(true, null, ScanClaimData(10, 120, 40, 3, 4)))
         }
+
+        override suspend fun stats(studentId: String?): Response<ApiEnvelope<TrashStats>> = error("tidak dipakai")
     }
 
     private class FakeClassApi(var children: List<ChildSummary> = emptyList()) : ClassApi {
