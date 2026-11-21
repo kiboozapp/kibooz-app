@@ -1,11 +1,13 @@
 package com.nthb.kibooz.data.repository
 
+import com.nthb.kibooz.data.remote.ApiEnvelope
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.AuthData
 import com.nthb.kibooz.data.remote.LoginRequest
 import com.nthb.kibooz.data.remote.LogoutRequest
 import com.nthb.kibooz.data.remote.RefreshRequest
+import com.nthb.kibooz.data.remote.RegisterRequest
 import com.nthb.kibooz.data.remote.TokenProvider
 import com.nthb.kibooz.data.remote.safeApiCall
 import com.nthb.kibooz.data.remote.safeApiCallEmpty
@@ -21,6 +23,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import retrofit2.Response
 
 /**
  * Login, refresh dan logout, plus sesi yang sedang aktif. Refresh token sekali pakai dan berputar,
@@ -62,9 +65,25 @@ class AuthRepository(
         val cleanEmail = email.trim()
         val deviceToken = store.readDeviceToken(cleanEmail)
 
-        return when (val result = safeApiCall(moshi) { api.login(LoginRequest(cleanEmail, password, role, deviceToken)) }) {
+        return startSession(cleanEmail) { api.login(LoginRequest(cleanEmail, password, role, deviceToken)) }
+    }
+
+    /**
+     * Mendaftar lalu langsung masuk: server membalas pasangan token seperti login, jadi sesinya disimpan
+     * dengan cara yang sama dan `deviceToken` dari balasan diingat untuk email ini.
+     */
+    suspend fun register(request: RegisterRequest): ApiResult<SessionUser> {
+        val clean = request.copy(email = request.email.trim())
+        return startSession(clean.email) { api.register(clean) }
+    }
+
+    private suspend fun startSession(
+        email: String,
+        call: suspend () -> Response<ApiEnvelope<AuthData>>
+    ): ApiResult<SessionUser> =
+        when (val result = safeApiCall(moshi, call)) {
             is ApiResult.Success -> {
-                result.data.deviceToken?.let { store.writeDeviceToken(cleanEmail, it) }
+                result.data.deviceToken?.let { store.writeDeviceToken(email, it) }
                 val session = result.data.toSession()
                 persist(session)
                 ApiResult.Success(session.user, result.message)
@@ -72,7 +91,6 @@ class AuthRepository(
             is ApiResult.Failure -> result
             is ApiResult.NetworkError -> result
         }
-    }
 
     /**
      * Menukar refresh token setelah [failedAccessToken] ditolak server dan mengembalikan access token

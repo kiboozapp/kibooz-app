@@ -1,6 +1,7 @@
 package com.nthb.kibooz.data.remote
 
 import com.nthb.kibooz.data.session.Role
+import com.squareup.moshi.Json
 
 data class LoginRequest(
     val email: String,
@@ -28,3 +29,28 @@ data class AuthData(
     val deviceToken: String? = null,
     val user: UserDto
 )
+
+/**
+ * Pendaftaran. GURU wajib mengirim [classInfo] (kelas baru yang ia ajar), WALI wajib mengirim [classCode] dan
+ * [student]. Isian yang null tidak ikut terkirim.
+ */
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    val fullName: String,
+    val role: Role,
+    val phoneNumber: String? = null,
+    val nip: String? = null,
+    val schoolName: String? = null,
+    @Json(name = "class") val classInfo: NewClass? = null,
+    val classCode: String? = null,
+    val student: NewStudent? = null
+)
+
+data class NewClass(
+    val name: String,
+    val gradeLevel: String? = null,
+    val academicYear: String? = null
+)
+
+data class NewStudent(val nisn: String, val fullName: String)

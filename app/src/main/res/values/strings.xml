@@ -173,4 +173,25 @@
     <string name="legend_bingung">Bingung</string>
     <string name="legend_sedih">Sedih</string>
     <string name="legend_marah">Marah</string>
+    <string name="logo_kibooz">Logo Kibooz</string>
+    <string name="btn_daftar">Daftar</string>
+    <string name="sudah_punya_akun">Sudah punya akun? Masuk</string>
+    <string name="belum_punya_akun">Belum punya akun? Daftar</string>
+    <string name="daftar_judul_guru">Daftar sebagai Guru</string>
+    <string name="daftar_judul_wali">Daftar sebagai Wali Murid</string>
+    <string name="daftar_subjudul_guru">Buat akun dan kelas pertama kamu.</string>
+    <string name="daftar_subjudul_wali">Gabung ke kelas anak dengan kode dari guru.</string>
+    <string name="hint_nama_lengkap">Nama lengkap</string>
+    <string name="hint_email_daftar">Email</string>
+    <string name="hint_password_daftar">Kata sandi (minimal 8 karakter)</string>
+    <string name="hint_telepon_opsional">Nomor telepon (opsional)</string>
+    <string name="hint_nip_opsional">NIP (opsional)</string>
+    <string name="hint_sekolah_opsional">Nama sekolah (opsional)</string>
+    <string name="hint_nama_kelas">Nama kelas, misalnya Bunga</string>
+    <string name="hint_tingkat_opsional">Tingkat kelas, misalnya Class A (opsional)</string>
+    <string name="hint_tahun_ajaran_opsional">Tahun ajaran (opsional)</string>
+    <string name="hint_kode_kelas">Kode kelas dari guru</string>
+    <string name="hint_nama_anak">Nama lengkap anak</string>
+    <string name="hint_nisn">NISN anak</string>
+    <string name="form_kode_kelas_tidak_valid">Kode kelas berisi 4 sampai 12 huruf atau angka</string>
 </resources>

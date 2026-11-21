@@ -58,6 +58,10 @@ class LoginActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.login_google_belum_tersedia, Toast.LENGTH_SHORT).show()
         }
 
+        binding.tvToRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java).putExtra(EXTRA_SELECTED_ROLE, selectedRole.name))
+        }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::render)
