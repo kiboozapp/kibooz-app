@@ -22,6 +22,7 @@ object FormRules {
     const val ADDRESS_MAX = 1000
     const val FORUM_TITLE_MAX = 150
     const val FORUM_BODY_MAX = 5000
+    const val NOTES_MAX = 500
 
     private val EMAIL = Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")
     private val NISN = Regex("^[0-9]+$")
@@ -92,6 +93,11 @@ object FormRules {
     @StringRes
     fun address(value: String): Int? =
         if (value.trim().length > ADDRESS_MAX) R.string.form_alamat_terlalu_panjang else null
+
+    /** Catatan wali atau guru. Boleh kosong. */
+    @StringRes
+    fun notes(value: String): Int? =
+        if (value.trim().length > NOTES_MAX) R.string.form_catatan_terlalu_panjang else null
 
     @StringRes
     fun forumTitle(value: String): Int? {

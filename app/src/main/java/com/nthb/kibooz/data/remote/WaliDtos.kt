@@ -44,3 +44,6 @@ data class PointsSummary(
 
 /** [id] dikirim sebagai `guidanceId` saat panduan diterapkan. [bannerUrl] kosong jika penyimpanan belum punya alamat publik. */
 data class RecommendedGuidance(val id: String, val title: String, val category: String, val bannerUrl: String)
+
+/** [parentNotes] opsional dan paling panjang 500 karakter. Null tidak ikut terkirim. */
+data class GuidanceApplyRequest(val guidanceId: String, val studentId: String, val parentNotes: String? = null)
