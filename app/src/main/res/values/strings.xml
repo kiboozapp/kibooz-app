@@ -224,4 +224,6 @@
     <string name="review_tambah_semua_ada">Semua siswa kelas ini sudah ada di daftar</string>
     <string name="review_tambah_pilih_mood">Mood %1$s hari ini</string>
     <string name="review_tambah_berhasil">%1$s ditambahkan</string>
+    <string name="senter_nyalakan">Nyalakan senter</string>
+    <string name="senter_matikan">Matikan senter</string>
 </resources>

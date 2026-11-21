@@ -323,6 +323,7 @@ class CameraScanMoodActivity : AppCompatActivity() {
 
             isFlashOn = !isFlashOn
             activeCamera.cameraControl.enableTorch(isFlashOn)
+            showFlashState(isFlashOn)
         }
 
         binding.faceOverlay.onFaceTapped = { trackingId -> showStudentPicker(trackingId) }
@@ -367,6 +368,13 @@ class CameraScanMoodActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+
+    /** Ikon dan label baca layar tombol senter mengikuti keadaannya. */
+    private fun showFlashState(on: Boolean) {
+        binding.ivFlash.setImageResource(if (on) R.drawable.ic_flash_on else R.drawable.ic_flash_off)
+        binding.ivFlash.contentDescription = getString(if (on) R.string.senter_matikan else R.string.senter_nyalakan)
     }
 
     companion object {
