@@ -103,7 +103,8 @@
                         android:fontFamily="@font/baloo2"
                         android:paddingHorizontal="10dp"
                         android:paddingVertical="3dp"
-                        android:text="Kategori Emosi: Bingung / Ragu"
+                        android:id="@+id/tvKategori"
+                        android:text="…"
                         android:textColor="@color/kibooz_mood_bingung"
                         android:textSize="12sp"
                         android:textStyle="bold" />
@@ -113,7 +114,8 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
                         android:fontFamily="@font/baloo2"
-                        android:text="Berikan Rasa Aman Pada Anak"
+                        android:id="@+id/tvJudulPanduan"
+                        android:text="…"
                         android:textColor="@color/kibooz_text_dark"
                         android:textSize="20sp"
                         android:textStyle="bold" />
@@ -124,7 +126,7 @@
                         android:layout_marginTop="4dp"
                         android:fontFamily="@font/baloo2"
                         android:lineSpacingExtra="2dp"
-                        android:text="Tujuan: Membantu anak merasa dilindungi dan meredakan rasa cemas atau ragu ketika berhadapan dengan situasi baru di sekolah."
+                        android:text="Tujuan: Membantu anak merasa aman dan didengar, apa pun perasaannya hari ini."
                         android:textColor="@color/kibooz_text_muted"
                         android:textSize="13sp" />
 
@@ -249,7 +251,7 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/baloo2"
                             android:lineSpacingExtra="2dp"
-                            android:text="Katakan pada anak bahwa merasa ragu atau bingung adalah hal wajar. Hindari menyuruhnya berhenti menangis atau meremehkan apa yang ia rasakan."
+                            android:text="Katakan pada anak bahwa apa pun yang ia rasakan adalah hal wajar. Hindari menyuruhnya berhenti menangis atau meremehkan apa yang ia rasakan."
                             android:textColor="@color/kibooz_text_muted"
                             android:textSize="13sp" />
 
@@ -307,7 +309,7 @@
                             android:layout_marginTop="4dp"
                             android:fontFamily="@font/baloo2"
                             android:lineSpacingExtra="2dp"
-                            android:text="Gunakan kalimat pendek dan nada menenangkan. Berikan pertanyaan terbuka seperti 'Apakah Amelia mau ditemani dulu?' tanpa memaksanya langsung menjawab."
+                            android:text="Gunakan kalimat pendek dan nada menenangkan. Berikan pertanyaan terbuka seperti 'Mau ditemani dulu?' tanpa memaksanya langsung menjawab."
                             android:textColor="@color/kibooz_text_muted"
                             android:textSize="13sp" />
 
@@ -397,7 +399,7 @@
             android:fontFamily="@font/baloo2"
             android:insetTop="0dp"
             android:insetBottom="0dp"
-            android:text="Terapkan Panduan &amp; Laporkan ke Guru"
+            android:text="@string/panduan_terapkan_label"
             android:textAllCaps="false"
             android:textColor="@color/kibooz_white"
             android:textSize="15sp"

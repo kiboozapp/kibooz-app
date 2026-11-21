@@ -10,6 +10,7 @@ import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -89,5 +90,43 @@ class WaliRepositoryTest {
         val result = repository.dashboard() as ApiResult.Failure
 
         assertEquals("NO_CHILD_REGISTERED", result.errorCode)
+    }
+
+    @Test
+    fun `applying a guidance sends the key, the ids and the trimmed notes`() = runBlocking {
+        server.enqueue(jsonResponse("""{"success":true,"message":"Guidance applied"}""", 200))
+        val apply = PendingGuidanceApply("g1", "s1", "  Sudah dipeluk  ")
+
+        val result = repository.applyGuidance(apply)
+
+        val request = server.takeRequest()
+        assertEquals("POST", request.method)
+        assertEquals("/api/v1/wali/guidance/apply", request.path)
+        assertEquals("Bearer jwt", request.getHeader("Authorization"))
+        assertEquals(apply.idempotencyKey, request.getHeader("Idempotency-Key"))
+        val body = request.body.readUtf8()
+        assertEquals("""{"guidanceId":"g1","studentId":"s1","parentNotes":"Sudah dipeluk"}""", body)
+        assertTrue(result is ApiResult.Success)
+    }
+
+    @Test
+    fun `empty notes are left out of the request`() = runBlocking {
+        server.enqueue(jsonResponse("""{"success":true}"""))
+
+        repository.applyGuidance(PendingGuidanceApply("g1", "s1", "   "))
+
+        assertEquals("""{"guidanceId":"g1","studentId":"s1"}""", server.takeRequest().body.readUtf8())
+    }
+
+    @Test
+    fun `retrying the same action sends the same key`() = runBlocking {
+        server.enqueue(jsonResponse(failureJson("INTERNAL_ERROR"), 500))
+        server.enqueue(jsonResponse("""{"success":true}"""))
+        val apply = PendingGuidanceApply("g1", "s1", null)
+
+        repository.applyGuidance(apply)
+        repository.applyGuidance(apply)
+
+        assertEquals(server.takeRequest().getHeader("Idempotency-Key"), server.takeRequest().getHeader("Idempotency-Key"))
     }
 }

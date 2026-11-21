@@ -89,7 +89,6 @@
     <string name="sampah_organik">Organik</string>
     <string name="sampah_anorganik">Anorganik</string>
     <string name="profil_ubah_belum_tersedia">Pengubahan profil belum tersedia di versi ini</string>
-    <string name="panduan_terapkan_belum_tersedia">Pencatatan panduan belum tersedia di versi ini</string>
     <string name="kelas_gabung_belum_tersedia">Menggabung ke kelas belum tersedia di versi ini</string>
     <string name="kelas_kode_kosong">Kode kelas tidak boleh kosong</string>
     <string name="kelas_kode_tidak_valid">Kode kelas berisi 4 sampai 12 huruf atau angka tanpa tanda hubung</string>
@@ -203,4 +202,13 @@
     <string name="wali_belum_ada_catatan">Belum ada catatan dari guru hari ini</string>
     <string name="wali_belum_ada_panduan">Panduan muncul setelah guru mencatat mood anak hari ini</string>
     <string name="wali_riwayat_belum_tersedia">Riwayat aktivitas belum tersedia</string>
+    <string name="form_catatan_terlalu_panjang">Catatan paling panjang 500 karakter</string>
+    <string name="panduan_kategori">Kategori emosi: %1$s</string>
+    <string name="panduan_catatan_judul">Laporkan ke guru</string>
+    <string name="panduan_catatan_hint">Catatan untuk guru (opsional)</string>
+    <string name="panduan_kirim">Kirim</string>
+    <string name="panduan_terkirim">Laporan terkirim, guru sudah diberi tahu</string>
+    <string name="panduan_sudah_dilaporkan">Sudah dilaporkan ke guru</string>
+    <string name="panduan_tidak_ada">Buka panduan dari dasbor setelah guru mencatat mood anak</string>
+    <string name="panduan_terapkan_label">Terapkan Panduan &amp; Laporkan ke Guru</string>
 </resources>
