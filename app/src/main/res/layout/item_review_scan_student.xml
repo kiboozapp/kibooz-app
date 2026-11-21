@@ -126,7 +126,7 @@
             android:textSize="12sp"
             android:textStyle="bold" />
 
-        <!-- 4 Mood Selection Chips in a Row -->
+        <!-- 5 Mood Selection Chips in a Row: emoji di atas nama supaya lima chip muat di layar 360 dp -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -138,59 +138,89 @@
             <TextView
                 android:id="@+id/btnMoodHappy"
                 android:layout_width="0dp"
-                android:layout_height="36dp"
+                android:layout_height="48dp"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_chip_mood_happy"
                 android:fontFamily="@font/baloo2"
                 android:gravity="center"
-                android:text="😊 Senang"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="0.9"
+                android:maxLines="2"
+                android:text="😊&#10;Senang"
                 android:textColor="#7A4F01"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <!-- Kalem -->
             <TextView
                 android:id="@+id/btnMoodKalem"
                 android:layout_width="0dp"
-                android:layout_height="36dp"
+                android:layout_height="48dp"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_chip_mood_unselected"
                 android:fontFamily="@font/baloo2"
                 android:gravity="center"
-                android:text="😌 Kalem"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="0.9"
+                android:maxLines="2"
+                android:text="😌&#10;Kalem"
                 android:textColor="@color/kibooz_text_dark"
-                android:textSize="12sp"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <!-- Sedih -->
+            <TextView
+                android:id="@+id/btnMoodSedih"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_chip_mood_unselected"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="0.9"
+                android:maxLines="2"
+                android:text="😢&#10;Sedih"
+                android:textColor="@color/kibooz_text_dark"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <!-- Bingung -->
             <TextView
                 android:id="@+id/btnMoodBingung"
                 android:layout_width="0dp"
-                android:layout_height="36dp"
+                android:layout_height="48dp"
                 android:layout_marginEnd="4dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_chip_mood_unselected"
                 android:fontFamily="@font/baloo2"
                 android:gravity="center"
-                android:text="🤔 Ragu"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="0.9"
+                android:maxLines="2"
+                android:text="🤔&#10;Ragu"
                 android:textColor="@color/kibooz_text_dark"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
             <!-- Marah -->
             <TextView
                 android:id="@+id/btnMoodMarah"
                 android:layout_width="0dp"
-                android:layout_height="36dp"
+                android:layout_height="48dp"
                 android:layout_weight="1"
                 android:background="@drawable/bg_chip_mood_unselected"
                 android:fontFamily="@font/baloo2"
                 android:gravity="center"
-                android:text="😠 Kesal"
+                android:includeFontPadding="false"
+                android:lineSpacingMultiplier="0.9"
+                android:maxLines="2"
+                android:text="😠&#10;Kesal"
                 android:textColor="@color/kibooz_text_dark"
-                android:textSize="12sp"
+                android:textSize="11sp"
                 android:textStyle="bold" />
 
         </LinearLayout>
