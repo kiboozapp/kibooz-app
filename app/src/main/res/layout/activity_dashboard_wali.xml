@@ -126,7 +126,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Kelas A • NISN: 3124567890"
+                            android:id="@+id/tvKelasNisn"
+                            android:text="…"
                             android:textColor="#E0DBF5"
                             android:textSize="12sp" />
 
@@ -167,7 +168,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="#3"
+                            android:id="@+id/tvRank"
+                            android:text="…"
                             android:textColor="@color/kibooz_yellow_accent"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -205,7 +207,8 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="48"
+                            android:id="@+id/tvSampahCount"
+                            android:text="…"
                             android:textColor="@color/kibooz_primary_purple"
                             android:textSize="22sp"
                             android:textStyle="bold" />
@@ -255,7 +258,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="3dp"
                                 android:fontFamily="@font/baloo2"
-                                android:text="829"
+                                android:id="@+id/tvTotalPoin"
+                            android:text="…"
                                 android:textColor="#F67E02"
                                 android:textSize="20sp"
                                 android:textStyle="bold" />
@@ -318,7 +322,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/baloo2"
-                                android:text="Peringkat Si Kecil: Top 3!"
+                                android:id="@+id/tvBannerTitle"
+                            android:text="…"
                                 android:textColor="#D84315"
                                 android:textSize="16sp"
                                 android:textStyle="bold" />
@@ -327,7 +332,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/baloo2"
-                                android:text="Kumpulkan 71 poin lagi untuk mencapai Juara 2 minggu ini."
+                                android:id="@+id/tvBannerSub"
+                            android:text="…"
                                 android:textColor="@color/kibooz_text_muted"
                                 android:textSize="12sp" />
 
@@ -388,7 +394,8 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:fontFamily="@font/baloo2"
-                                    android:text="Mood Datang (07:30)"
+                                    android:id="@+id/tvMoodTimeLabel"
+                            android:text="Mood hari ini"
                                     android:textColor="@color/kibooz_text_muted"
                                     android:textSize="12sp" />
 
@@ -400,7 +407,8 @@
                                     android:fontFamily="@font/baloo2"
                                     android:paddingHorizontal="14dp"
                                     android:paddingVertical="4dp"
-                                    android:text="😕 Bingung"
+                                    android:id="@+id/tvMoodValue"
+                            android:text="…"
                                     android:textColor="@color/kibooz_mood_bingung"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
@@ -408,13 +416,17 @@
                             </LinearLayout>
 
                             <ImageView
+                                android:id="@+id/ivMoodArrow"
+                                android:visibility="gone"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:src="@drawable/ic_arrow_forward"
                                 app:tint="@color/kibooz_text_muted" />
 
-                            <!-- Mood Pulang (Akhir) -->
+                            <!-- Mood Pulang (Akhir): API hanya memberi satu mood terbaru hari ini -->
                             <LinearLayout
+                                android:id="@+id/llMoodPulang"
+                                android:visibility="gone"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
@@ -459,7 +471,8 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/baloo2"
-                                android:text="💡 Insight AI Guru &amp; Kamera"
+                                android:id="@+id/tvInsightTitle"
+                            android:text="💡 Catatan guru"
                                 android:textColor="@color/kibooz_primary_purple"
                                 android:textSize="13sp"
                                 android:textStyle="bold" />
@@ -469,7 +482,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
                                 android:fontFamily="@font/baloo2"
-                                android:text="Amelia sempat tampak ragu di pagi hari saat berpisah dengan bunda, namun berkembang ceria dan antusias setelah sesi mewarnai."
+                                android:id="@+id/tvInsightBody"
+                                android:text="…"
                                 android:textColor="@color/kibooz_text_dark"
                                 android:textSize="12sp" />
 
@@ -639,7 +653,8 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:fontFamily="@font/baloo2"
-                                        android:text="28 (58%)"
+                                        android:id="@+id/tvOrganik"
+                            android:text="…"
                                         android:textColor="#2E7D32"
                                         android:textSize="13sp"
                                         android:textStyle="bold" />
@@ -673,7 +688,8 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:fontFamily="@font/baloo2"
-                                        android:text="20 (42%)"
+                                        android:id="@+id/tvAnorganik"
+                            android:text="…"
                                         android:textColor="#C62828"
                                         android:textSize="13sp"
                                         android:textStyle="bold" />
@@ -711,6 +727,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:fontFamily="@font/baloo2"
+                    android:id="@+id/tvPanduanSection"
                     android:text="Panduan Emosi Anak"
                     android:textColor="@color/kibooz_text_dark"
                     android:textSize="18sp"
@@ -753,7 +770,8 @@
                                 android:fontFamily="@font/baloo2"
                                 android:paddingHorizontal="8dp"
                                 android:paddingVertical="2dp"
-                                android:text="Panduan Emosi Bingung"
+                                android:id="@+id/tvGuidanceCategory"
+                            android:text="…"
                                 android:textColor="@color/kibooz_mood_bingung"
                                 android:textSize="11sp"
                                 android:textStyle="bold" />
@@ -763,7 +781,8 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
                                 android:fontFamily="@font/baloo2"
-                                android:text="Berikan Rasa Aman Pada Anak"
+                                android:id="@+id/tvGuidanceTitle"
+                            android:text="…"
                                 android:textColor="@color/kibooz_text_dark"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -772,7 +791,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/baloo2"
-                                android:text="4 Langkah praktis meredakan ragu si kecil"
+                                android:text="4 langkah praktis untuk dicoba di rumah"
                                 android:textColor="@color/kibooz_text_muted"
                                 android:textSize="12sp" />
 
