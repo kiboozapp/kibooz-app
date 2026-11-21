@@ -4,6 +4,8 @@ import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import androidx.core.widget.doAfterTextChanged
 import androidx.recyclerview.widget.RecyclerView
@@ -56,39 +58,14 @@ class ReviewScanMoodAdapter(
             updateMoodSelectionUI(student.currentMood)
 
             // Setup Mood Click Listeners
-            binding.btnMoodHappy.setOnClickListener {
-                if (student.currentMood != "SENANG") {
-                    student.currentMood = "SENANG"
-                    updateMoodSelectionUI("SENANG")
-                    updateConfirmationWarning(student)
-                    onMoodChanged(student, "SENANG")
-                }
-            }
-
-            binding.btnMoodKalem.setOnClickListener {
-                if (student.currentMood != "KALEM") {
-                    student.currentMood = "KALEM"
-                    updateMoodSelectionUI("KALEM")
-                    updateConfirmationWarning(student)
-                    onMoodChanged(student, "KALEM")
-                }
-            }
-
-            binding.btnMoodBingung.setOnClickListener {
-                if (student.currentMood != "BINGUNG") {
-                    student.currentMood = "BINGUNG"
-                    updateMoodSelectionUI("BINGUNG")
-                    updateConfirmationWarning(student)
-                    onMoodChanged(student, "BINGUNG")
-                }
-            }
-
-            binding.btnMoodMarah.setOnClickListener {
-                if (student.currentMood != "MARAH") {
-                    student.currentMood = "MARAH"
-                    updateMoodSelectionUI("MARAH")
-                    updateConfirmationWarning(student)
-                    onMoodChanged(student, "MARAH")
+            chips().forEach { (mood, chip) ->
+                chip.view.setOnClickListener {
+                    if (student.currentMood != mood) {
+                        student.currentMood = mood
+                        updateMoodSelectionUI(mood)
+                        updateConfirmationWarning(student)
+                        onMoodChanged(student, mood)
+                    }
                 }
             }
 
@@ -106,41 +83,22 @@ class ReviewScanMoodAdapter(
             binding.tvLowConfidenceWarning.visibility = if (student.needsConfirmation()) View.VISIBLE else View.GONE
         }
 
+        /** Satu chip untuk setiap label di [REVIEW_MOOD_LABELS], dengan warna saat terpilih. */
+        private fun chips(): Map<String, Chip> = mapOf(
+            "SENANG" to Chip(binding.btnMoodHappy, R.drawable.bg_chip_mood_happy, 0xFF7A4F01.toInt()),
+            "KALEM" to Chip(binding.btnMoodKalem, R.drawable.bg_chip_mood_kalem, 0xFF2E7D32.toInt()),
+            "SEDIH" to Chip(binding.btnMoodSedih, R.drawable.bg_chip_mood_sedih, 0xFF1565C0.toInt()),
+            "BINGUNG" to Chip(binding.btnMoodBingung, R.drawable.bg_chip_mood_bingung, 0xFFE65100.toInt()),
+            "MARAH" to Chip(binding.btnMoodMarah, R.drawable.bg_chip_mood_marah, 0xFFC62828.toInt())
+        )
+
         private fun updateMoodSelectionUI(selectedMood: String) {
-            val context = binding.root.context
-            val textColorDark = ContextCompat.getColor(context, R.color.kibooz_text_dark)
+            val textColorDark = ContextCompat.getColor(binding.root.context, R.color.kibooz_text_dark)
 
-            // Reset all to unselected
-            binding.btnMoodHappy.setBackgroundResource(R.drawable.bg_chip_mood_unselected)
-            binding.btnMoodHappy.setTextColor(textColorDark)
-
-            binding.btnMoodKalem.setBackgroundResource(R.drawable.bg_chip_mood_unselected)
-            binding.btnMoodKalem.setTextColor(textColorDark)
-
-            binding.btnMoodBingung.setBackgroundResource(R.drawable.bg_chip_mood_unselected)
-            binding.btnMoodBingung.setTextColor(textColorDark)
-
-            binding.btnMoodMarah.setBackgroundResource(R.drawable.bg_chip_mood_unselected)
-            binding.btnMoodMarah.setTextColor(textColorDark)
-
-            // Highlight chosen mood
-            when (selectedMood) {
-                "SENANG" -> {
-                    binding.btnMoodHappy.setBackgroundResource(R.drawable.bg_chip_mood_happy)
-                    binding.btnMoodHappy.setTextColor(0xFF7A4F01.toInt())
-                }
-                "KALEM" -> {
-                    binding.btnMoodKalem.setBackgroundResource(R.drawable.bg_chip_mood_kalem)
-                    binding.btnMoodKalem.setTextColor(0xFF2E7D32.toInt())
-                }
-                "BINGUNG" -> {
-                    binding.btnMoodBingung.setBackgroundResource(R.drawable.bg_chip_mood_bingung)
-                    binding.btnMoodBingung.setTextColor(0xFFE65100.toInt())
-                }
-                "MARAH" -> {
-                    binding.btnMoodMarah.setBackgroundResource(R.drawable.bg_chip_mood_marah)
-                    binding.btnMoodMarah.setTextColor(0xFFC62828.toInt())
-                }
+            chips().forEach { (mood, chip) ->
+                val selected = mood == selectedMood
+                chip.view.setBackgroundResource(if (selected) chip.selectedBackground else R.drawable.bg_chip_mood_unselected)
+                chip.view.setTextColor(if (selected) chip.selectedTextColor else textColorDark)
             }
         }
     }
@@ -160,3 +118,6 @@ class ReviewScanMoodAdapter(
 
     override fun getItemCount(): Int = students.size
 }
+
+/** Satu chip mood di layar review beserta latar dan warna teksnya saat terpilih. */
+private class Chip(val view: TextView, @DrawableRes val selectedBackground: Int, val selectedTextColor: Int)

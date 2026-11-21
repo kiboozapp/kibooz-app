@@ -5,6 +5,12 @@ import com.nthb.kibooz.data.remote.MoodSource
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.model.ScannedStudentMood
 
+/**
+ * Label yang bisa dipilih guru di layar review, urut seperti chip-nya. KALEM tetap ada (keputusan produk) dan
+ * dikirim sebagai SENANG. Setiap [Emotion] API harus punya label di sini supaya guru bisa memilihnya.
+ */
+val REVIEW_MOOD_LABELS = listOf("SENANG", "KALEM", "SEDIH", "BINGUNG", "MARAH")
+
 /** `notes` di API paling banyak 500 karakter. */
 const val MAX_NOTES_LENGTH = 500
 

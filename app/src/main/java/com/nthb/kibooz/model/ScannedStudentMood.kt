@@ -7,7 +7,7 @@ data class ScannedStudentMood(
     val id: String,
     var studentName: String,
     val avatarRes: Int,
-    var currentMood: String, // "SENANG", "KALEM", "BINGUNG", "MARAH" atau "SEDIH"
+    var currentMood: String, // salah satu dari REVIEW_MOOD_LABELS
     val confidenceScore: Float, // e.g. 0.94f
     var teacherNotes: String = "",
     var isConfirmed: Boolean = true,

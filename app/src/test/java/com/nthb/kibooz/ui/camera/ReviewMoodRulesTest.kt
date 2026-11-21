@@ -106,4 +106,19 @@ class ReviewMoodRulesTest {
         assertFalse(row(confidence = 0.75f).needsConfirmation())
         assertFalse(row(confidence = 0.94f).needsConfirmation())
     }
+
+    @Test
+    fun `every review label maps to an API mood and every API mood can be chosen`() {
+        assertTrue(REVIEW_MOOD_LABELS.all { emotionFor(it) != null })
+        assertEquals(Emotion.entries.toSet(), REVIEW_MOOD_LABELS.mapNotNull(::emotionFor).toSet())
+        assertTrue("SEDIH" in REVIEW_MOOD_LABELS)
+    }
+
+    @Test
+    fun `a teacher who picks Sedih over the camera label sends it as a manual entry`() {
+        val entry = row(mood = "SEDIH", detected = "SENANG").toEntry()
+
+        assertEquals(Emotion.SEDIH, entry.moodType)
+        assertEquals(MoodSource.MANUAL_INPUT, entry.source)
+    }
 }
