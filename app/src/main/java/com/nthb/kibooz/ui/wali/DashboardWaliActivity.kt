@@ -116,6 +116,12 @@ class DashboardWaliActivity : AppCompatActivity() {
         }
     }
 
+    /** Kelas anak yang sedang ditampilkan dikirim supaya Wali dengan beberapa anak melihat kelas yang benar. */
+    private fun openLeaderboard() {
+        val classId = viewModel.state.value.dashboard?.student?.classId
+        startActivity(Intent(this, LeaderboardActivity::class.java).putExtra(LeaderboardActivity.EXTRA_CLASS_ID, classId))
+    }
+
     private fun openGuidance() {
         val data = viewModel.state.value.dashboard
         val guidance = data?.recommendedGuidance
@@ -149,13 +155,13 @@ class DashboardWaliActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Navigasi ke Leaderboard / Ranking
         binding.cardMetricRanking.setOnClickListener {
-            startActivity(Intent(this, LeaderboardActivity::class.java))
+            openLeaderboard()
         }
         binding.cardBannerRanking.setOnClickListener {
-            startActivity(Intent(this, LeaderboardActivity::class.java))
+            openLeaderboard()
         }
         binding.tabLeaderboard.setOnClickListener {
-            startActivity(Intent(this, LeaderboardActivity::class.java))
+            openLeaderboard()
         }
 
         // Navigasi ke Statistik Sampah

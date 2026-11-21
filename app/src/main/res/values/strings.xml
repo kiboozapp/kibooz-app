@@ -211,4 +211,7 @@
     <string name="panduan_sudah_dilaporkan">Sudah dilaporkan ke guru</string>
     <string name="panduan_tidak_ada">Buka panduan dari dasbor setelah guru mencatat mood anak</string>
     <string name="panduan_terapkan_label">Terapkan Panduan &amp; Laporkan ke Guru</string>
+    <string name="leaderboard_judul">Ranking Poin Semester Ini</string>
+    <string name="leaderboard_kosong">Belum ada siswa di kelas ini</string>
+    <string name="leaderboard_poin">🔥 %1$d Poin</string>
 </resources>
