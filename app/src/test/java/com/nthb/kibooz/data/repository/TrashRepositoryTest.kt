@@ -135,4 +135,42 @@ class TrashRepositoryTest {
 
         assertTrue(repository.claim(PendingTrashClaim("student-1", TrashCategory.ORGANIK, 0.9f)) is ApiResult.NetworkError)
     }
+
+    private val stats = """{"success":true,"data":{"student":{"id":"s1","fullName":"Amelia"},
+        "totalPoints":120,"seasonPoints":40,"classRank":3,"totalScans":10,
+        "breakdown":[{"trashType":"ORGANIK","scans":5,"points":50},{"trashType":"ANORGANIK","scans":4,"points":60},
+                     {"trashType":"B3","scans":1,"points":0}],
+        "todayScans":2,"dailyLimit":5,"remainingDailyScans":3}}"""
+
+    @Test
+    fun `stats are read for the oldest child by default and for a chosen child`() = runBlocking {
+        server.enqueue(jsonResponse(stats))
+        server.enqueue(jsonResponse(stats))
+
+        val result = repository.stats() as ApiResult.Success
+        repository.stats("s2")
+
+        assertEquals("/api/v1/trash/stats", server.takeRequest().path)
+        assertEquals("/api/v1/trash/stats?studentId=s2", server.takeRequest().path)
+        assertEquals(5, result.data.scansOf(TrashCategory.ORGANIK))
+        assertEquals(1, result.data.scansOf(TrashCategory.B3))
+        assertEquals(50, result.data.percentOf(TrashCategory.ORGANIK))
+        assertEquals(40, result.data.percentOf(TrashCategory.ANORGANIK))
+        assertEquals(3, result.data.remainingDailyScans)
+    }
+
+    @Test
+    fun `a child without scans has zero percent and a missing category counts as zero`() = runBlocking {
+        server.enqueue(
+            jsonResponse(
+                """{"success":true,"data":{"student":{"id":"s1","fullName":"Amelia"},"totalPoints":0,"seasonPoints":0,
+                "classRank":0,"totalScans":0,"breakdown":[],"todayScans":0,"dailyLimit":5,"remainingDailyScans":5}}"""
+            )
+        )
+
+        val result = repository.stats() as ApiResult.Success
+
+        assertEquals(0, result.data.scansOf(TrashCategory.ANORGANIK))
+        assertEquals(0, result.data.percentOf(TrashCategory.ORGANIK))
+    }
 }

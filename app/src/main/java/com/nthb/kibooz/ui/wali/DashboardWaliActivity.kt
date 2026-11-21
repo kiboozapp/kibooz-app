@@ -122,6 +122,12 @@ class DashboardWaliActivity : AppCompatActivity() {
         startActivity(Intent(this, LeaderboardActivity::class.java).putExtra(LeaderboardActivity.EXTRA_CLASS_ID, classId))
     }
 
+    /** Anak yang sedang ditampilkan, supaya statistiknya milik anak yang sama. */
+    private fun openTrashStats() {
+        val studentId = viewModel.state.value.dashboard?.student?.id
+        startActivity(Intent(this, StatistikSampahActivity::class.java).putExtra(StatistikSampahActivity.EXTRA_STUDENT_ID, studentId))
+    }
+
     private fun openGuidance() {
         val data = viewModel.state.value.dashboard
         val guidance = data?.recommendedGuidance
@@ -166,16 +172,16 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Navigasi ke Statistik Sampah
         binding.cardMetricSampah.setOnClickListener {
-            startActivity(Intent(this, StatistikSampahActivity::class.java))
+            openTrashStats()
         }
         binding.cardSampah.setOnClickListener {
-            startActivity(Intent(this, StatistikSampahActivity::class.java))
+            openTrashStats()
         }
         binding.btnStatistikSampah.setOnClickListener {
-            startActivity(Intent(this, StatistikSampahActivity::class.java))
+            openTrashStats()
         }
         binding.tabSampah.setOnClickListener {
-            startActivity(Intent(this, StatistikSampahActivity::class.java))
+            openTrashStats()
         }
 
         // Navigasi ke Panduan & Penanganan Mood
@@ -201,7 +207,10 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Navigasi ke Scanner AI Sampah
         binding.fabScannerSampah.setOnClickListener {
-            startActivity(Intent(this, CameraScanSampahActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanSampahActivity::class.java)
+                    .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.dashboard?.student?.id)
+            )
         }
 
         // Notifikasi
