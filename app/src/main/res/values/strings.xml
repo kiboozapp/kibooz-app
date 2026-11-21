@@ -194,4 +194,13 @@
     <string name="hint_nama_anak">Nama lengkap anak</string>
     <string name="hint_nisn">NISN anak</string>
     <string name="form_kode_kelas_tidak_valid">Kode kelas berisi 4 sampai 12 huruf atau angka</string>
+    <string name="batal">Batal</string>
+    <string name="wali_pilih_anak">Pilih anak</string>
+    <string name="wali_banner_peringkat">Peringkat Si Kecil: %1$s</string>
+    <string name="wali_banner_poin_semester">Poin semester ini: %1$d</string>
+    <string name="wali_mood_hari_ini">Mood hari ini</string>
+    <string name="wali_mood_hari_ini_jam">Mood hari ini (%1$s)</string>
+    <string name="wali_belum_ada_catatan">Belum ada catatan dari guru hari ini</string>
+    <string name="wali_belum_ada_panduan">Panduan muncul setelah guru mencatat mood anak hari ini</string>
+    <string name="wali_riwayat_belum_tersedia">Riwayat aktivitas belum tersedia</string>
 </resources>
