@@ -291,17 +291,18 @@ class CameraScanSampahActivity : AppCompatActivity() {
             .show()
     }
 
-    /** BR-04: di bawah 75% pengguna menentukan sendiri organik atau anorganik. */
+    /**
+     * BR-04: di bawah 75% pengguna menentukan sendiri jenisnya, termasuk B3. Penjelasan ada di judul karena
+     * AlertDialog tidak menampilkan daftar pilihan jika pesan juga diisi.
+     */
     private fun showCategoryChoiceIfNeeded(state: TrashScanState) {
         if (!state.askCategory || categoryDialog?.isShowing == true) return
 
-        val options = arrayOf(getString(R.string.sampah_organik), getString(R.string.sampah_anorganik))
+        val choices = MANUAL_TRASH_CHOICES
+        val options = choices.map { getString(manualLabel(it)) }.toTypedArray()
         categoryDialog = MaterialAlertDialogBuilder(this)
             .setTitle(R.string.sampah_manual_judul)
-            .setMessage(R.string.sampah_manual_pesan)
-            .setItems(options) { _, which ->
-                viewModel.claimManual(if (which == 0) TrashCategory.ORGANIK else TrashCategory.ANORGANIK)
-            }
+            .setItems(options) { _, which -> viewModel.claimManual(choices[which]) }
             .setNegativeButton(R.string.konsen_batal) { _, _ -> viewModel.dismissCategoryChoice() }
             .setOnCancelListener { viewModel.dismissCategoryChoice() }
             .show()
@@ -325,5 +326,11 @@ class CameraScanSampahActivity : AppCompatActivity() {
     companion object {
         /** Anak yang membuang sampah. Opsional: tanpa ini layar menanyakan daftar anak Wali ke server. */
         const val EXTRA_STUDENT_ID = "EXTRA_STUDENT_ID"
+    }
+
+    private fun manualLabel(category: TrashCategory): Int = when (category) {
+        TrashCategory.ORGANIK -> R.string.sampah_organik
+        TrashCategory.ANORGANIK -> R.string.sampah_anorganik
+        TrashCategory.B3 -> R.string.sampah_pilihan_b3
     }
 }

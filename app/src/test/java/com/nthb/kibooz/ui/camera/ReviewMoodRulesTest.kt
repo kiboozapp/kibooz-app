@@ -121,4 +121,33 @@ class ReviewMoodRulesTest {
         assertEquals(Emotion.SEDIH, entry.moodType)
         assertEquals(MoodSource.MANUAL_INPUT, entry.source)
     }
+
+    @Test
+    fun `a student added by the teacher is a confirmed manual entry without a score`() {
+        val added = manualRow(Student("s9", "Budi"), "SEDIH", avatarRes = 0)
+
+        assertFalse(added.needsConfirmation())
+        val entry = added.toEntry()
+        assertEquals("s9", entry.studentId)
+        assertEquals(Emotion.SEDIH, entry.moodType)
+        assertEquals(MoodSource.MANUAL_INPUT, entry.source)
+        assertNull(entry.confidenceScore)
+    }
+
+    @Test
+    fun `a Kalem pick for an added student is still sent as SENANG`() {
+        assertEquals(Emotion.SENANG, manualRow(Student("s9", "Budi"), "KALEM", 0).toEntry().moodType)
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `an unknown label cannot become a row`() {
+        manualRow(Student("s9", "Budi"), "HAPPY", 0)
+    }
+
+    @Test
+    fun `every review label has its own choice text`() {
+        val texts = REVIEW_MOOD_LABELS.map(::reviewMoodText)
+        assertEquals(REVIEW_MOOD_LABELS.size, texts.toSet().size)
+        assertTrue(texts.none { it in REVIEW_MOOD_LABELS })
+    }
 }

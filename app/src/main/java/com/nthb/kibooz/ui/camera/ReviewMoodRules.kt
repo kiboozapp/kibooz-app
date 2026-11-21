@@ -11,6 +11,34 @@ import com.nthb.kibooz.model.ScannedStudentMood
  */
 val REVIEW_MOOD_LABELS = listOf("SENANG", "KALEM", "SEDIH", "BINGUNG", "MARAH")
 
+/** Teks pilihan untuk setiap label di [REVIEW_MOOD_LABELS], sama dengan chip di layar review. */
+fun reviewMoodText(label: String): String = when (label) {
+    "SENANG" -> "😊 Senang"
+    "KALEM" -> "😌 Kalem"
+    "SEDIH" -> "😢 Sedih"
+    "BINGUNG" -> "🤔 Ragu"
+    "MARAH" -> "😠 Kesal"
+    else -> label
+}
+
+/**
+ * Baris untuk siswa yang terlewat kamera dan ditambahkan guru dari daftar kelas. Moodnya pilihan guru, jadi
+ * dikirim sebagai MANUAL_INPUT tanpa skor dan tidak perlu dikonfirmasi lagi.
+ */
+fun manualRow(student: Student, label: String, avatarRes: Int): ScannedStudentMood {
+    require(label in REVIEW_MOOD_LABELS) { "Label mood tidak dikenal: $label" }
+    return ScannedStudentMood(
+        id = student.id,
+        studentName = student.name,
+        avatarRes = avatarRes,
+        currentMood = label,
+        confidenceScore = 1f,
+        isConfirmed = true,
+        source = MoodSource.MANUAL_INPUT,
+        detectedMood = label
+    )
+}
+
 /** `notes` di API paling banyak 500 karakter. */
 const val MAX_NOTES_LENGTH = 500
 

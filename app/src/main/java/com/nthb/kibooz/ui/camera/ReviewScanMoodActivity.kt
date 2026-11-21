@@ -30,6 +30,9 @@ class ReviewScanMoodActivity : AppCompatActivity() {
     private lateinit var adapter: ReviewScanMoodAdapter
 
     private val viewModel: ReviewMoodViewModel by viewModels { ReviewMoodViewModel.Factory(appContainer.moodRepository) }
+    private val roster: ReviewRosterViewModel by viewModels {
+        ReviewRosterViewModel.Factory(appContainer.classRepository, intent.getStringExtra(EXTRA_CLASS_ID))
+    }
     private val classId: String? get() = intent.getStringExtra(EXTRA_CLASS_ID)
 
     private var saving = false
@@ -98,14 +101,51 @@ class ReviewScanMoodActivity : AppCompatActivity() {
             finish()
         }
 
-        // Siswa yang terlewat harus dipilih dari daftar kelas yang sebenarnya (id dari server), bukan dari
-        // nama yang diketik. Pemilih itu menyusul bersama pengambilan daftar siswa di layar kamera
-        binding.btnTambahSiswaManual.visibility = View.GONE
-        binding.ivAddStudent.visibility = View.GONE
+        // Siswa yang terlewat dipilih dari daftar kelas yang sebenarnya (id dari server), bukan dari nama yang diketik
+        binding.btnTambahSiswaManual.setOnClickListener { addMissedStudent() }
+        binding.ivAddStudent.setOnClickListener { addMissedStudent() }
 
         binding.btnConfirmAll.setOnClickListener {
             confirmAndSaveAll()
         }
+    }
+
+    private fun addMissedStudent() {
+        val state = roster.state.value
+        when {
+            state.error != null -> {
+                Snackbar.make(binding.root, state.error, Snackbar.LENGTH_LONG)
+                    .setAnchorView(binding.clBottomBar)
+                    .setAction(R.string.review_coba_lagi) { roster.load() }
+                    .show()
+                roster.errorShown()
+            }
+            !state.loaded -> Toast.makeText(this, R.string.review_tambah_memuat, Toast.LENGTH_SHORT).show()
+            else -> {
+                val listed = studentList.map { it.id }.toSet()
+                if (roster.addable(listed).isEmpty()) {
+                    Toast.makeText(this, R.string.review_tambah_semua_ada, Toast.LENGTH_SHORT).show()
+                    return
+                }
+                StudentPickerDialog.show(this, state.students, isTaken = { it.id in listed }) { student -> askMood(student) }
+            }
+        }
+    }
+
+    /** Guru memilih mood siswa yang ditambahkan. Tidak ada nilai bawaan supaya tidak ada mood yang tersimpan tanpa dipilih. */
+    private fun askMood(student: Student) {
+        val labels = REVIEW_MOOD_LABELS
+        MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.review_tambah_pilih_mood, student.name))
+            .setItems(labels.map(::reviewMoodText).toTypedArray()) { _, which ->
+                studentList += manualRow(student, labels[which], R.drawable.img_avatar_siswa)
+                adapter.notifyItemInserted(studentList.lastIndex)
+                binding.rvScannedStudents.scrollToPosition(studentList.lastIndex)
+                updateSummaryStats()
+                Toast.makeText(this, getString(R.string.review_tambah_berhasil, student.name), Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton(R.string.konsen_batal, null)
+            .show()
     }
 
     private fun updateSummaryStats() {
@@ -125,6 +165,7 @@ class ReviewScanMoodActivity : AppCompatActivity() {
             binding.btnConfirmAll.isEnabled = false
             binding.tvCountHappy.text = "😊 0 Senang"
             binding.tvCountKalem.text = "😌 0 Kalem"
+            binding.tvCountSedih.text = "😢 0 Sedih"
             binding.tvCountBingung.text = "🤔 0 Ragu"
             binding.tvCountMarah.text = "😠 0 Kesal"
             return
@@ -137,11 +178,13 @@ class ReviewScanMoodActivity : AppCompatActivity() {
 
         val happyCount = studentList.count { it.currentMood == "SENANG" }
         val kalemCount = studentList.count { it.currentMood == "KALEM" }
+        val sedihCount = studentList.count { it.currentMood == "SEDIH" }
         val bingungCount = studentList.count { it.currentMood == "BINGUNG" }
         val marahCount = studentList.count { it.currentMood == "MARAH" }
 
         binding.tvCountHappy.text = "😊 $happyCount Senang"
         binding.tvCountKalem.text = "😌 $kalemCount Kalem"
+        binding.tvCountSedih.text = "😢 $sedihCount Sedih"
         binding.tvCountBingung.text = "🤔 $bingungCount Ragu"
         binding.tvCountMarah.text = "😠 $marahCount Kesal"
     }

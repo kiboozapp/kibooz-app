@@ -144,11 +144,16 @@
                         android:textColor="@color/kibooz_text_secondary"
                         android:textSize="12sp" />
 
-                    <!-- Mood Distribution Chips -->
-                    <LinearLayout
+                    <!-- Mood Distribution Chips: digulir ke samping karena lima chip bisa lebih lebar dari layar -->
+                    <HorizontalScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
+                        android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
@@ -176,6 +181,20 @@
                             android:paddingVertical="3dp"
                             android:text="😌 1 Kalem"
                             android:textColor="#2E7D32"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCountSedih"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:background="@drawable/bg_chip_mood_sedih"
+                            android:fontFamily="@font/baloo2"
+                            android:paddingHorizontal="8dp"
+                            android:paddingVertical="3dp"
+                            android:text="😢 0 Sedih"
+                            android:textColor="#1565C0"
                             android:textSize="11sp"
                             android:textStyle="bold" />
 
@@ -208,6 +227,8 @@
                             android:textStyle="bold" />
 
                     </LinearLayout>
+
+                    </HorizontalScrollView>
 
                 </LinearLayout>
 
