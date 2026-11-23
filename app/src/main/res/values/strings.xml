@@ -162,6 +162,7 @@
     <string name="sapaan_malam">Selamat malam</string>
     <string name="guru_kelas_info">%1$s · Kode gabung %2$s</string>
     <string name="guru_siswa_hadir">%1$d/%2$d</string>
+    <string name="guru_siswa_hadir_persen">%1$d/%2$d (%3$d%%)</string>
     <string name="guru_belum_ada_mood">Belum ada mood tercatat hari ini</string>
     <string name="mood_belum_dicatat">Belum dicatat</string>
     <string name="stat_belum_ada_siswa">Belum ada siswa di kelas ini</string>
