@@ -27,10 +27,12 @@ class LeaderboardViewModelTest {
 
     private class FakeApi : LeaderboardApi {
         val asked = mutableListOf<String?>()
+        val askedPeriods = mutableListOf<String?>()
         var reply: () -> Response<ApiEnvelope<LeaderboardData>> = { error("not set") }
 
-        override suspend fun leaderboard(classId: String?): Response<ApiEnvelope<LeaderboardData>> {
+        override suspend fun leaderboard(classId: String?, period: String?): Response<ApiEnvelope<LeaderboardData>> {
             asked += classId
+            askedPeriods += period
             return reply()
         }
     }

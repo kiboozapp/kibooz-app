@@ -3,6 +3,7 @@ package com.nthb.kibooz.data.repository
 import com.nthb.kibooz.data.failureJson
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.LeaderboardApi
+import com.nthb.kibooz.data.remote.LeaderboardPeriod
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockWebServer
@@ -62,6 +63,21 @@ class LeaderboardRepositoryTest {
         repository.leaderboard("c2")
 
         assertEquals("/api/v1/leaderboard?classId=c2", server.takeRequest().path)
+    }
+
+    @Test
+    fun `each period is sent as its query value and the semester sends none`() = runBlocking {
+        repeat(4) { server.enqueue(jsonResponse(full)) }
+
+        repository.leaderboard()
+        repository.leaderboard("c2", LeaderboardPeriod.TODAY)
+        repository.leaderboard("c2", LeaderboardPeriod.WEEK)
+        repository.leaderboard(period = LeaderboardPeriod.MONTH)
+
+        assertEquals("/api/v1/leaderboard", server.takeRequest().path)
+        assertEquals("/api/v1/leaderboard?classId=c2&period=today", server.takeRequest().path)
+        assertEquals("/api/v1/leaderboard?classId=c2&period=week", server.takeRequest().path)
+        assertEquals("/api/v1/leaderboard?period=month", server.takeRequest().path)
     }
 
     @Test
