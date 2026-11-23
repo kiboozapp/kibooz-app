@@ -156,6 +156,11 @@
     <string name="error_network">Tidak ada koneksi internet, periksa jaringan lalu coba lagi</string>
     <string name="error_unknown">Terjadi kesalahan, coba lagi</string>
     <string name="coba_lagi">Coba lagi</string>
+    <string name="outage_offline_title">Tidak ada koneksi</string>
+    <string name="outage_offline_message">Periksa jaringan internet kamu. Mencoba lagi dalam %1$s.</string>
+    <string name="outage_unavailable_title">Layanan sedang tidak tersedia</string>
+    <string name="outage_unavailable_message">Server sedang bermasalah, bukan karena ponselmu. Mencoba lagi dalam %1$s.</string>
+    <string name="outage_status_link">Lihat status layanan</string>
     <string name="sapaan_pagi">Selamat pagi</string>
     <string name="sapaan_siang">Selamat siang</string>
     <string name="sapaan_sore">Selamat sore</string>

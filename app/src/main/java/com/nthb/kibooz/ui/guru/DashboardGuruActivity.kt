@@ -11,6 +11,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
@@ -24,6 +25,10 @@ import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class DashboardGuruActivity : AppCompatActivity() {
@@ -54,11 +59,31 @@ class DashboardGuruActivity : AppCompatActivity() {
         binding.tvDate.text = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID")).format(Date())
         binding.tvGreeting.setText(greetingRes(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)))
 
+        binding.connectionStatus.onRetry = { viewModel.load() }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                launch { viewModel.state.collect(::render) }
+                launch { viewModel.state.map { it.outage }.distinctUntilChanged().collectLatest(::runOutageCountdown) }
             }
         }
+    }
+
+    /**
+     * Hitung mundur sampai percobaan otomatis berikutnya saat server tidak terjangkau (FE-12). Berhenti sendiri
+     * saat layar tidak terlihat, dan dimulai lagi dari awal saat layar tampil kembali.
+     */
+    private suspend fun runOutageCountdown(outage: ServiceOutage?) {
+        if (outage == null) {
+            binding.connectionStatus.hide()
+            return
+        }
+
+        for (secondsLeft in outage.waitSeconds downTo 1) {
+            binding.connectionStatus.show(outage.kind, secondsLeft.toInt())
+            delay(1_000)
+        }
+        viewModel.retryAfterOutage()
     }
 
     override fun onResume() {
@@ -103,9 +128,12 @@ class DashboardGuruActivity : AppCompatActivity() {
         }
 
         state.error?.let {
-            Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.coba_lagi) { viewModel.load() }
-                .show()
+            // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
+            if (state.outage == null) {
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.coba_lagi) { viewModel.load() }
+                    .show()
+            }
             viewModel.errorShown()
         }
     }

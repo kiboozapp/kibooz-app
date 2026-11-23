@@ -259,6 +259,15 @@
 
             </androidx.cardview.widget.CardView>
 
+            <!-- Gangguan server: offline atau layanan tidak tersedia (FE-12) -->
+            <com.nthb.kibooz.ui.common.ConnectionStatusView
+                android:id="@+id/connectionStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
             <!-- Card: Mood Kelas Hari Ini -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/cvMoodKelas"
