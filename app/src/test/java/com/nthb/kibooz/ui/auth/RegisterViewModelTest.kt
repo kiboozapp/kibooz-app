@@ -6,6 +6,7 @@ import com.nthb.kibooz.data.authJson
 import com.nthb.kibooz.data.failureJson
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
+import com.nthb.kibooz.data.remote.OutageKind
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.session.Role
 import java.util.concurrent.TimeUnit
@@ -18,6 +19,7 @@ import kotlinx.coroutines.test.setMain
 import okhttp3.logging.HttpLoggingInterceptor
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -188,6 +190,50 @@ class RegisterViewModelTest {
 
         viewModel.errorShown()
         assertNull(viewModel.state.value.error)
+    }
+
+    @Test
+    fun `a missing connection raises an offline outage for the status card`() {
+        repeat(2) { server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)) }
+
+        viewModel.register(wali)
+
+        assertEquals(OutageKind.OFFLINE, settled().outage)
+    }
+
+    @Test
+    fun `a gateway error without a JSON body raises an unavailable outage and keeps nothing stored`() {
+        server.enqueue(json("", 502))
+
+        viewModel.register(guru)
+        val state = settled()
+
+        assertEquals(OutageKind.UNAVAILABLE, state.outage)
+        assertNull(state.signedIn)
+        assertNull(store.session)
+    }
+
+    @Test
+    fun `an answer from the API itself is never an outage`() {
+        server.enqueue(json(failureJson("INTERNAL_ERROR"), 500))
+
+        viewModel.register(guru)
+
+        assertNull(settled().outage)
+    }
+
+    @Test
+    fun `retrying after an outage clears the card and signs in`() {
+        server.enqueue(json("", 503))
+        server.enqueue(json(authJson("a", "r"), 201))
+        viewModel.register(guru)
+        assertEquals(OutageKind.UNAVAILABLE, settled().outage)
+
+        viewModel.register(guru)
+        val state = settled()
+
+        assertNull(state.outage)
+        assertNotNull(state.signedIn)
     }
 
     @Test

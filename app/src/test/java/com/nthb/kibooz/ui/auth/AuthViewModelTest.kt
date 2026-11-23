@@ -6,6 +6,7 @@ import com.nthb.kibooz.data.authJson
 import com.nthb.kibooz.data.failureJson
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
+import com.nthb.kibooz.data.remote.OutageKind
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.session.Role
 import java.util.concurrent.TimeUnit
@@ -151,6 +152,49 @@ class AuthViewModelTest {
         viewModel.login("ani@example.com", "secret123", Role.WALI)
 
         assertEquals(R.string.error_network, settled().error)
+    }
+
+    @Test
+    fun `a missing connection raises an offline outage for the status card`() {
+        repeat(2) { server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)) }
+
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+
+        assertEquals(OutageKind.OFFLINE, settled().outage)
+    }
+
+    @Test
+    fun `a gateway error without a JSON body raises an unavailable outage`() {
+        server.enqueue(json("", 503))
+
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+
+        assertEquals(OutageKind.UNAVAILABLE, settled().outage)
+    }
+
+    @Test
+    fun `an answer from the API itself is never an outage`() {
+        server.enqueue(json(failureJson("AUTH_INVALID_CREDENTIALS"), 401))
+
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+
+        assertNull(settled().outage)
+    }
+
+    @Test
+    fun `the outage stays after the error is shown and is cleared by the next attempt`() {
+        server.enqueue(json("", 503))
+        server.enqueue(json(authJson("access-1", "refresh-1")))
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+        settled()
+
+        viewModel.errorShown()
+        assertEquals(OutageKind.UNAVAILABLE, viewModel.state.value.outage)
+
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+        val state = settled()
+        assertNull(state.outage)
+        assertNotNull(state.signedIn)
     }
 
     @Test

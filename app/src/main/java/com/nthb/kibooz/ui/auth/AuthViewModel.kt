@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.OutageKind
 import com.nthb.kibooz.data.remote.errorMessageRes
+import com.nthb.kibooz.data.remote.outageKind
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
@@ -23,6 +25,8 @@ data class LoginUiState(
     @StringRes val passwordError: Int? = null,
     /** Galat umum dari server atau jaringan. Panggil [AuthViewModel.errorShown] setelah ditampilkan. */
     @StringRes val error: Int? = null,
+    /** Terisi jika server tidak terjangkau. Layar menampilkan kartu gangguan, bukan [error], dan pengguna yang mencoba lagi. */
+    val outage: OutageKind? = null,
     /** Terisi setelah login berhasil. Peran yang dipakai untuk membuka portal berasal dari sini, bukan dari pilihan di layar. */
     val signedIn: SessionUser? = null
 )
@@ -71,7 +75,8 @@ class AuthViewModel(
                 repository.logout()
                 LoginUiState(error = R.string.error_forbidden)
             }
-        else -> LoginUiState(error = errorMessageRes())
+        // Kata sandi tidak disimpan untuk dikirim ulang sendiri, jadi tidak ada hitung mundur: cukup tampilkan kartunya
+        else -> LoginUiState(error = errorMessageRes(), outage = outageKind())
     }
 
     private fun ApiResult<*>.isBusy() =

@@ -150,6 +150,14 @@
                     android:textSize="13sp"
                     android:textStyle="bold" />
 
+                <!-- Kartu gangguan server, tampil saat login gagal karena jaringan atau layanan -->
+                <com.nthb.kibooz.ui.common.ConnectionStatusView
+                    android:id="@+id/connectionStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone" />
+
                 <!-- Login Button -->
                 <androidx.appcompat.widget.AppCompatButton
                     android:id="@+id/btnLogin"

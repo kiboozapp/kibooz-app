@@ -43,6 +43,7 @@ class RegisterActivity : AppCompatActivity() {
         binding.tvRegisterSubtitle.setText(if (isGuru) R.string.daftar_subjudul_guru else R.string.daftar_subjudul_wali)
 
         binding.btnRegister.setOnClickListener { viewModel.register(readForm()) }
+        binding.connectionStatus.onRetry = { viewModel.register(readForm()) }
         binding.tvToLogin.setOnClickListener { finish() }
 
         lifecycleScope.launch {
@@ -83,8 +84,11 @@ class RegisterActivity : AppCompatActivity() {
         )
         fields.forEach { (field, layout) -> layout.error = state.fieldErrors[field]?.let { getString(it) } }
 
+        // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
+        state.outage?.let { binding.connectionStatus.show(it) } ?: binding.connectionStatus.hide()
+
         state.error?.let {
-            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            if (state.outage == null) Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             viewModel.errorShown()
         }
         state.signedIn?.let(::openPortal)
