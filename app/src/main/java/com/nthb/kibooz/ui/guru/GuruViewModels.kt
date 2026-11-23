@@ -9,11 +9,15 @@ import com.nthb.kibooz.data.remote.ClassStudent
 import com.nthb.kibooz.data.remote.DailyMoodDistribution
 import com.nthb.kibooz.data.remote.GuruDashboard
 import com.nthb.kibooz.data.remote.MonthlyCount
+import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.data.remote.WeeklyPoint
 import com.nthb.kibooz.data.remote.errorMessageRes
+import com.nthb.kibooz.data.remote.outage
+import com.nthb.kibooz.data.remote.outageKind
 import com.nthb.kibooz.data.repository.AnalyticsRange
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.GuruRepository
+import kotlin.random.Random
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -25,7 +29,9 @@ import kotlinx.coroutines.launch
 data class GuruDashboardState(
     val loading: Boolean = true,
     val dashboard: GuruDashboard? = null,
-    @StringRes val error: Int? = null
+    @StringRes val error: Int? = null,
+    /** Terisi jika server tidak terjangkau (FE-12). Layar menampilkan hitung mundur lalu memanggil [GuruDashboardViewModel.retryAfterOutage]. */
+    val outage: ServiceOutage? = null
 )
 
 /** Dasbor Guru (FR-2.1): satu panggilan, semua angka dihitung server. Data lama tetap tampil jika muat ulang gagal. */
@@ -36,17 +42,39 @@ class GuruDashboardViewModel(private val repository: GuruRepository) : ViewModel
 
     private var job: Job? = null
 
+    /** Gangguan berturut-turut sejak muat terakhir yang dimulai pengguna. Menentukan seberapa panjang jeda berikutnya. */
+    private var outageAttempts = 0
+
     init {
         load()
     }
 
+    /** Memuat ulang dari awal, misalnya saat layar tampil lagi atau pengguna menekan coba lagi. */
     fun load() {
+        outageAttempts = 0
+        fetch()
+    }
+
+    /** Percobaan otomatis setelah gangguan. Jeda berikutnya lebih panjang selama gangguan berlanjut. */
+    fun retryAfterOutage() = fetch()
+
+    private fun fetch() {
         job?.cancel()
-        _state.value = _state.value.copy(loading = true, error = null)
+        _state.value = _state.value.copy(loading = true, error = null, outage = null)
         job = viewModelScope.launch {
             _state.value = when (val result = repository.dashboard()) {
-                is ApiResult.Success -> GuruDashboardState(loading = false, dashboard = result.data)
-                else -> _state.value.copy(loading = false, error = result.errorMessageRes())
+                is ApiResult.Success -> {
+                    outageAttempts = 0
+                    GuruDashboardState(loading = false, dashboard = result.data)
+                }
+                else -> {
+                    val outage = if (result.outageKind() != null) {
+                        result.outage(++outageAttempts, Random.nextLong(OUTAGE_JITTER_SECONDS))
+                    } else {
+                        null
+                    }
+                    _state.value.copy(loading = false, error = result.errorMessageRes(), outage = outage)
+                }
             }
         }
     }
@@ -58,6 +86,11 @@ class GuruDashboardViewModel(private val repository: GuruRepository) : ViewModel
     class Factory(private val repository: GuruRepository) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T = GuruDashboardViewModel(repository) as T
+    }
+
+    private companion object {
+        /** Jeda acak 0 sampai 5 detik di atas `Retry-After` supaya semua aplikasi tidak mencoba di detik yang sama. */
+        const val OUTAGE_JITTER_SECONDS = 6L
     }
 }
 
