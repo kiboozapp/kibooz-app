@@ -43,10 +43,9 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Period Filter Pills Container -->
+    <!-- Pilihan rentang poin: semester (bawaan server), hari, minggu atau bulan -->
     <LinearLayout
         android:id="@+id/llPeriodContainer"
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="44dp"
         android:layout_marginHorizontal="24dp"
@@ -56,15 +55,28 @@
         app:layout_constraintTop_toBottomOf="@+id/clTopBar">
 
         <TextView
+            android:id="@+id/tabSemester"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_leaderboard_tab_active"
+            android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:text="@string/leaderboard_tab_semester"
+            android:textColor="@color/kibooz_white"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <TextView
             android:id="@+id/tabHariIni"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:fontFamily="@font/baloo2"
             android:gravity="center"
-            android:text="Hari ini"
+            android:text="@string/leaderboard_tab_hari"
             android:textColor="#C7B4F5"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
@@ -74,9 +86,9 @@
             android:layout_weight="1"
             android:fontFamily="@font/baloo2"
             android:gravity="center"
-            android:text="Minggu ini"
+            android:text="@string/leaderboard_tab_minggu"
             android:textColor="#C7B4F5"
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
@@ -84,14 +96,12 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@drawable/bg_leaderboard_tab_active"
             android:fontFamily="@font/baloo2"
             android:gravity="center"
-            android:text="Bulan ini"
-            android:textColor="@color/kibooz_white"
-            android:textSize="13sp"
+            android:text="@string/leaderboard_tab_bulan"
+            android:textColor="#C7B4F5"
+            android:textSize="12sp"
             android:textStyle="bold" />
-
     </LinearLayout>
 
     <!-- Podium Section (Juara 1, 2, 3) -->

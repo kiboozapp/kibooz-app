@@ -1,9 +1,12 @@
 package com.nthb.kibooz.ui.wali
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -11,13 +14,17 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.LeaderboardPeriod
 import com.nthb.kibooz.data.remote.RankEntry
 import com.nthb.kibooz.databinding.ActivityLeaderboardBinding
 import com.nthb.kibooz.databinding.ItemRankingRowBinding
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
-/** Papan peringkat kelas untuk semester yang berjalan. API tidak punya filter harian atau mingguan. */
+/**
+ * Papan peringkat kelas. Bawaannya poin semester yang berjalan, dan tab di atas mengganti rentangnya ke hari,
+ * minggu atau bulan ini. Dibuka dari portal Wali dan dari banner ranking di dasbor Guru.
+ */
 class LeaderboardActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLeaderboardBinding
@@ -37,6 +44,8 @@ class LeaderboardActivity : AppCompatActivity() {
 
         binding.ivBack.setOnClickListener { finish() }
 
+        periodTabs.forEach { (period, tab) -> tab.setOnClickListener { viewModel.selectPeriod(period) } }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::render)
@@ -44,13 +53,26 @@ class LeaderboardActivity : AppCompatActivity() {
         }
     }
 
+    private val periodTabs: Map<LeaderboardPeriod, TextView>
+        get() = mapOf(
+            LeaderboardPeriod.SEMESTER to binding.tabSemester,
+            LeaderboardPeriod.TODAY to binding.tabHariIni,
+            LeaderboardPeriod.WEEK to binding.tabMingguIni,
+            LeaderboardPeriod.MONTH to binding.tabBulanIni
+        )
+
     private fun render(state: LeaderboardState) {
+        showPeriod(state.period)
+
         val data = state.data
         if (data != null) {
             showPodium(data.podium)
             showRankings(data.rankings)
             binding.tvEmpty.isVisible = state.empty
         }
+        // Tanpa data, misalnya saat rentang baru dimuat, daftar lama tidak boleh terlihat di bawah tab yang baru
+        binding.llPodiumSection.isInvisible = data == null
+        binding.cardBottomSheetLeaderboard.isInvisible = data == null
 
         state.error?.let {
             Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
@@ -58,6 +80,22 @@ class LeaderboardActivity : AppCompatActivity() {
                 .show()
             viewModel.errorShown()
         }
+    }
+
+    private fun showPeriod(selected: LeaderboardPeriod) {
+        periodTabs.forEach { (period, tab) ->
+            val active = period == selected
+            tab.setBackgroundResource(if (active) R.drawable.bg_leaderboard_tab_active else 0)
+            tab.setTextColor(if (active) Color.WHITE else INACTIVE_TAB_COLOR)
+        }
+        binding.tvTitleBar.setText(
+            when (selected) {
+                LeaderboardPeriod.SEMESTER -> R.string.leaderboard_judul
+                LeaderboardPeriod.TODAY -> R.string.leaderboard_judul_hari
+                LeaderboardPeriod.WEEK -> R.string.leaderboard_judul_minggu
+                LeaderboardPeriod.MONTH -> R.string.leaderboard_judul_bulan
+            }
+        )
     }
 
     /** Juara yang belum ada disembunyikan, kelas kecil bisa punya kurang dari tiga anak. */
@@ -91,6 +129,8 @@ class LeaderboardActivity : AppCompatActivity() {
     }
 
     companion object {
+        private val INACTIVE_TAB_COLOR = Color.parseColor("#C7B4F5")
+
         /** Id kelas yang ditampilkan. Tanpa extra ini server memilih kelas anak yang berlaku. */
         const val EXTRA_CLASS_ID = "CLASS_ID"
     }

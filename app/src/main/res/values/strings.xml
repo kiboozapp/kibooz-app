@@ -221,6 +221,13 @@
     <string name="panduan_tidak_ada">Buka panduan dari dasbor setelah guru mencatat mood anak</string>
     <string name="panduan_terapkan_label">Terapkan Panduan &amp; Laporkan ke Guru</string>
     <string name="leaderboard_judul">Ranking Poin Semester Ini</string>
+    <string name="leaderboard_judul_hari">Ranking Poin Hari Ini</string>
+    <string name="leaderboard_judul_minggu">Ranking Poin Minggu Ini</string>
+    <string name="leaderboard_judul_bulan">Ranking Poin Bulan Ini</string>
+    <string name="leaderboard_tab_semester">Semester</string>
+    <string name="leaderboard_tab_hari">Hari ini</string>
+    <string name="leaderboard_tab_minggu">Minggu ini</string>
+    <string name="leaderboard_tab_bulan">Bulan ini</string>
     <string name="leaderboard_kosong">Belum ada siswa di kelas ini</string>
     <string name="leaderboard_poin">🔥 %1$d Poin</string>
     <string name="sampah_item_persen">%1$d item (%2$d%%)</string>

@@ -21,7 +21,12 @@ class SessionAccessTest {
         assertEquals(Access.GURU, accessFor(ui("guru.DashboardGuruActivity")))
         assertEquals(Access.GURU, accessFor(ui("guru.ProfilGuruActivity")))
         assertEquals(Access.WALI, accessFor(ui("wali.DashboardWaliActivity")))
-        assertEquals(Access.WALI, accessFor(ui("wali.LeaderboardActivity")))
+        assertEquals(Access.WALI, accessFor(ui("wali.ProfilWaliActivity")))
+    }
+
+    @Test
+    fun `the leaderboard is open to both roles because the guru dashboard banner opens it`() {
+        assertEquals(Access.ANY_ROLE, accessFor(ui("wali.LeaderboardActivity")))
     }
 
     @Test

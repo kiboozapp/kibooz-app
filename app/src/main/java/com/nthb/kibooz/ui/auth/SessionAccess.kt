@@ -7,12 +7,14 @@ enum class Access { PUBLIC, GURU, WALI, ANY_ROLE }
 
 private const val APP_PACKAGE = "com.nthb.kibooz."
 
-// Layar kelas dibuka dari kedua portal, DetailKelasActivity menautkan ke tiga lainnya
+// Layar kelas dibuka dari kedua portal, DetailKelasActivity menautkan ke tiga lainnya. Papan peringkat
+// ada di package wali, tetapi Guru juga membukanya dari banner ranking di dasbor
 private val SHARED_CLASS_SCREENS = setOf(
     "com.nthb.kibooz.ui.guru.DetailKelasActivity",
     "com.nthb.kibooz.ui.guru.VideoPembelajaranActivity",
     "com.nthb.kibooz.ui.guru.PesertaKelasActivity",
-    "com.nthb.kibooz.ui.guru.ForumDiskusiActivity"
+    "com.nthb.kibooz.ui.guru.ForumDiskusiActivity",
+    "com.nthb.kibooz.ui.wali.LeaderboardActivity"
 )
 
 /**

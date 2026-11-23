@@ -4,6 +4,7 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiEnvelope
 import com.nthb.kibooz.data.remote.LeaderboardApi
 import com.nthb.kibooz.data.remote.LeaderboardData
+import com.nthb.kibooz.data.remote.LeaderboardPeriod
 import com.nthb.kibooz.data.remote.RankEntry
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.squareup.moshi.Moshi
@@ -27,10 +28,12 @@ class LeaderboardViewModelTest {
 
     private class FakeApi : LeaderboardApi {
         val asked = mutableListOf<String?>()
+        val askedPeriods = mutableListOf<String?>()
         var reply: () -> Response<ApiEnvelope<LeaderboardData>> = { error("not set") }
 
-        override suspend fun leaderboard(classId: String?): Response<ApiEnvelope<LeaderboardData>> {
+        override suspend fun leaderboard(classId: String?, period: String?): Response<ApiEnvelope<LeaderboardData>> {
             asked += classId
+            askedPeriods += period
             return reply()
         }
     }
@@ -70,6 +73,61 @@ class LeaderboardViewModelTest {
         api.reply = { Response.success(ApiEnvelope(true, null, LeaderboardData(emptyList(), emptyList()))) }
 
         assertTrue(viewModel().state.value.empty)
+    }
+
+    @Test
+    fun `it starts on the semester ranking and sends no period`() {
+        val state = viewModel().state.value
+
+        assertEquals(LeaderboardPeriod.SEMESTER, state.period)
+        assertEquals(listOf<String?>(null), api.askedPeriods)
+    }
+
+    @Test
+    fun `choosing a period loads that period for the same class`() {
+        val viewModel = viewModel("c1")
+
+        viewModel.selectPeriod(LeaderboardPeriod.WEEK)
+
+        assertEquals(LeaderboardPeriod.WEEK, viewModel.state.value.period)
+        assertEquals(data, viewModel.state.value.data)
+        assertEquals(listOf<String?>("c1", "c1"), api.asked)
+        assertEquals(listOf<String?>(null, "week"), api.askedPeriods)
+    }
+
+    @Test
+    fun `choosing the period that is already shown loads nothing`() {
+        val viewModel = viewModel()
+
+        viewModel.selectPeriod(LeaderboardPeriod.SEMESTER)
+
+        assertEquals(1, api.asked.size)
+    }
+
+    @Test
+    fun `a new period that fails does not keep the ranking of the old one`() {
+        val viewModel = viewModel()
+        api.reply = { throw IOException("offline") }
+
+        viewModel.selectPeriod(LeaderboardPeriod.TODAY)
+
+        assertNull(viewModel.state.value.data)
+        assertEquals(LeaderboardPeriod.TODAY, viewModel.state.value.period)
+        assertEquals(R.string.error_network, viewModel.state.value.error)
+    }
+
+    @Test
+    fun `retrying after a failed period asks for that period again`() {
+        val viewModel = viewModel()
+        api.reply = { throw IOException("offline") }
+        viewModel.selectPeriod(LeaderboardPeriod.MONTH)
+        api.reply = { Response.success(ApiEnvelope(true, null, data)) }
+
+        viewModel.load()
+
+        assertEquals(data, viewModel.state.value.data)
+        assertNull(viewModel.state.value.error)
+        assertEquals(listOf<String?>(null, "month", "month"), api.askedPeriods)
     }
 
     @Test
