@@ -160,6 +160,8 @@
     <string name="outage_offline_message">Periksa jaringan internet kamu. Mencoba lagi dalam %1$s.</string>
     <string name="outage_unavailable_title">Layanan sedang tidak tersedia</string>
     <string name="outage_unavailable_message">Server sedang bermasalah, bukan karena ponselmu. Mencoba lagi dalam %1$s.</string>
+    <string name="outage_offline_manual">Periksa jaringan internet kamu, lalu coba lagi. Isianmu tidak hilang.</string>
+    <string name="outage_unavailable_manual">Server sedang bermasalah, bukan karena ponselmu. Coba lagi sebentar lagi, isianmu tidak hilang.</string>
     <string name="outage_status_link">Lihat status layanan</string>
     <string name="sapaan_pagi">Selamat pagi</string>
     <string name="sapaan_siang">Selamat siang</string>

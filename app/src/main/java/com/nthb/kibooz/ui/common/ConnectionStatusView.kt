@@ -39,16 +39,22 @@ class ConnectionStatusView @JvmOverloads constructor(
         binding.tvOutageStatusLink.setOnClickListener { openStatusPage() }
     }
 
-    fun show(kind: OutageKind, secondsLeft: Int) {
-        val wait = formatWaitSeconds(secondsLeft)
+    /**
+     * [secondsLeft] null untuk layar yang tidak mencoba lagi sendiri, seperti formulir login dan daftar: tidak ada
+     * hitung mundur, pengguna menekan coba lagi dan isiannya dikirim ulang.
+     */
+    fun show(kind: OutageKind, secondsLeft: Int? = null) {
+        val wait = secondsLeft?.let(::formatWaitSeconds)
         when (kind) {
             OutageKind.OFFLINE -> {
                 binding.tvOutageTitle.setText(R.string.outage_offline_title)
-                binding.tvOutageMessage.text = context.getString(R.string.outage_offline_message, wait)
+                binding.tvOutageMessage.text =
+                    if (wait != null) context.getString(R.string.outage_offline_message, wait) else context.getString(R.string.outage_offline_manual)
             }
             OutageKind.UNAVAILABLE -> {
                 binding.tvOutageTitle.setText(R.string.outage_unavailable_title)
-                binding.tvOutageMessage.text = context.getString(R.string.outage_unavailable_message, wait)
+                binding.tvOutageMessage.text =
+                    if (wait != null) context.getString(R.string.outage_unavailable_message, wait) else context.getString(R.string.outage_unavailable_manual)
             }
         }
         // Halaman status hanya berguna jika masalahnya ada di server, bukan di ponsel
