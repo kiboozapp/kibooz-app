@@ -4,6 +4,7 @@ import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 interface AuthApi {
     @POST("auth/register")
@@ -20,4 +21,7 @@ interface AuthApi {
 
     @POST("auth/logout")
     fun logout(@Body body: LogoutRequest): Call<ApiEnvelope<EmptyData>>
+
+    @PUT("users/me/password")
+    suspend fun changePassword(@Body body: ChangePasswordRequest): Response<ApiEnvelope<EmptyData>>
 }
