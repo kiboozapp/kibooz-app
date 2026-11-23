@@ -8,8 +8,10 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.NewClass
 import com.nthb.kibooz.data.remote.NewStudent
+import com.nthb.kibooz.data.remote.OutageKind
 import com.nthb.kibooz.data.remote.RegisterRequest
 import com.nthb.kibooz.data.remote.errorMessageRes
+import com.nthb.kibooz.data.remote.outageKind
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
@@ -46,6 +48,8 @@ data class RegisterUiState(
     val fieldErrors: Map<RegisterField, Int> = emptyMap(),
     /** Galat umum dari server atau jaringan. Panggil [RegisterViewModel.errorShown] setelah ditampilkan. */
     @StringRes val error: Int? = null,
+    /** Terisi jika server tidak terjangkau. Layar menampilkan kartu gangguan, bukan [error], dan pengguna yang mencoba lagi. */
+    val outage: OutageKind? = null,
     /** Terisi setelah pendaftaran berhasil. Server langsung memberi sesi, jadi pengguna sudah masuk. */
     val signedIn: SessionUser? = null
 )
@@ -122,7 +126,7 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
             _state.value = when (val result = repository.register(RegisterRules.toRequest(form))) {
                 is ApiResult.Success -> signedInOrDenied(result.data)
                 is ApiResult.Failure -> failed(result)
-                is ApiResult.NetworkError -> RegisterUiState(error = result.errorMessageRes())
+                is ApiResult.NetworkError -> RegisterUiState(error = result.errorMessageRes(), outage = result.outageKind())
             }
         }
     }
@@ -145,7 +149,12 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
             "CLASS_CODE_NOT_FOUND", "CLASS_JOINING_CLOSED", "CLASS_FULL", "CLASS_NO_ACTIVE_TEACHER" -> RegisterField.CLASS_CODE
             else -> null
         }
-        return if (field != null) RegisterUiState(fieldErrors = mapOf(field to message)) else RegisterUiState(error = message)
+        return if (field != null) {
+            RegisterUiState(fieldErrors = mapOf(field to message))
+        } else {
+            // Data pendaftaran tidak disimpan untuk dikirim ulang sendiri, jadi gangguan hanya menampilkan kartu
+            RegisterUiState(error = message, outage = failure.outageKind())
+        }
     }
 
     fun errorShown() {
