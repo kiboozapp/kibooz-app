@@ -15,6 +15,7 @@ import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.ui.common.PulseAnimator
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
@@ -29,6 +30,11 @@ class DashboardGuruActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardGuruBinding
     private val viewModel: GuruDashboardViewModel by viewModels { GuruDashboardViewModel.Factory(appContainer.guruRepository) }
+
+    // Angka dan donat berkedip selama data pertama belum tiba. Muat ulang berikutnya tidak mengosongkan layar
+    private val loadingPulse by lazy {
+        PulseAnimator(listOf(binding.tvTotalSiswa, binding.tvMoodDominan, binding.tvHadir, binding.donutMoodChart))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +67,14 @@ class DashboardGuruActivity : AppCompatActivity() {
         if (!viewModel.state.value.loading && viewModel.state.value.dashboard != null) viewModel.load()
     }
 
+    override fun onDestroy() {
+        loadingPulse.stop()
+        super.onDestroy()
+    }
+
     private fun render(state: GuruDashboardState) {
+        if (state.loading && state.dashboard == null) loadingPulse.start() else loadingPulse.stop()
+
         val data = state.dashboard
         if (data != null) {
             val overview = data.classOverview
