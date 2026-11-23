@@ -11,22 +11,35 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.ui.common.PulseAnimator
+import com.nthb.kibooz.ui.common.displayName
+import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class DashboardGuruActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardGuruBinding
     private val viewModel: GuruDashboardViewModel by viewModels { GuruDashboardViewModel.Factory(appContainer.guruRepository) }
+
+    // Angka dan donat berkedip selama data pertama belum tiba. Muat ulang berikutnya tidak mengosongkan layar
+    private val loadingPulse by lazy {
+        PulseAnimator(listOf(binding.tvTotalSiswa, binding.tvMoodDominan, binding.tvHadir, binding.donutMoodChart))
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,11 +59,31 @@ class DashboardGuruActivity : AppCompatActivity() {
         binding.tvDate.text = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID")).format(Date())
         binding.tvGreeting.setText(greetingRes(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)))
 
+        binding.connectionStatus.onRetry = { viewModel.load() }
+
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                launch { viewModel.state.collect(::render) }
+                launch { viewModel.state.map { it.outage }.distinctUntilChanged().collectLatest(::runOutageCountdown) }
             }
         }
+    }
+
+    /**
+     * Hitung mundur sampai percobaan otomatis berikutnya saat server tidak terjangkau (FE-12). Berhenti sendiri
+     * saat layar tidak terlihat, dan dimulai lagi dari awal saat layar tampil kembali.
+     */
+    private suspend fun runOutageCountdown(outage: ServiceOutage?) {
+        if (outage == null) {
+            binding.connectionStatus.hide()
+            return
+        }
+
+        for (secondsLeft in outage.waitSeconds downTo 1) {
+            binding.connectionStatus.show(outage.kind, secondsLeft.toInt())
+            delay(1_000)
+        }
+        viewModel.retryAfterOutage()
     }
 
     override fun onResume() {
@@ -59,7 +92,14 @@ class DashboardGuruActivity : AppCompatActivity() {
         if (!viewModel.state.value.loading && viewModel.state.value.dashboard != null) viewModel.load()
     }
 
+    override fun onDestroy() {
+        loadingPulse.stop()
+        super.onDestroy()
+    }
+
     private fun render(state: GuruDashboardState) {
+        if (state.loading && state.dashboard == null) loadingPulse.start() else loadingPulse.stop()
+
         val data = state.dashboard
         if (data != null) {
             val overview = data.classOverview
@@ -68,8 +108,13 @@ class DashboardGuruActivity : AppCompatActivity() {
 
             binding.tvTeacherName.text = data.teacher.fullName
             binding.tvTotalSiswa.text = "🎯 ${overview.totalStudents}"
-            binding.tvHadir.text = "✅ " + getString(R.string.guru_siswa_hadir, overview.presentStudents, overview.totalStudents)
-            binding.tvSenangPct.text = "😄 " + MoodChartMath.percentText(percentages.getValue(Emotion.SENANG))
+            binding.tvHadirLabel.text = getString(R.string.guru_hadir_label, overview.presentStudents, overview.totalStudents)
+            binding.tvHadir.text = "✅ " + (DashboardMath.attendancePercent(overview.presentStudents, overview.totalStudents)
+                ?.let { getString(R.string.guru_hadir_persen, it) }
+                ?: getString(R.string.guru_tanpa_persen))
+            binding.tvMoodDominan.text = overview.dominantMood
+                ?.let { "${it.emoji()} ${it.displayName()}" }
+                ?: getString(R.string.mood_belum_dicatat)
             binding.tvKelasInfo.text = if (today.total == 0) {
                 getString(R.string.guru_belum_ada_mood)
             } else {
@@ -83,9 +128,12 @@ class DashboardGuruActivity : AppCompatActivity() {
         }
 
         state.error?.let {
-            Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.coba_lagi) { viewModel.load() }
-                .show()
+            // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
+            if (state.outage == null) {
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
+                    .setAction(R.string.coba_lagi) { viewModel.load() }
+                    .show()
+            }
             viewModel.errorShown()
         }
     }
