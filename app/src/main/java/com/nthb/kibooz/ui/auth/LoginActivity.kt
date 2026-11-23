@@ -49,9 +49,8 @@ class LoginActivity : AppCompatActivity() {
         }
 
         // Login button
-        binding.btnLogin.setOnClickListener {
-            viewModel.login(binding.etEmail.text.toString(), binding.etPassword.text.toString(), selectedRole)
-        }
+        binding.btnLogin.setOnClickListener { submit() }
+        binding.connectionStatus.onRetry = ::submit
 
         // Belum ada login Google di API, jadi tombol ini tidak masuk ke mana pun
         binding.btnGoogleLogin.setOnClickListener {
@@ -69,13 +68,20 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
+    private fun submit() {
+        viewModel.login(binding.etEmail.text.toString(), binding.etPassword.text.toString(), selectedRole)
+    }
+
     private fun render(state: LoginUiState) {
         binding.btnLogin.isEnabled = !state.loading
         binding.etEmail.error = state.emailError?.let { getString(it) }
         binding.etPassword.error = state.passwordError?.let { getString(it) }
 
+        // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
+        state.outage?.let { binding.connectionStatus.show(it) } ?: binding.connectionStatus.hide()
+
         state.error?.let {
-            Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
+            if (state.outage == null) Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             viewModel.errorShown()
         }
         state.signedIn?.let(::openPortal)
