@@ -15,6 +15,7 @@ import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
+import com.nthb.kibooz.ui.wali.LeaderboardActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
 import com.nthb.kibooz.ui.common.PulseAnimator
 import com.nthb.kibooz.ui.common.displayName
@@ -180,7 +181,11 @@ class DashboardGuruActivity : AppCompatActivity() {
 
         // Banner Ranking Kelas
         binding.cvRankingKelas.setOnClickListener {
-            Toast.makeText(this, "Membuka statistik peringkat kelas", Toast.LENGTH_SHORT).show()
+            // Kelas yang sama dengan angka di dasbor. Sebelum dasbor termuat server memilih kelas pertama Guru
+            val classId = viewModel.state.value.dashboard?.classOverview?.classId
+            startActivity(
+                Intent(this, LeaderboardActivity::class.java).putExtra(LeaderboardActivity.EXTRA_CLASS_ID, classId)
+            )
         }
 
         // Notification & History
