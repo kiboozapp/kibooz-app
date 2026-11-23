@@ -106,6 +106,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 11b. Akun (Guru dan Wali): Ubah Kata Sandi -->
+        <activity
+            android:name=".ui.account.UbahKataSandiActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- 12. Wali Flow: Dashboard Wali & Siswa -->
         <activity
             android:name=".ui.wali.DashboardWaliActivity"

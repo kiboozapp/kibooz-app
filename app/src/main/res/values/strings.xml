@@ -159,6 +159,15 @@
     <string name="error_network">Tidak ada koneksi internet, periksa jaringan lalu coba lagi</string>
     <string name="error_unknown">Terjadi kesalahan, coba lagi</string>
     <string name="coba_lagi">Coba lagi</string>
+    <string name="kembali">Kembali</string>
+    <string name="sandi_judul">Ubah Kata Sandi</string>
+    <string name="sandi_info">Setelah diganti, kamu perlu masuk lagi di semua perangkat dengan kata sandi baru.</string>
+    <string name="sandi_hint_sekarang">Kata sandi sekarang</string>
+    <string name="sandi_hint_baru">Kata sandi baru</string>
+    <string name="sandi_hint_konfirmasi">Ulangi kata sandi baru</string>
+    <string name="sandi_bantuan_baru">Paling sedikit 8 karakter</string>
+    <string name="sandi_simpan">Simpan Kata Sandi</string>
+    <string name="sandi_diganti">Kata sandi diganti. Masuk lagi dengan kata sandi baru.</string>
     <string name="outage_offline_title">Tidak ada koneksi</string>
     <string name="outage_offline_message">Periksa jaringan internet kamu. Mencoba lagi dalam %1$s.</string>
     <string name="outage_unavailable_title">Layanan sedang tidak tersedia</string>

@@ -7,6 +7,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.nthb.kibooz.databinding.ActivityProfilGuruBinding
 import com.nthb.kibooz.sessionManager
+import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.util.InsetsUtil
 
@@ -38,11 +39,7 @@ class ProfilGuruActivity : AppCompatActivity() {
 
         // Menu 1: Ubah Kata Sandi
         binding.menuUbahSandi.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Ubah Kata Sandi")
-                .setMessage("Pengubahan kata sandi belum tersedia di versi ini.")
-                .setPositiveButton("Mengerti", null)
-                .show()
+            startActivity(Intent(this, UbahKataSandiActivity::class.java))
         }
 
         // Menu 2: Syarat dan Ketentuan
