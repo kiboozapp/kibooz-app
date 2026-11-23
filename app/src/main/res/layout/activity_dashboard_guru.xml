@@ -203,7 +203,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Senang hari ini"
+                            android:text="Mood dominan"
                             android:textColor="@color/kibooz_text_secondary"
                             android:textSize="12sp" />
 
@@ -212,7 +212,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
                             android:fontFamily="@font/baloo2"
-                            android:id="@+id/tvSenangPct"
+                            android:id="@+id/tvMoodDominan"
                             android:text="…"
                             android:textColor="@color/kibooz_text_primary"
                             android:textSize="16sp"
@@ -234,6 +234,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvHadirLabel"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"

@@ -15,6 +15,8 @@ import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.ui.common.displayName
+import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -68,8 +70,13 @@ class DashboardGuruActivity : AppCompatActivity() {
 
             binding.tvTeacherName.text = data.teacher.fullName
             binding.tvTotalSiswa.text = "🎯 ${overview.totalStudents}"
-            binding.tvHadir.text = "✅ " + getString(R.string.guru_siswa_hadir, overview.presentStudents, overview.totalStudents)
-            binding.tvSenangPct.text = "😄 " + MoodChartMath.percentText(percentages.getValue(Emotion.SENANG))
+            binding.tvHadirLabel.text = getString(R.string.guru_hadir_label, overview.presentStudents, overview.totalStudents)
+            binding.tvHadir.text = "✅ " + (DashboardMath.attendancePercent(overview.presentStudents, overview.totalStudents)
+                ?.let { getString(R.string.guru_hadir_persen, it) }
+                ?: getString(R.string.guru_tanpa_persen))
+            binding.tvMoodDominan.text = overview.dominantMood
+                ?.let { "${it.emoji()} ${it.displayName()}" }
+                ?: getString(R.string.mood_belum_dicatat)
             binding.tvKelasInfo.text = if (today.total == 0) {
                 getString(R.string.guru_belum_ada_mood)
             } else {
