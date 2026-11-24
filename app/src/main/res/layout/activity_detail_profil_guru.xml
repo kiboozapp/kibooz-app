@@ -385,6 +385,7 @@
                         android:orientation="horizontal">
 
                         <TextView
+                            android:id="@+id/tvLegendHappy"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
@@ -395,6 +396,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvLegendBingung"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
@@ -405,12 +407,24 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvLegendSedih"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🟢 Kalem 15%"
-                            android:textColor="#10B981"
+                            android:text="🔵 Sedih 15%"
+                            android:textColor="#3B82F6"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvLegendMarah"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginHorizontal="6dp"
+                            android:fontFamily="@font/baloo2"
+                            android:text="🔴 Marah 7%"
+                            android:textColor="#EF4444"
                             android:textSize="12sp"
                             android:textStyle="bold" />
 

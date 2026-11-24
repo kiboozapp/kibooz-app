@@ -76,10 +76,20 @@ class DetailKelasActivity : AppCompatActivity() {
         val calendar = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("d MMM yyyy", Locale("id", "ID"))
 
-        // Pertemuan 3: Sedang Berlangsung hari ini
+        // Pertemuan 3: Terjadwal hari ini - jika hari sudah berakhir (jam sekolah lewat pk 15:00), status otomatis Selesai
+        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
+        val isDayEnded = currentHour >= 15
         val dateP3 = dateFormat.format(calendar.time)
         val countText = if (studentCount > 0) "$studentCount Siswa Terdaftar" else "24 Siswa Terdaftar"
-        binding.tvStatusModul3.text = "Sedang Berlangsung • $dateP3 • $countText"
+        val hadirP3 = if (studentCount > 0) "${(studentCount * 0.96).toInt().coerceAtLeast(1)} Siswa Hadir" else "24 Siswa Hadir"
+
+        if (isDayEnded) {
+            binding.tvStatusModul3.text = "Selesai • $dateP3 • $hadirP3"
+        } else if (currentHour < 7) {
+            binding.tvStatusModul3.text = "Hari Ini • $dateP3 • Dimulai 08:00 WIB"
+        } else {
+            binding.tvStatusModul3.text = "Sedang Berlangsung • $dateP3 • $countText"
+        }
 
         // Pertemuan 2: Selesai 7 hari lalu
         calendar.add(Calendar.DAY_OF_YEAR, -7)
