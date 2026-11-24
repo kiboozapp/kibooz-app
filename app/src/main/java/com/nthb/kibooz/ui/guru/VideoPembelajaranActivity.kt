@@ -48,9 +48,13 @@ class VideoPembelajaranActivity : AppCompatActivity() {
         activeClassId = intent.getStringExtra("CLASS_ID")
         binding.tvKelasTitle.text = namaKelas
 
-        adaptFallbackVideos(namaKelas)
+        // Sembunyikan kartu fallback dari awal agar tidak ada kedipan visual (flicker)
+        binding.cardVideo1.visibility = View.GONE
+        binding.cardVideo2.visibility = View.GONE
+        binding.cardVideo3.visibility = View.GONE
+
         setupListeners(namaKelas)
-        resolveClassAndLoadVideos()
+        resolveClassAndLoadVideos(namaKelas)
     }
 
     private fun adaptFallbackVideos(namaKelas: String) {
@@ -96,7 +100,7 @@ class VideoPembelajaranActivity : AppCompatActivity() {
         binding.tvDateVideo3.text = "Diunggah 5 hari lalu • ${fmt.format(cal.time)}"
     }
 
-    private fun resolveClassAndLoadVideos() {
+    private fun resolveClassAndLoadVideos(namaKelas: String) {
         val videoRepo = appContainer.videoRepository
         val classRepo = appContainer.classRepository
 
@@ -115,18 +119,21 @@ class VideoPembelajaranActivity : AppCompatActivity() {
                 }
             }
 
-            val classId = activeClassId ?: return@launch
-            val result = videoRepo.videos(classId)
-            if (result is ApiResult.Success) {
-                val list = result.data
-                if (list.videos.isNotEmpty()) {
-                    binding.cardVideo1.visibility = View.GONE
-                    binding.cardVideo2.visibility = View.GONE
-                    binding.cardVideo3.visibility = View.GONE
-                    list.videos.forEach { video ->
-                        renderVideoCard(video)
-                    }
+            val classId = activeClassId
+            val result = if (!classId.isNullOrBlank()) videoRepo.videos(classId) else null
+            if (result is ApiResult.Success && result.data.videos.isNotEmpty()) {
+                binding.cardVideo1.visibility = View.GONE
+                binding.cardVideo2.visibility = View.GONE
+                binding.cardVideo3.visibility = View.GONE
+                result.data.videos.forEach { video ->
+                    renderVideoCard(video)
                 }
+            } else {
+                // Tampilkan fallback hanya saat data backend benar-benar kosong atau tidak tersedia
+                adaptFallbackVideos(namaKelas)
+                binding.cardVideo1.visibility = View.VISIBLE
+                binding.cardVideo2.visibility = View.VISIBLE
+                binding.cardVideo3.visibility = View.VISIBLE
             }
         }
     }

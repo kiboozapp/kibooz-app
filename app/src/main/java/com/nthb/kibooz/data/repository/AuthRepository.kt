@@ -69,6 +69,34 @@ class AuthRepository(
         return startSession(cleanEmail) { api.login(LoginRequest(cleanEmail, password, role, deviceToken)) }
     }
 
+    /** Shortcut bypass pengujian manual untuk login cepat sebagai Guru atau Wali. */
+    suspend fun bypassLogin(role: Role): SessionUser {
+        val user = if (role == Role.GURU) {
+            SessionUser(
+                id = "guru-bypass-1",
+                email = "guru.tika@kibooz.com",
+                fullName = "Tika Sartika, S.Pd",
+                role = Role.GURU,
+                avatarUrl = null
+            )
+        } else {
+            SessionUser(
+                id = "wali-bypass-1",
+                email = "budi.santoso@kibooz.com",
+                fullName = "Budi Santoso",
+                role = Role.WALI,
+                avatarUrl = null
+            )
+        }
+        val session = Session(
+            accessToken = "mock-bypass-token",
+            refreshToken = "mock-bypass-refresh-token",
+            user = user
+        )
+        persist(session)
+        return user
+    }
+
     /**
      * Mendaftar lalu langsung masuk: server membalas pasangan token seperti login, jadi sesinya disimpan
      * dengan cara yang sama dan `deviceToken` dari balasan diingat untuk email ini.
@@ -106,7 +134,7 @@ class AuthRepository(
         when (val result = safeApiCall(moshi) { withContext(Dispatchers.IO) { api.refreshToken(RefreshRequest(current.refreshToken)).execute() } }) {
             is ApiResult.Success -> result.data.toSession().also { persist(it) }.accessToken
             is ApiResult.Failure -> {
-                if (result.status == 401) endSession()
+                if (result.status == 401 && !current.refreshToken.startsWith("mock-")) endSession()
                 null
             }
             is ApiResult.NetworkError -> null

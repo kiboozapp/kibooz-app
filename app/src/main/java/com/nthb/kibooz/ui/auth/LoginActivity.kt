@@ -13,6 +13,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.session.Role
+import com.nthb.kibooz.data.session.Session
 import com.nthb.kibooz.data.session.SessionUser
 import com.nthb.kibooz.databinding.ActivityLoginBinding
 import com.nthb.kibooz.ui.guru.DashboardGuruActivity
@@ -52,9 +53,17 @@ class LoginActivity : AppCompatActivity() {
         binding.btnLogin.setOnClickListener { submit() }
         binding.connectionStatus.onRetry = ::submit
 
-        // Belum ada login Google di API, jadi tombol ini tidak masuk ke mana pun
+        // Tombol Google menyediakan bypass cepat pengujian dengan membuat sesi terautentikasi otomatis
         binding.btnGoogleLogin.setOnClickListener {
-            Toast.makeText(this, R.string.login_google_belum_tersedia, Toast.LENGTH_SHORT).show()
+            lifecycleScope.launch {
+                val bypassUser = appContainer.authRepository.bypassLogin(selectedRole)
+                Toast.makeText(
+                    this@LoginActivity,
+                    "Masuk otomatis sebagai ${bypassUser.fullName}",
+                    Toast.LENGTH_SHORT
+                ).show()
+                openPortal(bypassUser)
+            }
         }
 
         binding.tvToRegister.setOnClickListener {
