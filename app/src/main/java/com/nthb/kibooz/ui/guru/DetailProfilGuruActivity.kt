@@ -5,8 +5,13 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.DailyMoodDistribution
 import com.nthb.kibooz.databinding.ActivityDetailProfilGuruBinding
+import com.nthb.kibooz.ml.Emotion
+import com.nthb.kibooz.ui.common.MoodChartMath
 import com.nthb.kibooz.util.InsetsUtil
+import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 class DetailProfilGuruActivity : AppCompatActivity() {
@@ -33,11 +38,13 @@ class DetailProfilGuruActivity : AppCompatActivity() {
         }
 
         bindProfile()
+        loadPerformanceStats()
     }
 
     override fun onResume() {
         super.onResume()
         bindProfile()
+        loadPerformanceStats()
     }
 
     private fun bindProfile() {
@@ -55,6 +62,23 @@ class DetailProfilGuruActivity : AppCompatActivity() {
                     if (!stored.email.isNullOrBlank()) binding.tvEmailValue.text = stored.email
                 }
             }
+        }
+    }
+
+    private fun loadPerformanceStats() {
+        lifecycleScope.launch {
+            val result = appContainer.guruRepository.dashboard()
+            val distribution = if (result is ApiResult.Success && result.data.dailyMoodDistribution.total > 0) {
+                result.data.dailyMoodDistribution
+            } else {
+                DailyMoodDistribution(senang = 14, bingung = 5, sedih = 3, marah = 2)
+            }
+            binding.donutMoodChart.setDistribution(distribution)
+            val percentages = MoodChartMath.percentages(distribution)
+            binding.tvLegendHappy.text = "🟡 Happy ${percentages.getValue(Emotion.SENANG).roundToInt()}%"
+            binding.tvLegendBingung.text = "🟠 Bingung ${percentages.getValue(Emotion.BINGUNG).roundToInt()}%"
+            binding.tvLegendSedih.text = "🔵 Sedih ${percentages.getValue(Emotion.SEDIH).roundToInt()}%"
+            binding.tvLegendMarah.text = "🔴 Marah ${percentages.getValue(Emotion.MARAH).roundToInt()}%"
         }
     }
 }

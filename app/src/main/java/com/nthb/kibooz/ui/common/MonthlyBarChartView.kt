@@ -21,6 +21,8 @@ class MonthlyBarChartView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var counts: Map<Emotion, Int> = MoodChartMath.ORDER.associateWith { 0 }
+    private var animationProgress: Float = 1f
+    private var animator: android.animation.ValueAnimator? = null
 
     private val barPaint = Paint(Paint.ANTI_ALIAS_FLAG)
 
@@ -30,11 +32,29 @@ class MonthlyBarChartView @JvmOverloads constructor(
         textAlign = Paint.Align.CENTER
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        animator?.cancel()
+    }
+
+    private fun startAnimation() {
+        animator?.cancel()
+        animator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 750L
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener {
+                animationProgress = it.animatedValue as Float
+                invalidate()
+            }
+            start()
+        }
+    }
+
     fun setData(distribution: List<MonthlyCount>) {
         counts = MoodChartMath.ORDER.associateWith { emotion ->
             distribution.filter { it.mood == emotion }.sumOf { it.count }
         }
-        invalidate()
+        startAnimation()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -54,7 +74,7 @@ class MonthlyBarChartView @JvmOverloads constructor(
         MoodChartMath.ORDER.forEachIndexed { index, emotion ->
             val count = counts.getValue(emotion)
             val centerX = sidePad + slot * index + slot / 2f
-            val barHeight = MoodChartMath.barFraction(count, max) * chartHeight
+            val barHeight = MoodChartMath.barFraction(count, max) * chartHeight * animationProgress
 
             barPaint.color = MoodColors.of(emotion)
             canvas.drawRoundRect(
@@ -63,7 +83,8 @@ class MonthlyBarChartView @JvmOverloads constructor(
                 8f,
                 barPaint
             )
-            canvas.drawText("$count", centerX, topPad + chartHeight - barHeight - 12f, textPaint)
+            val displayCount = (count * animationProgress).toInt()
+            canvas.drawText("$displayCount", centerX, topPad + chartHeight - barHeight - 12f, textPaint)
             canvas.drawText(emotion.displayName(), centerX, h - 15f, textPaint)
         }
     }

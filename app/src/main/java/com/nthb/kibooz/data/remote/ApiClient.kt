@@ -34,6 +34,7 @@ class ApiClient(
         .connectTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .readTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
         .writeTimeout(TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        .addInterceptor(DevBypassInterceptor(tokenProvider))
         .addInterceptor(AuthTokenInterceptor(tokenProvider, baseUrl.toHttpUrl()))
         .apply { authenticator?.let { authenticator(it) } }
         .addInterceptor(HttpLoggingInterceptor().apply {

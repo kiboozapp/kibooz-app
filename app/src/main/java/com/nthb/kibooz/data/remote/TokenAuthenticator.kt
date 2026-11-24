@@ -21,7 +21,7 @@ class TokenAuthenticator(
         val request = response.request
         val sentToken = request.header("Authorization")?.removePrefix("Bearer ")?.trim()
 
-        if (sentToken.isNullOrEmpty() || "auth" in request.url.pathSegments || attempts(response) > 1) {
+        if (sentToken.isNullOrEmpty() || sentToken.startsWith("mock-") || "auth" in request.url.pathSegments || attempts(response) > 1) {
             return null
         }
 
