@@ -15,6 +15,7 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityDetailKelasBinding
+import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -40,7 +41,7 @@ class DetailKelasActivity : AppCompatActivity() {
             fab = binding.fabTambahModul
         )
 
-        val kodeKelas = intent.getStringExtra("KODE_KELAS") ?: "SENI-A1"
+        val rawKodeKelas = intent.getStringExtra("KODE_KELAS").orEmpty()
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
         activeClassId = intent.getStringExtra("CLASS_ID")
 
@@ -51,15 +52,22 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.btnSalinKode.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
         binding.ivShareKelas.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
 
-        setupViews(kodeKelas, namaKelas)
-        setupDynamicMeetingSchedule(24)
+        val kodeKelas = if (rawKodeKelas.isNotBlank() && !rawKodeKelas.contains("-") && rawKodeKelas.length == 8) {
+            rawKodeKelas
+        } else {
+            ClassCode.resolveJoinCode(activeClassId)
+        }
+
+        val initialCount = if (isTeacherRole) 24 else 1
+        setupViews(kodeKelas, namaKelas, initialCount)
+        setupDynamicMeetingSchedule(initialCount)
         setupListeners(kodeKelas, namaKelas)
         loadClassData(kodeKelas, namaKelas)
     }
 
     private fun loadClassData(kodeKelas: String, namaKelas: String) {
         lifecycleScope.launch {
-            var count = 24
+            var count = if (isTeacherRole) 24 else 1
             if (activeClassId.isNullOrBlank()) {
                 if (isTeacherRole) {
                     val teacherClasses = appContainer.classRepository.teacherClasses()
@@ -72,14 +80,33 @@ class DetailKelasActivity : AppCompatActivity() {
                             count = match.totalStudents
                         }
                     }
+                } else {
+                    when (val dash = appContainer.waliRepository.dashboard()) {
+                        is ApiResult.Success -> {
+                            activeClassId = dash.data.student.classId
+                        }
+                        else -> {}
+                    }
                 }
             }
 
             val classId = activeClassId
-            if (!classId.isNullOrBlank() && isTeacherRole) {
-                val roster = appContainer.classRepository.students(classId)
-                if (roster is ApiResult.Success && roster.data.students.isNotEmpty()) {
-                    count = roster.data.total
+            if (!classId.isNullOrBlank()) {
+                if (isTeacherRole) {
+                    val roster = appContainer.classRepository.students(classId)
+                    if (roster is ApiResult.Success && roster.data.students.isNotEmpty()) {
+                        count = roster.data.total
+                    }
+                } else {
+                    when (val lb = appContainer.leaderboardRepository.leaderboard(classId)) {
+                        is ApiResult.Success -> {
+                            val totalRealStudents = lb.data.podium.size + lb.data.rankings.size
+                            if (totalRealStudents > 0) {
+                                count = totalRealStudents
+                            }
+                        }
+                        else -> {}
+                    }
                 }
             }
             setupDynamicMeetingSchedule(count)
@@ -89,7 +116,7 @@ class DetailKelasActivity : AppCompatActivity() {
 
     private fun updatePesertaBanner(studentCount: Int) {
         binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
-        val countText = if (studentCount > 0) "$studentCount Siswa Terdaftar" else "24 Siswa Terdaftar"
+        val countText = "$studentCount Siswa Terdaftar"
         binding.tvSubDaftarPeserta.text = "1 Guru Pengajar & $countText"
     }
 
@@ -145,12 +172,12 @@ class DetailKelasActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupViews(kodeKelas: String, namaKelas: String) {
+    private fun setupViews(kodeKelas: String, namaKelas: String, initialCount: Int) {
         binding.tvTitleBar.text = "Detail $namaKelas"
         binding.tvNamaKelas.text = namaKelas
         binding.tvKodeKelas.text = kodeKelas
         binding.tabModul.text = "Modul (4)"
-        updatePesertaBanner(24)
+        updatePesertaBanner(initialCount)
 
         when {
             namaKelas.contains("Bahasa", ignoreCase = true) || kodeKelas.startsWith("BHS") -> {

@@ -134,7 +134,7 @@
                     android:layout_marginStart="10dp"
                     android:background="@null"
                     android:fontFamily="@font/baloo2"
-                    android:hint="Cari Nama Kelas"
+                    android:hint="Cari Tema Pembelajaran / Modul"
                     android:imeOptions="actionSearch"
                     android:importantForAutofill="no"
                     android:inputType="text"

@@ -53,7 +53,7 @@ class RuangKelasWaliActivity : AppCompatActivity() {
                     studentId = st.id
                     childClassName = st.className
                     childClassId = st.classId
-                    binding.tvSubtitleRuangKelas.text = "Kelas: ${st.className} • Eksplorasi materi si kecil"
+                    binding.tvSubtitleRuangKelas.text = "Kelas Aktif: ${st.className} • 6 Tema Pembelajaran"
                 }
                 else -> {}
             }
@@ -194,8 +194,10 @@ class RuangKelasWaliActivity : AppCompatActivity() {
     }
 
     private fun openDetailKelas(kode: String, nama: String) {
+        val joinCode = ClassCode.resolveJoinCode(childClassId)
         val intent = Intent(this, DetailKelasActivity::class.java).apply {
-            putExtra("KODE_KELAS", kode)
+            putExtra("KODE_KELAS", joinCode)
+            putExtra("MAPEL_CODE", kode)
             putExtra("NAMA_KELAS", nama)
             putExtra("CLASS_ID", childClassId)
             putExtra("CHILD_CLASS_NAME", childClassName)
