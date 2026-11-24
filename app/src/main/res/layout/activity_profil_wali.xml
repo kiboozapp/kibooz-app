@@ -71,7 +71,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/img_avatar_guru"
-                        android:contentDescription="Avatar Sarah Kartika" />
+                        android:contentDescription="@string/anak_avatar_wali" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -82,7 +82,8 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:fontFamily="@font/baloo2"
-                    android:text="Sarah Kartika, S.Pd."
+                    android:gravity="center"
+                    android:paddingHorizontal="24dp"
                     android:textColor="#221C38"
                     android:textSize="22sp"
                     android:textStyle="bold"
@@ -97,8 +98,9 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:fontFamily="@font/baloo2"
-                    android:text="Wali Murid dari Amelia Siti Zahra (Kelas A)"
-                    android:textColor="#7A7593"
+                    android:gravity="center"
+                    android:paddingHorizontal="24dp"
+                    android:textColor="#6B6685"
                     android:textSize="13sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -114,11 +116,12 @@
                     android:fontFamily="@font/baloo2"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    android:text="Lihat Detail Profil Siswa"
+                    android:text="@string/anak_lihat_detail"
                     android:textAllCaps="false"
                     android:textColor="@color/kibooz_white"
                     android:textSize="15sp"
                     android:textStyle="bold"
+                    android:visibility="gone"
                     app:backgroundTint="@color/kibooz_primary_purple"
                     app:cornerRadius="26dp"
                     app:elevation="4dp"
@@ -130,6 +133,59 @@
                     app:layout_constraintTop_toBottomOf="@+id/tvSubtitleWali" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Memuat, gangguan server dan galat muat dengan coba lagi -->
+            <ProgressBar
+                android:id="@+id/pbProfil"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="18dp"
+                android:indeterminateTint="@color/kibooz_primary_purple" />
+
+            <com.nthb.kibooz.ui.common.ConnectionStatusView
+                android:id="@+id/connectionStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="18dp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/llProfilError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="18dp"
+                android:background="@drawable/bg_connection_status"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/tvProfilError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:textColor="@color/kibooz_text_primary"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnProfilRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/baloo2"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="48dp"
+                    android:text="@string/coba_lagi"
+                    android:textAllCaps="false"
+                    android:textColor="@color/kibooz_white"
+                    app:backgroundTint="@color/kibooz_primary_purple"
+                    app:cornerRadius="24dp" />
+
+            </LinearLayout>
 
             <!-- Settings Menu List Container -->
             <com.google.android.material.card.MaterialCardView

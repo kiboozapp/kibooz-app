@@ -70,12 +70,19 @@ class WaliDashboardViewModel(
                         selectedChildId = result.data.student.id
                         next = next.copy(dashboard = result.data)
                     }
-                    is ApiResult.Failure ->
+                    is ApiResult.Failure -> {
+                        // Anak yang dipilih sudah dihapus (di layar profil atau di perangkat lain), kembali ke anak bawaan server
+                        if (result.errorCode == "STUDENT_NOT_FOUND" && studentId != null) {
+                            selectedChildId = null
+                            load(null)
+                            return@coroutineScope
+                        }
                         next = if (result.errorCode == "NO_CHILD_REGISTERED") {
                             next.copy(noChild = true, dashboard = null)
                         } else {
                             next.copy(error = result.errorMessageRes())
                         }
+                    }
                     is ApiResult.NetworkError -> next = next.copy(error = result.errorMessageRes())
                 }
 

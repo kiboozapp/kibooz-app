@@ -51,5 +51,11 @@ data class ChildSummary(
     val nisn: String,
     val avatarUrl: String?,
     val classId: String,
-    val className: String
+    val className: String,
+    /** True selama guru menjamin NISN. Server mengirimnya di setiap daftar anak. */
+    val nisnVerified: Boolean = false,
+    /** True jika [nisn] kosong karena guru memverifikasi nomor yang sama untuk anak lain. Wali harus mengisi nomor yang benar. */
+    val nisnNeedsUpdate: Boolean = false,
+    /** Waktu kelas diarsipkan, hilang selama belum. Kelas arsip hanya bisa dibaca. */
+    val classArchivedAt: String? = null
 )
