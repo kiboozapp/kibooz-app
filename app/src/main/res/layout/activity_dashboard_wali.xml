@@ -53,14 +53,27 @@
                     app:layout_constraintStart_toEndOf="@+id/ivHeaderLogo"
                     app:layout_constraintTop_toTopOf="@+id/ivHeaderLogo" />
 
-                <!-- Action Icon (History) -->
+                <!-- Action Icons (History & Notification) -->
                 <ImageView
                     android:id="@+id/ivHistory"
                     android:layout_width="26dp"
                     android:layout_height="26dp"
+                    android:layout_marginEnd="12dp"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:contentDescription="Riwayat Aktivitas"
                     android:src="@drawable/ic_history"
+                    app:layout_constraintBottom_toBottomOf="@+id/ivHeaderLogo"
+                    app:layout_constraintEnd_toStartOf="@+id/ivNotification"
+                    app:layout_constraintTop_toTopOf="@+id/ivHeaderLogo"
+                    app:tint="@color/kibooz_white" />
+
+                <ImageView
+                    android:id="@+id/ivNotification"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Notifikasi"
+                    android:src="@drawable/ic_notification"
                     app:layout_constraintBottom_toBottomOf="@+id/ivHeaderLogo"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/ivHeaderLogo"

@@ -233,5 +233,10 @@ class DashboardWaliActivity : AppCompatActivity() {
                     .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.dashboard?.student?.id)
             )
         }
+
+        // Notifikasi (UI dipertahankan tanpa trigger aksi khusus)
+        binding.ivNotification.setOnClickListener {
+            Toast.makeText(this, "Tidak ada notifikasi baru untuk wali murid", Toast.LENGTH_SHORT).show()
+        }
     }
 }
