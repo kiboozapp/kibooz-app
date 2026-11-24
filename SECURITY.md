@@ -8,7 +8,7 @@ Hanya kode di branch `main` yang ditangani.
 
 Jangan membuka issue atau pull request publik untuk masalah keamanan. Tulis laporan secara pribadi kepada pemilik repositori, `ValentinusMarvel`, di GitHub.
 
-Fitur pelaporan kerentanan pribadi dari GitHub belum diaktifkan di repositori ini. Karena itu, mulai dengan pesan singkat yang menyebut bahwa isinya soal keamanan. Rincian lengkap dikirim setelah pemilik repositori membalas.
+Mulai dengan pesan singkat yang menyebut bahwa isinya soal keamanan. Rincian lengkap dikirim setelah pemilik repositori membalas.
 
 Laporan yang baik memuat hal berikut.
 
@@ -21,18 +21,18 @@ Jangan menyertakan data pribadi anak, wali murid atau guru yang sungguhan. Pakai
 
 ## Cara aplikasi menangani sesi
 
-Bagian ini menjelaskan perilaku aplikasi saat ini, supaya laporan bisa dinilai dengan benar.
+Bagian ini menjelaskan perilaku aplikasi saat ini, agar laporan bisa dinilai dengan benar.
 
 - Aplikasi menyimpan access token, refresh token dan `deviceToken` dalam keadaan terenkripsi dengan AES-256-GCM. Kuncinya dibuat dan disimpan di Android Keystore.
 - Berkas sesi berada di `files/datastore/` milik aplikasi. Berkas itu, beserta database dan `sharedpref`, dikeluarkan dari backup cloud dan dari transfer perangkat lewat `data_extraction_rules.xml` dan `backup_rules.xml`.
-- Setiap permintaan ke API membawa header `Authorization: Bearer` jika sesi ada.
+- Permintaan ke API selain rute `/auth/` membawa header `Authorization: Bearer` jika sesi ada.
 - Alamat API berawalan `https://` hanya boleh memakai TLS 1.2 dan 1.3 dengan cipher modern.
 
 ## Lalu lintas jaringan
 
 - Konfigurasi keamanan jaringan di build utama melarang lalu lintas `http` sepenuhnya.
 - Build debug hanya membolehkan `http` ke `10.0.2.2`, yaitu alamat mesin pengembang dari emulator.
-- Build selain debug wajib memakai alamat API berawalan `https://`. Gradle menolak membangun varian rilis jika `kibooz.apiBaseUrl` tidak berawalan `https://`.
+- Build selain debug wajib memakai alamat API berawalan `https://`. Perintah Gradle yang membangun varian rilis ditolak jika `kibooz.apiBaseUrl` tidak berawalan `https://`.
 
 ## Kerahasiaan
 

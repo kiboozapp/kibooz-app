@@ -1,14 +1,14 @@
 # Tata Kelola
 
-Kibooz App dikerjakan oleh tim kecil. Halaman ini menjelaskan bagaimana perubahan diterima, supaya tidak ada yang perlu menebak. Orang yang terlibat tercatat di [MAINTAINERS.md](MAINTAINERS.md).
+Kibooz App dikerjakan oleh tim kecil. Halaman ini menjelaskan bagaimana perubahan diterima, agar tidak ada yang perlu menebak. Orang yang terlibat tercatat di [MAINTAINERS.md](MAINTAINERS.md).
 
 ## Perubahan
 
 Perubahan masuk ke `main` lewat pull request dari sebuah branch. Langkahnya ada di [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Reviewer yang diminta untuk setiap pull request adalah `ArmJour` dan `ValentinusMarvel`.
-- Pull request digabung oleh pemilik repositori dan anggota tim.
-- Pull request digabung dengan merge commit, sehingga setiap commit tetap ada di riwayat `main`.
+- Pull request boleh meminta `ArmJour` atau `ValentinusMarvel` sebagai reviewer.
+- Pull request digabung oleh pemilik repositori atau anggota tim yang punya izin menulis di repositori.
+- Kebiasaan tim adalah merge commit, sehingga setiap commit tetap ada di riwayat `main`.
 
 ## Pengecekan otomatis
 

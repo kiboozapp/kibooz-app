@@ -4,8 +4,8 @@ Berkas ini mendaftar siapa yang menjaga Kibooz App. [GOVERNANCE.md](GOVERNANCE.m
 
 | Akun GitHub | Peran |
 | :--- | :--- |
-| [@ValentinusMarvel](https://github.com/ValentinusMarvel) | Pemilik repositori dan reviewer tetap |
-| [@ArmJour](https://github.com/ArmJour) | Reviewer tetap |
+| [@ValentinusMarvel](https://github.com/ValentinusMarvel) | Pemilik repositori dan reviewer |
+| [@ArmJour](https://github.com/ArmJour) | Reviewer |
 
 ## Menghubungi maintainer
 
