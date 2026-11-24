@@ -32,7 +32,7 @@ Perubahan perilaku sebaiknya disertai test. Perbaikan bug sebaiknya disertai tes
 - Nama branch mengikuti `type/deskripsi-singkat` dengan huruf kecil dan tanda hubung, misalnya `fix/scan-camera-frame`.
 - Pasang satu label dari yang sudah ada di repositori, misalnya `bug` untuk perbaikan, `enhancement` untuk fitur atau peningkatan, `documentation` untuk perubahan dokumentasi saja dan `accessibility` untuk aksesibilitas.
 - Jadikan diri sendiri sebagai assignee.
-- Reviewer yang diminta untuk setiap pull request adalah `ArmJour` dan `ValentinusMarvel`.
+- Pull request boleh meminta `ArmJour` atau `ValentinusMarvel` sebagai reviewer.
 
 ## Pengecekan otomatis
 
