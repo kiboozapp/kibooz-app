@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Baris di layar profil -->
+    <string name="hapus_akun_menu">Hapus Akun</string>
+
+    <!-- Layar hapus akun -->
+    <string name="hapus_akun_judul">Hapus Akun</string>
+    <string name="hapus_akun_kembali">Kembali</string>
+    <string name="hapus_akun_peringatan_judul">Penghapusan akun tidak bisa dibatalkan</string>
+    <string name="hapus_akun_peringatan_wali">Akun Anda dan semua anak yang terdaftar di akun ini ikut dihapus, termasuk foto profil dan foto hasil pindai sampah mereka. Anda keluar dari semua perangkat.</string>
+    <string name="hapus_akun_peringatan_guru">Akun Anda dihapus dan Anda keluar dari semua perangkat. Foto profil Anda ikut dihapus.</string>
+
+    <string name="hapus_akun_label_sandi">Kata sandi saat ini</string>
+    <string name="hapus_akun_hint_sandi">Masukkan kata sandi untuk memastikan ini Anda</string>
+    <string name="hapus_akun_toggle_sandi">Tampilkan atau sembunyikan kata sandi</string>
+
+    <string name="hapus_akun_label_pengganti_opsional">Email guru pengganti (opsional)</string>
+    <string name="hapus_akun_label_pengganti_wajib">Email guru pengganti (wajib)</string>
+    <string name="hapus_akun_hint_pengganti">Email guru lain yang sudah terdaftar</string>
+    <string name="hapus_akun_penjelasan_pengganti">Isi jika Anda satu-satunya guru di kelas yang masih punya murid aktif. Guru pengganti menjadi pemilik kelas yang tidak diajar guru lain. Tanpa pengganti, kelas yang tidak punya murid aktif diarsipkan dan tidak ada lagi yang bisa memulihkannya.</string>
+
+    <string name="hapus_akun_tombol">Hapus Akun Saya</string>
+    <string name="hapus_akun_tombol_proses">Menghapus akun...</string>
+    <string name="hapus_akun_tombol_menunggu">Menunggu %1$d detik lalu mencoba lagi</string>
+
+    <!-- Dialog konfirmasi -->
+    <string name="hapus_akun_dialog_judul">Hapus akun secara permanen?</string>
+    <string name="hapus_akun_dialog_pesan_wali">Akun Anda dan semua anak yang terdaftar di akun ini akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.</string>
+    <string name="hapus_akun_dialog_pesan_guru">Akun Anda akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.</string>
+    <string name="hapus_akun_dialog_dengan_pengganti">Kelas yang tidak diajar guru lain diteruskan ke %1$s.</string>
+    <string name="hapus_akun_dialog_tanpa_pengganti">Tanpa guru pengganti, kelas yang tidak diajar guru lain dan tidak punya murid aktif diarsipkan, dan tidak ada lagi yang bisa memulihkannya.</string>
+    <string name="hapus_akun_dialog_ya">Ya, Hapus Akun</string>
+    <string name="hapus_akun_dialog_batal">Batal</string>
+
+    <!-- Hasil -->
+    <string name="hapus_akun_berhasil">Akun sudah dihapus</string>
+    <string name="hapus_akun_sudah_tidak_ada">Akun ini sudah tidak ada, Anda dikeluarkan dari aplikasi</string>
+    <string name="hapus_akun_pengganti_wajib">Anda satu-satunya guru di kelas yang masih punya murid. Isi email guru lain yang sudah terdaftar agar kelas tetap punya guru.</string>
+    <string name="hapus_akun_pengganti_tidak_ditemukan">Tidak ada guru aktif dengan email ini. Periksa emailnya, guru pengganti harus sudah punya akun guru di Kibooz.</string>
+    <string name="hapus_akun_pengganti_tidak_valid">Email guru pengganti belum benar. Isi email guru lain, bukan email akun ini.</string>
+</resources>
