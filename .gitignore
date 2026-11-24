@@ -78,3 +78,7 @@ google-services.json
 *.p12
 *.pem
 .env
+
+# Environment files at any depth, only the example is tracked
+.env.*
+!.env.example
