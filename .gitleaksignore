@@ -1,0 +1,6 @@
+# Sample values in the API docs of the early history. Each one is a shortened example that ends in "...", such as the start of a
+# token or of a UUID in a request body. None is a real secret. Fingerprint format is commit:file:rule:line.
+9dd289b2561cd381a0e16e7249cc1d9a440aa656:docs/prd_and_roadmap/02_BACKEND_API_AND_DATABASE.md:generic-api-key:371
+9dd289b2561cd381a0e16e7249cc1d9a440aa656:docs/prd_and_roadmap/02_BACKEND_API_AND_DATABASE.md:generic-api-key:377
+470d74e461ae440ece2b151f2494d78e84a98581:docs/prd_and_roadmap/02_BACKEND_API_AND_DATABASE.md:generic-api-key:222
+470d74e461ae440ece2b151f2494d78e84a98581:docs/prd_and_roadmap/02_BACKEND_API_AND_DATABASE.md:generic-api-key:223

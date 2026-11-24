@@ -1,0 +1,61 @@
+name: Trivy
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: trivy-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+# This scan reports only. It is not a required check and a red run does not block a merge. The findings go to the job log and to
+# the job summary, and nothing is uploaded to GitHub code scanning. It needs no secret, so it also runs on pull requests from forks.
+jobs:
+  trivy-fs:
+    name: Trivy filesystem scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Looks at the repository files for secrets and misconfiguration. The vulnerability scanner reads lock files, and this repository has
+      # none because Gradle builds the dependencies from build.gradle.kts, so it finds nothing in the Gradle dependencies for now.
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          format: table
+          output: trivy-fs.txt
+          severity: CRITICAL,HIGH
+          ignore-unfixed: true
+          exit-code: "1"
+
+      - name: Show the findings
+        if: ${{ !cancelled() }}
+        run: |
+          if [ ! -f trivy-fs.txt ]; then
+            echo "Trivy wrote no report, read the log of the scan step."
+            exit 0
+          fi
+          cat trivy-fs.txt
+          {
+            echo "## Trivy filesystem scan"
+            echo
+            echo '```text'
+            cat trivy-fs.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

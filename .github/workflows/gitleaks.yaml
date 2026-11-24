@@ -1,0 +1,40 @@
+name: Secret scan
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: gitleaks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+# This scan reports only. It is not a required check and a red run does not block a merge. It needs no secret, so it also runs
+# on pull requests from forks.
+jobs:
+  gitleaks:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      # renovate: datasource=docker depName=zricethezav/gitleaks
+      GITLEAKS_VERSION: v8.30.1
+    steps:
+      # The whole history is read, because a secret that was removed in a later commit is still in the history
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      # The CLI runs directly because the gitleaks action needs a license for some accounts
+      - name: Gitleaks
+        run: |
+          docker run --rm -v "$PWD:/repo" "zricethezav/gitleaks:${GITLEAKS_VERSION}" \
+            detect --source /repo --no-banner --redact -v
