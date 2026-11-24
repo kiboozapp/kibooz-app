@@ -54,6 +54,13 @@ class LeaderboardActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Muat ulang setiap kali layar kembali terlihat supaya poin anak lain yang masuk sementara itu ikut tampil.
+        // Dilewati saat masih memuat, sehingga pembukaan pertama (sudah dimuat oleh init) tidak mengirim dua request.
+        if (!viewModel.state.value.loading) viewModel.load()
+    }
+
     private val periodTabs: Map<LeaderboardPeriod, TextView>
         get() = mapOf(
             LeaderboardPeriod.SEMESTER to binding.tabSemester,

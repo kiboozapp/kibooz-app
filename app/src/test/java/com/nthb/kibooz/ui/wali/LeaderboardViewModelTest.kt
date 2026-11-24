@@ -157,4 +157,21 @@ class LeaderboardViewModelTest {
         viewModel.errorShown()
         assertNull(viewModel.state.value.error)
     }
+
+    @Test
+    fun `a reload shows the newer ranking and keeps the class and period`() {
+        val viewModel = viewModel("c1")
+        viewModel.selectPeriod(LeaderboardPeriod.WEEK)
+        val newer = LeaderboardData(
+            podium = listOf(RankEntry(1, "Desi", 75, null)),
+            rankings = listOf(RankEntry(2, "Novita", 70, null))
+        )
+        api.reply = { Response.success(ApiEnvelope(true, null, newer)) }
+
+        viewModel.load()
+
+        assertEquals(newer, viewModel.state.value.data)
+        assertEquals(listOf<String?>("c1", "c1", "c1"), api.asked)
+        assertEquals(listOf<String?>(null, "week", "week"), api.askedPeriods)
+    }
 }
