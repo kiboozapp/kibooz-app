@@ -17,6 +17,7 @@ import com.nthb.kibooz.data.remote.ForumThreadItem
 import com.nthb.kibooz.data.remote.ForumThreadList
 import com.nthb.kibooz.databinding.ActivityForumDiskusiBinding
 import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -106,7 +107,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
             addMessageBubble(
                 senderName = senderLabel,
                 content = thread.body,
-                time = thread.createdAt.takeLast(9).take(5).ifBlank { "09:00" },
+                time = TimeFormat.localTime(thread.createdAt) ?: "09:00",
                 isSelf = isSelf
             )
         }

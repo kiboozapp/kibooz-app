@@ -131,7 +131,8 @@ class DashboardGuruActivity : AppCompatActivity() {
         state.error?.let {
             // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
             if (state.outage == null) {
-                Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
+                Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG)
+                    .setAnchorView(binding.clBottomNavigation)
                     .setAction(R.string.coba_lagi) { viewModel.load() }
                     .show()
             }
