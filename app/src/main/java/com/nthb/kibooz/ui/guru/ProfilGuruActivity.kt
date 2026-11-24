@@ -5,12 +5,15 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityProfilGuruBinding
 import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.account.HapusAkunActivity
 import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.util.InsetsUtil
+import kotlinx.coroutines.launch
 
 class ProfilGuruActivity : AppCompatActivity() {
 
@@ -30,6 +33,28 @@ class ProfilGuruActivity : AppCompatActivity() {
         )
 
         setupListeners()
+        bindProfileData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        bindProfileData()
+    }
+
+    private fun bindProfileData() {
+        val sessionUser = appContainer.authRepository.session.value?.user
+        if (!sessionUser?.fullName.isNullOrBlank()) {
+            binding.tvNamaGuru.text = sessionUser?.fullName
+        }
+
+        lifecycleScope.launch {
+            if (sessionUser == null) {
+                val stored = appContainer.sessionStore.readSession()?.user
+                if (!stored?.fullName.isNullOrBlank()) {
+                    binding.tvNamaGuru.text = stored?.fullName
+                }
+            }
+        }
     }
 
     private fun setupListeners() {
