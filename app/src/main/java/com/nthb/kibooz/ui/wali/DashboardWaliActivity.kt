@@ -211,7 +211,11 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Navigasi ke Ruang Kelas Si Kecil (Screenshot 154028)
         binding.cardRuangKelasWali.setOnClickListener {
-            startActivity(Intent(this, RuangKelasWaliActivity::class.java))
+            val studentId = viewModel.state.value.dashboard?.student?.id
+            startActivity(
+                Intent(this, RuangKelasWaliActivity::class.java)
+                    .putExtra(RuangKelasWaliActivity.EXTRA_STUDENT_ID, studentId)
+            )
         }
 
         // Navigasi ke Profil Wali (Settings-First seperti Guru)

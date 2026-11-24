@@ -89,6 +89,12 @@
     <string name="sampah_anorganik">Anorganik</string>
     <string name="profil_ubah_belum_tersedia">Pengubahan profil belum tersedia di versi ini</string>
     <string name="kelas_gabung_belum_tersedia">Menggabung ke kelas belum tersedia di versi ini</string>
+    <string name="kelas_gabung_sukses">Permintaan pindah ke %1$s berhasil dikirim ke guru</string>
+    <string name="kelas_gabung_proses">Mengirim permintaan gabung kelas...</string>
+    <string name="kelas_gabung_gagal">Gagal mengirim permintaan: %1$s</string>
+    <string name="kelas_gabung_menunggu">Permintaan pindah kelas sebelumnya masih menunggu persetujuan guru</string>
+    <string name="kelas_gabung_kode_tidak_ditemukan">Kode kelas tidak ditemukan, pastikan kode kelas benar</string>
+    <string name="kelas_gabung_siswa_tidak_ditemukan">Data siswa tidak ditemukan</string>
     <string name="kelas_kode_kosong">Kode kelas tidak boleh kosong</string>
     <string name="kelas_kode_tidak_valid">Kode kelas berisi 4 sampai 12 huruf atau angka tanpa tanda hubung</string>
     <string name="kelas_pilih_judul">Pilih kelas yang dipindai</string>

@@ -2,6 +2,8 @@ package com.nthb.kibooz.data.repository
 
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.GuidanceApplyRequest
+import com.nthb.kibooz.data.remote.MoveRequest
+import com.nthb.kibooz.data.remote.MoveRequestInput
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliDashboard
 import com.nthb.kibooz.data.remote.newIdempotencyKey
@@ -31,4 +33,11 @@ class WaliRepository(private val api: WaliApi, private val moshi: Moshi) {
 
         return safeApiCallEmpty(moshi) { api.applyGuidance(apply.idempotencyKey, request) }
     }
+
+    suspend fun requestMove(
+        studentId: String,
+        classCode: String,
+        idempotencyKey: String = newIdempotencyKey()
+    ): ApiResult<MoveRequest> =
+        safeApiCall(moshi) { api.requestMove(studentId, idempotencyKey, MoveRequestInput(classCode)) }
 }

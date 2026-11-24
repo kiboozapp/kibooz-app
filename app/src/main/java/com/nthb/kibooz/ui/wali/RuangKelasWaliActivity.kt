@@ -7,21 +7,28 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
+import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.databinding.ActivityRuangKelasWaliBinding
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.guru.DetailKelasActivity
 import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.InsetsUtil
+import kotlinx.coroutines.launch
 
 class RuangKelasWaliActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRuangKelasWaliBinding
+    private var studentId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityRuangKelasWaliBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        studentId = intent.getStringExtra(EXTRA_STUDENT_ID)
 
         InsetsUtil.applySystemBarInsets(
             root = binding.root,
@@ -101,16 +108,64 @@ class RuangKelasWaliActivity : AppCompatActivity() {
             .setView(container)
             .setPositiveButton("Gabung") { _, _ ->
                 val raw = input.text.toString()
-                val message = when {
-                    raw.isBlank() -> R.string.kelas_kode_kosong
-                    ClassCode.normalize(raw) == null -> R.string.kelas_kode_tidak_valid
-                    // Belum ada pemanggilan ke server, jadi kelas belum terhubung
-                    else -> R.string.kelas_gabung_belum_tersedia
+                val normalized = ClassCode.normalize(raw)
+                when {
+                    raw.isBlank() -> {
+                        Toast.makeText(this, R.string.kelas_kode_kosong, Toast.LENGTH_SHORT).show()
+                    }
+                    normalized == null -> {
+                        Toast.makeText(this, R.string.kelas_kode_tidak_valid, Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        submitMoveRequest(normalized)
+                    }
                 }
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Batal", null)
             .show()
+    }
+
+    private fun submitMoveRequest(classCode: String) {
+        Toast.makeText(this, R.string.kelas_gabung_proses, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val targetStudentId = studentId ?: run {
+                when (val dash = appContainer.waliRepository.dashboard()) {
+                    is ApiResult.Success -> {
+                        val sid = dash.data.student.id
+                        studentId = sid
+                        sid
+                    }
+                    else -> null
+                }
+            }
+
+            if (targetStudentId == null) {
+                Toast.makeText(this@RuangKelasWaliActivity, R.string.kelas_gabung_siswa_tidak_ditemukan, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+
+            when (val result = appContainer.waliRepository.requestMove(targetStudentId, classCode)) {
+                is ApiResult.Success -> {
+                    Toast.makeText(
+                        this@RuangKelasWaliActivity,
+                        getString(R.string.kelas_gabung_sukses, result.data.className),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                is ApiResult.Failure -> {
+                    val message = when (result.errorCode) {
+                        "MOVE_REQUEST_PENDING" -> getString(R.string.kelas_gabung_menunggu)
+                        "CLASS_CODE_NOT_FOUND" -> getString(R.string.kelas_gabung_kode_tidak_ditemukan)
+                        "STUDENT_NOT_FOUND" -> getString(R.string.kelas_gabung_siswa_tidak_ditemukan)
+                        else -> getString(R.string.kelas_gabung_gagal, result.message ?: result.errorCode ?: "Error")
+                    }
+                    Toast.makeText(this@RuangKelasWaliActivity, message, Toast.LENGTH_LONG).show()
+                }
+                is ApiResult.NetworkError -> {
+                    Toast.makeText(this@RuangKelasWaliActivity, R.string.error_network, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun openDetailKelas(kode: String, nama: String) {
@@ -119,5 +174,9 @@ class RuangKelasWaliActivity : AppCompatActivity() {
             putExtra("NAMA_KELAS", nama)
         }
         startActivity(intent)
+    }
+
+    companion object {
+        const val EXTRA_STUDENT_ID = "EXTRA_STUDENT_ID"
     }
 }

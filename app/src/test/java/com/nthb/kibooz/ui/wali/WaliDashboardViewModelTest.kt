@@ -10,6 +10,8 @@ import com.nthb.kibooz.data.remote.ClassStudentList
 import com.nthb.kibooz.data.remote.DashboardStudent
 import com.nthb.kibooz.data.remote.EmptyData
 import com.nthb.kibooz.data.remote.GuidanceApplyRequest
+import com.nthb.kibooz.data.remote.MoveRequest
+import com.nthb.kibooz.data.remote.MoveRequestInput
 import com.nthb.kibooz.data.remote.PointsSummary
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliDashboard
@@ -56,6 +58,12 @@ class WaliDashboardViewModelTest {
             idempotencyKey: String,
             body: GuidanceApplyRequest
         ): Response<ApiEnvelope<EmptyData>> = error("not used")
+
+        override suspend fun requestMove(
+            studentId: String,
+            idempotencyKey: String,
+            body: MoveRequestInput
+        ): Response<ApiEnvelope<MoveRequest>> = error("not used")
     }
 
     private class FakeClassApi(var children: List<ChildSummary>, var fail: Boolean = false) : ClassApi {

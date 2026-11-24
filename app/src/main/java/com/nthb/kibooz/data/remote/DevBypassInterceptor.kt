@@ -218,6 +218,21 @@ class DevBypassInterceptor(
                 }
             """.trimIndent()
 
+            path.contains("/move-requests") -> """
+                {
+                    "success": true,
+                    "message": "Move requested",
+                    "data": {
+                        "id": "move-req-demo-1",
+                        "studentId": "child-demo-1",
+                        "classId": "class-demo-2",
+                        "className": "Kelas 4B (Matematika & Logika)",
+                        "status": "pending",
+                        "requestedAt": "2026-11-24T15:41:17.304Z"
+                    }
+                }
+            """.trimIndent()
+
             path.contains("/wali/child") -> """
                 {
                     "success": true,

@@ -129,4 +129,61 @@ class WaliRepositoryTest {
 
         assertEquals(server.takeRequest().getHeader("Idempotency-Key"), server.takeRequest().getHeader("Idempotency-Key"))
     }
+
+    @Test
+    fun `requestMove sends studentId, idempotency key and normalized classCode, returning MoveRequest on success`() = runBlocking {
+        val json = """{
+            "success": true,
+            "message": "Move requested",
+            "data": {
+                "id": "req-1",
+                "studentId": "s1",
+                "classId": "c2",
+                "className": "Kelas Bintang",
+                "status": "pending",
+                "requestedAt": "2026-11-24T15:41:17Z"
+            }
+        }"""
+        server.enqueue(jsonResponse(json, 201))
+
+        val result = repository.requestMove("s1", "P3TFA84K") as ApiResult.Success
+
+        val request = server.takeRequest()
+        assertEquals("POST", request.method)
+        assertEquals("/api/v1/wali/children/s1/move-requests", request.path)
+        assertEquals("Bearer jwt", request.getHeader("Authorization"))
+        assertTrue(!request.getHeader("Idempotency-Key").isNullOrBlank())
+        assertEquals("""{"classCode":"P3TFA84K"}""", request.body.readUtf8())
+        assertEquals("req-1", result.data.id)
+        assertEquals("Kelas Bintang", result.data.className)
+        assertEquals("pending", result.data.status)
+    }
+
+    @Test
+    fun `requestMove handles MOVE_REQUEST_PENDING failure`() = runBlocking {
+        val errorJson = """{
+            "success": false,
+            "message": "This child already has a request that waits for a teacher",
+            "errorCode": "MOVE_REQUEST_PENDING"
+        }"""
+        server.enqueue(jsonResponse(errorJson, 409))
+
+        val result = repository.requestMove("s1", "P3TFA84K") as ApiResult.Failure
+        assertEquals(409, result.status)
+        assertEquals("MOVE_REQUEST_PENDING", result.errorCode)
+    }
+
+    @Test
+    fun `requestMove handles CLASS_CODE_NOT_FOUND failure`() = runBlocking {
+        val errorJson = """{
+            "success": false,
+            "message": "Class code not found",
+            "errorCode": "CLASS_CODE_NOT_FOUND"
+        }"""
+        server.enqueue(jsonResponse(errorJson, 404))
+
+        val result = repository.requestMove("s1", "INVALID") as ApiResult.Failure
+        assertEquals(404, result.status)
+        assertEquals("CLASS_CODE_NOT_FOUND", result.errorCode)
+    }
 }
