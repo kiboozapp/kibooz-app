@@ -30,7 +30,8 @@ jobs:
         with:
           persist-credentials: false
 
-      # Looks at the Gradle files and the repository files for known vulnerabilities, secrets and misconfiguration
+      # Looks at the repository files for secrets and misconfiguration. The vulnerability scanner reads lock files, and this repository has
+      # none because Gradle builds the dependencies from build.gradle.kts, so it finds nothing in the Gradle dependencies for now.
       - name: Trivy filesystem scan
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -46,6 +47,10 @@ jobs:
       - name: Show the findings
         if: ${{ !cancelled() }}
         run: |
+          if [ ! -f trivy-fs.txt ]; then
+            echo "Trivy wrote no report, read the log of the scan step."
+            exit 0
+          fi
           cat trivy-fs.txt
           {
             echo "## Trivy filesystem scan"
