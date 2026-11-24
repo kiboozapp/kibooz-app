@@ -147,6 +147,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 19b. Hapus Akun (Guru dan Wali) -->
+        <activity
+            android:name=".ui.account.HapusAkunActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- 18. AI Camera Overlay: Scan Mood Kelas (Guru) -->
         <activity
             android:name=".ui.camera.CameraScanMoodActivity"
