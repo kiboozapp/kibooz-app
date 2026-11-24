@@ -5,22 +5,26 @@ import com.nthb.kibooz.data.remote.AccountApi
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.ClassApi
+import com.nthb.kibooz.data.remote.ForumApi
 import com.nthb.kibooz.data.remote.GuruApi
 import com.nthb.kibooz.data.remote.GuruClassApi
 import com.nthb.kibooz.data.remote.LeaderboardApi
 import com.nthb.kibooz.data.remote.MoodApi
 import com.nthb.kibooz.data.remote.TokenAuthenticator
 import com.nthb.kibooz.data.remote.TrashApi
+import com.nthb.kibooz.data.remote.VideoApi
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliProfileApi
 import com.nthb.kibooz.data.repository.AccountRepository
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
+import com.nthb.kibooz.data.repository.ForumRepository
 import com.nthb.kibooz.data.repository.GuruRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.nthb.kibooz.data.repository.MoodRepository
 import com.nthb.kibooz.data.repository.TrashRepository
+import com.nthb.kibooz.data.repository.VideoRepository
 import com.nthb.kibooz.data.repository.WaliProfileRepository
 import com.nthb.kibooz.data.repository.WaliRepository
 import com.nthb.kibooz.data.session.DataStoreSessionStore
@@ -80,5 +84,13 @@ class AppContainer(context: Context) {
 
     val guruRepository: GuruRepository by lazy {
         GuruRepository(apiClient.create(GuruApi::class.java), apiClient.moshi)
+    }
+
+    val forumRepository: ForumRepository by lazy {
+        ForumRepository(apiClient.create(ForumApi::class.java), apiClient.moshi)
+    }
+
+    val videoRepository: VideoRepository by lazy {
+        VideoRepository(apiClient.create(VideoApi::class.java), apiClient.moshi)
     }
 }

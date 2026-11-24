@@ -128,15 +128,17 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTeacherName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Siti Rahayu, S.Pd."
+                            android:text="Guru Pengajar"
                             android:textColor="#221C38"
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvTeacherRole"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -181,10 +183,11 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvStudentCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/baloo2"
-                    android:text="24 Siswa Aktif"
+                    android:text="Memuat Siswa..."
                     android:textColor="#75718E"
                     android:textSize="13sp" />
 
@@ -208,304 +211,18 @@
                     android:orientation="vertical"
                     android:paddingVertical="8dp">
 
-                    <!-- Student 1: Anika Nur Kholisoh -->
-                    <LinearLayout
+                    <TextView
+                        android:id="@+id/tvEmptyPeserta"
                         android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Anika Nur Kholisoh"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="😊 Ceria"
-                            android:textColor="#10B981"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#F3F0F9" />
-
-                    <!-- Student 2: Daffina Nabilah -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Daffina Nabilah"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="😊 Ceria"
-                            android:textColor="#10B981"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#F3F0F9" />
-
-                    <!-- Student 3: Dea Amelia -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Dea Amelia"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="😌 Tenang"
-                            android:textColor="#6366F1"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#F3F0F9" />
-
-                    <!-- Student 4: Desi Kurniasih -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Desi Kurniasih"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="😊 Ceria"
-                            android:textColor="#10B981"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#F3F0F9" />
-
-                    <!-- Student 5: Fillia Debora Sharon -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Fillia Debora Sharon"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="🤔 Fokus"
-                            android:textColor="#F59E0B"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#F3F0F9" />
-
-                    <!-- Student 6: Gita Rizky Syahlia -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Gita Rizky Syahlia"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="😊 Ceria"
-                            android:textColor="#10B981"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-
-                    <View android:layout_width="match_parent" android:layout_height="1dp" android:layout_marginHorizontal="16dp" android:background="#F3F0F9" />
-
-                    <!-- Student 7: Abdul Manap -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="58dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
-
-                        <com.google.android.material.card.MaterialCardView
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
-                            app:cardCornerRadius="20dp"
-                            app:cardElevation="0dp">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:src="@drawable/img_avatar_siswa" />
-                        </com.google.android.material.card.MaterialCardView>
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="14dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Abdul Manap"
-                            android:textColor="#2A2740"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="😊 Ceria"
-                            android:textColor="#10B981"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:layout_marginBottom="16dp"
+                        android:fontFamily="@font/baloo2"
+                        android:gravity="center"
+                        android:text="Belum ada siswa terdaftar di kelas ini"
+                        android:textColor="@color/kibooz_text_muted"
+                        android:textSize="14sp"
+                        android:visibility="gone" />
 
                 </LinearLayout>
 

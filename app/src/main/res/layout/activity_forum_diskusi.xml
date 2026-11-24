@@ -56,10 +56,11 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/tvSubtitleForum"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/baloo2"
-                android:text="24 Siswa • 1 Guru Pengajar"
+                android:text="1 Siswa • 1 Guru Pengajar"
                 android:textColor="#E0DBF5"
                 android:textSize="12sp" />
 
@@ -84,235 +85,18 @@
             android:paddingHorizontal="16dp"
             android:paddingVertical="16dp">
 
-            <!-- Date Divider Pill -->
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvEmptyForum"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:background="@drawable/bg_tag_lavender"
+                android:layout_marginTop="32dp"
+                android:layout_marginBottom="32dp"
                 android:fontFamily="@font/baloo2"
-                android:paddingHorizontal="14dp"
-                android:paddingVertical="4dp"
-                android:text="Hari Ini, 24 Oktober 2026"
-                android:textColor="@color/kibooz_primary_purple"
-                android:textSize="12sp"
-                android:textStyle="bold" />
-
-            <!-- Message 1 (Guru / Outgoing / Right aligned) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:gravity="end"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="60dp"
-                    android:background="@drawable/bg_button_purple"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/baloo2"
-                        android:text="Ibu Siti Rahayu (Guru)"
-                        android:textColor="#FFD54F"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="@font/baloo2"
-                        android:lineSpacingExtra="2dp"
-                        android:text="Halo Ayah &amp; Bunda serta anak-anak hebat! Untuk pertemuan esok hari jangan lupa membawa gunting tumpul dan kertas warna daur ulang ya! 😊🎨"
-                        android:textColor="@color/kibooz_white"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="@font/baloo2"
-                        android:text="14:20"
-                        android:textColor="#E0DBF5"
-                        android:textSize="10sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Message 2 (Wali Amelia / Incoming / Left aligned) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="start"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginTop="4dp"
-                    android:src="@drawable/img_avatar_siswa" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="60dp"
-                    android:background="@drawable/bg_card_white"
-                    android:elevation="2dp"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/baloo2"
-                        android:text="Bunda Amelia"
-                        android:textColor="@color/kibooz_primary_purple"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="@font/baloo2"
-                        android:lineSpacingExtra="2dp"
-                        android:text="Baik Bu Siti, gunting tumpul dan kertas warna bekas sudah disiapkan di tas Amelia hari ini!"
-                        android:textColor="@color/kibooz_text_dark"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="@font/baloo2"
-                        android:text="14:25"
-                        android:textColor="@color/kibooz_text_muted"
-                        android:textSize="10sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Message 3 (Wali Kenzo / Incoming / Left aligned) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="start"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_marginTop="4dp"
-                    android:src="@drawable/ic_kibooz_bear" />
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="60dp"
-                    android:background="@drawable/bg_card_white"
-                    android:elevation="2dp"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/baloo2"
-                        android:text="Ayah Kenzo"
-                        android:textColor="@color/kibooz_primary_purple"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="@font/baloo2"
-                        android:lineSpacingExtra="2dp"
-                        android:text="Siap bu guru, apakah ada kardus bekas yang perlu dibawa juga untuk si kecil?"
-                        android:textColor="@color/kibooz_text_dark"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="@font/baloo2"
-                        android:text="14:32"
-                        android:textColor="@color/kibooz_text_muted"
-                        android:textSize="10sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <!-- Message 4 (Guru Response / Right aligned) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="end"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="60dp"
-                    android:background="@drawable/bg_button_purple"
-                    android:orientation="vertical"
-                    android:paddingHorizontal="14dp"
-                    android:paddingVertical="10dp">
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/baloo2"
-                        android:text="Ibu Siti Rahayu (Guru)"
-                        android:textColor="#FFD54F"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:fontFamily="@font/baloo2"
-                        android:lineSpacingExtra="2dp"
-                        android:text="Boleh sekali Pak! Kardus bekas bisa kita pakai untuk bingkai karya daur ulang 👍"
-                        android:textColor="@color/kibooz_white"
-                        android:textSize="14sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end"
-                        android:layout_marginTop="4dp"
-                        android:fontFamily="@font/baloo2"
-                        android:text="14:35"
-                        android:textColor="#E0DBF5"
-                        android:textSize="10sp" />
-
-                </LinearLayout>
-
-            </LinearLayout>
+                android:gravity="center"
+                android:text="Belum ada pesan di forum diskusi ini.\nMulai percakapan bersama guru dan wali murid!"
+                android:textColor="@color/kibooz_text_muted"
+                android:textSize="14sp"
+                android:visibility="gone" />
 
         </LinearLayout>
 

@@ -69,6 +69,7 @@
         app:layout_constraintTop_toBottomOf="@+id/clTopBar">
 
         <LinearLayout
+            android:id="@+id/llVideoContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
@@ -90,15 +91,19 @@
                     android:src="@drawable/ic_search"
                     app:tint="#9E9E9E" />
 
-                <TextView
+                <EditText
+                    android:id="@+id/etSearchVideo"
                     android:layout_width="0dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
+                    android:background="@null"
                     android:fontFamily="@font/baloo2"
-                    android:text="Cari Video Pembelajaran atau Video lain dengan Kibooz AI"
-                    android:textColor="#9E9E9E"
-                    android:textSize="12sp" />
+                    android:hint="Cari Video Pembelajaran atau Video lain..."
+                    android:inputType="text"
+                    android:textColor="@color/kibooz_text_primary"
+                    android:textColorHint="#9E9E9E"
+                    android:textSize="13sp" />
 
             </LinearLayout>
 
@@ -136,6 +141,7 @@
                         android:padding="14dp">
 
                         <TextView
+                            android:id="@+id/tvTitleVideo1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -158,6 +164,7 @@
                                 app:tint="#75718E" />
 
                             <TextView
+                                android:id="@+id/tvDateVideo1"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="6dp"
@@ -218,6 +225,7 @@
                         android:padding="14dp">
 
                         <TextView
+                            android:id="@+id/tvTitleVideo2"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -240,6 +248,7 @@
                                 app:tint="#75718E" />
 
                             <TextView
+                                android:id="@+id/tvDateVideo2"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="6dp"
@@ -300,6 +309,7 @@
                         android:padding="14dp">
 
                         <TextView
+                            android:id="@+id/tvTitleVideo3"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -322,6 +332,7 @@
                                 app:tint="#75718E" />
 
                             <TextView
+                                android:id="@+id/tvDateVideo3"
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_marginStart="6dp"
