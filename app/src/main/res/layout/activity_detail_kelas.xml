@@ -235,7 +235,7 @@
                         android:fontFamily="@font/baloo2"
                         android:paddingHorizontal="18dp"
                         android:paddingVertical="8dp"
-                        android:text="Modul (6)"
+                        android:text="Modul (4)"
                         android:textColor="@color/kibooz_white"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -379,6 +379,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleDaftarPeserta"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -388,6 +389,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvSubDaftarPeserta"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"

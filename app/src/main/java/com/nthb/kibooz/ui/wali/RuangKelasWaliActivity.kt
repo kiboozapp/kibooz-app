@@ -24,6 +24,8 @@ class RuangKelasWaliActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRuangKelasWaliBinding
     private var studentId: String? = null
+    private var childClassName: String? = null
+    private var childClassId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,7 +41,23 @@ class RuangKelasWaliActivity : AppCompatActivity() {
             fab = binding.fabScannerSampah
         )
 
+        loadChildClassInfo()
         setupListeners()
+    }
+
+    private fun loadChildClassInfo() {
+        lifecycleScope.launch {
+            when (val dash = appContainer.waliRepository.dashboard()) {
+                is ApiResult.Success -> {
+                    val st = dash.data.student
+                    studentId = st.id
+                    childClassName = st.className
+                    childClassId = st.classId
+                    binding.tvSubtitleRuangKelas.text = "Kelas: ${st.className} • Eksplorasi materi si kecil"
+                }
+                else -> {}
+            }
+        }
     }
 
     private fun setupListeners() {
@@ -179,6 +197,8 @@ class RuangKelasWaliActivity : AppCompatActivity() {
         val intent = Intent(this, DetailKelasActivity::class.java).apply {
             putExtra("KODE_KELAS", kode)
             putExtra("NAMA_KELAS", nama)
+            putExtra("CLASS_ID", childClassId)
+            putExtra("CHILD_CLASS_NAME", childClassName)
             studentId?.let { putExtra(EXTRA_STUDENT_ID, it) }
         }
         startActivity(intent)

@@ -122,6 +122,16 @@
             android:name=".ui.wali.RuangKelasWaliActivity"
             android:exported="false" />
 
+        <!-- 13b. Wali Flow: Notifikasi Wali -->
+        <activity
+            android:name=".ui.wali.NotifikasiWaliActivity"
+            android:exported="false" />
+
+        <!-- 13c. Wali Flow: Riwayat Aktivitas Si Kecil -->
+        <activity
+            android:name=".ui.wali.RiwayatAktivitasWaliActivity"
+            android:exported="false" />
+
         <!-- 14. Wali Flow: Detail Panduan Penanganan Mood 4-Langkah -->
         <activity
             android:name=".ui.wali.DetailPenangananMoodActivity"

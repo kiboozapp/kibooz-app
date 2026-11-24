@@ -27,6 +27,7 @@ class DetailKelasActivity : AppCompatActivity() {
     private lateinit var binding: ActivityDetailKelasBinding
     private var activeClassId: String? = null
     private var isTeacherRole: Boolean = true
+    private var selectedMeetingIndex: Int = 3
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,52 +61,60 @@ class DetailKelasActivity : AppCompatActivity() {
         lifecycleScope.launch {
             var count = 24
             if (activeClassId.isNullOrBlank()) {
-                val teacherClasses = appContainer.classRepository.teacherClasses()
-                if (teacherClasses is ApiResult.Success) {
-                    val match = teacherClasses.data.firstOrNull {
-                        it.joinCode.equals(kodeKelas, ignoreCase = true) || it.name.equals(namaKelas, ignoreCase = true)
-                    } ?: teacherClasses.data.firstOrNull()
-                    activeClassId = match?.id
-                    if (match != null && match.totalStudents > 0) {
-                        count = match.totalStudents
+                if (isTeacherRole) {
+                    val teacherClasses = appContainer.classRepository.teacherClasses()
+                    if (teacherClasses is ApiResult.Success) {
+                        val match = teacherClasses.data.firstOrNull {
+                            it.joinCode.equals(kodeKelas, ignoreCase = true) || it.name.equals(namaKelas, ignoreCase = true)
+                        } ?: teacherClasses.data.firstOrNull()
+                        activeClassId = match?.id
+                        if (match != null && match.totalStudents > 0) {
+                            count = match.totalStudents
+                        }
                     }
                 }
             }
 
             val classId = activeClassId
-            if (!classId.isNullOrBlank()) {
+            if (!classId.isNullOrBlank() && isTeacherRole) {
                 val roster = appContainer.classRepository.students(classId)
                 if (roster is ApiResult.Success && roster.data.students.isNotEmpty()) {
                     count = roster.data.total
                 }
             }
             setupDynamicMeetingSchedule(count)
+            updatePesertaBanner(count)
+        }
+    }
+
+    private fun updatePesertaBanner(studentCount: Int) {
+        val childClassName = intent.getStringExtra("CHILD_CLASS_NAME")
+        if (!isTeacherRole) {
+            binding.tvTitleDaftarPeserta.text = "Status Kelas Si Kecil"
+            binding.tvSubDaftarPeserta.text = if (!childClassName.isNullOrBlank()) {
+                "Terdaftar Aktif • $childClassName"
+            } else {
+                "Terdaftar Aktif di Kelas Si Kecil"
+            }
+        } else {
+            binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
+            binding.tvSubDaftarPeserta.text = "1 Guru Pengajar & $studentCount Siswa Terdaftar"
         }
     }
 
     private fun setupDynamicMeetingSchedule(studentCount: Int) {
         val calendar = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("d MMM yyyy", Locale("id", "ID"))
-
-        // Pertemuan 3: Terjadwal hari ini - jika hari sudah berakhir (jam sekolah lewat pk 15:00), status otomatis Selesai
-        val currentHour = calendar.get(Calendar.HOUR_OF_DAY)
-        val isDayEnded = currentHour >= 15
-        val dateP3 = dateFormat.format(calendar.time)
+        val dateToday = dateFormat.format(calendar.time)
         val countText = if (studentCount > 0) "$studentCount Siswa Terdaftar" else "24 Siswa Terdaftar"
-        val hadirP3 = if (studentCount > 0) "${(studentCount * 0.96).toInt().coerceAtLeast(1)} Siswa Hadir" else "24 Siswa Hadir"
 
-        if (isDayEnded) {
-            binding.tvStatusModul3.text = "Selesai • $dateP3 • $hadirP3"
-        } else if (currentHour < 7) {
-            binding.tvStatusModul3.text = "Hari Ini • $dateP3 • Dimulai 08:00 WIB"
-        } else {
-            binding.tvStatusModul3.text = "Sedang Berlangsung • $dateP3 • $countText"
-        }
+        // Pertemuan 3: Terjadwal sebagai pertemuan aktif hari ini
+        binding.tvStatusModul3.text = "Sedang Berlangsung • $dateToday • $countText"
 
         // Pertemuan 2: Selesai 7 hari lalu
         calendar.add(Calendar.DAY_OF_YEAR, -7)
         val dateP2 = dateFormat.format(calendar.time)
-        val hadirP2 = if (studentCount > 0) "${(studentCount * 0.95).toInt().coerceAtLeast(1)} Siswa Hadir" else "24 Siswa Hadir"
+        val hadirP2 = if (studentCount > 0) "${(studentCount * 0.95).toInt().coerceAtLeast(1)} Siswa Hadir" else "23 Siswa Hadir"
         binding.tvStatusModul2.text = "Selesai • $dateP2 • $hadirP2"
 
         // Pertemuan 1: Selesai 14 hari lalu
@@ -119,12 +128,42 @@ class DetailKelasActivity : AppCompatActivity() {
         calendar.add(Calendar.DAY_OF_YEAR, 7)
         val dateP4 = dateFormat.format(calendar.time)
         binding.tvStatusModul4.text = "Mendatang • $dateP4"
+
+        highlightSelectedMeeting(selectedMeetingIndex)
+    }
+
+    private fun highlightSelectedMeeting(index: Int) {
+        selectedMeetingIndex = index
+        val purpleColor = getColor(R.color.kibooz_primary_purple)
+        val defaultColor = getColor(R.color.kibooz_border)
+
+        val cards = listOf(
+            binding.cardModul1,
+            binding.cardModul2,
+            binding.cardModul3,
+            binding.cardModul4
+        )
+
+        cards.forEachIndexed { i, card ->
+            if (i + 1 == index) {
+                card.strokeColor = purpleColor
+                card.strokeWidth = (2 * resources.displayMetrics.density).toInt()
+                card.cardElevation = 6 * resources.displayMetrics.density
+            } else {
+                card.strokeColor = defaultColor
+                card.strokeWidth = (1 * resources.displayMetrics.density).toInt()
+                card.cardElevation = 2 * resources.displayMetrics.density
+            }
+        }
     }
 
     private fun setupViews(kodeKelas: String, namaKelas: String) {
+        val childClassName = intent.getStringExtra("CHILD_CLASS_NAME")
         binding.tvTitleBar.text = "Detail $namaKelas"
         binding.tvNamaKelas.text = namaKelas
-        binding.tvKodeKelas.text = kodeKelas
+        binding.tvKodeKelas.text = if (!isTeacherRole && !childClassName.isNullOrBlank()) childClassName else kodeKelas
+        binding.tabModul.text = "Modul (4)"
+        updatePesertaBanner(24)
 
         when {
             namaKelas.contains("Bahasa", ignoreCase = true) || kodeKelas.startsWith("BHS") -> {
@@ -248,7 +287,8 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun selectModule(index: Int, title: String, status: String) {
-        Toast.makeText(this, "Pertemuan $index Dipilih: $title ($status)", Toast.LENGTH_SHORT).show()
+        highlightSelectedMeeting(index)
+        Toast.makeText(this, "Pertemuan $index Aktif: $title ($status)", Toast.LENGTH_SHORT).show()
     }
 
     private fun openPesertaKelas(namaKelas: String, kodeKelas: String? = null) {

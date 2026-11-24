@@ -206,7 +206,11 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Riwayat Aktivitas Si Kecil
         binding.ivHistory.setOnClickListener {
-            Toast.makeText(this, R.string.wali_riwayat_belum_tersedia, Toast.LENGTH_SHORT).show()
+            val studentId = viewModel.state.value.dashboard?.student?.id
+            startActivity(
+                Intent(this, RiwayatAktivitasWaliActivity::class.java)
+                    .putExtra(RiwayatAktivitasWaliActivity.EXTRA_STUDENT_ID, studentId)
+            )
         }
 
         // Navigasi ke Ruang Kelas Si Kecil (Screenshot 154028)
@@ -232,7 +236,7 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Notifikasi
         binding.ivNotification.setOnClickListener {
-            Toast.makeText(this, "Tidak ada notifikasi baru untuk wali murid", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, NotifikasiWaliActivity::class.java))
         }
     }
 }
