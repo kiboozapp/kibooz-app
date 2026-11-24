@@ -310,7 +310,7 @@ class DeleteAccountViewModelTest {
     @Test
     fun `offline shows the outage card and a retry sends the same form again`() {
         // OkHttp repeats a request once after a dropped connection, so two answers are consumed
-        repeat(2) { server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)) }
+        server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
         val viewModel = teacher()
 
         val offline = viewModel.deleteWith("secret-123", "budi@example.com")
