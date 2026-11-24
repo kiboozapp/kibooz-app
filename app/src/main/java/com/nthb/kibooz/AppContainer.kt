@@ -5,12 +5,14 @@ import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.GuruApi
+import com.nthb.kibooz.data.remote.GuruClassApi
 import com.nthb.kibooz.data.remote.LeaderboardApi
 import com.nthb.kibooz.data.remote.MoodApi
 import com.nthb.kibooz.data.remote.TokenAuthenticator
 import com.nthb.kibooz.data.remote.TrashApi
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.repository.AuthRepository
+import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.GuruRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
@@ -46,6 +48,10 @@ class AppContainer(context: Context) {
 
     val classRepository: ClassRepository by lazy {
         ClassRepository(apiClient.create(ClassApi::class.java), apiClient.moshi)
+    }
+
+    val classManagementRepository: ClassManagementRepository by lazy {
+        ClassManagementRepository(classRepository, apiClient.create(GuruClassApi::class.java), apiClient.moshi)
     }
 
     val trashRepository: TrashRepository by lazy {
