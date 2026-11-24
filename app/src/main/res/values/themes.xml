@@ -1,6 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Theme.KiboozApp" parent="Theme.Material3.DayNight.NoActionBar">
+    <!-- Base application theme. Dikunci terang karena aplikasi hanya punya palet terang (tidak ada values-night).
+         Dengan DayNight, mode gelap HP membuat teks isian memakai warna tema gelap yang hampir tak terlihat di kolom putih. -->
+    <style name="Theme.KiboozApp" parent="Theme.Material3.Light.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/kibooz_primary_purple</item>
         <item name="colorPrimaryVariant">@color/kibooz_purple_dark</item>
