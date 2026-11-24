@@ -165,20 +165,34 @@ class DevBypassInterceptor(
                 {
                     "success": true,
                     "data": {
-                        "parent": {
-                            "fullName": "Budi Santoso",
-                            "email": "budi.santoso@kibooz.com",
-                            "avatarUrl": null
+                        "student": {
+                            "id": "child-demo-1",
+                            "fullName": "Adit Pratama",
+                            "classId": "class-demo-1",
+                            "className": "Kelas 4A • SD Negeri Percobaan",
+                            "avatarUrl": null,
+                            "nisn": "0012345671"
                         },
-                        "children": [
-                            {
-                                "id": "child-demo-1",
-                                "fullName": "Adit Pratama",
-                                "className": "Kelas 4A (Seni & Kreativitas)",
-                                "schoolName": "SD Negeri Percobaan",
-                                "todayMood": "SENANG"
-                            }
-                        ]
+                        "todayMood": {
+                            "moodType": "SENANG",
+                            "label": "Senang",
+                            "confidence": 0.94,
+                            "recordedAt": "2026-11-24T07:15:00Z",
+                            "teacherNotes": "Adit sangat aktif dan bersemangat dalam pembelajaran seni hari ini."
+                        },
+                        "pointsSummary": {
+                            "totalPoints": 120,
+                            "seasonPoints": 120,
+                            "classRank": 1,
+                            "organicCount": 8,
+                            "anorganicCount": 6
+                        },
+                        "recommendedGuidance": {
+                            "id": "guidance-demo-1",
+                            "title": "Dukungan Eksplorasi Seni & Motorik Kreatif",
+                            "category": "Kreativitas & Minat",
+                            "bannerUrl": ""
+                        }
                     }
                 }
             """.trimIndent()
@@ -191,9 +205,175 @@ class DevBypassInterceptor(
                             {
                                 "id": "child-demo-1",
                                 "fullName": "Adit Pratama",
+                                "nisn": "0012345671",
+                                "avatarUrl": null,
+                                "classId": "class-demo-1",
                                 "className": "Kelas 4A (Seni & Kreativitas)",
-                                "schoolName": "SD Negeri Percobaan",
-                                "todayMood": "SENANG"
+                                "nisnVerified": true,
+                                "nisnNeedsUpdate": false,
+                                "classArchivedAt": null
+                            }
+                        ]
+                    }
+                }
+            """.trimIndent()
+
+            path.contains("/wali/child") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "id": "child-demo-1",
+                        "fullName": "Adit Pratama",
+                        "nisn": "0012345671",
+                        "nisnVerified": true,
+                        "nisnNeedsUpdate": false,
+                        "avatarUrl": null,
+                        "classId": "class-demo-1",
+                        "className": "Kelas 4A (Seni & Kreativitas)",
+                        "gradeLevel": "4",
+                        "schoolName": "SD Negeri Percobaan",
+                        "academicYear": "2026/2027",
+                        "currentPoints": 120,
+                        "seasonPoints": 120,
+                        "classRank": 1,
+                        "guardian": {
+                            "fullName": "Budi Santoso",
+                            "email": "budi.santoso@kibooz.com",
+                            "phoneNumber": "081234567890",
+                            "whatsappNumber": "081234567890",
+                            "address": "Jl. Pendidikan No. 12, Malang"
+                        }
+                    }
+                }
+            """.trimIndent()
+
+            path.contains("/leaderboard") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "podium": [
+                            {"rank": 1, "studentName": "Adit Pratama", "points": 120, "avatarUrl": null},
+                            {"rank": 2, "studentName": "Bella Saphira", "points": 110, "avatarUrl": null},
+                            {"rank": 3, "studentName": "Cahya Putra", "points": 95, "avatarUrl": null}
+                        ],
+                        "rankings": [
+                            {"rank": 4, "studentName": "Dimas Anggara", "points": 80, "avatarUrl": null},
+                            {"rank": 5, "studentName": "Eka Rahmawati", "points": 75, "avatarUrl": null}
+                        ]
+                    }
+                }
+            """.trimIndent()
+
+            path.endsWith("/trash/stats") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "student": {
+                            "id": "child-demo-1",
+                            "fullName": "Adit Pratama"
+                        },
+                        "totalPoints": 120,
+                        "seasonPoints": 120,
+                        "classRank": 1,
+                        "totalScans": 14,
+                        "breakdown": [
+                            {"trashType": "ORGANIK", "scans": 8, "points": 80},
+                            {"trashType": "ANORGANIK", "scans": 6, "points": 40},
+                            {"trashType": "B3", "scans": 0, "points": 0}
+                        ],
+                        "todayScans": 3,
+                        "dailyLimit": 5,
+                        "remainingDailyScans": 2
+                    }
+                }
+            """.trimIndent()
+
+            path.contains("/trash/scan-claim") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "pointsAdded": 10,
+                        "totalPoints": 130,
+                        "seasonPoints": 130,
+                        "newRank": 1,
+                        "remainingDailyScans": 1
+                    }
+                }
+            """.trimIndent()
+
+            path.contains("/wali/guidance/apply") -> """
+                {
+                    "success": true,
+                    "message": "Panduan berhasil diterapkan"
+                }
+            """.trimIndent()
+
+            path.contains("/threads") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "page": 1,
+                        "limit": 20,
+                        "total": 2,
+                        "threads": [
+                            {
+                                "id": "th-1",
+                                "title": "Diskusi Tugas Seni Budaya Pekan Ini",
+                                "body": "Selamat pagi bapak ibu, mohon bimbingan untuk proyek kolase anorganik di rumah ya.",
+                                "author": {
+                                    "id": "guru-bypass-1",
+                                    "fullName": "Tika Sartika, S.Pd",
+                                    "role": "GURU",
+                                    "avatarUrl": null
+                                },
+                                "replyCount": 3,
+                                "createdAt": "2026-11-24T08:30:00Z",
+                                "editedAt": null
+                            },
+                            {
+                                "id": "th-2",
+                                "title": "Konfirmasi Jadwal Kelas",
+                                "body": "Apakah jadwal pertemuan besok tetap pukul 08.00 WIB?",
+                                "author": {
+                                    "id": "wali-bypass-1",
+                                    "fullName": "Budi Santoso",
+                                    "role": "WALI",
+                                    "avatarUrl": null
+                                },
+                                "replyCount": 1,
+                                "createdAt": "2026-11-24T09:15:00Z",
+                                "editedAt": null
+                            }
+                        ]
+                    }
+                }
+            """.trimIndent()
+
+            path.contains("/videos") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "page": 1,
+                        "limit": 20,
+                        "total": 2,
+                        "videos": [
+                            {
+                                "id": "vid-1",
+                                "title": "Mengenal Emosi Dasar Manusia",
+                                "description": "Video animasi edukasi mengenal emosi senang, sedih, dan marah untuk anak.",
+                                "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                                "thumbnailUrl": null,
+                                "durationSeconds": 300,
+                                "createdAt": "2026-11-24T07:00:00Z"
+                            },
+                            {
+                                "id": "vid-2",
+                                "title": "Panduan Memilah Sampah Sekolah",
+                                "description": "Cara mudah membedakan sampah organik, anorganik, dan B3.",
+                                "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                                "thumbnailUrl": null,
+                                "durationSeconds": 240,
+                                "createdAt": "2026-11-24T08:00:00Z"
                             }
                         ]
                     }
