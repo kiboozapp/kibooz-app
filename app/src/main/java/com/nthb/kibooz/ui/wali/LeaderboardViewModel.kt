@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.LeaderboardData
 import com.nthb.kibooz.data.remote.LeaderboardPeriod
+import com.nthb.kibooz.data.remote.RankEntry
 import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import kotlinx.coroutines.Job
@@ -24,6 +25,9 @@ data class LeaderboardState(
 ) {
     /** True jika kelas belum punya siswa sama sekali. */
     val empty: Boolean get() = data != null && data.podium.isEmpty() && data.rankings.isEmpty()
+
+    /** Semua siswa urut peringkat untuk daftar di bawah podium, tiga besar ikut di depan. Kosong selama data belum ada. */
+    val allRanks: List<RankEntry> get() = data?.let { it.podium + it.rankings } ?: emptyList()
 }
 
 /** Papan peringkat (FR-6.3, FR-6.4). [classId] null berarti kelas anak yang dipilih server. Data lama tetap tampil jika muat ulang gagal. */
