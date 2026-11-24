@@ -117,6 +117,27 @@ class WaliDashboardViewModelTest {
     }
 
     @Test
+    fun `a chosen child that was deleted falls back to the default child`() {
+        val viewModel = viewModel()
+        viewModel.selectChild("s2")
+        waliApi.reply = { id ->
+            if (id == "s2") failure(404, "STUDENT_NOT_FOUND") else Response.success(ApiEnvelope(true, null, dashboard("s1", "Amelia")))
+        }
+
+        viewModel.load()
+
+        val state = viewModel.state.value
+        assertEquals(listOf<String?>(null, "s2", "s2", null), waliApi.asked)
+        assertEquals("Amelia", state.dashboard?.student?.fullName)
+        assertNull(state.error)
+        assertFalse(state.noChild)
+        assertFalse(state.loading)
+
+        viewModel.load()
+        assertEquals("s1", waliApi.asked.last())
+    }
+
+    @Test
     fun `a parent without children gets a flag, not an error toast`() {
         waliApi.reply = { failure(404, "NO_CHILD_REGISTERED") }
 

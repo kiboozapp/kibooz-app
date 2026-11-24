@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Profil Wali -->
+    <string name="anak_avatar_wali">Foto profil wali murid</string>
+    <string name="anak_wali_subjudul">Wali Murid dari %1$s (%2$s)</string>
+    <string name="anak_wali_subjudul_tanpa_anak">Belum ada anak yang terdaftar</string>
+    <string name="anak_lihat_detail">Lihat Detail Profil Siswa</string>
+    <string name="anak_tambah_anak">Tambah Anak</string>
+
+    <!-- Profil siswa -->
+    <string name="anak_judul_profil_siswa">Profil Siswa</string>
+    <string name="anak_avatar_siswa">Foto profil anak</string>
+    <string name="anak_pilih_anak_desc">Pilih anak, sekarang %1$s</string>
+    <string name="anak_kelas_ringkas">%1$s • %2$s</string>
+    <string name="anak_kelas_diarsipkan">(diarsipkan)</string>
+    <string name="anak_edit_profil">Edit Profil Siswa &amp; Wali</string>
+    <string name="anak_bagian_siswa">Informasi Siswa</string>
+    <string name="anak_bagian_wali">Informasi Wali</string>
+    <string name="anak_label_nisn">Nomor Induk Siswa Nasional (NISN)</string>
+    <string name="anak_label_kelas">Kelas</string>
+    <string name="anak_label_sekolah">Sekolah</string>
+    <string name="anak_label_tahun_ajaran">Tahun Ajaran</string>
+    <string name="anak_label_peringkat">Peringkat di Kelas</string>
+    <string name="anak_label_poin">Poin Semester Ini</string>
+    <string name="anak_label_nama_wali">Nama Orang Tua / Wali Murid</string>
+    <string name="anak_label_email">Email Terdaftar</string>
+    <string name="anak_label_telepon">Nomor Telepon</string>
+    <string name="anak_label_whatsapp">Nomor WhatsApp</string>
+    <string name="anak_label_alamat">Alamat Rumah</string>
+    <string name="anak_belum_diisi">Belum diisi</string>
+    <string name="anak_belum_ada_peringkat">Belum ada</string>
+    <string name="anak_label_status_nisn">Status NISN</string>
+    <string name="anak_nisn_terverifikasi">Sudah diverifikasi guru</string>
+    <string name="anak_nisn_belum_terverifikasi">Belum diverifikasi guru</string>
+    <string name="anak_nisn_kosong">Belum diisi</string>
+    <string name="anak_nisn_perlu_isi_judul">NISN perlu diisi ulang</string>
+    <string name="anak_nisn_perlu_isi_pesan">Guru sudah memverifikasi nomor yang sama untuk anak lain, jadi NISN anak ini dikosongkan. Masukkan NISN yang benar agar guru bisa memeriksanya.</string>
+    <string name="anak_nisn_isi_sekarang">Isi NISN Sekarang</string>
+    <string name="anak_batas_tercapai">Akun ini sudah punya 10 anak, jumlah paling banyak.</string>
+    <string name="anak_hapus">Hapus Anak Ini</string>
+    <string name="anak_keluar">Keluar dari Akun Wali</string>
+    <string name="anak_kosong_judul">Belum ada anak yang terdaftar</string>
+    <string name="anak_kosong_pesan">Tambahkan anak dengan kode kelas dari guru untuk melihat dasbor, statistik sampah, dan peringkatnya.</string>
+    <string name="anak_memuat">Memuat data</string>
+
+    <!-- Hapus anak -->
+    <string name="anak_hapus_judul">Hapus %1$s?</string>
+    <string name="anak_hapus_pesan">Anak ini keluar dari kelas, dasbor, dan papan peringkat, dan guru tidak lagi melihatnya. Poin dan riwayatnya tidak bisa dipulihkan. Foto profil dan foto pindai dihapus dari penyimpanan dalam beberapa menit. NISN bisa didaftarkan lagi. Tindakan ini tidak bisa dibatalkan.</string>
+    <string name="anak_hapus_pesan_terakhir">Ini anak terakhir di akun Anda, jadi dasbor kosong sampai Anda menambah anak lagi.</string>
+    <string name="anak_hapus_ya">Ya, Hapus</string>
+    <string name="anak_dihapus">Anak sudah dihapus</string>
+
+    <!-- Edit profil -->
+    <string name="anak_edit_judul">Edit Profil Siswa &amp; Wali</string>
+    <string name="anak_edit_bagian_anak">Data Anak</string>
+    <string name="anak_edit_bagian_wali">Data Wali</string>
+    <string name="anak_hint_nama_anak">Nama lengkap anak</string>
+    <string name="anak_hint_nisn">NISN anak</string>
+    <string name="anak_hint_nisn_terverifikasi">Mengganti NISN yang sudah diverifikasi guru melepas verifikasinya.</string>
+    <string name="anak_hint_nama_wali">Nama orang tua / wali</string>
+    <string name="anak_hint_email">Email terdaftar</string>
+    <string name="anak_hint_email_bantuan">Email tidak bisa diubah.</string>
+    <string name="anak_hint_telepon">Nomor telepon</string>
+    <string name="anak_hint_whatsapp">Nomor WhatsApp</string>
+    <string name="anak_hint_alamat">Alamat rumah</string>
+    <string name="anak_hint_kosongkan">Kosongkan untuk menghapus.</string>
+    <string name="anak_simpan_anak">Simpan Data Anak</string>
+    <string name="anak_simpan_wali">Simpan Data Wali</string>
+    <string name="anak_tidak_ada_perubahan">Belum ada yang diubah</string>
+    <string name="anak_data_tersimpan">Data anak tersimpan</string>
+    <string name="anak_data_wali_tersimpan">Data wali tersimpan</string>
+    <string name="anak_nisn_ganti_judul">Ganti NISN?</string>
+    <string name="anak_nisn_ganti_pesan">NISN ini sudah diverifikasi guru. Jika diganti, verifikasinya dilepas dan guru perlu memeriksa nomor yang baru lagi.</string>
+    <string name="anak_nisn_ganti_ya">Ya, Ganti</string>
+    <string name="anak_form_nama_wali_kosong">Nama tidak boleh kosong</string>
+    <string name="anak_form_telepon_tidak_valid">Nomor berisi 6 sampai 30 karakter, angka dengan tanda plus di depan, spasi, tanda hubung, atau kurung</string>
+
+    <!-- Tambah anak -->
+    <string name="anak_tambah_judul">Tambah Anak</string>
+    <string name="anak_tambah_pengantar">Minta kode kelas ke guru anak Anda. Anak bisa masuk ke kelas yang berbeda dari anak lain.</string>
+    <string name="anak_hint_kode_kelas">Kode kelas</string>
+    <string name="anak_tambah_kirim">Daftarkan Anak</string>
+    <string name="anak_ditambahkan">Anak sudah ditambahkan</string>
+
+    <!-- Galat -->
+    <string name="anak_error_tidak_ditemukan">Anak ini sudah tidak ada di akun Anda. Daftar anak dimuat ulang.</string>
+    <string name="anak_error_nisn_terverifikasi">NISN ini sudah diverifikasi guru untuk anak lain. Periksa kembali nomornya.</string>
+    <string name="anak_error_kode_tidak_ditemukan">Kode kelas tidak ditemukan atau kelasnya sudah diarsipkan. Tanyakan kode yang benar ke guru.</string>
+    <string name="anak_error_kelas_tutup">Guru kelas ini sedang menutup pendaftaran murid baru. Minta guru membukanya lagi.</string>
+    <string name="anak_error_kelas_penuh">Kelas ini sudah berisi 60 anak. Hubungi guru kelas.</string>
+    <string name="anak_error_kelas_tanpa_guru">Kelas ini belum punya guru aktif. Hubungi pihak sekolah.</string>
+    <string name="anak_error_batas">Akun ini sudah punya 10 anak, jumlah paling banyak. Hapus anak yang tidak dipakai lebih dulu.</string>
+    <string name="anak_error_profil_tidak_ada">Profil akun tidak ditemukan, silakan masuk kembali.</string>
+</resources>
