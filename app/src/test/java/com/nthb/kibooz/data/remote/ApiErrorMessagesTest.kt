@@ -53,4 +53,10 @@ class ApiErrorMessagesTest {
     fun `a missing class means the class is gone for the person`() {
         assertEquals(R.string.error_class_gone, failure(404, "CLASS_NOT_FOUND").messageRes())
     }
+
+    @Test
+    fun `an archived class and a class that is not archived have their own messages`() {
+        assertEquals(R.string.error_class_archived, failure(409, "CLASS_ARCHIVED").messageRes())
+        assertEquals(R.string.error_class_not_archived, failure(409, "CLASS_NOT_ARCHIVED").messageRes())
+    }
 }

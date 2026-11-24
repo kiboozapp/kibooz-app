@@ -39,8 +39,29 @@ data class ClassSummary(
     val joinCode: String,
     val joinOpen: Boolean,
     val totalStudents: Int,
-    val createdAt: String
+    val createdAt: String,
+    /** Waktu kelas diarsipkan, null selama kelas belum diarsipkan. Kelas yang diarsipkan hanya bisa dibaca. */
+    val archivedAt: String? = null
+) {
+    val archived: Boolean get() = archivedAt != null
+}
+
+/** Isi `POST /guru/classes`. Isian yang null tidak dikirim, jadi server memakai nilai bawaannya (sekolah Guru, tahun ajaran berjalan). */
+data class CreateClassRequest(
+    val name: String,
+    val gradeLevel: String? = null,
+    val academicYear: String? = null,
+    val schoolName: String? = null
 )
+
+/** `data` dari `POST /guru/classes/{classId}/join-code`. */
+data class JoinCodeData(val joinCode: String)
+
+/** Isi `PUT /guru/classes/{classId}/joining`. */
+data class SetJoiningRequest(val joinOpen: Boolean)
+
+/** `data` dari `PUT /guru/classes/{classId}/joining`. */
+data class JoiningData(val joinOpen: Boolean)
 
 data class ChildList(val children: List<ChildSummary>)
 
