@@ -1,0 +1,50 @@
+name: Laporan bug
+description: Ada bagian aplikasi yang berperilaku salah
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Apa yang terjadi?
+      description: Jelaskan perilaku yang salah dan perilaku yang diharapkan.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Langkah untuk mengulang
+      description: Urutan langkah yang memunculkan masalah. Hapus data pribadi dan data login.
+      placeholder: |
+        1. Buka layar ...
+        2. Ketuk tombol ...
+        3. Lihat hasilnya
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versi aplikasi
+      description: Nomor versi, atau hash commit jika aplikasi dibuild dari source.
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Perangkat dan versi Android
+      description: Merek dan tipe perangkat atau emulator, serta versi Android-nya.
+      placeholder: Pixel 7, Android 15
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log atau tangkapan layar
+      description: Hapus token, kata sandi dan data pribadi sebelum menempelkan apa pun.
+      render: text
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Sebelum mengirim
+      options:
+        - label: Ini bukan masalah keamanan. Masalah keamanan ditulis secara pribadi kepada pemilik repositori, ValentinusMarvel, di GitHub.
+          required: true
+        - label: Saya sudah menghapus data rahasia dan data pribadi dari semua isian di atas.
+          required: true
