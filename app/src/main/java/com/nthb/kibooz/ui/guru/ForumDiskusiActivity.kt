@@ -68,10 +68,18 @@ class ForumDiskusiActivity : AppCompatActivity() {
 
             val classId = activeClassId ?: return@launch
             val session = appContainer.sessionStore.readSession()
-            val studentsRes = classRepo.allStudents(classId)
-            val sCount = if (studentsRes is ApiResult.Success) {
-                studentsRes.data.size
-            } else 1
+            val isWali = session?.user?.role == com.nthb.kibooz.data.session.Role.WALI
+            val sCount = if (isWali) {
+                val lbRes = appContainer.leaderboardRepository.leaderboard(classId)
+                if (lbRes is ApiResult.Success) {
+                    maxOf(1, lbRes.data.podium.size + lbRes.data.rankings.size)
+                } else 1
+            } else {
+                val studentsRes = classRepo.allStudents(classId)
+                if (studentsRes is ApiResult.Success) {
+                    studentsRes.data.size
+                } else 1
+            }
             binding.tvSubtitleForum.text = "$sCount Siswa • 1 Guru Pengajar"
 
             val result = forumRepo.threads(classId)

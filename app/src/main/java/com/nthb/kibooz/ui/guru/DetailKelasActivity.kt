@@ -29,6 +29,9 @@ class DetailKelasActivity : AppCompatActivity() {
     private var activeClassId: String? = null
     private var isTeacherRole: Boolean = true
     private var selectedMeetingIndex: Int = 3
+    private var currentKodeKelas: String = ""
+    private var currentNamaKelas: String = ""
+    private var hasInitialized: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,16 +61,34 @@ class DetailKelasActivity : AppCompatActivity() {
             ClassCode.resolveJoinCode(activeClassId)
         }
 
-        val initialCount = if (isTeacherRole) 24 else 1
+        val initialCount = if (intent.hasExtra("TOTAL_STUDENTS")) {
+            intent.getIntExtra("TOTAL_STUDENTS", 0)
+        } else {
+            if (isTeacherRole) 0 else 1
+        }
+        currentKodeKelas = kodeKelas
+        currentNamaKelas = namaKelas
         setupViews(kodeKelas, namaKelas, initialCount)
         setupDynamicMeetingSchedule(initialCount)
         setupListeners(kodeKelas, namaKelas)
         loadClassData(kodeKelas, namaKelas)
+        hasInitialized = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (hasInitialized && activeClassId != null) {
+            loadClassData(currentKodeKelas, currentNamaKelas)
+        }
     }
 
     private fun loadClassData(kodeKelas: String, namaKelas: String) {
         lifecycleScope.launch {
-            var count = if (isTeacherRole) 24 else 1
+            var count = if (intent.hasExtra("TOTAL_STUDENTS")) {
+                intent.getIntExtra("TOTAL_STUDENTS", 0)
+            } else {
+                if (isTeacherRole) 0 else 1
+            }
             if (activeClassId.isNullOrBlank()) {
                 if (isTeacherRole) {
                     val teacherClasses = appContainer.classRepository.teacherClasses()
@@ -76,7 +97,7 @@ class DetailKelasActivity : AppCompatActivity() {
                             it.joinCode.equals(kodeKelas, ignoreCase = true) || it.name.equals(namaKelas, ignoreCase = true)
                         } ?: teacherClasses.data.firstOrNull()
                         activeClassId = match?.id
-                        if (match != null && match.totalStudents > 0) {
+                        if (match != null) {
                             count = match.totalStudents
                         }
                     }
@@ -94,23 +115,37 @@ class DetailKelasActivity : AppCompatActivity() {
             if (!classId.isNullOrBlank()) {
                 if (isTeacherRole) {
                     val roster = appContainer.classRepository.students(classId)
-                    if (roster is ApiResult.Success && roster.data.students.isNotEmpty()) {
+                    if (roster is ApiResult.Success) {
                         count = roster.data.total
                     }
                 } else {
                     when (val lb = appContainer.leaderboardRepository.leaderboard(classId)) {
                         is ApiResult.Success -> {
-                            val totalRealStudents = lb.data.podium.size + lb.data.rankings.size
-                            if (totalRealStudents > 0) {
-                                count = totalRealStudents
-                            }
+                            count = lb.data.podium.size + lb.data.rankings.size
                         }
                         else -> {}
                     }
                 }
+                when (val forumRes = appContainer.forumRepository.threads(classId)) {
+                    is ApiResult.Success -> {
+                        val realThreads = maxOf(forumRes.data.total, forumRes.data.threads.size)
+                        updateForumBanner(realThreads)
+                    }
+                    else -> updateForumBanner(0)
+                }
+            } else {
+                updateForumBanner(0)
             }
             setupDynamicMeetingSchedule(count)
             updatePesertaBanner(count)
+        }
+    }
+
+    private fun updateForumBanner(threadCount: Int) {
+        binding.tvSubForumDiskusi.text = if (threadCount <= 0) {
+            "Belum ada pesan di forum kelas"
+        } else {
+            "$threadCount pesan diskusi wali murid & guru"
         }
     }
 

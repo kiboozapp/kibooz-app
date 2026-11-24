@@ -304,6 +304,7 @@ class RuangKelasGuruActivity : AppCompatActivity() {
             putExtra("KODE_KELAS", item.joinCode)
             putExtra("NAMA_KELAS", item.name)
             putExtra("CLASS_ID", item.id)
+            putExtra("TOTAL_STUDENTS", item.totalStudents)
         }
         startActivity(intent)
     }
