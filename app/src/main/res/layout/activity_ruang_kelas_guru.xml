@@ -18,19 +18,21 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@drawable/ic_arrow_back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Kembali"
-            app:tint="@color/kibooz_white"
+            android:padding="10dp"
+            android:src="@drawable/ic_arrow_back"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/kibooz_white" />
 
         <TextView
             android:id="@+id/tvHeaderTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="4dp"
             android:fontFamily="@font/baloo2"
             android:text="Ruang Kelas Guru"
             android:textColor="@color/kibooz_white"
@@ -44,7 +46,7 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:fontFamily="@font/baloo2"
             android:text="Pilih dan kelola kelas aktivitas emosi &amp; belajar anak"
             android:textColor="#E0DBF5"
@@ -71,7 +73,7 @@
             android:paddingTop="16dp"
             android:paddingBottom="24dp">
 
-            <!-- Action Bar: Search & Tambah Kelas -->
+            <!-- Judul daftar dan Tambah Kelas -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -79,16 +81,15 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:id="@+id/tvDaftarJudul"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:fontFamily="@font/baloo2"
-                    android:text="Daftar Kelas (6)"
                     android:textColor="@color/kibooz_text_dark"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <!-- Tombol Tambah Kelas -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnTambahKelas"
                     android:layout_width="wrap_content"
@@ -96,22 +97,23 @@
                     android:fontFamily="@font/baloo2"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
-                    android:minHeight="40dp"
+                    android:minHeight="48dp"
                     android:paddingHorizontal="16dp"
-                    android:text="+ Tambah Kelas"
+                    android:text="@string/kelola_tambah"
                     android:textAllCaps="false"
                     android:textColor="@color/kibooz_white"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     app:backgroundTint="@color/kibooz_primary_purple"
-                    app:cornerRadius="20dp" />
+                    app:cornerRadius="24dp" />
 
             </LinearLayout>
 
-            <!-- Search Field -->
+            <!-- Cari kelas -->
             <LinearLayout
+                android:id="@+id/llCari"
                 android:layout_width="match_parent"
-                android:layout_height="46dp"
+                android:layout_height="48dp"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/bg_input_field"
                 android:gravity="center_vertical"
@@ -121,8 +123,9 @@
                 <ImageView
                     android:layout_width="20dp"
                     android:layout_height="20dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_search"
-                    app:tint="@color/kibooz_text_muted" />
+                    app:tint="@color/kibooz_text_secondary" />
 
                 <EditText
                     android:id="@+id/etSearchKelas"
@@ -130,311 +133,189 @@
                     android:layout_height="match_parent"
                     android:layout_marginStart="10dp"
                     android:background="@null"
+                    android:contentDescription="@string/kelola_cari_cd"
                     android:fontFamily="@font/baloo2"
-                    android:hint="Cari nama mata pelajaran / kode..."
+                    android:hint="@string/kelola_cari_hint"
+                    android:imeOptions="actionSearch"
+                    android:importantForAutofill="no"
+                    android:inputType="text"
+                    android:maxLines="1"
                     android:textColor="@color/kibooz_text_dark"
-                    android:textColorHint="@color/kibooz_text_muted"
+                    android:textColorHint="@color/kibooz_text_secondary"
                     android:textSize="14sp" />
 
             </LinearLayout>
 
-            <!-- 2-Column Grid of 6 Subject Cards -->
-            <GridLayout
+            <!-- Gangguan server: offline atau layanan tidak tersedia (FE-12) -->
+            <com.nthb.kibooz.ui.common.ConnectionStatusView
+                android:id="@+id/connectionStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:columnCount="2"
-                android:useDefaultMargins="true">
+                android:visibility="gone" />
 
-                <!-- 1. Seni & Kreativitas -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMapelSeni"
-                    android:layout_width="0dp"
-                    android:layout_height="180dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardBackgroundColor="#FFF8E7"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="3dp"
-                    app:strokeColor="#FFE0B2"
-                    app:strokeWidth="1dp">
+            <!-- Memuat -->
+            <LinearLayout
+                android:id="@+id/llMemuat"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    android:contentDescription="@string/kelola_memuat" />
 
-                        <ImageView
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_mapel_seni" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="@string/kelola_memuat"
+                    android:textColor="@color/kibooz_text_secondary"
+                    android:textSize="14sp" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="@font/baloo2"
-                            android:gravity="center"
-                            android:text="Seni &amp; Kreativitas"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
+            </LinearLayout>
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="6 Modul • Kelas A"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
+            <!-- Belum ada kelas -->
+            <LinearLayout
+                android:id="@+id/llKosong"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="@string/kelola_kosong_judul"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                <!-- 2. Bahasa & Komunikasi -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMapelBahasa"
-                    android:layout_width="0dp"
-                    android:layout_height="180dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardBackgroundColor="#E8F5E9"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="3dp"
-                    app:strokeColor="#C8E6C9"
-                    app:strokeWidth="1dp">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/baloo2"
+                    android:gravity="center"
+                    android:text="@string/kelola_kosong_isi"
+                    android:textColor="@color/kibooz_text_secondary"
+                    android:textSize="14sp" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+            </LinearLayout>
 
-                        <ImageView
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_mapel_bahasa" />
+            <!-- Daftar gagal dimuat -->
+            <LinearLayout
+                android:id="@+id/llGagal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="@font/baloo2"
-                            android:gravity="center"
-                            android:text="Bahasa &amp; Komunikasi"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:text="@string/kelola_gagal_judul"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="6 Modul • Kelas A"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/tvGagalPesan"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/baloo2"
+                    android:gravity="center"
+                    android:textColor="@color/kibooz_text_secondary"
+                    android:textSize="14sp" />
 
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCobaLagi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="@font/baloo2"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="24dp"
+                    android:text="@string/coba_lagi"
+                    android:textAllCaps="false"
+                    android:textColor="@color/kibooz_white"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/kibooz_primary_purple"
+                    app:cornerRadius="24dp" />
 
-                <!-- 3. Berpikir & Logika -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMapelLogika"
-                    android:layout_width="0dp"
-                    android:layout_height="180dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardBackgroundColor="#E3F2FD"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="3dp"
-                    app:strokeColor="#BBDEFB"
-                    app:strokeWidth="1dp">
+            </LinearLayout>
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+            <TextView
+                android:id="@+id/tvTidakCocok"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:text="@string/kelola_tidak_ada_hasil"
+                android:textColor="@color/kibooz_text_secondary"
+                android:textSize="14sp"
+                android:visibility="gone" />
 
-                        <ImageView
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_mapel_logika" />
+            <!-- Kelas aktif, satu kartu untuk setiap kelas -->
+            <LinearLayout
+                android:id="@+id/llKelasAktif"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="vertical" />
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="@font/baloo2"
-                            android:gravity="center"
-                            android:text="Berpikir &amp; Logika"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
+            <!-- Kelas yang diarsipkan -->
+            <LinearLayout
+                android:id="@+id/llArsip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical"
+                android:visibility="gone">
 
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="6 Modul • Kelas A"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
+                <TextView
+                    android:id="@+id/tvArsipJudul"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="12dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="@string/kelola_arsip_info"
+                    android:textColor="@color/kibooz_text_secondary"
+                    android:textSize="13sp" />
 
-                <!-- 4. Belajar Fisik Motorik -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMapelMotorik"
-                    android:layout_width="0dp"
-                    android:layout_height="180dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardBackgroundColor="#FCE4EC"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="3dp"
-                    app:strokeColor="#F8BBD0"
-                    app:strokeWidth="1dp">
+                <LinearLayout
+                    android:id="@+id/llKelasArsip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
 
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <ImageView
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_mapel_motorik" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="@font/baloo2"
-                            android:gravity="center"
-                            android:text="Fisik &amp; Motorik"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="6 Modul • Kelas A"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- 5. Nilai Agama & Moral -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMapelAgama"
-                    android:layout_width="0dp"
-                    android:layout_height="180dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardBackgroundColor="#EDE7F6"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="3dp"
-                    app:strokeColor="#D1C4E9"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <ImageView
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_mapel_agama" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="@font/baloo2"
-                            android:gravity="center"
-                            android:text="Agama &amp; Moral"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="6 Modul • Kelas A"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- 6. Sosial & Emosional -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardMapelSosial"
-                    android:layout_width="0dp"
-                    android:layout_height="180dp"
-                    android:layout_columnWeight="1"
-                    android:layout_margin="6dp"
-                    app:cardBackgroundColor="#FFF3E0"
-                    app:cardCornerRadius="20dp"
-                    app:cardElevation="3dp"
-                    app:strokeColor="#FFE0B2"
-                    app:strokeWidth="1dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <ImageView
-                            android:layout_width="72dp"
-                            android:layout_height="72dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_mapel_sosial" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="10dp"
-                            android:fontFamily="@font/baloo2"
-                            android:gravity="center"
-                            android:text="Sosial &amp; Emosional"
-                            android:textColor="@color/kibooz_text_dark"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="6 Modul • Kelas A"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-            </GridLayout>
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -460,12 +341,14 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:contentDescription="Beranda"
                 android:gravity="center"
                 android:orientation="vertical">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_home"
                     app:tint="@color/kibooz_text_muted" />
 
@@ -477,12 +360,14 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:contentDescription="Statistik"
                 android:gravity="center"
                 android:orientation="vertical">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_stats"
                     app:tint="@color/kibooz_text_muted" />
 
@@ -500,12 +385,14 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:contentDescription="Kelas"
                 android:gravity="center"
                 android:orientation="vertical">
 
                 <ImageView
                     android:layout_width="26dp"
                     android:layout_height="26dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_class"
                     app:tint="@color/kibooz_primary_purple" />
 
@@ -523,12 +410,14 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:contentDescription="Profil"
                 android:gravity="center"
                 android:orientation="vertical">
 
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
+                    android:importantForAccessibility="no"
                     android:src="@drawable/ic_profile"
                     app:tint="@color/kibooz_text_muted" />
 
