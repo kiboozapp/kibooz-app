@@ -106,12 +106,48 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.tvKodeKelas.text = kodeKelas
 
         when {
-            kodeKelas.startsWith("BHS") -> binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_bahasa)
-            kodeKelas.startsWith("LOG") -> binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_logika)
-            kodeKelas.startsWith("MOT") -> binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_motorik)
-            kodeKelas.startsWith("AGM") -> binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_agama)
-            kodeKelas.startsWith("SOS") -> binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_sosial)
-            else -> binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_seni)
+            namaKelas.contains("Bahasa", ignoreCase = true) || kodeKelas.startsWith("BHS") -> {
+                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_bahasa)
+                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Huruf Vokal & Konsonan"
+                binding.tvTitleModul2.text = "Pertemuan 2: Bercerita Bergambar Bersama Teman"
+                binding.tvTitleModul3.text = "Pertemuan 3: Mengeja Kata Sederhana"
+                binding.tvTitleModul4.text = "Pertemuan 4: Menyanyi Lagu Kata Ajaib"
+            }
+            namaKelas.contains("Logika", ignoreCase = true) || namaKelas.contains("Berpikir", ignoreCase = true) || kodeKelas.startsWith("LOG") -> {
+                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_logika)
+                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Pola Bentuk Geometri"
+                binding.tvTitleModul2.text = "Pertemuan 2: Menghitung Benda 1 sampai 10"
+                binding.tvTitleModul3.text = "Pertemuan 3: Membandingkan Ukuran Besar & Kecil"
+                binding.tvTitleModul4.text = "Pertemuan 4: Teka-Teki Warna & Urutan"
+            }
+            namaKelas.contains("Motorik", ignoreCase = true) || namaKelas.contains("Fisik", ignoreCase = true) || kodeKelas.startsWith("MOT") -> {
+                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_motorik)
+                binding.tvTitleModul1.text = "Pertemuan 1: Gerak Jalan Seimbang & Senam Ceria"
+                binding.tvTitleModul2.text = "Pertemuan 2: Melipat Kertas Origami Hewan"
+                binding.tvTitleModul3.text = "Pertemuan 3: Menangkap & Melempar Bola Karet"
+                binding.tvTitleModul4.text = "Pertemuan 4: Meronce Manik-Manik & Tali Sepatu"
+            }
+            namaKelas.contains("Agama", ignoreCase = true) || namaKelas.contains("Moral", ignoreCase = true) || kodeKelas.startsWith("AGM") -> {
+                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_agama)
+                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Doa Harian & Bersyukur"
+                binding.tvTitleModul2.text = "Pertemuan 2: Berbagi Bekal dengan Sahabat"
+                binding.tvTitleModul3.text = "Pertemuan 3: Menghormati Orang Tua & Guru"
+                binding.tvTitleModul4.text = "Pertemuan 4: Menjaga Kebersihan Tempat Ibadah"
+            }
+            namaKelas.contains("Sosial", ignoreCase = true) || namaKelas.contains("Emosional", ignoreCase = true) || kodeKelas.startsWith("SOS") -> {
+                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_sosial)
+                binding.tvTitleModul1.text = "Pertemuan 1: Mengenali Perasaan Bahagia & Sedih"
+                binding.tvTitleModul2.text = "Pertemuan 2: Mengungkapkan Keinginan dengan Sopan"
+                binding.tvTitleModul3.text = "Pertemuan 3: Bekerja Sama dalam Permainan Kelompok"
+                binding.tvTitleModul4.text = "Pertemuan 4: Mengucapkan Maaf dan Terima Kasih"
+            }
+            else -> {
+                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_seni)
+                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Warna Emosiku"
+                binding.tvTitleModul2.text = "Pertemuan 2: Menggambar Ekspresi Senang & Sedih"
+                binding.tvTitleModul3.text = "Pertemuan 3: Kolase Kertas Daur Ulang"
+                binding.tvTitleModul4.text = "Pertemuan 4: Pameran Karya Seni Bersama"
+            }
         }
     }
 
