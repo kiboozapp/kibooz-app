@@ -1,0 +1,60 @@
+name: Commit messages
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+
+# This check reports only. It is not a required check and a red run does not block a merge.
+#
+# A run is never cancelled and every run has a group of its own. Editing the body of a pull request right after a push would start
+# a run in the same group, which would cancel the run of the push. An edit that changes neither the title nor the base branch skips
+# the job, because commitlint reads the commits and the commits did not change. The title is read from the pull request when the run
+# starts and not from the event, so a rerun checks the title as it is now.
+concurrency:
+  group: commits-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  conventional-commits:
+    name: Conventional commits
+    if: github.event.action != 'edited' || github.event.changes.title || github.event.changes.base
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Lints the commits of the pull request. The rules are in commitlint.config.mjs. The action runs as a Docker image
+      # and reads the commits with the token of the run, which a pull request from a fork gets with read access only.
+      - name: Commit messages
+        uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6.2.1
+        with:
+          configFile: ./commitlint.config.mjs
+          helpURL: https://github.com/ValentinusMarvel/kibooz-app/blob/main/CONTRIBUTING.md
+
+      # With merge commits the title never reaches main, so commitlint does not see it, and CONTRIBUTING.md asks for the same format
+      - name: Pull request title
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PULL_REQUEST: ${{ github.event.pull_request.number }}
+        run: |
+          TITLE="$(gh pr view "$PULL_REQUEST" --json title --jq .title)"
+          pattern='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._/-]+\))?!?: [^ ].*$'
+
+          if ! [[ "$TITLE" =~ $pattern ]]; then
+            echo "::error title=Pull request title::The title does not follow Conventional Commits"
+            echo "  title: $TITLE"
+            echo "Write it as type(scope): summary with one of feat, fix, docs, style, refactor, perf, test, build, ci, chore or revert, as described in CONTRIBUTING.md."
+            exit 1
+          fi
+
+          echo "The title follows Conventional Commits."
