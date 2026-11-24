@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Teks status kelas di atas chip bg_chip_kelas_*. Rasio kontras di atas 6:1 pada tiap latar -->
+    <color name="kelola_status_buka_text">#166534</color>
+    <color name="kelola_status_tutup_text">#92400E</color>
+    <color name="kelola_status_arsip_text">#4B5563</color>
+</resources>

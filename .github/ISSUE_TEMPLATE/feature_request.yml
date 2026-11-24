@@ -1,0 +1,28 @@
+name: Permintaan fitur
+description: Usulkan peningkatan atau kemampuan baru
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah apa yang ingin diselesaikan?
+      description: Jelaskan kebutuhannya lebih dulu, baru solusinya.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Apa yang ingin Anda lihat?
+      description: Perilaku atau tampilan yang Anda bayangkan.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatif yang sudah dipertimbangkan
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Kontribusi
+      options:
+        - label: Saya bersedia membuka pull request untuk usulan ini.

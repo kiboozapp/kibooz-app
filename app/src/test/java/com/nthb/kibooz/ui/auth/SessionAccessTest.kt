@@ -36,6 +36,11 @@ class SessionAccessTest {
     }
 
     @Test
+    fun `the change password screen is shared by both roles but needs a session`() {
+        assertEquals(Access.ANY_ROLE, accessFor(ui("account.UbahKataSandiActivity")))
+    }
+
+    @Test
     fun `each camera screen belongs to the role that opens it`() {
         assertEquals(Access.GURU, accessFor(ui("camera.CameraScanMoodActivity")))
         assertEquals(Access.WALI, accessFor(ui("camera.CameraScanSampahActivity")))

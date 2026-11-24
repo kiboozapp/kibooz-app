@@ -106,6 +106,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 11b. Akun (Guru dan Wali): Ubah Kata Sandi -->
+        <activity
+            android:name=".ui.account.UbahKataSandiActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- 12. Wali Flow: Dashboard Wali & Siswa -->
         <activity
             android:name=".ui.wali.DashboardWaliActivity"
@@ -150,6 +156,12 @@
         <!-- 19b. Hapus Akun (Guru dan Wali) -->
         <activity
             android:name=".ui.account.HapusAkunActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- 19c. Wali Flow: Tambah Anak dengan kode kelas -->
+        <activity
+            android:name=".ui.wali.TambahAnakActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

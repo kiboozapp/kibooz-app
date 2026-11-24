@@ -46,6 +46,8 @@ private fun messageForCode(code: String): Int? = when (code) {
         "CLASS_JOINING_CLOSED" -> R.string.error_class_joining_closed
         "CLASS_FULL" -> R.string.error_class_full
         "CLASS_LIMIT_REACHED" -> R.string.error_class_limit
+        "CLASS_ARCHIVED" -> R.string.error_class_archived
+        "CLASS_NOT_ARCHIVED" -> R.string.error_class_not_archived
         "CLASS_NO_ACTIVE_TEACHER" -> R.string.error_class_no_teacher
         "CLASS_NOT_FOUND" -> R.string.error_class_gone
         "NO_CHILD_REGISTERED" -> R.string.error_no_child

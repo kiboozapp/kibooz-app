@@ -3,17 +3,25 @@ package com.nthb.kibooz.ui.wali
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityProfilWaliBinding
 import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.account.HapusAkunActivity
+import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.util.InsetsUtil
 
 class ProfilWaliActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfilWaliBinding
+    private val viewModel: WaliProfileViewModel by viewModels {
+        WaliProfileViewModel.Factory(appContainer.waliProfileRepository, intent.getStringExtra(ProfilSiswaActivity.EXTRA_STUDENT_ID)) {
+            appContainer.authRepository.restore()?.user?.fullName
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,21 +36,19 @@ class ProfilWaliActivity : AppCompatActivity() {
         )
 
         setupListeners()
+        bindWaliProfile(binding, viewModel)
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        // Kembali dari profil siswa membawa nama atau anak yang mungkin berubah
+        viewModel.load()
     }
 
     private fun setupListeners() {
-        // Tombol Lihat Detail Siswa -> Membuka Profil Lengkap Siswa
-        binding.btnLihatDetail.setOnClickListener {
-            startActivity(Intent(this, ProfilSiswaActivity::class.java))
-        }
-
         // Menu 1: Ubah Kata Sandi
         binding.menuUbahSandi.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Ubah Kata Sandi")
-                .setMessage("Pengubahan kata sandi belum tersedia di versi ini.")
-                .setPositiveButton("Mengerti", null)
-                .show()
+            startActivity(Intent(this, UbahKataSandiActivity::class.java))
         }
 
         // Menu 2: Syarat dan Ketentuan
@@ -97,17 +103,26 @@ class ProfilWaliActivity : AppCompatActivity() {
         }
 
         binding.tabSampah.setOnClickListener {
-            startActivity(Intent(this, StatistikSampahActivity::class.java))
+            startActivity(
+                Intent(this, StatistikSampahActivity::class.java)
+                    .putExtra(StatistikSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.profile?.id)
+            )
             finish()
         }
 
         binding.tabLeaderboard.setOnClickListener {
-            startActivity(Intent(this, LeaderboardActivity::class.java))
+            startActivity(
+                Intent(this, LeaderboardActivity::class.java)
+                    .putExtra(LeaderboardActivity.EXTRA_CLASS_ID, viewModel.state.value.profile?.classId)
+            )
             finish()
         }
 
         binding.fabScannerSampah.setOnClickListener {
-            startActivity(Intent(this, CameraScanSampahActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanSampahActivity::class.java)
+                    .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.profile?.id)
+            )
         }
     }
 }

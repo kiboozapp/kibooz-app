@@ -102,6 +102,8 @@
     <string name="form_password_kosong">Kata sandi tidak boleh kosong</string>
     <string name="form_password_terlalu_pendek">Kata sandi paling sedikit 8 karakter</string>
     <string name="form_password_terlalu_panjang">Kata sandi terlalu panjang, paling banyak 72 byte</string>
+    <string name="form_password_sama">Kata sandi baru harus berbeda dari yang sekarang</string>
+    <string name="form_password_konfirmasi_beda">Konfirmasi tidak sama dengan kata sandi baru</string>
     <string name="form_nama_terlalu_pendek">Nama paling sedikit 2 karakter</string>
     <string name="form_nama_terlalu_panjang">Nama paling panjang 150 karakter</string>
     <string name="form_nisn_tidak_valid">NISN hanya berisi 5 sampai 30 angka</string>
@@ -122,6 +124,7 @@
     <!-- Pesan galat dari API, dipetakan di ApiErrorMessages.kt -->
     <string name="error_invalid_credentials">Email atau kata sandi salah</string>
     <string name="error_password_incorrect">Kata sandi salah</string>
+    <string name="error_password_baru_ditolak">Kata sandi baru ditolak. Hindari kata sandi yang umum dan yang memuat email, nama atau nomor telepon akun</string>
     <string name="error_session_ended">Sesi telah berakhir, silakan masuk kembali</string>
     <string name="error_forbidden">Akun ini tidak boleh membuka halaman tersebut</string>
     <string name="error_email_taken">Email sudah terdaftar</string>
@@ -156,6 +159,15 @@
     <string name="error_network">Tidak ada koneksi internet, periksa jaringan lalu coba lagi</string>
     <string name="error_unknown">Terjadi kesalahan, coba lagi</string>
     <string name="coba_lagi">Coba lagi</string>
+    <string name="kembali">Kembali</string>
+    <string name="sandi_judul">Ubah Kata Sandi</string>
+    <string name="sandi_info">Setelah diganti, kamu perlu masuk lagi di semua perangkat dengan kata sandi baru.</string>
+    <string name="sandi_hint_sekarang">Kata sandi sekarang</string>
+    <string name="sandi_hint_baru">Kata sandi baru</string>
+    <string name="sandi_hint_konfirmasi">Ulangi kata sandi baru</string>
+    <string name="sandi_bantuan_baru">Paling sedikit 8 karakter</string>
+    <string name="sandi_simpan">Simpan Kata Sandi</string>
+    <string name="sandi_diganti">Kata sandi diganti. Masuk lagi dengan kata sandi baru.</string>
     <string name="outage_offline_title">Tidak ada koneksi</string>
     <string name="outage_offline_message">Periksa jaringan internet kamu. Mencoba lagi dalam %1$s.</string>
     <string name="outage_unavailable_title">Layanan sedang tidak tersedia</string>

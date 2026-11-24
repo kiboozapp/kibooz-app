@@ -90,7 +90,9 @@ class DashboardWaliActivity : AppCompatActivity() {
         }
 
         if (state.noChild) {
-            Snackbar.make(binding.root, R.string.error_no_child, Snackbar.LENGTH_INDEFINITE).show()
+            Snackbar.make(binding.root, R.string.error_no_child, Snackbar.LENGTH_INDEFINITE)
+                .setAction(R.string.anak_tambah_anak) { startActivity(Intent(this, TambahAnakActivity::class.java)) }
+                .show()
         }
 
         state.error?.let {
@@ -128,6 +130,12 @@ class DashboardWaliActivity : AppCompatActivity() {
         startActivity(Intent(this, StatistikSampahActivity::class.java).putExtra(StatistikSampahActivity.EXTRA_STUDENT_ID, studentId))
     }
 
+    /** Profil dibuka untuk anak yang sedang ditampilkan, supaya pilihan anak ikut terbawa. */
+    private fun openProfile() {
+        val studentId = viewModel.state.value.dashboard?.student?.id
+        startActivity(Intent(this, ProfilWaliActivity::class.java).putExtra(ProfilSiswaActivity.EXTRA_STUDENT_ID, studentId))
+    }
+
     private fun openGuidance() {
         val data = viewModel.state.value.dashboard
         val guidance = data?.recommendedGuidance
@@ -148,7 +156,7 @@ class DashboardWaliActivity : AppCompatActivity() {
     private fun onStudentHeaderClicked() {
         val children = viewModel.state.value.children
         if (children.size < 2) {
-            startActivity(Intent(this, ProfilWaliActivity::class.java))
+            openProfile()
             return
         }
         AlertDialog.Builder(this)
@@ -201,9 +209,7 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Navigasi ke Profil Wali (Settings-First seperti Guru)
         binding.llStudentProfile.setOnClickListener { onStudentHeaderClicked() }
-        binding.tabProfil.setOnClickListener {
-            startActivity(Intent(this, ProfilWaliActivity::class.java))
-        }
+        binding.tabProfil.setOnClickListener { openProfile() }
 
         // Navigasi ke Scanner AI Sampah
         binding.fabScannerSampah.setOnClickListener {

@@ -16,9 +16,10 @@
 
         <ImageView
             android:id="@+id/ivBack"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:contentDescription="Kembali"
+            android:padding="11dp"
             android:src="@drawable/ic_arrow_back"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -29,9 +30,9 @@
             android:id="@+id/tvTitleBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
+            android:layout_marginStart="6dp"
             android:fontFamily="@font/baloo2"
-            android:text="Edit Profil Siswa &amp; Wali"
+            android:text="@string/anak_edit_judul"
             android:textColor="@color/kibooz_white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -53,210 +54,305 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp"
-            android:paddingTop="24dp"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="20dp"
             android:paddingBottom="40dp">
 
-            <!-- Avatar Change Container -->
-            <androidx.constraintlayout.widget.ConstraintLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal">
-
-                <ImageView
-                    android:id="@+id/ivAvatar"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:src="@drawable/img_avatar_siswa"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
-
-                <ImageView
-                    android:id="@+id/ivChangePhoto"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:background="@drawable/bg_button_purple"
-                    android:contentDescription="Ganti Foto"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_search"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivAvatar"
-                    app:layout_constraintEnd_toEndOf="@+id/ivAvatar"
-                    app:tint="@color/kibooz_white" />
-
-            </androidx.constraintlayout.widget.ConstraintLayout>
-
-            <TextView
+            <ProgressBar
+                android:id="@+id/pbLoading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="8dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Ketuk untuk ubah foto si kecil"
-                android:textColor="@color/kibooz_primary_purple"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:layout_marginVertical="24dp"
+                android:indeterminateTint="@color/kibooz_primary_purple" />
 
-            <!-- Nama Siswa -->
-            <TextView
-                android:layout_width="wrap_content"
+            <com.nthb.kibooz.ui.common.ConnectionStatusView
+                android:id="@+id/connectionStatus"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Nama Lengkap Siswa"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:visibility="gone" />
 
-            <EditText
-                android:id="@+id/etNamaSiswa"
+            <LinearLayout
+                android:id="@+id/llError"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:fontFamily="@font/baloo2"
-                android:paddingHorizontal="16dp"
-                android:text="Amelia Siti Zahra"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp" />
-
-            <!-- NISN -->
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:fontFamily="@font/baloo2"
-                android:text="NISN Siswa"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:background="@drawable/bg_connection_status"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:visibility="gone">
 
-            <EditText
-                android:id="@+id/etNisn"
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/baloo2"
+                    android:textColor="@color/kibooz_text_primary"
+                    android:textSize="14sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRetry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:fontFamily="@font/baloo2"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minHeight="48dp"
+                    android:text="@string/coba_lagi"
+                    android:textAllCaps="false"
+                    android:textColor="@color/kibooz_white"
+                    app:backgroundTint="@color/kibooz_primary_purple"
+                    app:cornerRadius="24dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/llForm"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:fontFamily="@font/baloo2"
-                android:inputType="number"
-                android:paddingHorizontal="16dp"
-                android:text="3124567890"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp" />
-
-            <!-- Nama Wali -->
-            <TextView
-                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Nama Orang Tua / Wali"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:visibility="gone">
 
-            <EditText
-                android:id="@+id/etNamaWali"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:fontFamily="@font/baloo2"
-                android:paddingHorizontal="16dp"
-                android:text="Ibu Citra Lestari"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp" />
+                <!-- Data anak -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="3dp">
 
-            <!-- Email Wali -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Email Terdaftar"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-            <EditText
-                android:id="@+id/etEmail"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:fontFamily="@font/baloo2"
-                android:inputType="textEmailAddress"
-                android:paddingHorizontal="16dp"
-                android:text="citra.lestari@gmail.com"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="@string/anak_edit_bagian_anak"
+                            android:textColor="@color/kibooz_text_dark"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
 
-            <!-- Nomor HP Wali -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Nomor WhatsApp Wali"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tvNisnPrompt"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:background="#FFF4E0"
+                            android:fontFamily="@font/baloo2"
+                            android:padding="12dp"
+                            android:text="@string/anak_nisn_perlu_isi_pesan"
+                            android:textColor="@color/kibooz_text_dark"
+                            android:textSize="13sp"
+                            android:visibility="gone" />
 
-            <EditText
-                android:id="@+id/etPhone"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:fontFamily="@font/baloo2"
-                android:inputType="phone"
-                android:paddingHorizontal="16dp"
-                android:text="+62 813-8899-7766"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp" />
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilNamaAnak"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_nama_anak">
 
-            <!-- Alamat Rumah -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:fontFamily="@font/baloo2"
-                android:text="Alamat Rumah Tinggal"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp"
-                android:textStyle="bold" />
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etNamaSiswa"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:inputType="textPersonName|textCapWords"
+                                android:textSize="14sp" />
 
-            <EditText
-                android:id="@+id/etAlamat"
-                android:layout_width="match_parent"
-                android:layout_height="80dp"
-                android:layout_marginTop="6dp"
-                android:background="@drawable/bg_input_field"
-                android:fontFamily="@font/baloo2"
-                android:gravity="top|start"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
-                android:text="Jl. Mawar Indah Blok B3 No. 7, Lowokwaru, Kota Malang"
-                android:textColor="@color/kibooz_text_dark"
-                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Button Simpan Perubahan -->
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSimpan"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="28dp"
-                android:fontFamily="@font/baloo2"
-                android:insetTop="0dp"
-                android:insetBottom="0dp"
-                android:text="Simpan Perubahan Data"
-                android:textAllCaps="false"
-                android:textColor="@color/kibooz_white"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                app:backgroundTint="@color/kibooz_primary_purple"
-                app:cornerRadius="26dp" />
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilNisn"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_nisn">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etNisn"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:inputType="number"
+                                android:maxLength="30"
+                                android:textSize="14sp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSimpanAnak"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="@font/baloo2"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="@string/anak_simpan_anak"
+                            android:textAllCaps="false"
+                            android:textColor="@color/kibooz_white"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@color/kibooz_primary_purple"
+                            app:cornerRadius="26dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- Data wali -->
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:cardBackgroundColor="@color/kibooz_white"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="3dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="@string/anak_edit_bagian_wali"
+                            android:textColor="@color/kibooz_text_dark"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilNamaWali"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_nama_wali">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etNamaWali"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:inputType="textPersonName|textCapWords"
+                                android:textSize="14sp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <!-- Email tidak bisa diubah, jadi hanya dibaca -->
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilEmail"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_email"
+                            app:helperText="@string/anak_hint_email_bantuan">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etEmail"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:cursorVisible="false"
+                                android:focusable="false"
+                                android:fontFamily="@font/baloo2"
+                                android:inputType="textEmailAddress"
+                                android:longClickable="false"
+                                android:textSize="14sp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilPhone"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_telepon"
+                            app:helperText="@string/anak_hint_kosongkan">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etPhone"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:inputType="phone"
+                                android:maxLength="30"
+                                android:textSize="14sp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilWhatsapp"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_whatsapp"
+                            app:helperText="@string/anak_hint_kosongkan">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etWhatsapp"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:inputType="phone"
+                                android:maxLength="30"
+                                android:textSize="14sp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilAlamat"
+                            style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:hint="@string/anak_hint_alamat"
+                            app:helperText="@string/anak_hint_kosongkan">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etAlamat"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:gravity="top|start"
+                                android:inputType="textMultiLine|textCapSentences"
+                                android:minLines="3"
+                                android:textSize="14sp" />
+
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSimpanWali"
+                            android:layout_width="match_parent"
+                            android:layout_height="52dp"
+                            android:layout_marginTop="16dp"
+                            android:fontFamily="@font/baloo2"
+                            android:insetTop="0dp"
+                            android:insetBottom="0dp"
+                            android:text="@string/anak_simpan_wali"
+                            android:textAllCaps="false"
+                            android:textColor="@color/kibooz_white"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@color/kibooz_primary_purple"
+                            app:cornerRadius="26dp" />
+
+                    </LinearLayout>
+
+                </com.google.android.material.card.MaterialCardView>
+
+            </LinearLayout>
 
         </LinearLayout>
 
