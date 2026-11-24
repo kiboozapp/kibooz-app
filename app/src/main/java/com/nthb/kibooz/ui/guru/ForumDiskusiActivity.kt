@@ -2,14 +2,22 @@ package com.nthb.kibooz.ui.guru
 
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
+import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.ForumThreadItem
+import com.nthb.kibooz.data.remote.ForumThreadList
 import com.nthb.kibooz.databinding.ActivityForumDiskusiBinding
 import com.nthb.kibooz.util.InsetsUtil
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -17,6 +25,7 @@ import java.util.Locale
 class ForumDiskusiActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityForumDiskusiBinding
+    private var activeClassId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,9 +39,77 @@ class ForumDiskusiActivity : AppCompatActivity() {
         )
 
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
+        activeClassId = intent.getStringExtra("CLASS_ID")
         binding.tvForumTitle.text = "Forum $namaKelas"
 
         setupListeners()
+        resolveClassAndLoadThreads()
+    }
+
+    private fun resolveClassAndLoadThreads() {
+        val forumRepo = appContainer.forumRepository
+        val classRepo = appContainer.classRepository
+
+        lifecycleScope.launch {
+            if (activeClassId.isNullOrBlank()) {
+                val childrenRes = classRepo.children()
+                if (childrenRes is ApiResult.Success) {
+                    activeClassId = childrenRes.data.firstOrNull()?.classId
+                }
+
+                if (activeClassId.isNullOrBlank()) {
+                    val teacherClasses = classRepo.teacherClasses()
+                    if (teacherClasses is ApiResult.Success) {
+                        activeClassId = teacherClasses.data.firstOrNull()?.id
+                    }
+                }
+            }
+
+            val classId = activeClassId ?: return@launch
+            val session = appContainer.sessionStore.readSession()
+            val studentsRes = classRepo.allStudents(classId)
+            val sCount = if (studentsRes is ApiResult.Success) {
+                studentsRes.data.size
+            } else 1
+            binding.tvSubtitleForum.text = "$sCount Siswa • 1 Guru Pengajar"
+
+            val result = forumRepo.threads(classId)
+            if (result is ApiResult.Success) {
+                val threadList = result.data
+                renderThreads(threadList.threads, session?.user)
+            }
+        }
+    }
+
+    private fun renderThreads(threads: List<ForumThreadItem>, currentUser: com.nthb.kibooz.data.session.SessionUser?) {
+        binding.llChatMessages.removeAllViews()
+
+        if (threads.isEmpty()) {
+            binding.tvEmptyForum.visibility = View.VISIBLE
+            return
+        }
+
+        binding.tvEmptyForum.visibility = View.GONE
+
+        // Balasan endpoint backend mengurutkan pesan terbaru di indeks awal (DESC).
+        // Antarmuka chat harus mengalir secara kronologis: pesan terlama di atas, pesan terbaru di bawah.
+        val chronologicalThreads = threads.sortedBy { it.createdAt }
+
+        chronologicalThreads.forEach { thread ->
+            val isSelf = currentUser != null && (
+                thread.author.id == currentUser.id ||
+                thread.author.fullName.equals(currentUser.fullName, ignoreCase = true)
+            )
+            val roleLabel = if (thread.author.role.equals("GURU", ignoreCase = true)) "Guru" else "Wali Murid"
+            val senderLabel = if (isSelf) "Anda ($roleLabel)" else "${thread.author.fullName} ($roleLabel)"
+
+            addMessageBubble(
+                senderName = senderLabel,
+                content = thread.body,
+                time = thread.createdAt.takeLast(9).take(5).ifBlank { "09:00" },
+                isSelf = isSelf
+            )
+        }
     }
 
     private fun setupListeners() {
@@ -43,7 +120,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
         binding.btnSend.setOnClickListener {
             val text = binding.etMessage.text.toString().trim()
             if (text.isNotEmpty()) {
-                sendMessage(text)
+                postMessage(text)
                 binding.etMessage.text.clear()
             } else {
                 Toast.makeText(this, "Tulis pesan terlebih dahulu", Toast.LENGTH_SHORT).show()
@@ -51,17 +128,43 @@ class ForumDiskusiActivity : AppCompatActivity() {
         }
     }
 
-    private fun sendMessage(content: String) {
-        val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+    private fun postMessage(content: String) {
+        val forumRepo = appContainer.forumRepository
+        val classId = activeClassId
+
+        lifecycleScope.launch {
+            val session = appContainer.sessionStore.readSession()
+            val userRole = if (session?.user?.role?.name?.equals("GURU", ignoreCase = true) == true) "Guru" else "Wali Murid"
+            val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
+
+            binding.tvEmptyForum.visibility = View.GONE
+            addMessageBubble(
+                senderName = "Anda ($userRole)",
+                content = content,
+                time = currentTime,
+                isSelf = true
+            )
+
+            if (!classId.isNullOrBlank()) {
+                val result = forumRepo.createThread(classId = classId, title = "Diskusi Kelas", body = content)
+                if (result is ApiResult.Success<*>) {
+                    resolveClassAndLoadThreads()
+                }
+            }
+        }
+    }
+
+    private fun addMessageBubble(senderName: String, content: String, time: String, isSelf: Boolean) {
+        val density = resources.displayMetrics.density
 
         val container = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = 24
+                topMargin = (12 * density).toInt()
             }
-            gravity = Gravity.END
+            gravity = if (isSelf) Gravity.END else Gravity.START
             orientation = LinearLayout.VERTICAL
         }
 
@@ -70,33 +173,49 @@ class ForumDiskusiActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                marginStart = 120
+                if (isSelf) {
+                    marginStart = (64 * density).toInt()
+                } else {
+                    marginEnd = (64 * density).toInt()
+                }
             }
-            setBackgroundResource(R.drawable.bg_button_purple)
+            setBackgroundResource(if (isSelf) R.drawable.bg_button_purple else R.drawable.bg_input_field)
             orientation = LinearLayout.VERTICAL
-            setPadding(32, 24, 32, 24)
+            setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
         }
 
+        val balooFont = ResourcesCompat.getFont(this, R.font.baloo2)
+
         val senderTv = TextView(this).apply {
-            text = "Anda (Ibu Siti Rahayu)"
-            setTextColor(ContextCompat.getColor(context, R.color.kibooz_yellow_gold))
+            text = senderName
+            setTextColor(
+                if (isSelf) ContextCompat.getColor(context, R.color.kibooz_yellow_gold)
+                else ContextCompat.getColor(context, R.color.kibooz_primary_purple)
+            )
             textSize = 12f
-            typeface = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.baloo2)
+            typeface = balooFont
+            paint.isFakeBoldText = true
         }
 
         val messageTv = TextView(this).apply {
             text = content
-            setTextColor(ContextCompat.getColor(context, R.color.kibooz_white))
+            setTextColor(
+                if (isSelf) ContextCompat.getColor(context, R.color.kibooz_white)
+                else ContextCompat.getColor(context, R.color.kibooz_text_dark)
+            )
             textSize = 14f
-            typeface = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.baloo2)
+            typeface = balooFont
         }
 
         val timeTv = TextView(this).apply {
-            text = currentTime
-            setTextColor(ContextCompat.getColor(context, R.color.kibooz_lavender_surface))
+            text = time
+            setTextColor(
+                if (isSelf) ContextCompat.getColor(context, R.color.kibooz_lavender_surface)
+                else ContextCompat.getColor(context, R.color.kibooz_text_muted)
+            )
             textSize = 10f
             gravity = Gravity.END
-            typeface = androidx.core.content.res.ResourcesCompat.getFont(context, R.font.baloo2)
+            typeface = balooFont
         }
 
         bubble.addView(senderTv)
