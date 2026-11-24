@@ -4,7 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -147,10 +149,14 @@ class StatistikMoodActivity : AppCompatActivity() {
 
         if (shown.isEmpty() && !viewModel.state.value.loading) {
             val empty = ItemStudentMoodRowBinding.inflate(LayoutInflater.from(this), rows, false)
+            empty.tvNo.visibility = View.GONE
+            empty.ivAvatar.visibility = View.GONE
+            empty.tvMood.visibility = View.GONE
+            empty.tvNama.gravity = Gravity.CENTER
+            (empty.tvNama.layoutParams as? android.view.ViewGroup.MarginLayoutParams)?.marginStart = 0
             empty.tvNama.text = getString(
                 if (students.isEmpty()) R.string.stat_belum_ada_siswa else R.string.stat_siswa_tidak_ditemukan
             )
-            empty.tvMood.text = ""
             rows.addView(empty.root)
         }
     }

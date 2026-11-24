@@ -429,30 +429,7 @@
 
             </LinearLayout>
 
-            <!-- Tab 2: Kelas (Ruang Kelas) -->
-            <LinearLayout
-                android:id="@+id/tabKelas"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
-
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_class"
-                    app:tint="@color/kibooz_text_muted" />
-
-            </LinearLayout>
-
-            <!-- Center Placeholder for FAB -->
-            <View
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1" />
-
-            <!-- Tab 4: Statistik Mood -->
+            <!-- Tab 2: Statistik Mood -->
             <LinearLayout
                 android:id="@+id/tabStats"
                 android:layout_width="0dp"
@@ -465,6 +442,29 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:src="@drawable/ic_stats"
+                    app:tint="@color/kibooz_text_muted" />
+
+            </LinearLayout>
+
+            <!-- Center Placeholder for FAB -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <!-- Tab 4: Kelas (Ruang Kelas) -->
+            <LinearLayout
+                android:id="@+id/tabKelas"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_class"
                     app:tint="@color/kibooz_text_muted" />
 
             </LinearLayout>

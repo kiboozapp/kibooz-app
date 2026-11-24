@@ -33,9 +33,9 @@ class VideoPembelajaranActivity : AppCompatActivity() {
     private var activeClassId: String? = null
     private val dynamicVideoCards = mutableListOf<Pair<View, String>>()
 
-    private var videoUrl1: String = "https://www.youtube.com/watch?v=kYv9qQvX4nI"
-    private var videoUrl2: String = "https://www.youtube.com/watch?v=02j0u_7G_gA"
-    private var videoUrl3: String = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+    private var videoUrl1: String = "https://www.youtube.com/watch?v=e23kDLhj_qA"
+    private var videoUrl2: String = "https://www.youtube.com/watch?v=VoukA9eehoQ"
+    private var videoUrl3: String = "https://www.youtube.com/watch?v=wAjP-tqKJi0"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,51 +70,51 @@ class VideoPembelajaranActivity : AppCompatActivity() {
         when {
             namaKelas.contains("Seni", ignoreCase = true) -> {
                 binding.tvTitleVideo1.text = "Kreasi Melipat & Menggunting Kertas"
-                videoUrl1 = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+                videoUrl1 = "https://www.youtube.com/watch?v=VoukA9eehoQ"
                 binding.tvTitleVideo2.text = "Mengenal Warna Primer & Sekunder"
-                videoUrl2 = "https://www.youtube.com/watch?v=kYv9qQvX4nI"
+                videoUrl2 = "https://www.youtube.com/watch?v=e23kDLhj_qA"
                 binding.tvTitleVideo3.text = "Karya Daur Ulang Bersama Kibby"
-                videoUrl3 = "https://www.youtube.com/watch?v=02j0u_7G_gA"
+                videoUrl3 = "https://www.youtube.com/watch?v=wAjP-tqKJi0"
             }
             namaKelas.contains("Logika", ignoreCase = true) || namaKelas.contains("Berpikir", ignoreCase = true) -> {
                 binding.tvTitleVideo1.text = "Belajar Berhitung Seru Bersama Kibby"
-                videoUrl1 = "https://www.youtube.com/watch?v=02j0u_7G_gA"
+                videoUrl1 = "https://www.youtube.com/watch?v=VoukA9eehoQ"
                 binding.tvTitleVideo2.text = "Mengenal Pola & Bentuk Geometri"
-                videoUrl2 = "https://www.youtube.com/watch?v=kYv9qQvX4nI"
+                videoUrl2 = "https://www.youtube.com/watch?v=e23kDLhj_qA"
                 binding.tvTitleVideo3.text = "Teka-Teki Logika Anak Ceria"
-                videoUrl3 = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+                videoUrl3 = "https://www.youtube.com/watch?v=TKOVGPjaTQc"
             }
             namaKelas.contains("Motorik", ignoreCase = true) || namaKelas.contains("Fisik", ignoreCase = true) -> {
                 binding.tvTitleVideo1.text = "Senam Ceria Anak Hebat"
-                videoUrl1 = "https://www.youtube.com/watch?v=y2K04uV1v9k"
+                videoUrl1 = "https://www.youtube.com/watch?v=noh1FVOlBT8"
                 binding.tvTitleVideo2.text = "Gerakan Tangkas & Keseimbangan Tubuh"
-                videoUrl2 = "https://www.youtube.com/watch?v=02j0u_7G_gA"
+                videoUrl2 = "https://www.youtube.com/watch?v=VoukA9eehoQ"
                 binding.tvTitleVideo3.text = "Permainan Melompat & Melempar Bola"
-                videoUrl3 = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+                videoUrl3 = "https://www.youtube.com/watch?v=wAjP-tqKJi0"
             }
             namaKelas.contains("Agama", ignoreCase = true) || namaKelas.contains("Moral", ignoreCase = true) -> {
                 binding.tvTitleVideo1.text = "Doa Harian & Adab Sebelum Makan"
-                videoUrl1 = "https://www.youtube.com/watch?v=7hBq1p2v3m4"
+                videoUrl1 = "https://www.youtube.com/watch?v=wAjP-tqKJi0"
                 binding.tvTitleVideo2.text = "Kisah Teladan Kejujuran & Kasih Sayang"
-                videoUrl2 = "https://www.youtube.com/watch?v=02j0u_7G_gA"
+                videoUrl2 = "https://www.youtube.com/watch?v=Xz8qBhIj9Nw"
                 binding.tvTitleVideo3.text = "Menjaga Kebersihan Sebagian dari Iman"
-                videoUrl3 = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+                videoUrl3 = "https://www.youtube.com/watch?v=TKOVGPjaTQc"
             }
-            namaKelas.contains("Sosial", ignoreCase = true) || namaKelas.contains("Emosional", ignoreCase = true) -> {
+            namaKelas.contains("Sosial", ignoreCase = true) || namaKelas.contains("Emotional", ignoreCase = true) || namaKelas.contains("Emosional", ignoreCase = true) -> {
                 binding.tvTitleVideo1.text = "Mengenal Emosi & Ekspresi Wajah"
-                videoUrl1 = "https://www.youtube.com/watch?v=9jK01l2m3n4"
+                videoUrl1 = "https://www.youtube.com/watch?v=wAjP-tqKJi0"
                 binding.tvTitleVideo2.text = "Belajar Berbagi & Bekerja Sama"
-                videoUrl2 = "https://www.youtube.com/watch?v=02j0u_7G_gA"
+                videoUrl2 = "https://www.youtube.com/watch?v=Xz8qBhIj9Nw"
                 binding.tvTitleVideo3.text = "Mengucap Maaf & Terima Kasih"
-                videoUrl3 = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+                videoUrl3 = "https://www.youtube.com/watch?v=TKOVGPjaTQc"
             }
             else -> {
                 binding.tvTitleVideo1.text = "Mengenal Huruf dan Suara"
-                videoUrl1 = "https://www.youtube.com/watch?v=kYv9qQvX4nI"
+                videoUrl1 = "https://www.youtube.com/watch?v=e23kDLhj_qA"
                 binding.tvTitleVideo2.text = "Mengenal Nama-Nama Benda di Sekitar"
-                videoUrl2 = "https://www.youtube.com/watch?v=02j0u_7G_gA"
+                videoUrl2 = "https://www.youtube.com/watch?v=VoukA9eehoQ"
                 binding.tvTitleVideo3.text = "Ekspresi & Bercerita Bersama Kibby"
-                videoUrl3 = "https://www.youtube.com/watch?v=CqY_sA8bI5Y"
+                videoUrl3 = "https://www.youtube.com/watch?v=Xz8qBhIj9Nw"
             }
         }
 
