@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityProfilWaliBinding
 import com.nthb.kibooz.sessionManager
+import com.nthb.kibooz.ui.account.HapusAkunActivity
 import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.util.InsetsUtil
@@ -83,6 +84,11 @@ class ProfilWaliActivity : AppCompatActivity() {
                 }
                 .setNegativeButton("Batal", null)
                 .show()
+        }
+
+        // Menu 6: Hapus Akun
+        binding.menuHapusAkun.setOnClickListener {
+            startActivity(HapusAkunActivity.intent(this, isTeacher = false))
         }
 
         // Bottom Navigation Tabs

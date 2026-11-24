@@ -153,7 +153,13 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- 19b. Wali Flow: Tambah Anak dengan kode kelas -->
+        <!-- 19b. Hapus Akun (Guru dan Wali) -->
+        <activity
+            android:name=".ui.account.HapusAkunActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <!-- 19c. Wali Flow: Tambah Anak dengan kode kelas -->
         <activity
             android:name=".ui.wali.TambahAnakActivity"
             android:exported="false"

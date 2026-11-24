@@ -1,6 +1,7 @@
 package com.nthb.kibooz
 
 import android.content.Context
+import com.nthb.kibooz.data.remote.AccountApi
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.ClassApi
@@ -12,6 +13,7 @@ import com.nthb.kibooz.data.remote.TokenAuthenticator
 import com.nthb.kibooz.data.remote.TrashApi
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliProfileApi
+import com.nthb.kibooz.data.repository.AccountRepository
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
@@ -42,6 +44,10 @@ class AppContainer(context: Context) {
 
     val authRepository: AuthRepository by lazy {
         AuthRepository(apiClient.create(AuthApi::class.java), sessionStore, apiClient.moshi)
+    }
+
+    val accountRepository: AccountRepository by lazy {
+        AccountRepository(apiClient.create(AccountApi::class.java), apiClient.moshi)
     }
 
     val moodRepository: MoodRepository by lazy {
