@@ -79,6 +79,7 @@ jobs:
           while IFS= read -r line; do
             number=$((number + 1))
             line="${line%$'\r'}"
+            line="${line%"${line##*[![:space:]]}"}"
             if [[ -z "${line//[[:space:]]/}" ]] || [[ "$line" =~ ^\<!--.*--\>$ ]]; then
               continue
             fi

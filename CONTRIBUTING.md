@@ -10,8 +10,8 @@ Proyek ini memakai Gradle 8.14 dan JDK 17. Cara membuka dan menjalankan proyek a
 
 1. Buat branch dari `main`. Beri nama `type/deskripsi-singkat`, misalnya `fix/scan-camera-frame`, dengan `type` yang sama seperti commit di dalamnya.
 2. Satu pull request hanya berisi satu hal. Perubahan yang tidak berkaitan dibuat di branch dan pull request terpisah.
-3. Tulis commit dengan gaya [Conventional Commits](https://www.conventionalcommits.org/) dalam bentuk `type: ringkasan` atau `type(scope): ringkasan`. Pilihan `type` adalah `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` dan `revert`. Judul commit paling panjang 120 karakter.
-4. Commit yang tidak mengikuti format ini membuat pengecekan "Conventional commits" gagal. Perbaiki pesan commit terakhir dengan `git commit --amend`, atau dengan interactive rebase untuk commit yang lebih lama, lalu push ulang branch.
+3. Tulis commit dengan gaya [Conventional Commits](https://www.conventionalcommits.org/) dalam bentuk `type: ringkasan` atau `type(scope): ringkasan`. Pilihan `type` adalah `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore` dan `revert`. Judul commit paling panjang 120 karakter. Ringkasan ditulis dengan huruf kecil di awal dan tanpa titik di akhir.
+4. Commit yang tidak mengikuti format ini membuat pengecekan "Conventional commits" gagal. Perbaiki pesan commit terakhir dengan `git commit --amend`, atau dengan interactive rebase untuk commit yang lebih lama, lalu push ulang branch milikmu sendiri dengan `git push --force-with-lease`.
 
 Merge commit dengan pesan `Merge branch 'main' into <branch>` dan merge commit buatan GitHub (`Merge pull request #N from ...`) tidak diperiksa.
 
