@@ -208,15 +208,22 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun setupViews(kodeKelas: String, namaKelas: String, initialCount: Int) {
-        binding.tvTitleBar.text = "Detail $namaKelas"
+        val rombelName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
+            ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
+        binding.tvTitleBar.text = rombelName ?: "Detail $namaKelas"
         binding.tvNamaKelas.text = namaKelas
         binding.tvKodeKelas.text = kodeKelas
         binding.tabModul.text = "Modul (4)"
+        val sessionUser = appContainer.authRepository.session.value?.user
+        if (isTeacherRole && !sessionUser?.fullName.isNullOrBlank()) {
+            binding.tvPengajar.text = "Pengajar: ${sessionUser!!.fullName}"
+        }
         updatePesertaBanner(initialCount)
 
         when {
             namaKelas.contains("Bahasa", ignoreCase = true) || kodeKelas.startsWith("BHS") -> {
                 binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_bahasa)
+                binding.tvDeskripsiKelas.text = "Mengenalkan kosakata baru, bercerita bergambar, dan melatih kepercayaan diri anak dalam berkomunikasi."
                 binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Huruf Vokal & Konsonan"
                 binding.tvTitleModul2.text = "Pertemuan 2: Bercerita Bergambar Bersama Teman"
                 binding.tvTitleModul3.text = "Pertemuan 3: Mengeja Kata Sederhana"
@@ -224,6 +231,7 @@ class DetailKelasActivity : AppCompatActivity() {
             }
             namaKelas.contains("Logika", ignoreCase = true) || namaKelas.contains("Berpikir", ignoreCase = true) || kodeKelas.startsWith("LOG") -> {
                 binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_logika)
+                binding.tvDeskripsiKelas.text = "Mengasah kemampuan berpikir kritis melalui pengenalan pola, berhitung benda, dan perbandingan ukuran."
                 binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Pola Bentuk Geometri"
                 binding.tvTitleModul2.text = "Pertemuan 2: Menghitung Benda 1 sampai 10"
                 binding.tvTitleModul3.text = "Pertemuan 3: Membandingkan Ukuran Besar & Kecil"
@@ -231,6 +239,7 @@ class DetailKelasActivity : AppCompatActivity() {
             }
             namaKelas.contains("Motorik", ignoreCase = true) || namaKelas.contains("Fisik", ignoreCase = true) || kodeKelas.startsWith("MOT") -> {
                 binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_motorik)
+                binding.tvDeskripsiKelas.text = "Melatih koordinasi gerak kasar dan halus anak lewat senam ceria, permainan ketangkasan, dan origami."
                 binding.tvTitleModul1.text = "Pertemuan 1: Gerak Jalan Seimbang & Senam Ceria"
                 binding.tvTitleModul2.text = "Pertemuan 2: Melipat Kertas Origami Hewan"
                 binding.tvTitleModul3.text = "Pertemuan 3: Menangkap & Melempar Bola Karet"
@@ -238,13 +247,15 @@ class DetailKelasActivity : AppCompatActivity() {
             }
             namaKelas.contains("Agama", ignoreCase = true) || namaKelas.contains("Moral", ignoreCase = true) || kodeKelas.startsWith("AGM") -> {
                 binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_agama)
+                binding.tvDeskripsiKelas.text = "Menanamkan akhlak mulia, kebiasaan berdoa harian, berbagi bersama sahabat, dan rasa syukur setiap hari."
                 binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Doa Harian & Bersyukur"
                 binding.tvTitleModul2.text = "Pertemuan 2: Berbagi Bekal dengan Sahabat"
                 binding.tvTitleModul3.text = "Pertemuan 3: Menghormati Orang Tua & Guru"
                 binding.tvTitleModul4.text = "Pertemuan 4: Menjaga Kebersihan Tempat Ibadah"
             }
-            namaKelas.contains("Sosial", ignoreCase = true) || namaKelas.contains("Emosional", ignoreCase = true) || kodeKelas.startsWith("SOS") -> {
+            namaKelas.contains("Sosial", ignoreCase = true) || namaKelas.contains("Emotional", ignoreCase = true) || namaKelas.contains("Emosional", ignoreCase = true) || kodeKelas.startsWith("SOS") -> {
                 binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_sosial)
+                binding.tvDeskripsiKelas.text = "Membantu anak mengenali dan mengelola emosi, bekerja sama dalam kelompok, serta bersikap sopan santun."
                 binding.tvTitleModul1.text = "Pertemuan 1: Mengenali Perasaan Bahagia & Sedih"
                 binding.tvTitleModul2.text = "Pertemuan 2: Mengungkapkan Keinginan dengan Sopan"
                 binding.tvTitleModul3.text = "Pertemuan 3: Bekerja Sama dalam Permainan Kelompok"
@@ -252,6 +263,7 @@ class DetailKelasActivity : AppCompatActivity() {
             }
             else -> {
                 binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_seni)
+                binding.tvDeskripsiKelas.text = "Aktivitas menggambar emosi, mewarnai suasana hati, dan kerajinan daur ulang kreatif untuk mengenalkan emosi si kecil."
                 binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Warna Emosiku"
                 binding.tvTitleModul2.text = "Pertemuan 2: Menggambar Ekspresi Senang & Sedih"
                 binding.tvTitleModul3.text = "Pertemuan 3: Kolase Kertas Daur Ulang"

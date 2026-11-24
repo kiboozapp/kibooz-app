@@ -300,10 +300,11 @@ class RuangKelasGuruActivity : AppCompatActivity() {
     }
 
     private fun openDetailKelas(item: ClassSummary) {
-        val intent = Intent(this, DetailKelasActivity::class.java).apply {
+        val intent = Intent(this, TemaKelasGuruActivity::class.java).apply {
             putExtra("KODE_KELAS", item.joinCode)
             putExtra("NAMA_KELAS", item.name)
             putExtra("CLASS_ID", item.id)
+            putExtra("GRADE_LEVEL", item.gradeLevel)
             putExtra("TOTAL_STUDENTS", item.totalStudents)
         }
         startActivity(intent)

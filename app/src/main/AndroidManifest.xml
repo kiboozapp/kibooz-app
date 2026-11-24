@@ -79,6 +79,11 @@
             android:name=".ui.guru.VideoPembelajaranActivity"
             android:exported="false" />
 
+        <!-- 8a. Guru Flow: Daftar 6 Tema Pembelajaran dalam Kelas -->
+        <activity
+            android:name=".ui.guru.TemaKelasGuruActivity"
+            android:exported="false" />
+
         <!-- 8c. Guru Flow: Peserta Kelas (Guru & Siswa) -->
         <activity
             android:name=".ui.guru.PesertaKelasActivity"
