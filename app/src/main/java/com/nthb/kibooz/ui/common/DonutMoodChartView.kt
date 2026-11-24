@@ -21,6 +21,8 @@ class DonutMoodChartView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var percentages: Map<Emotion, Float> = MoodChartMath.ORDER.associateWith { 0f }
+    private var animationProgress: Float = 1f
+    private var animator: android.animation.ValueAnimator? = null
 
     /** Dipanggil dengan irisan yang disentuh. Sentuhan di luar irisan tidak memanggilnya. */
     var onSliceSelected: ((Emotion, Float) -> Unit)? = null
@@ -48,7 +50,7 @@ class DonutMoodChartView @JvmOverloads constructor(
 
         var startAngle = -90f
         for (emotion in MoodChartMath.ORDER) {
-            val sweep = percentages.getValue(emotion) * 3.6f
+            val sweep = percentages.getValue(emotion) * 3.6f * animationProgress
             if (sweep <= 0f) continue
             paint.color = MoodColors.of(emotion)
             canvas.drawArc(rectF, startAngle, sweep, false, paint)
@@ -80,14 +82,32 @@ class DonutMoodChartView @JvmOverloads constructor(
         return true
     }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        animator?.cancel()
+    }
+
+    private fun startAnimation() {
+        animator?.cancel()
+        animator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 750L
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener {
+                animationProgress = it.animatedValue as Float
+                invalidate()
+            }
+            start()
+        }
+    }
+
     fun setDistribution(distribution: DailyMoodDistribution) {
         percentages = MoodChartMath.percentages(distribution)
-        invalidate()
+        startAnimation()
     }
 
     /** Persentase langsung dari server (`donutSummary`). Emosi yang tidak ada dianggap 0. */
     fun setPercentages(values: Map<Emotion, Float>) {
         percentages = MoodChartMath.ORDER.associateWith { values[it] ?: 0f }
-        invalidate()
+        startAnimation()
     }
 }

@@ -454,6 +454,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleModul1"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -519,6 +520,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleModul2"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -586,6 +588,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleModul3"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -652,6 +655,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleModul4"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"

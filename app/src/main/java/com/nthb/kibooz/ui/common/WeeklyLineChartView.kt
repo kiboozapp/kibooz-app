@@ -21,6 +21,8 @@ class WeeklyLineChartView @JvmOverloads constructor(
 
     private var labels: List<String> = emptyList()
     private var values: List<Int> = emptyList()
+    private var animationProgress: Float = 1f
+    private var animator: android.animation.ValueAnimator? = null
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         color = Color.parseColor("#6B7280")
@@ -43,10 +45,28 @@ class WeeklyLineChartView @JvmOverloads constructor(
 
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = MoodColors.SENANG }
 
+    override fun onDetachedFromWindow() {
+        super.onDetachedFromWindow()
+        animator?.cancel()
+    }
+
+    private fun startAnimation() {
+        animator?.cancel()
+        animator = android.animation.ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = 750L
+            interpolator = android.view.animation.DecelerateInterpolator()
+            addUpdateListener {
+                animationProgress = it.animatedValue as Float
+                invalidate()
+            }
+            start()
+        }
+    }
+
     fun setData(points: List<WeeklyPoint>) {
         labels = points.map { MoodChartMath.dayLabel(it.day) }
         values = points.map { it.averageHappyScore.coerceIn(0, 100) }
-        invalidate()
+        startAnimation()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -76,7 +96,7 @@ class WeeklyLineChartView @JvmOverloads constructor(
         val path = Path()
         for (i in values.indices) {
             val x = if (values.size > 1) leftPad + i * stepX else leftPad + chartWidth / 2f
-            val y = topPad + chartHeight - (values[i] / 100f) * chartHeight
+            val y = topPad + chartHeight - ((values[i] * animationProgress) / 100f) * chartHeight
             if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
             canvas.drawText(labels[i], x, h - 15f, textPaint)
         }
@@ -84,9 +104,10 @@ class WeeklyLineChartView @JvmOverloads constructor(
 
         for (i in values.indices) {
             val x = if (values.size > 1) leftPad + i * stepX else leftPad + chartWidth / 2f
-            val y = topPad + chartHeight - (values[i] / 100f) * chartHeight
+            val y = topPad + chartHeight - ((values[i] * animationProgress) / 100f) * chartHeight
             canvas.drawCircle(x, y, 9f, dotPaint)
-            canvas.drawText("${values[i]}", x, y - 18f, textPaint)
+            val scoreText = (values[i] * animationProgress).toInt().toString()
+            canvas.drawText(scoreText, x, y - 18f, textPaint)
         }
     }
 }
