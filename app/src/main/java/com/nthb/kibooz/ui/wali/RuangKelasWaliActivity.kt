@@ -2,11 +2,13 @@ package com.nthb.kibooz.ui.wali
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
@@ -48,6 +50,11 @@ class RuangKelasWaliActivity : AppCompatActivity() {
         // Tombol Gabung Kelas (Screenshot 154028)
         binding.btnGabungKelas.setOnClickListener {
             showGabungKelasDialog()
+        }
+
+        // Fitur Pencarian Nama Kelas & Modul Pembelajaran
+        binding.etSearchKelas.doAfterTextChanged { text ->
+            filterSubjectCards(text?.toString().orEmpty().trim().lowercase())
         }
 
         // 6 Subject Cards (Screenshot 154028)
@@ -172,8 +179,25 @@ class RuangKelasWaliActivity : AppCompatActivity() {
         val intent = Intent(this, DetailKelasActivity::class.java).apply {
             putExtra("KODE_KELAS", kode)
             putExtra("NAMA_KELAS", nama)
+            studentId?.let { putExtra(EXTRA_STUDENT_ID, it) }
         }
         startActivity(intent)
+    }
+
+    private fun filterSubjectCards(query: String) {
+        val cards = listOf(
+            binding.cardMapelSeni to "seni kreativitas menggambar warna melipat",
+            binding.cardMapelBahasa to "bahasa komunikasi huruf eja membaca kata",
+            binding.cardMapelLogika to "berpikir logika hitung angka matematika geometri pola",
+            binding.cardMapelMotorik to "belajar fisik motorik senam lompat origami jalan",
+            binding.cardMapelAgama to "nilai agama moral doa bersyukur ibadah adab",
+            binding.cardMapelSosial to "sosial emotional emosi senang sedih maaf terima kasih"
+        )
+
+        cards.forEach { (card, keywords) ->
+            val matches = query.isEmpty() || keywords.contains(query) || query.split(" ").all { keywords.contains(it) }
+            card.visibility = if (matches) View.VISIBLE else View.GONE
+        }
     }
 
     companion object {

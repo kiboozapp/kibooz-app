@@ -5,12 +5,15 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityDetailKelasBinding
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
@@ -23,6 +26,7 @@ class DetailKelasActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailKelasBinding
     private var activeClassId: String? = null
+    private var isTeacherRole: Boolean = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,6 +42,13 @@ class DetailKelasActivity : AppCompatActivity() {
         val kodeKelas = intent.getStringExtra("KODE_KELAS") ?: "SENI-A1"
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
         activeClassId = intent.getStringExtra("CLASS_ID")
+
+        // Role-Gating: Wali murid hanya memantau modul dan aktivitas, Guru dapat mengelola modul dan menyalin kode
+        val sessionUser = appContainer.authRepository.session.value?.user
+        isTeacherRole = sessionUser?.role == Role.GURU
+        binding.fabTambahModul.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
+        binding.btnSalinKode.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
+        binding.ivShareKelas.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
 
         setupViews(kodeKelas, namaKelas)
         setupDynamicMeetingSchedule(24)
@@ -220,9 +231,36 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.fabTambahModul.setOnClickListener {
             Toast.makeText(this, "Buka form tambah modul kelas baru", Toast.LENGTH_SHORT).show()
         }
+
+        // Interaktivitas kartu pertemuan modul
+        binding.cardModul1.setOnClickListener {
+            selectModule(1, binding.tvTitleModul1.text.toString(), binding.tvStatusModul1.text.toString())
+        }
+        binding.cardModul2.setOnClickListener {
+            selectModule(2, binding.tvTitleModul2.text.toString(), binding.tvStatusModul2.text.toString())
+        }
+        binding.cardModul3.setOnClickListener {
+            selectModule(3, binding.tvTitleModul3.text.toString(), binding.tvStatusModul3.text.toString())
+        }
+        binding.cardModul4.setOnClickListener {
+            selectModule(4, binding.tvTitleModul4.text.toString(), binding.tvStatusModul4.text.toString())
+        }
+    }
+
+    private fun selectModule(index: Int, title: String, status: String) {
+        Toast.makeText(this, "Pertemuan $index Dipilih: $title ($status)", Toast.LENGTH_SHORT).show()
     }
 
     private fun openPesertaKelas(namaKelas: String, kodeKelas: String? = null) {
+        if (!isTeacherRole) {
+            AlertDialog.Builder(this)
+                .setTitle("Informasi Kelas Si Kecil")
+                .setMessage("Kelas: $namaKelas\nStatus: Terdaftar Aktif di Kelas Si Kecil\nWali murid hanya memantau materi dan aktivitas belajar anak.")
+                .setPositiveButton("Tutup", null)
+                .show()
+            return
+        }
+
         val intent = Intent(this, PesertaKelasActivity::class.java).apply {
             putExtra("NAMA_KELAS", namaKelas)
             putExtra("CLASS_ID", activeClassId)
