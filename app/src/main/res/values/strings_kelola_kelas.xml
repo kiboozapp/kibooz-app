@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Daftar dan pengelolaan kelas oleh Guru -->
+    <string name="kelola_judul_polos">Daftar Kelas</string>
+    <string name="kelola_judul_daftar">Daftar Kelas (%1$d)</string>
+    <string name="kelola_cari_hint">Cari nama kelas atau kode</string>
+    <string name="kelola_cari_cd">Cari kelas</string>
+    <string name="kelola_tambah">+ Tambah Kelas</string>
+    <string name="kelola_memuat">Memuat kelas</string>
+    <string name="kelola_kosong_judul">Belum ada kelas</string>
+    <string name="kelola_kosong_isi">Tekan Tambah Kelas untuk membuat kelas pertama. Wali murid mendaftarkan anak dengan kode kelas.</string>
+    <string name="kelola_tidak_ada_hasil">Tidak ada kelas yang cocok dengan pencarian</string>
+    <string name="kelola_gagal_judul">Kelas belum bisa dimuat</string>
+    <string name="kelola_arsip_judul">Kelas Diarsipkan (%1$d)</string>
+    <string name="kelola_arsip_info">Kelas yang diarsipkan hanya bisa dibaca. Pulihkan kelas untuk mengubahnya lagi.</string>
+
+    <string name="kelola_anak">%1$d anak</string>
+    <string name="kelola_meta">%1$s • %2$s • %3$s</string>
+    <string name="kelola_status_buka">Pendaftaran dibuka</string>
+    <string name="kelola_status_tutup">Pendaftaran ditutup</string>
+    <string name="kelola_status_arsip">Diarsipkan</string>
+    <string name="kelola_kode_label">Kode kelas</string>
+    <string name="kelola_salin">Salin</string>
+    <string name="kelola_salin_cd">Salin kode kelas %1$s</string>
+    <string name="kelola_kode_tersalin">Kode kelas %1$s disalin</string>
+
+    <string name="kelola_aksi_kode_baru">Kode baru</string>
+    <string name="kelola_aksi_tutup">Tutup pendaftaran</string>
+    <string name="kelola_aksi_buka">Buka pendaftaran</string>
+    <string name="kelola_aksi_arsip">Arsipkan</string>
+    <string name="kelola_aksi_pulihkan">Pulihkan kelas</string>
+    <string name="kelola_aksi_kode_baru_cd">Buat kode baru untuk kelas %1$s</string>
+    <string name="kelola_aksi_tutup_cd">Tutup pendaftaran kelas %1$s</string>
+    <string name="kelola_aksi_buka_cd">Buka pendaftaran kelas %1$s</string>
+    <string name="kelola_aksi_arsip_cd">Arsipkan kelas %1$s</string>
+    <string name="kelola_aksi_pulihkan_cd">Pulihkan kelas %1$s</string>
+
+    <!-- Konfirmasi aksi yang mengubah akses -->
+    <string name="kelola_konfirmasi_kode_judul">Buat kode baru?</string>
+    <string name="kelola_konfirmasi_kode_isi">Kode lama kelas %1$s langsung berhenti berlaku. Wali murid yang belum mendaftar perlu kode baru, sedangkan yang sudah terdaftar tidak terpengaruh.</string>
+    <string name="kelola_konfirmasi_kode_ya">Buat kode baru</string>
+    <string name="kelola_konfirmasi_tutup_judul">Tutup pendaftaran?</string>
+    <string name="kelola_konfirmasi_tutup_isi">Wali murid yang memasukkan kode kelas %1$s akan ditolak sampai pendaftaran dibuka lagi. Anak yang sudah ada di kelas tidak terpengaruh.</string>
+    <string name="kelola_konfirmasi_tutup_ya">Tutup</string>
+    <string name="kelola_konfirmasi_buka_judul">Buka pendaftaran?</string>
+    <string name="kelola_konfirmasi_buka_isi">Wali murid yang punya kode kelas %1$s bisa mendaftarkan anak ke kelas ini lagi.</string>
+    <string name="kelola_konfirmasi_buka_ya">Buka</string>
+    <string name="kelola_konfirmasi_arsip_judul">Arsipkan kelas?</string>
+    <string name="kelola_konfirmasi_arsip_isi">Kelas %1$s menjadi hanya bisa dibaca. Kode kelas berhenti berlaku, dan catatan mood, forum serta video tidak bisa diubah sampai kelas dipulihkan. Hanya pemilik kelas yang bisa mengarsipkan.</string>
+    <string name="kelola_konfirmasi_arsip_ya">Arsipkan</string>
+    <string name="kelola_konfirmasi_pulihkan_judul">Pulihkan kelas?</string>
+    <string name="kelola_konfirmasi_pulihkan_isi">Kelas %1$s bisa diubah lagi dan mendapat kode kelas baru. Kelas ini dihitung lagi dalam batas 20 kelas aktif.</string>
+    <string name="kelola_konfirmasi_pulihkan_ya">Pulihkan</string>
+
+    <!-- Hasil aksi -->
+    <string name="kelola_hasil_dibuat">Kelas %1$s dibuat</string>
+    <string name="kelola_hasil_kode_baru">Kode baru kelas %1$s adalah %2$s. Bagikan lagi ke wali murid.</string>
+    <string name="kelola_hasil_dibuka">Pendaftaran kelas %1$s dibuka</string>
+    <string name="kelola_hasil_ditutup">Pendaftaran kelas %1$s ditutup</string>
+    <string name="kelola_hasil_diarsipkan">Kelas %1$s diarsipkan</string>
+    <string name="kelola_hasil_dipulihkan">Kelas %1$s dipulihkan dengan kode baru %2$s</string>
+
+    <!-- Dialog tambah kelas -->
+    <string name="kelola_dialog_judul">Tambah Kelas</string>
+    <string name="kelola_dialog_nama">Nama kelas</string>
+    <string name="kelola_dialog_tingkat">Tingkat (opsional)</string>
+    <string name="kelola_dialog_tahun">Tahun ajaran (opsional)</string>
+    <string name="kelola_dialog_info">Tingkat, tahun ajaran dan sekolah yang dikosongkan diisi otomatis oleh server.</string>
+    <string name="kelola_dialog_buat">Buat kelas</string>
+    <string name="kelola_dialog_membuat">Membuat kelas</string>
+
+    <!-- Validasi isian dan galat khusus aksi -->
+    <string name="kelola_nama_wajib">Nama kelas wajib diisi</string>
+    <string name="kelola_nama_panjang">Nama kelas paling banyak 50 karakter</string>
+    <string name="kelola_tingkat_panjang">Tingkat paling banyak 20 karakter</string>
+    <string name="kelola_tahun_panjang">Tahun ajaran paling banyak 20 karakter</string>
+    <string name="kelola_batas_buat">Anda sudah mengajar di 20 kelas aktif. Arsipkan satu kelas dulu sebelum membuat yang baru.</string>
+    <string name="kelola_batas_pulihkan">Kelas tidak bisa dipulihkan karena ada guru kelas ini yang sudah mengajar di 20 kelas aktif.</string>
+
+    <!-- Kode galat server yang dipakai layar ini, lewat ApiErrorMessages -->
+    <string name="error_class_archived">Kelas ini sudah diarsipkan dan hanya bisa dibaca</string>
+    <string name="error_class_not_archived">Kelas ini tidak sedang diarsipkan</string>
+</resources>
