@@ -262,9 +262,11 @@
                                 android:id="@+id/etEmail"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:enabled="false"
+                                android:cursorVisible="false"
+                                android:focusable="false"
                                 android:fontFamily="@font/baloo2"
                                 android:inputType="textEmailAddress"
+                                android:longClickable="false"
                                 android:textSize="14sp" />
 
                         </com.google.android.material.textfield.TextInputLayout>
