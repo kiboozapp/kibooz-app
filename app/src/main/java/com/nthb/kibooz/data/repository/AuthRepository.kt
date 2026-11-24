@@ -4,6 +4,7 @@ import com.nthb.kibooz.data.remote.ApiEnvelope
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.AuthData
+import com.nthb.kibooz.data.remote.ChangePasswordRequest
 import com.nthb.kibooz.data.remote.LoginRequest
 import com.nthb.kibooz.data.remote.LogoutRequest
 import com.nthb.kibooz.data.remote.RefreshRequest
@@ -119,6 +120,21 @@ class AuthRepository(
         }
         endSession()
     }
+
+    /**
+     * Mengganti kata sandi. Saat berhasil server mengakhiri semua sesi akun ini, termasuk yang di perangkat ini,
+     * dan refresh token-nya tidak berlaku lagi. Karena itu sesi lokal langsung dihapus tanpa memanggil logout,
+     * dan pengguna masuk lagi dengan kata sandi baru. Saat gagal sesi dibiarkan utuh.
+     */
+    suspend fun changePassword(currentPassword: String, newPassword: String): ApiResult<Unit> =
+        when (val result = safeApiCallEmpty(moshi) { api.changePassword(ChangePasswordRequest(currentPassword, newPassword)) }) {
+            is ApiResult.Success -> {
+                refreshMutex.withLock { endSession() }
+                result
+            }
+            is ApiResult.Failure -> result
+            is ApiResult.NetworkError -> result
+        }
 
     private suspend fun persist(session: Session) {
         try {
