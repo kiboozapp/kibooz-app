@@ -76,6 +76,20 @@ class LeaderboardViewModelTest {
     }
 
     @Test
+    fun `all ranks lists the podium first and then the rest`() {
+        val state = viewModel().state.value
+
+        assertEquals(listOf("Novita", "Desi"), state.allRanks.map { it.studentName })
+    }
+
+    @Test
+    fun `all ranks is empty before any data arrives`() {
+        api.reply = { throw IOException("offline") }
+
+        assertTrue(viewModel().state.value.allRanks.isEmpty())
+    }
+
+    @Test
     fun `it starts on the semester ranking and sends no period`() {
         val state = viewModel().state.value
 

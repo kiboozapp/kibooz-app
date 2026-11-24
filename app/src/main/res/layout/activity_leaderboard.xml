@@ -140,7 +140,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/img_avatar_guru" />
+                    android:src="@drawable/img_avatar_siswa" />
 
             </com.google.android.material.card.MaterialCardView>
 
@@ -403,6 +403,18 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginBottom="12dp"
                     android:background="@drawable/bg_dot_inactive" />
+
+                <TextView
+                    android:id="@+id/tvRankingsTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/baloo2"
+                    android:text="@string/leaderboard_semua_judul"
+                    android:textColor="@color/kibooz_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
 
                 <LinearLayout
                     android:id="@+id/llRankings"

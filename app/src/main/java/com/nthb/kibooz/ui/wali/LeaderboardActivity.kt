@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.wali
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -67,7 +68,7 @@ class LeaderboardActivity : AppCompatActivity() {
         val data = state.data
         if (data != null) {
             showPodium(data.podium)
-            showRankings(data.rankings)
+            showRankings(state.allRanks)
             binding.tvEmpty.isVisible = state.empty
         }
         // Tanpa data, misalnya saat rentang baru dimuat, daftar lama tidak boleh terlihat di bawah tab yang baru
@@ -116,14 +117,26 @@ class LeaderboardActivity : AppCompatActivity() {
         binding.ivCrown.isVisible = podium.isNotEmpty()
     }
 
-    private fun showRankings(rankings: List<RankEntry>) {
+    /**
+     * Daftar semua siswa di bawah podium, termasuk tiga besar. Baris anak milik Wali disorot. Balasan server tidak
+     * membawa id siswa, jadi barisnya dikenali dari nama, dan dua anak sekelas dengan nama yang persis sama ikut tersorot.
+     */
+    private fun showRankings(entries: List<RankEntry>) {
+        val highlight = intent.getStringExtra(EXTRA_HIGHLIGHT_NAME)
         val rows = binding.llRankings
         rows.removeAllViews()
-        rankings.forEach { entry ->
+        binding.tvRankingsTitle.isVisible = entries.isNotEmpty()
+
+        entries.forEach { entry ->
             val row = ItemRankingRowBinding.inflate(LayoutInflater.from(this), rows, false)
+            val isMine = highlight != null && entry.studentName == highlight
+
             row.tvRank.text = entry.rank.toString()
-            row.tvName.text = entry.studentName
+            row.tvName.text = if (isMine) getString(R.string.leaderboard_anakmu, entry.studentName) else entry.studentName
             row.tvPoints.text = getString(R.string.leaderboard_poin, entry.points)
+            if (isMine) {
+                row.root.backgroundTintList = ColorStateList.valueOf(HIGHLIGHT_ROW_COLOR)
+            }
             rows.addView(row.root)
         }
     }
@@ -131,7 +144,13 @@ class LeaderboardActivity : AppCompatActivity() {
     companion object {
         private val INACTIVE_TAB_COLOR = Color.parseColor("#C7B4F5")
 
+        /** Soft Lilac dari palet desain, latar baris anak milik Wali. */
+        private val HIGHLIGHT_ROW_COLOR = Color.parseColor("#EFEBFF")
+
         /** Id kelas yang ditampilkan. Tanpa extra ini server memilih kelas anak yang berlaku. */
         const val EXTRA_CLASS_ID = "CLASS_ID"
+
+        /** Nama anak milik Wali yang barisnya disorot. Opsional, Guru tidak mengirimnya. */
+        const val EXTRA_HIGHLIGHT_NAME = "HIGHLIGHT_NAME"
     }
 }

@@ -118,10 +118,17 @@ class DashboardWaliActivity : AppCompatActivity() {
         }
     }
 
-    /** Kelas anak yang sedang ditampilkan dikirim supaya Wali dengan beberapa anak melihat kelas yang benar. */
+    /**
+     * Kelas anak yang sedang ditampilkan dikirim supaya Wali dengan beberapa anak melihat kelas yang benar, dan namanya
+     * dikirim supaya barisnya disorot di daftar peringkat.
+     */
     private fun openLeaderboard() {
-        val classId = viewModel.state.value.dashboard?.student?.classId
-        startActivity(Intent(this, LeaderboardActivity::class.java).putExtra(LeaderboardActivity.EXTRA_CLASS_ID, classId))
+        val student = viewModel.state.value.dashboard?.student
+        startActivity(
+            Intent(this, LeaderboardActivity::class.java)
+                .putExtra(LeaderboardActivity.EXTRA_CLASS_ID, student?.classId)
+                .putExtra(LeaderboardActivity.EXTRA_HIGHLIGHT_NAME, student?.fullName)
+        )
     }
 
     /** Anak yang sedang ditampilkan, supaya statistiknya milik anak yang sama. */
