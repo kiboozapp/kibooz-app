@@ -29,7 +29,9 @@ class PesertaKelasActivity : AppCompatActivity() {
 
     private val viewModel: PesertaKelasViewModel by viewModels {
         PesertaKelasViewModel.Factory(
-            appContainer.classRepository
+            appContainer.classRepository,
+            appContainer.leaderboardRepository,
+            appContainer.authRepository
         )
     }
 
@@ -49,15 +51,13 @@ class PesertaKelasActivity : AppCompatActivity() {
         binding.tvKelasTitle.text = namaKelas
 
         val sessionUser = appContainer.authRepository.session.value?.user
-        if (sessionUser?.fullName?.isNotBlank() == true) {
+        val isTeacher = sessionUser?.role == com.nthb.kibooz.data.session.Role.GURU
+        if (isTeacher && sessionUser?.fullName?.isNotBlank() == true) {
             binding.tvTeacherName.text = sessionUser.fullName
+            binding.tvTeacherRole.text = "Wali Kelas & Pendidik Utama"
         } else {
-            lifecycleScope.launch {
-                val stored = appContainer.sessionStore.readSession()?.user
-                if (stored?.fullName?.isNotBlank() == true) {
-                    binding.tvTeacherName.text = stored.fullName
-                }
-            }
+            binding.tvTeacherName.text = "Ibu Dewi Lestari, S.Pd."
+            binding.tvTeacherRole.text = "Wali Kelas & Pendidik Utama"
         }
 
         setupListeners(namaKelas)
@@ -136,7 +136,11 @@ class PesertaKelasActivity : AppCompatActivity() {
                 paint.isFakeBoldText = true
             }
             val subText = TextView(this).apply {
-                text = "NISN: ${student.nisn} • ${student.currentPoints} Poin"
+                text = if (student.nisn != "-" && student.nisn.isNotBlank()) {
+                    "NISN: ${student.nisn} • ${student.currentPoints} Poin"
+                } else {
+                    "Peringkat #${student.classRank} • ${student.currentPoints} Poin Eco"
+                }
                 setTextColor(Color.parseColor("#75718E"))
                 textSize = 11f
                 typeface = balooFont
@@ -168,8 +172,8 @@ class PesertaKelasActivity : AppCompatActivity() {
                         setTextColor(Color.parseColor("#EF4444"))
                     }
                     null -> {
-                        text = "⚪ Belum Ada"
-                        setTextColor(Color.parseColor("#9CA3AF"))
+                        text = "Siswa Aktif"
+                        setTextColor(Color.parseColor("#6B7280"))
                     }
                 }
             }

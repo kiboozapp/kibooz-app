@@ -88,46 +88,34 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun updatePesertaBanner(studentCount: Int) {
-        val childClassName = intent.getStringExtra("CHILD_CLASS_NAME")
-        if (!isTeacherRole) {
-            binding.tvTitleDaftarPeserta.text = "Status Kelas Si Kecil"
-            binding.tvSubDaftarPeserta.text = if (!childClassName.isNullOrBlank()) {
-                "Terdaftar Aktif • $childClassName"
-            } else {
-                "Terdaftar Aktif di Kelas Si Kecil"
-            }
-        } else {
-            binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
-            binding.tvSubDaftarPeserta.text = "1 Guru Pengajar & $studentCount Siswa Terdaftar"
-        }
+        binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
+        val countText = if (studentCount > 0) "$studentCount Siswa Terdaftar" else "24 Siswa Terdaftar"
+        binding.tvSubDaftarPeserta.text = "1 Guru Pengajar & $countText"
     }
 
     private fun setupDynamicMeetingSchedule(studentCount: Int) {
         val calendar = Calendar.getInstance()
         val dateFormat = SimpleDateFormat("d MMM yyyy", Locale("id", "ID"))
         val dateToday = dateFormat.format(calendar.time)
-        val countText = if (studentCount > 0) "$studentCount Siswa Terdaftar" else "24 Siswa Terdaftar"
 
         // Pertemuan 3: Terjadwal sebagai pertemuan aktif hari ini
-        binding.tvStatusModul3.text = "Sedang Berlangsung • $dateToday • $countText"
+        binding.tvStatusModul3.text = "Sedang Berlangsung • $dateToday • Sesi Aktif Hari Ini"
 
         // Pertemuan 2: Selesai 7 hari lalu
         calendar.add(Calendar.DAY_OF_YEAR, -7)
         val dateP2 = dateFormat.format(calendar.time)
-        val hadirP2 = if (studentCount > 0) "${(studentCount * 0.95).toInt().coerceAtLeast(1)} Siswa Hadir" else "23 Siswa Hadir"
-        binding.tvStatusModul2.text = "Selesai • $dateP2 • $hadirP2"
+        binding.tvStatusModul2.text = "Selesai • $dateP2 • Materi Diselesaikan"
 
         // Pertemuan 1: Selesai 14 hari lalu
         calendar.add(Calendar.DAY_OF_YEAR, -7)
         val dateP1 = dateFormat.format(calendar.time)
-        val hadirP1 = if (studentCount > 0) "${(studentCount * 0.92).toInt().coerceAtLeast(1)} Siswa Hadir" else "22 Siswa Hadir"
-        binding.tvStatusModul1.text = "Selesai • $dateP1 • $hadirP1"
+        binding.tvStatusModul1.text = "Selesai • $dateP1 • Materi Diselesaikan"
 
         // Pertemuan 4: Mendatang 7 hari ke depan
         calendar.time = Date()
         calendar.add(Calendar.DAY_OF_YEAR, 7)
         val dateP4 = dateFormat.format(calendar.time)
-        binding.tvStatusModul4.text = "Mendatang • $dateP4"
+        binding.tvStatusModul4.text = "Mendatang • $dateP4 • Terjadwal"
 
         highlightSelectedMeeting(selectedMeetingIndex)
     }
@@ -158,10 +146,9 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun setupViews(kodeKelas: String, namaKelas: String) {
-        val childClassName = intent.getStringExtra("CHILD_CLASS_NAME")
         binding.tvTitleBar.text = "Detail $namaKelas"
         binding.tvNamaKelas.text = namaKelas
-        binding.tvKodeKelas.text = if (!isTeacherRole && !childClassName.isNullOrBlank()) childClassName else kodeKelas
+        binding.tvKodeKelas.text = kodeKelas
         binding.tabModul.text = "Modul (4)"
         updatePesertaBanner(24)
 
@@ -292,15 +279,6 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun openPesertaKelas(namaKelas: String, kodeKelas: String? = null) {
-        if (!isTeacherRole) {
-            AlertDialog.Builder(this)
-                .setTitle("Informasi Kelas Si Kecil")
-                .setMessage("Kelas: $namaKelas\nStatus: Terdaftar Aktif di Kelas Si Kecil\nWali murid hanya memantau materi dan aktivitas belajar anak.")
-                .setPositiveButton("Tutup", null)
-                .show()
-            return
-        }
-
         val intent = Intent(this, PesertaKelasActivity::class.java).apply {
             putExtra("NAMA_KELAS", namaKelas)
             putExtra("CLASS_ID", activeClassId)

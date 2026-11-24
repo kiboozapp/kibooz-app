@@ -419,67 +419,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Timeline Item 4: Kehadiran Kelas -->
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:cardBackgroundColor="@color/kibooz_white"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
-
-                        <ImageView
-                            android:layout_width="22dp"
-                            android:layout_height="22dp"
-                            android:src="@drawable/ic_calendar"
-                            app:tint="#DD6B20" />
-
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Kehadiran Kelas Tematik"
-                            android:textColor="#C05621"
-                            android:textSize="14sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Mingguan"
-                            android:textColor="@color/kibooz_text_muted"
-                            android:textSize="11sp" />
-
-                    </LinearLayout>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:fontFamily="@font/baloo2"
-                        android:text="Status Kehadiran: Hadir Aktif di Pertemuan Pembelajaran Terakhir"
-                        android:textColor="@color/kibooz_text_dark"
-                        android:textSize="13sp" />
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>

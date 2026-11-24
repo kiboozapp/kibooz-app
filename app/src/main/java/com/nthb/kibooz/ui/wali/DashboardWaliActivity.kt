@@ -233,10 +233,5 @@ class DashboardWaliActivity : AppCompatActivity() {
                     .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.dashboard?.student?.id)
             )
         }
-
-        // Notifikasi
-        binding.ivNotification.setOnClickListener {
-            startActivity(Intent(this, NotifikasiWaliActivity::class.java))
-        }
     }
 }
