@@ -12,8 +12,8 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:fillViewport="true"
-        android:paddingBottom="100dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:paddingBottom="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/clBottomNavigation"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
@@ -31,7 +31,7 @@
                 <View
                     android:id="@+id/viewHeaderBg"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp"
+                    android:layout_height="156dp"
                     android:background="@drawable/bg_header_curved_purple"
                     app:layout_constraintTop_toTopOf="parent" />
 
@@ -56,7 +56,7 @@
                     android:id="@+id/cardAvatar"
                     android:layout_width="96dp"
                     android:layout_height="96dp"
-                    android:layout_marginTop="120dp"
+                    android:layout_marginTop="96dp"
                     app:cardCornerRadius="48dp"
                     app:cardElevation="8dp"
                     app:strokeColor="@color/kibooz_white"
@@ -110,7 +110,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="52dp"
                     android:layout_marginHorizontal="24dp"
-                    android:layout_marginTop="18dp"
+                    android:layout_marginTop="14dp"
                     android:backgroundTint="@color/kibooz_primary_purple"
                     android:fontFamily="@font/baloo2"
                     android:insetTop="0dp"
@@ -136,7 +136,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="24dp"
+                android:layout_marginTop="16dp"
                 app:cardBackgroundColor="@color/kibooz_white"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"
@@ -153,7 +153,7 @@
                     <LinearLayout
                         android:id="@+id/menuUbahSandi"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="52dp"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
@@ -196,7 +196,7 @@
                     <LinearLayout
                         android:id="@+id/menuSyaratKetentuan"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="52dp"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
@@ -239,7 +239,7 @@
                     <LinearLayout
                         android:id="@+id/menuKebijakanPrivasi"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="52dp"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
@@ -282,7 +282,7 @@
                     <LinearLayout
                         android:id="@+id/menuPanduan"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="52dp"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
@@ -325,7 +325,7 @@
                     <LinearLayout
                         android:id="@+id/menuKeluar"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="52dp"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
@@ -361,7 +361,7 @@
                     <LinearLayout
                         android:id="@+id/menuHapusAkun"
                         android:layout_width="match_parent"
-                        android:layout_height="56dp"
+                        android:layout_height="52dp"
                         android:background="?attr/selectableItemBackground"
                         android:clickable="true"
                         android:focusable="true"
