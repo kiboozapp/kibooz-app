@@ -1,8 +1,10 @@
 package com.nthb.kibooz.ui.wali
 
+import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -15,6 +17,7 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.RecommendedGuidance
 import com.nthb.kibooz.databinding.ActivityDashboardWaliBinding
+import com.nthb.kibooz.notification.ScanReminderNotifier
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
@@ -30,6 +33,9 @@ class DashboardWaliActivity : AppCompatActivity() {
         WaliDashboardViewModel.Factory(appContainer.waliRepository, appContainer.classRepository, appContainer.trashRepository)
     }
 
+    // Harus didaftarkan sebelum activity STARTED, jadi sebagai properti dan bukan di dalam klik
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardWaliBinding.inflate(layoutInflater)
@@ -43,11 +49,19 @@ class DashboardWaliActivity : AppCompatActivity() {
         )
 
         setupListeners()
+        requestNotificationPermission()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::render)
             }
+        }
+    }
+
+    /** Izin pengingat sisa scan pukul 12.00 (Android 13 ke atas). Jika ditolak, pengingat dilewati diam-diam. */
+    private fun requestNotificationPermission() {
+        if (!ScanReminderNotifier.hasPermission(this)) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 

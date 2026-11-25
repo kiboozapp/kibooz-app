@@ -264,4 +264,8 @@
     <string name="review_tambah_berhasil">%1$s ditambahkan</string>
     <string name="senter_nyalakan">Nyalakan senter</string>
     <string name="senter_matikan">Matikan senter</string>
+    <string name="notif_scan_channel_nama">Pengingat scan sampah</string>
+    <string name="notif_scan_channel_deskripsi">Pengingat siang jika anak masih punya sisa scan sampah hari ini</string>
+    <string name="notif_scan_judul">Masih ada kesempatan scan sampah hari ini!</string>
+    <string name="notif_scan_baris">%1$s: sisa %2$d scan</string>
 </resources>
