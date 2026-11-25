@@ -38,6 +38,7 @@
     <!-- Waste Colors -->
     <color name="waste_organic">#2E7D32</color>
     <color name="waste_anorganic">#C62828</color>
+    <color name="waste_b3">#E65100</color>
 
     <!-- Border & Dividers -->
     <color name="kibooz_border">#E2E8F0</color>
