@@ -107,6 +107,9 @@ dependencies {
     // Mendeteksi aplikasi masuk ke latar belakang, untuk pengingat demo setelah aplikasi ditutup
     implementation("androidx.lifecycle:lifecycle-process:2.8.7")
 
+    // Confetti di podium peringkat saat anak Wali masuk 3 besar
+    implementation("nl.dionsegijn:konfetti-xml:2.0.4")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
