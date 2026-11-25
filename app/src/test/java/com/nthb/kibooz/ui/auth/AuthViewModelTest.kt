@@ -226,4 +226,40 @@ class AuthViewModelTest {
         settled()
         assertTrue(server.requestCount <= 1)
     }
+
+    @Test
+    fun `a right password on an unverified account opens the code screen and shows no error`() {
+        server.enqueue(json(failureJson("EMAIL_NOT_VERIFIED"), 403))
+
+        viewModel.login(" ani@example.com ", "secret123", Role.WALI)
+        val state = settled()
+
+        assertEquals("ani@example.com", state.verificationEmail)
+        assertNull(state.error)
+        assertNull(state.outage)
+        assertNull(state.signedIn)
+        assertNull(store.session)
+    }
+
+    @Test
+    fun `the code screen request is cleared once it was opened so a return does not open it again`() {
+        server.enqueue(json(failureJson("EMAIL_NOT_VERIFIED"), 403))
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+        assertNotNull(settled().verificationEmail)
+
+        viewModel.verificationOpened()
+
+        assertNull(viewModel.state.value.verificationEmail)
+    }
+
+    @Test
+    fun `other 403 answers stay general errors`() {
+        server.enqueue(json(failureJson("AUTH_FORBIDDEN"), 403))
+
+        viewModel.login("ani@example.com", "secret123", Role.WALI)
+        val state = settled()
+
+        assertNull(state.verificationEmail)
+        assertEquals(R.string.error_forbidden, state.error)
+    }
 }

@@ -28,7 +28,9 @@ data class LoginUiState(
     /** Terisi jika server tidak terjangkau. Layar menampilkan kartu gangguan, bukan [error], dan pengguna yang mencoba lagi. */
     val outage: OutageKind? = null,
     /** Terisi setelah login berhasil. Peran yang dipakai untuk membuka portal berasal dari sini, bukan dari pilihan di layar. */
-    val signedIn: SessionUser? = null
+    val signedIn: SessionUser? = null,
+    /** Terisi saat kata sandi benar tetapi emailnya belum diverifikasi (403 `EMAIL_NOT_VERIFIED`). Layar membuka layar kode. */
+    val verificationEmail: String? = null
 )
 
 class AuthViewModel(
@@ -58,7 +60,7 @@ class AuthViewModel(
                 delay(busyRetryMillis)
                 result = repository.login(email, password, role)
             }
-            _state.value = result.toState()
+            _state.value = result.toState(email.trim())
         }
     }
 
@@ -66,7 +68,12 @@ class AuthViewModel(
         _state.value = _state.value.copy(error = null)
     }
 
-    private suspend fun ApiResult<SessionUser>.toState(): LoginUiState = when (this) {
+    /** Layar kode sudah dibuka. Tanpa ini layar login membukanya lagi setiap kali kembali tampil. */
+    fun verificationOpened() {
+        _state.value = _state.value.copy(verificationEmail = null)
+    }
+
+    private suspend fun ApiResult<SessionUser>.toState(email: String): LoginUiState = when (this) {
         is ApiResult.Success ->
             if (data.role == Role.GURU || data.role == Role.WALI) {
                 LoginUiState(signedIn = data)
@@ -74,6 +81,12 @@ class AuthViewModel(
                 // ADMIN bisa login tetapi belum punya portal di aplikasi, jadi sesinya tidak dipertahankan
                 repository.logout()
                 LoginUiState(error = R.string.error_forbidden)
+            }
+        is ApiResult.Failure ->
+            if (errorCode == "EMAIL_NOT_VERIFIED") {
+                LoginUiState(verificationEmail = email)
+            } else {
+                LoginUiState(error = errorMessageRes(), outage = outageKind())
             }
         // Kata sandi tidak disimpan untuk dikirim ulang sendiri, jadi tidak ada hitung mundur: cukup tampilkan kartunya
         else -> LoginUiState(error = errorMessageRes(), outage = outageKind())

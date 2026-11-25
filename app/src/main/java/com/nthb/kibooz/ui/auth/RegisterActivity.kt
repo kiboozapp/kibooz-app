@@ -92,6 +92,14 @@ class RegisterActivity : AppCompatActivity() {
             viewModel.errorShown()
         }
         state.signedIn?.let(::openPortal)
+        state.verification?.let(::openVerification)
+    }
+
+    private fun openVerification(pending: PendingVerification) {
+        // Layar daftar ditutup supaya tombol kembali dari layar kode mengantar ke login, bukan ke formulir yang sudah terpakai
+        val source = if (pending.sent) VerifySource.REGISTERED else VerifySource.REGISTERED_MAIL_NOT_SENT
+        startActivity(VerifikasiEmailActivity.intent(this, pending.email, source, role, pending.resendAfterSeconds, pending.deviceToken))
+        finish()
     }
 
     private fun openPortal(user: SessionUser) {
