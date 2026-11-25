@@ -35,4 +35,8 @@ object TimeFormat {
         val date = parseIso(iso) ?: return null
         return SimpleDateFormat("d MMM yyyy, HH:mm", LOCALE_ID).apply { timeZone = zone }.format(date)
     }
+
+    /** Tanggal ringkas untuk header beranda Guru dan Wali, misal "Rab, 25 Nov 2026". */
+    fun compactHomeDate(date: Date = Date(), zone: TimeZone = TimeZone.getDefault()): String =
+        SimpleDateFormat("EEE, d MMM yyyy", LOCALE_ID).apply { timeZone = zone }.format(date)
 }

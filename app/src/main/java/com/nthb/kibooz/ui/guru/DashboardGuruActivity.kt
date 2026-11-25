@@ -21,10 +21,8 @@ import com.nthb.kibooz.ui.common.PulseAnimator
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
-import java.text.SimpleDateFormat
+import com.nthb.kibooz.util.TimeFormat
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -63,7 +61,7 @@ class DashboardGuruActivity : AppCompatActivity() {
 
         setupListeners()
 
-        binding.tvDate.text = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID")).format(Date())
+        binding.tvDate.text = TimeFormat.compactHomeDate()
         binding.tvGreeting.setText(greetingRes(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)))
 
         binding.connectionStatus.onRetry = { viewModel.load() }

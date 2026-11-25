@@ -115,29 +115,55 @@
                         android:layout_weight="1"
                         android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                        <LinearLayout
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
-                            android:text="Halo Ayah &amp; Bunda,"
-                            android:textColor="#E0DBF5"
-                            android:textSize="13sp" />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginEnd="8dp"
+                                android:layout_weight="1"
+                                android:ellipsize="end"
+                                android:fontFamily="@font/baloo2"
+                                android:maxLines="1"
+                                android:text="Halo Ayah &amp; Bunda,"
+                                android:textColor="#E0DBF5"
+                                android:textSize="13sp" />
+
+                            <TextView
+                                android:id="@+id/tvDate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo2"
+                                android:maxLines="1"
+                                android:text=""
+                                android:textColor="#E0DBF5"
+                                android:textSize="12sp" />
+
+                        </LinearLayout>
 
                         <TextView
                             android:id="@+id/tvNamaSiswa"
-                            android:layout_width="wrap_content"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:ellipsize="end"
                             android:fontFamily="@font/baloo2"
+                            android:maxLines="2"
                             android:text="Amelia Siti Zahra"
                             android:textColor="@color/kibooz_white"
                             android:textSize="20sp"
                             android:textStyle="bold" />
 
                         <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/baloo2"
                             android:id="@+id/tvKelasNisn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/baloo2"
+                            android:maxLines="2"
                             android:text="…"
                             android:textColor="#E0DBF5"
                             android:textSize="12sp" />

@@ -43,6 +43,7 @@ class DashboardWaliActivity : AppCompatActivity() {
         )
 
         setupListeners()
+        binding.tvDate.text = TimeFormat.compactHomeDate()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
