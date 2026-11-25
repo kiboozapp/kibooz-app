@@ -263,6 +263,17 @@
 
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/tvNisnHintGuru"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:text="@string/peserta_nisn_petunjuk_guru"
+                android:textColor="#6B6586"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
             <!-- Students List Container Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardStudentsList"

@@ -50,6 +50,7 @@ private fun messageForCode(code: String): Int? = when (code) {
         "EMAIL_SEND_FAILED" -> R.string.verifikasi_error_kirim_gagal
         "EMAIL_ALREADY_REGISTERED" -> R.string.error_email_taken
         "NISN_ALREADY_REGISTERED" -> R.string.error_nisn_taken
+        "NISN_NOT_SET" -> R.string.error_nisn_not_set
         "NIP_ALREADY_REGISTERED" -> R.string.error_nip_taken
         "CHILD_LIMIT_REACHED" -> R.string.error_child_limit
         "CLASS_CODE_NOT_FOUND" -> R.string.error_class_code_not_found

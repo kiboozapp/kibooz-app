@@ -11,6 +11,7 @@ import com.nthb.kibooz.data.remote.CreateClassRequest
 import com.nthb.kibooz.data.remote.GuruClassApi
 import com.nthb.kibooz.data.remote.JoinCodeData
 import com.nthb.kibooz.data.remote.JoiningData
+import com.nthb.kibooz.data.remote.NisnVerificationData
 import com.nthb.kibooz.data.remote.OutageKind
 import com.nthb.kibooz.data.remote.SetJoiningRequest
 import com.nthb.kibooz.data.repository.ClassManagementRepository
@@ -93,6 +94,12 @@ class KelolaKelasViewModelTest {
             restored += classId
             return restoreReply()
         }
+
+        override suspend fun verifyStudentNisn(classId: String, studentId: String): Response<ApiEnvelope<NisnVerificationData>> =
+            error("not used")
+
+        override suspend fun unverifyStudentNisn(classId: String, studentId: String): Response<ApiEnvelope<NisnVerificationData>> =
+            error("not used")
     }
 
     private val classApi = FakeClassApi()
