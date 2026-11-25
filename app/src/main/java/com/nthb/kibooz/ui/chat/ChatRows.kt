@@ -49,7 +49,10 @@ fun buildChatRows(
     zone: TimeZone = TimeZone.getDefault()
 ): List<ChatRow> {
     val rows = mutableListOf<ChatRow>()
-    if (state.hasMoreOlder) rows += OlderRow(state.loadingOlder, state.olderError)
+    // Baris ini hanya ada saat memuat atau saat galat, selebihnya pesan lama dimuat sendiri ketika layar digulir ke atas
+    if (state.hasMoreOlder && (state.loadingOlder || state.olderError != null)) {
+        rows += OlderRow(state.loadingOlder, state.olderError)
+    }
 
     var lastDay: String? = null
     for (message in state.timeline.messages) {

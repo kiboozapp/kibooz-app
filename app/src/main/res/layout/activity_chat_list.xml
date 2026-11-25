@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/clRootChatList"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kibooz_background">
+
+    <!-- Top App Bar -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:background="@drawable/bg_topbar_purple_gradient"
+        android:paddingHorizontal="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/kembali"
+            android:padding="11dp"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:ellipsize="end"
+            android:fontFamily="@font/baloo2"
+            android:maxLines="1"
+            android:text="@string/chat_judul"
+            android:textColor="@color/kibooz_white"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ivRefresh"
+            app:layout_constraintStart_toEndOf="@+id/ivBack"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageView
+            android:id="@+id/ivRefresh"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/chat_muat_ulang_cd"
+            android:padding="12dp"
+            android:src="@drawable/ic_refresh"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/kibooz_white" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Dua tab: percakapan yang sudah ada, dan pilihan untuk memulai yang baru -->
+    <LinearLayout
+        android:id="@+id/llTabs"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_chat_tabs_container"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@+id/clTopBar">
+
+        <TextView
+            android:id="@+id/tabPercakapan"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_chat_tab_active"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:minHeight="48dp"
+            android:text="@string/chat_tab_percakapan"
+            android:textColor="@color/kibooz_white"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tabBaru"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_chat_tab_idle"
+            android:clickable="true"
+            android:focusable="true"
+            android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:minHeight="48dp"
+            android:text="@string/chat_tab_baru"
+            android:textColor="@color/chat_tab_idle_text"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <!-- Muat ulang di belakang layar selagi daftar lama tetap tampil -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progressTop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:indeterminate="true"
+        android:visibility="invisible"
+        app:layout_constraintTop_toBottomOf="@+id/llTabs"
+        app:trackColor="@color/kibooz_lavender" />
+
+    <!-- Gangguan server: offline atau layanan tidak tersedia (FE-12) -->
+    <com.nthb.kibooz.ui.common.ConnectionStatusView
+        android:id="@+id/connectionStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@+id/progressTop" />
+
+    <FrameLayout
+        android:id="@+id/flBody"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/connectionStatus">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvList"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="24dp"
+            android:paddingTop="4dp"
+            android:visibility="gone" />
+
+        <!-- Memuat -->
+        <LinearLayout
+            android:id="@+id/llMemuat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:contentDescription="@string/chat_memuat"
+                android:indeterminate="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/baloo2"
+                android:text="@string/chat_memuat"
+                android:textColor="@color/kibooz_text_secondary"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <!-- Gagal dimuat -->
+        <LinearLayout
+            android:id="@+id/llGagal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="32dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo2"
+                android:text="@string/chat_gagal_judul"
+                android:textColor="@color/kibooz_text_dark"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvGagalPesan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:textColor="@color/kibooz_text_secondary"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCobaLagi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/baloo2"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="48dp"
+                android:paddingHorizontal="24dp"
+                android:text="@string/coba_lagi"
+                android:textAllCaps="false"
+                android:textColor="@color/kibooz_white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/kibooz_primary_purple"
+                app:cornerRadius="24dp" />
+
+        </LinearLayout>
+
+        <!-- Kosong -->
+        <LinearLayout
+            android:id="@+id/llKosong"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="32dp"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvKosongJudul"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo2"
+                android:textColor="@color/kibooz_text_dark"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvKosongIsi"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:textColor="@color/kibooz_text_secondary"
+                android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnMulai"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/baloo2"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:minHeight="48dp"
+                android:paddingHorizontal="24dp"
+                android:text="@string/chat_kosong_tombol"
+                android:textAllCaps="false"
+                android:textColor="@color/kibooz_white"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/kibooz_primary_purple"
+                app:cornerRadius="24dp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

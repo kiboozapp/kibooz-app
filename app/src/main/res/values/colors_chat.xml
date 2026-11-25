@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Teks tab yang tidak dipilih di atas latar lavender. Rasio kontras 8,7:1 -->
+    <color name="chat_tab_idle_text">#472F91</color>
+    <!-- Teks galat pada kartu putih dan teks keterangan pesan sendiri di atas gelembung ungu. Rasio kontras 6,5:1 dan 5,5:1 -->
+    <color name="chat_error_text">#B91C1C</color>
+    <color name="chat_own_meta_text">#E0DBF5</color>
+    <!-- Teks pita koneksi terputus di atas latar krem. Rasio kontras 6,7:1 -->
+    <color name="chat_offline_text">#92400E</color>
+    <color name="chat_offline_background">#FFF8E7</color>
+    <!-- Keterangan kartu pintu masuk chat di atas latar lavender muda. Rasio kontras 6,7:1 -->
+    <color name="chat_entry_subtitle">#4B5563</color>
+    <!-- Garis kotak tulis, rasio kontras 3,9:1 terhadap putih -->
+    <color name="chat_input_stroke">#7C8196</color>
+</resources>

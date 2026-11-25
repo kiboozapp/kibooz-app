@@ -158,10 +158,14 @@ class ChatViewModel(
 
     // Riwayat
 
-    /** Memuat pesan yang lebih lama. Dipanggil saat layar digulir dekat ke pesan teratas, dan saat baris galatnya ditekan. */
-    fun loadOlder() {
+    /**
+     * Memuat pesan yang lebih lama. Dipanggil otomatis saat layar digulir dekat ke pesan teratas, dan dengan
+     * [retry] true saat pengguna menekan baris galat. Setelah galat, panggilan otomatis tidak mencoba lagi sendiri.
+     */
+    fun loadOlder(retry: Boolean = false) {
         val snapshot = _state.value
         if (!snapshot.loaded || !snapshot.hasMoreOlder || snapshot.loadingOlder) return
+        if (snapshot.olderError != null && !retry) return
         val before = snapshot.timeline.oldestId ?: return
 
         _state.update { it.copy(loadingOlder = true, olderError = null) }
@@ -250,19 +254,21 @@ class ChatViewModel(
     // Kirim
 
     /**
-     * Mengirim [text] sebagai pesan baru. Diabaikan jika kosong, jika percakapan tertutup, atau jika masih ada pesan
-     * sendiri yang menunggu atau gagal.
+     * Mengirim [text] sebagai pesan baru. Mengembalikan true jika pesan diterima untuk dikirim, supaya layar baru
+     * mengosongkan kotak tulis saat itu. Ditolak jika kosong, terlalu panjang, jika percakapan tertutup, atau jika
+     * masih ada pesan sendiri yang menunggu atau gagal.
      */
-    fun send(text: String) {
+    fun send(text: String): Boolean {
         val body = text.trim()
         val snapshot = _state.value
-        if (body.isEmpty() || !snapshot.canCompose) return
+        if (body.isEmpty() || !snapshot.canCompose) return false
         if (body.length > MAX_BODY_LENGTH) {
             _state.update { it.copy(notice = ChatNotice(R.string.chat_error_terlalu_panjang)) }
-            return
+            return false
         }
 
         launchSend(LocalMessage(PendingMessage(body), LocalStatus.Sending()))
+        return true
     }
 
     /** Mengirim ulang pesan yang gagal dengan kunci yang sama. */

@@ -194,6 +194,15 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 19d. Chat guru dan wali: daftar pesan dan satu percakapan -->
+        <activity
+            android:name=".ui.chat.ChatListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.chat.ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- 18. AI Camera Overlay: Scan Mood Kelas (Guru) -->
         <activity
             android:name=".ui.camera.CameraScanMoodActivity"

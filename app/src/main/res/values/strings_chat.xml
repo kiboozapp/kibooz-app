@@ -6,9 +6,79 @@
     <string name="error_chat_message_not_found">Pesan tidak ditemukan, mungkin sudah dihapus</string>
     <string name="error_chat_sending_closed">Percakapan ini sudah ditutup, pesan baru tidak bisa dikirim</string>
 
+    <!-- Pintu masuk dari dasbor -->
+    <string name="chat_masuk_judul_guru">Pesan dengan wali murid</string>
+    <string name="chat_masuk_isi_guru">Kirim pesan ke wali murid atau ke ruang kelas.</string>
+    <string name="chat_masuk_judul_wali">Pesan dengan guru</string>
+    <string name="chat_masuk_isi_wali">Kirim pesan ke guru kelas atau ke ruang kelas.</string>
+
+    <!-- Daftar pesan -->
+    <string name="chat_judul">Pesan</string>
+    <string name="chat_muat_ulang_cd">Muat ulang pesan</string>
+    <string name="chat_tab_percakapan">Percakapan</string>
+    <string name="chat_tab_baru">Mulai baru</string>
+    <string name="chat_memuat">Memuat pesan...</string>
+    <string name="chat_gagal_judul">Pesan gagal dimuat</string>
+    <string name="chat_kosong_judul">Belum ada percakapan</string>
+    <string name="chat_kosong_isi">Percakapan muncul di sini setelah ada pesan pertama.</string>
+    <string name="chat_kosong_tombol">Mulai percakapan</string>
+    <string name="chat_baru_kosong_judul">Belum ada yang bisa dihubungi</string>
+    <string name="chat_baru_kosong_guru">Wali murid muncul di sini setelah anaknya bergabung ke kelas yang Anda ajar.</string>
+    <string name="chat_baru_kosong_wali">Guru muncul di sini setelah anak Anda bergabung ke sebuah kelas.</string>
+    <string name="chat_bagian_ruang_kelas">Ruang kelas</string>
+    <string name="chat_bagian_kontak">Kontak</string>
+    <string name="chat_ruang_judul">Ruang kelas %1$s</string>
+    <string name="chat_ruang_isi">Guru dan wali murid satu kelas</string>
+    <string name="chat_membuka">Membuka percakapan</string>
+    <string name="chat_hanya_baca">Hanya baca</string>
+    <string name="chat_akun_dihapus">Akun dihapus</string>
+    <string name="chat_belum_dibaca_cd">%1$d pesan belum dibaca</string>
+    <string name="chat_pratinjau_dihapus">Pesan dihapus</string>
+    <string name="chat_pratinjau_foto">Foto</string>
+    <string name="chat_pratinjau_video">Video</string>
+    <string name="chat_pratinjau_lampiran">Lampiran</string>
+    <string name="chat_pratinjau_anda">Anda: %1$s</string>
+    <string name="chat_pratinjau_nama">%1$s: %2$s</string>
+
     <!-- Percakapan -->
+    <string name="chat_subjudul_ruang">Guru dan wali murid satu kelas</string>
+    <string name="chat_subjudul_kosong">Percakapan</string>
+    <string name="chat_peran_guru">Guru</string>
+    <string name="chat_peran_wali">Wali murid</string>
+    <string name="chat_offline">Koneksi terputus. Pesan baru dicoba lagi otomatis.</string>
+    <string name="chat_memuat_pesan">Memuat percakapan...</string>
+    <string name="chat_percakapan_gagal">Percakapan gagal dimuat</string>
+    <string name="chat_kosong_pesan_judul">Belum ada pesan</string>
+    <string name="chat_kosong_pesan_bisa">Tulis pesan pertama di kotak bawah.</string>
+    <string name="chat_kosong_pesan_tutup">Percakapan ini hanya bisa dibaca.</string>
+    <string name="chat_tulis_hint">Tulis pesan</string>
+    <string name="chat_kirim_cd">Kirim pesan</string>
     <string name="chat_error_terlalu_panjang">Pesan terlalu panjang, paling banyak 4000 huruf</string>
     <string name="chat_ditutup_kelas_arsip">Kelas ini sudah diarsipkan, jadi ruang kelasnya hanya bisa dibaca.</string>
     <string name="chat_ditutup_akun_dihapus">Akun lawan bicara sudah dihapus, jadi percakapan ini hanya bisa dibaca.</string>
     <string name="chat_ditutup_tidak_sekelas">Kalian tidak lagi berada di kelas yang sama, jadi percakapan ini hanya bisa dibaca.</string>
+
+    <!-- Gelembung pesan -->
+    <string name="chat_anda">Anda</string>
+    <string name="chat_pesan_dihapus">Pesan ini dihapus</string>
+    <string name="chat_meta_dibaca">%1$s, dibaca</string>
+    <string name="chat_menghapus">Menghapus...</string>
+    <string name="chat_lampiran_foto">Foto, belum bisa dibuka di aplikasi ini</string>
+    <string name="chat_lampiran_video">Video, belum bisa dibuka di aplikasi ini</string>
+    <string name="chat_lampiran_lain">Lampiran, belum bisa dibuka di aplikasi ini</string>
+    <string name="chat_riwayat_memuat">Memuat pesan lama...</string>
+    <string name="chat_riwayat_gagal">Pesan lama gagal dimuat. Ketuk untuk mencoba lagi</string>
+
+    <!-- Pesan sendiri yang belum terkirim -->
+    <string name="chat_mengirim">Mengirim...</string>
+    <string name="chat_mengirim_menunggu">Menunggu %1$s lalu mencoba lagi</string>
+    <string name="chat_belum_terkirim">Belum terkirim</string>
+    <string name="chat_kirim_ulang">Kirim ulang</string>
+    <string name="chat_buang">Buang</string>
+
+    <!-- Hapus pesan sendiri -->
+    <string name="chat_hapus_aksi">Hapus pesan</string>
+    <string name="chat_hapus_judul">Hapus pesan ini?</string>
+    <string name="chat_hapus_isi">Isi pesan diganti keterangan bahwa pesan dihapus, dan lawan bicara ikut melihatnya.</string>
+    <string name="chat_hapus_ya">Hapus</string>
 </resources>
