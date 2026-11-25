@@ -40,6 +40,7 @@ class DashboardWaliActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardWaliBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        requestNotificationPermission()
 
         InsetsUtil.applySystemBarInsets(
             root = binding.root,
@@ -49,19 +50,11 @@ class DashboardWaliActivity : AppCompatActivity() {
         )
 
         setupListeners()
-        requestNotificationPermission()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::render)
             }
-        }
-    }
-
-    /** Izin pengingat sisa scan pukul 12.00 (Android 13 ke atas). Jika ditolak, pengingat dilewati diam-diam. */
-    private fun requestNotificationPermission() {
-        if (!ScanReminderNotifier.hasPermission(this)) {
-            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
@@ -135,6 +128,13 @@ class DashboardWaliActivity : AppCompatActivity() {
         if (guidance != null) {
             binding.tvGuidanceCategory.text = guidance.category
             binding.tvGuidanceTitle.text = guidance.title
+        }
+    }
+
+    /** Izin pengingat sisa scan pukul 12.00 (Android 13 ke atas). Jika ditolak, pengingat dilewati diam-diam. */
+    private fun requestNotificationPermission() {
+        if (!ScanReminderNotifier.hasPermission(this)) {
+            notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
     }
 
