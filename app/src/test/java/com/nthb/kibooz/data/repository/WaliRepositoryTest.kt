@@ -53,11 +53,25 @@ class WaliRepositoryTest {
         assertEquals("Bearer jwt", request.getHeader("Authorization"))
         assertEquals("Amelia", result.data.student.fullName)
         assertEquals("Class A • TK Pertiwi", result.data.student.className)
+        assertNull(result.data.student.joinCode)
         assertEquals(Emotion.BINGUNG, result.data.todayMood?.moodType)
         assertEquals("Ragu saat berpisah", result.data.todayMood?.teacherNotes)
         assertEquals(48, result.data.pointsSummary.sortedCount)
         assertEquals(3, result.data.pointsSummary.classRank)
         assertEquals("g1", result.data.recommendedGuidance?.id)
+    }
+
+    @Test
+    fun `reads joinCode from dashboard student when returned by backend`() = runBlocking {
+        val withJoinCode = full.replace(
+            """"className":"Class A • TK Pertiwi"""",
+            """"className":"Class A • TK Pertiwi","joinCode":"K7M2QX4R""""
+        )
+        server.enqueue(jsonResponse(withJoinCode))
+
+        val result = repository.dashboard() as ApiResult.Success
+
+        assertEquals("K7M2QX4R", result.data.student.joinCode)
     }
 
     @Test

@@ -17,6 +17,7 @@ import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.wali.LeaderboardActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.ui.common.NotificationInboxDialog
 import com.nthb.kibooz.ui.common.PulseAnimator
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
@@ -239,10 +240,17 @@ class DashboardGuruActivity : AppCompatActivity() {
 
         // Notification & History
         binding.ivNotification.setOnClickListener {
-            Toast.makeText(this, "Tidak ada notifikasi baru", Toast.LENGTH_SHORT).show()
+            NotificationInboxDialog.show(this)
         }
         binding.ivHistory.setOnClickListener {
-            Toast.makeText(this, "Riwayat absensi mood terakhir diperbarui hari ini", Toast.LENGTH_SHORT).show()
+            startActivity(
+                Intent(this, GuruHistoryActivity::class.java)
+                    .putExtra(GuruHistoryActivity.EXTRA_CLASS_ID, activeClassId())
+                    .putExtra(
+                        GuruHistoryActivity.EXTRA_CLASS_NAME,
+                        viewModel.state.value.dashboard?.classOverview?.className
+                    )
+            )
         }
     }
 }

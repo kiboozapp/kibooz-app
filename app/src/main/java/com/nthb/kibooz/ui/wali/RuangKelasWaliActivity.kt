@@ -26,6 +26,7 @@ class RuangKelasWaliActivity : AppCompatActivity() {
     private var studentId: String? = null
     private var childClassName: String? = null
     private var childClassId: String? = null
+    private var childJoinCode: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +54,7 @@ class RuangKelasWaliActivity : AppCompatActivity() {
                     studentId = st.id
                     childClassName = st.className
                     childClassId = st.classId
+                    childJoinCode = st.joinCode?.takeIf { it.isNotBlank() }
                     binding.tvSubtitleRuangKelas.text = "Kelas Aktif: ${st.className} • 6 Tema Pembelajaran"
                     loadPendingMoveRequest(st.id)
                 }
@@ -265,7 +267,7 @@ class RuangKelasWaliActivity : AppCompatActivity() {
     }
 
     private fun openDetailKelas(kode: String, nama: String) {
-        val joinCode = ClassCode.resolveJoinCode(childClassId)
+        val joinCode = ClassCode.preferJoinCode(childJoinCode, childClassId)
         val intent = Intent(this, DetailKelasActivity::class.java).apply {
             putExtra("KODE_KELAS", joinCode)
             putExtra("MAPEL_CODE", kode)

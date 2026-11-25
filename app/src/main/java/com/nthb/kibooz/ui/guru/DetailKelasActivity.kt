@@ -4,19 +4,33 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.InputType
+import android.view.Gravity
 import android.view.View
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.card.MaterialCardView
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.ModuleItem
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityDetailKelasBinding
 import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -32,6 +46,8 @@ class DetailKelasActivity : AppCompatActivity() {
     private var selectedMeetingIndex: Int = 3
     private var currentKodeKelas: String = ""
     private var currentNamaKelas: String = ""
+    private var loadedModules: List<ModuleItem> = emptyList()
+    private var selectedModuleId: String? = null
     private var hasInitialized: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -58,10 +74,10 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.btnSalinKode.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
         binding.ivShareKelas.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
 
-        val kodeKelas = if (rawKodeKelas.isNotBlank() && !rawKodeKelas.contains("-") && rawKodeKelas.length == 8) {
-            rawKodeKelas
+        val kodeKelas = if (rawKodeKelas.isNotBlank() && (ClassCode.normalize(rawKodeKelas) != null || !rawKodeKelas.contains("-"))) {
+            rawKodeKelas.trim()
         } else {
-            ClassCode.resolveJoinCode(activeClassId)
+            ClassCode.preferJoinCode(null, activeClassId)
         }
 
         val initialCount = if (intent.hasExtra("TOTAL_STUDENTS")) {
@@ -92,29 +108,36 @@ class DetailKelasActivity : AppCompatActivity() {
             } else {
                 if (isTeacherRole) 0 else 1
             }
-            if (activeClassId.isNullOrBlank() || resolvedRombelName.isNullOrBlank()) {
-                if (isTeacherRole) {
-                    val teacherClasses = appContainer.classRepository.teacherClasses()
-                    if (teacherClasses is ApiResult.Success) {
-                        val match = teacherClasses.data.firstOrNull {
-                            (!activeClassId.isNullOrBlank() && it.id == activeClassId) ||
-                                it.joinCode.equals(kodeKelas, ignoreCase = true) ||
-                                it.name.equals(namaKelas, ignoreCase = true)
-                        } ?: teacherClasses.data.firstOrNull()
-                        if (activeClassId.isNullOrBlank()) activeClassId = match?.id
-                        if (match != null) {
-                            if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = match.name
-                            count = match.totalStudents
+            if (isTeacherRole) {
+                val teacherClasses = appContainer.classRepository.teacherClasses()
+                if (teacherClasses is ApiResult.Success) {
+                    val match = teacherClasses.data.firstOrNull {
+                        (!activeClassId.isNullOrBlank() && it.id == activeClassId) ||
+                            it.joinCode.equals(kodeKelas, ignoreCase = true) ||
+                            it.name.equals(namaKelas, ignoreCase = true)
+                    } ?: teacherClasses.data.firstOrNull()
+                    if (activeClassId.isNullOrBlank()) activeClassId = match?.id
+                    if (match != null) {
+                        if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = match.name
+                        if (match.joinCode.isNotBlank()) {
+                            currentKodeKelas = match.joinCode
+                            binding.tvKodeKelas.text = match.joinCode
+                        }
+                        count = match.totalStudents
+                    }
+                }
+            } else {
+                when (val dash = appContainer.waliRepository.dashboard()) {
+                    is ApiResult.Success -> {
+                        val st = dash.data.student
+                        if (activeClassId.isNullOrBlank()) activeClassId = st.classId
+                        if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = st.className
+                        st.joinCode?.takeIf { it.isNotBlank() }?.let { liveCode ->
+                            currentKodeKelas = liveCode
+                            binding.tvKodeKelas.text = liveCode
                         }
                     }
-                } else {
-                    when (val dash = appContainer.waliRepository.dashboard()) {
-                        is ApiResult.Success -> {
-                            if (activeClassId.isNullOrBlank()) activeClassId = dash.data.student.classId
-                            if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = dash.data.student.className
-                        }
-                        else -> {}
-                    }
+                    else -> {}
                 }
             }
 
@@ -192,6 +215,7 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.tvStatusModul4.text = "Mendatang • $dateP4 • Terjadwal"
 
         highlightSelectedMeeting(selectedMeetingIndex)
+        loadClassModules()
     }
 
     private fun highlightSelectedMeeting(index: Int) {
@@ -291,15 +315,15 @@ class DetailKelasActivity : AppCompatActivity() {
 
         binding.btnSalinKode.setOnClickListener {
             val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            val clip = ClipData.newPlainText("Kode Kelas", kodeKelas)
+            val clip = ClipData.newPlainText("Kode Kelas", currentKodeKelas)
             clipboard.setPrimaryClip(clip)
-            Toast.makeText(this, "Kode Kelas $kodeKelas berhasil disalin!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Kode Kelas $currentKodeKelas berhasil disalin!", Toast.LENGTH_SHORT).show()
         }
 
         binding.ivShareKelas.setOnClickListener {
             val shareIntent = Intent().apply {
                 action = Intent.ACTION_SEND
-                putExtra(Intent.EXTRA_TEXT, "Ayo bergabung ke kelas Kibooz $namaKelas dengan kode: $kodeKelas")
+                putExtra(Intent.EXTRA_TEXT, "Ayo bergabung ke kelas Kibooz $namaKelas dengan kode: $currentKodeKelas")
                 type = "text/plain"
             }
             startActivity(Intent.createChooser(shareIntent, "Bagikan Kode Kelas"))
@@ -318,10 +342,10 @@ class DetailKelasActivity : AppCompatActivity() {
 
         // Navigasi ke Forum Diskusi
         binding.cardQuickForum.setOnClickListener {
-            openForumDiskusi(kodeKelas)
+            openForumDiskusi(currentKodeKelas)
         }
         binding.tabForum.setOnClickListener {
-            openForumDiskusi(kodeKelas)
+            openForumDiskusi(currentKodeKelas)
         }
 
         // Tab switches
@@ -332,16 +356,16 @@ class DetailKelasActivity : AppCompatActivity() {
             val intent = Intent(this, VideoPembelajaranActivity::class.java).apply {
                 putExtra("NAMA_KELAS", namaKelas)
                 putExtra("CLASS_ID", activeClassId)
-                putExtra("KODE_KELAS", kodeKelas)
+                putExtra("KODE_KELAS", currentKodeKelas)
             }
             startActivity(intent)
         }
         binding.tabAnggota.setOnClickListener {
-            openPesertaKelas(namaKelas, kodeKelas)
+            openPesertaKelas(namaKelas, currentKodeKelas)
         }
 
         binding.fabTambahModul.setOnClickListener {
-            Toast.makeText(this, "Buka form tambah modul kelas baru", Toast.LENGTH_SHORT).show()
+            showModuleFormDialog()
         }
 
         // Interaktivitas kartu pertemuan modul
@@ -384,5 +408,368 @@ class DetailKelasActivity : AppCompatActivity() {
             if (kodeKelas != null) putExtra("KODE_KELAS", kodeKelas)
         }
         startActivity(intent)
+    }
+
+    private fun loadClassModules() {
+        val classId = activeClassId?.takeIf { it.isNotBlank() }
+        if (classId == null) {
+            showFallbackModules()
+            return
+        }
+
+        lifecycleScope.launch {
+            when (val res = appContainer.moduleRepository.modules(classId)) {
+                is ApiResult.Success -> {
+                    loadedModules = res.data.modules
+                    if (loadedModules.isNotEmpty()) {
+                        renderDynamicModules(loadedModules)
+                    } else {
+                        showFallbackModules()
+                    }
+                }
+                is ApiResult.Failure, is ApiResult.NetworkError -> {
+                    showFallbackModules()
+                }
+            }
+        }
+    }
+
+    private fun showFallbackModules() {
+        binding.llDynamicModules.visibility = View.GONE
+        binding.llDynamicModules.removeAllViews()
+        binding.cardModul1.visibility = View.VISIBLE
+        binding.cardModul2.visibility = View.VISIBLE
+        binding.cardModul3.visibility = View.VISIBLE
+        binding.cardModul4.visibility = View.VISIBLE
+    }
+
+    private fun renderDynamicModules(modules: List<ModuleItem>) {
+        binding.cardModul1.visibility = View.GONE
+        binding.cardModul2.visibility = View.GONE
+        binding.cardModul3.visibility = View.GONE
+        binding.cardModul4.visibility = View.GONE
+        binding.llDynamicModules.visibility = View.VISIBLE
+        binding.llDynamicModules.removeAllViews()
+
+        if (selectedModuleId == null) {
+            selectedModuleId = modules.firstOrNull { it.status == "ongoing" }?.id ?: modules.firstOrNull()?.id
+        }
+
+        modules.forEach { module ->
+            binding.llDynamicModules.addView(buildDynamicModuleCard(module))
+        }
+    }
+
+    private fun buildDynamicModuleCard(module: ModuleItem): MaterialCardView {
+        val density = resources.displayMetrics.density
+        val font = ResourcesCompat.getFont(this, R.font.baloo2)
+        val primaryPurple = ContextCompat.getColor(this, R.color.kibooz_primary_purple)
+        val borderColor = ContextCompat.getColor(this, R.color.kibooz_border)
+        val isSelected = module.id == selectedModuleId || module.status == "ongoing"
+
+        val card = MaterialCardView(this).apply {
+            radius = 16 * density
+            cardElevation = 2 * density
+            setCardBackgroundColor(Color.WHITE)
+            strokeColor = if (isSelected) primaryPurple else borderColor
+            strokeWidth = (if (isSelected) 1.5f * density else density).toInt()
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = (8 * density).toInt()
+            }
+            setOnClickListener {
+                selectedModuleId = module.id
+                renderDynamicModules(loadedModules)
+                Toast.makeText(
+                    this@DetailKelasActivity,
+                    "Pertemuan ${module.meetingNumber}: ${module.title}",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+
+        val outer = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = (14 * density).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+
+        val row = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+
+        val badgeSize = (38 * density).toInt()
+        val pBadge = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(badgeSize, badgeSize)
+            gravity = Gravity.CENTER
+            text = "P${module.meetingNumber}"
+            textSize = 15f
+            typeface = font
+            paint.isFakeBoldText = true
+            if (isSelected) {
+                setBackgroundResource(R.drawable.bg_button_purple)
+                setTextColor(Color.WHITE)
+            } else {
+                setBackgroundResource(R.drawable.bg_tag_lavender)
+                setTextColor(primaryPurple)
+            }
+        }
+
+        val textCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = (12 * density).toInt()
+            }
+        }
+
+        val titleView = TextView(this).apply {
+            text = "Pertemuan ${module.meetingNumber}: ${module.title}"
+            textSize = 14f
+            typeface = font
+            paint.isFakeBoldText = true
+            setTextColor(Color.parseColor("#242038"))
+        }
+
+        val (statusLabel, statusColor) = when (module.status) {
+            "completed" -> "Selesai" to Color.parseColor("#4CAF50")
+            "ongoing" -> "Sedang Berlangsung" to primaryPurple
+            else -> "Mendatang" to Color.parseColor("#75718E")
+        }
+        val dateText = (module.scheduledAt ?: module.createdAt).takeIf { it.isNotBlank() }?.let { TimeFormat.localDate(it) }
+        val statusText = if (dateText != null) "$statusLabel • $dateText" else statusLabel
+
+        val statusView = TextView(this).apply {
+            text = statusText
+            textSize = 12f
+            typeface = font
+            paint.isFakeBoldText = module.status == "ongoing"
+            setTextColor(statusColor)
+        }
+
+        textCol.addView(titleView)
+        textCol.addView(statusView)
+
+        module.description?.trim()?.takeIf { it.isNotEmpty() }?.let { desc ->
+            val descView = TextView(this).apply {
+                text = desc
+                textSize = 12f
+                typeface = font
+                setTextColor(Color.parseColor("#57536E"))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = (2 * density).toInt()
+                }
+            }
+            textCol.addView(descView)
+        }
+
+        row.addView(pBadge)
+        row.addView(textCol)
+        outer.addView(row)
+
+        if (isTeacherRole) {
+            val actionRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.END
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = (8 * density).toInt()
+                }
+            }
+
+            val editChip = buildModuleChip("Edit", primaryPurple, Color.parseColor("#F1EEFD"), font, density) {
+                showModuleFormDialog(module)
+            }
+            val deleteChip = buildModuleChip("Hapus", Color.parseColor("#DC2626"), Color.parseColor("#FEE2E2"), font, density) {
+                confirmDeleteModule(module)
+            }
+            actionRow.addView(editChip)
+            actionRow.addView(deleteChip)
+            outer.addView(actionRow)
+        }
+
+        card.addView(outer)
+        return card
+    }
+
+    private fun buildModuleChip(
+        label: String,
+        textColor: Int,
+        bgColor: Int,
+        font: android.graphics.Typeface?,
+        density: Float,
+        onClick: () -> Unit
+    ): TextView = TextView(this).apply {
+        text = label
+        setTextColor(textColor)
+        textSize = 12f
+        typeface = font
+        paint.isFakeBoldText = true
+        setPadding((10 * density).toInt(), (4 * density).toInt(), (10 * density).toInt(), (4 * density).toInt())
+        background = GradientDrawable().apply {
+            cornerRadius = 12 * density
+            setColor(bgColor)
+        }
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            marginStart = (8 * density).toInt()
+        }
+        setOnClickListener { onClick() }
+    }
+
+    private fun showModuleFormDialog(existing: ModuleItem? = null) {
+        val classId = activeClassId?.takeIf { it.isNotBlank() }
+        if (classId == null) {
+            Toast.makeText(this, "Kelas aktif belum termuat", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val density = resources.displayMetrics.density
+        val pad = (18 * density).toInt()
+        val font = ResourcesCompat.getFont(this, R.font.baloo2)
+        val container = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(pad, pad / 2, pad, pad / 2)
+        }
+
+        val nextNumber = (loadedModules.maxOfOrNull { it.meetingNumber } ?: 0) + 1
+        val etMeeting = EditText(this).apply {
+            hint = "Nomor Pertemuan (1-100)"
+            inputType = InputType.TYPE_CLASS_NUMBER
+            typeface = font
+            setText((existing?.meetingNumber ?: nextNumber).toString())
+        }
+        val etTitle = EditText(this).apply {
+            hint = "Judul Modul Pertemuan"
+            typeface = font
+            setText(existing?.title.orEmpty())
+        }
+        val etDesc = EditText(this).apply {
+            hint = "Deskripsi singkat (opsional)"
+            typeface = font
+            setText(existing?.description.orEmpty())
+        }
+
+        val rgStatus = RadioGroup(this).apply {
+            orientation = RadioGroup.HORIZONTAL
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                topMargin = (8 * density).toInt()
+            }
+        }
+        val rbCompleted = RadioButton(this).apply { text = "Selesai"; typeface = font }
+        val rbOngoing = RadioButton(this).apply { text = "Berlangsung"; typeface = font }
+        val rbUpcoming = RadioButton(this).apply { text = "Mendatang"; typeface = font }
+        rgStatus.addView(rbCompleted)
+        rgStatus.addView(rbOngoing)
+        rgStatus.addView(rbUpcoming)
+
+        when (existing?.status ?: "upcoming") {
+            "completed" -> rbCompleted.isChecked = true
+            "ongoing" -> rbOngoing.isChecked = true
+            else -> rbUpcoming.isChecked = true
+        }
+
+        container.addView(etMeeting)
+        container.addView(etTitle)
+        container.addView(etDesc)
+        container.addView(rgStatus)
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "Tambah Modul Pertemuan" else "Edit Modul Pertemuan")
+            .setView(container)
+            .setNegativeButton("Batal", null)
+            .setPositiveButton("Simpan", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val number = etMeeting.text.toString().trim().toIntOrNull()
+                val title = etTitle.text.toString().trim()
+                val desc = etDesc.text.toString().trim()
+                val status = when {
+                    rbCompleted.isChecked -> "completed"
+                    rbOngoing.isChecked -> "ongoing"
+                    else -> "upcoming"
+                }
+
+                if (number == null || number !in 1..100) {
+                    Toast.makeText(this, "Nomor pertemuan harus antara 1 sampai 100", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+                if (title.isEmpty()) {
+                    Toast.makeText(this, "Judul modul tidak boleh kosong", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+
+                lifecycleScope.launch {
+                    val result = if (existing == null) {
+                        appContainer.moduleRepository.createModule(classId, number, title, desc, status)
+                    } else {
+                        appContainer.moduleRepository.updateModule(classId, existing.id, number, title, desc, status)
+                    }
+                    when (result) {
+                        is ApiResult.Success -> {
+                            dialog.dismiss()
+                            Toast.makeText(
+                                this@DetailKelasActivity,
+                                if (existing == null) "Modul pertemuan ditambahkan" else "Modul pertemuan diperbarui",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            loadClassModules()
+                        }
+                        is ApiResult.Failure -> {
+                            val msg = if (result.status == 404) {
+                                "Endpoint modul dinamis menunggu pembaruan server."
+                            } else {
+                                result.message
+                            }
+                            Toast.makeText(this@DetailKelasActivity, msg, Toast.LENGTH_SHORT).show()
+                        }
+                        is ApiResult.NetworkError -> {
+                            Toast.makeText(this@DetailKelasActivity, "Jaringan tidak tersedia", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
+
+        dialog.show()
+    }
+
+    private fun confirmDeleteModule(module: ModuleItem) {
+        val classId = activeClassId?.takeIf { it.isNotBlank() } ?: return
+        AlertDialog.Builder(this)
+            .setTitle("Hapus Modul")
+            .setMessage("Hapus modul Pertemuan ${module.meetingNumber}: ${module.title}?")
+            .setNegativeButton("Batal", null)
+            .setPositiveButton("Hapus") { _, _ ->
+                lifecycleScope.launch {
+                    when (val res = appContainer.moduleRepository.deleteModule(classId, module.id)) {
+                        is ApiResult.Success -> {
+                            Toast.makeText(this@DetailKelasActivity, "Modul dihapus", Toast.LENGTH_SHORT).show()
+                            loadClassModules()
+                        }
+                        is ApiResult.Failure -> {
+                            Toast.makeText(this@DetailKelasActivity, res.message, Toast.LENGTH_SHORT).show()
+                        }
+                        is ApiResult.NetworkError -> {
+                            Toast.makeText(this@DetailKelasActivity, "Jaringan tidak tersedia", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+            .show()
     }
 }

@@ -78,7 +78,8 @@ data class ChildSummary(
     /** True jika [nisn] kosong karena guru memverifikasi nomor yang sama untuk anak lain. Wali harus mengisi nomor yang benar. */
     val nisnNeedsUpdate: Boolean = false,
     /** Waktu kelas diarsipkan, hilang selama belum. Kelas arsip hanya bisa dibaca. */
-    val classArchivedAt: String? = null
+    val classArchivedAt: String? = null,
+    val joinCode: String? = null
 )
 
 /** Satu permohonan pindah kelas yang menunggu keputusan guru (`GET /guru/classes/{classId}/move-requests`). */

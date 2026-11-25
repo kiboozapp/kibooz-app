@@ -431,6 +431,15 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
+            <!-- Kontainer dinamis dari backend modul -->
+            <LinearLayout
+                android:id="@+id/llDynamicModules"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:orientation="vertical"
+                android:visibility="gone" />
+
             <!-- Pertemuan 1 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardModul1"

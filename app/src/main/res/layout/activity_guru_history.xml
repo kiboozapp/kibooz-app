@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/kibooz_background">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/clTopBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_header_curved_purple"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="28dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/ivBack"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Kembali"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="@+id/tvHeaderTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tvHeaderTitle"
+            app:tint="@color/kibooz_white" />
+
+        <TextView
+            android:id="@+id/tvHeaderTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:fontFamily="@font/baloo2"
+            android:text="Riwayat Aktivitas Kelas"
+            android:textColor="@color/kibooz_white"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/ivBack"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvClassSubtitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="@font/baloo2"
+            android:text="Memuat catatan aktivitas kelas..."
+            android:textColor="#E0DBF5"
+            android:textSize="13sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvHeaderTitle" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/hsvFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="14dp"
+        android:paddingBottom="6dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@+id/clTopBar">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/chipAll"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_pill_date_active"
+                android:fontFamily="@font/baloo2"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="7dp"
+                android:text="Semua"
+                android:textColor="@color/kibooz_white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/chipMood"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_pill_date_inactive"
+                android:fontFamily="@font/baloo2"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="7dp"
+                android:text="Mood Siswa"
+                android:textColor="@color/kibooz_text_muted"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/chipGuidance"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_pill_date_inactive"
+                android:fontFamily="@font/baloo2"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="7dp"
+                android:text="Panduan Wali"
+                android:textColor="@color/kibooz_text_muted"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/chipVideo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_pill_date_inactive"
+                android:fontFamily="@font/baloo2"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="7dp"
+                android:text="Video"
+                android:textColor="@color/kibooz_text_muted"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/hsvFilters">
+
+        <LinearLayout
+            android:id="@+id/llTimelineContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="28dp">
+
+            <TextView
+                android:id="@+id/tvEmptyState"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo2"
+                android:gravity="center"
+                android:paddingVertical="36dp"
+                android:text="Memuat riwayat aktivitas kelas..."
+                android:textColor="@color/kibooz_text_muted"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

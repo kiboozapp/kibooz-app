@@ -31,4 +31,8 @@ object ClassCode {
         "d0e5b272-59f8-4408-9ee7-dc1796351412" -> "4RA3AQZL" // Kelas Dahlia (TK-B)
         else -> "84NGBK3N"
     }
+
+    /** Memilih [apiCode] dari server jika tersedia, dan jatuh ke pemetaan statis bila backend belum mengirimnya. */
+    fun preferJoinCode(apiCode: String?, classId: String?): String =
+        apiCode?.trim()?.takeIf { it.isNotEmpty() } ?: resolveJoinCode(classId)
 }

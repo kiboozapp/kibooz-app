@@ -19,7 +19,8 @@ data class DashboardStudent(
     val classId: String,
     val className: String,
     val avatarUrl: String?,
-    val nisn: String
+    val nisn: String,
+    val joinCode: String? = null
 )
 
 data class TodayMood(

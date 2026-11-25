@@ -16,6 +16,7 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.RecommendedGuidance
 import com.nthb.kibooz.databinding.ActivityDashboardWaliBinding
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
+import com.nthb.kibooz.ui.common.NotificationInboxDialog
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
@@ -236,9 +237,9 @@ class DashboardWaliActivity : AppCompatActivity() {
             )
         }
 
-        // Notifikasi (UI dipertahankan tanpa trigger aksi khusus)
+        // Notifikasi in-app
         binding.ivNotification.setOnClickListener {
-            Toast.makeText(this, "Tidak ada notifikasi baru untuk wali murid", Toast.LENGTH_SHORT).show()
+            NotificationInboxDialog.show(this)
         }
     }
 }
