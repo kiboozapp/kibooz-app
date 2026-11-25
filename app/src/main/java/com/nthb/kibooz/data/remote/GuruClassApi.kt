@@ -42,4 +42,10 @@ interface GuruClassApi {
         @Path("classId") classId: String,
         @Path("studentId") studentId: String
     ): Response<ApiEnvelope<NisnVerificationData>>
+
+    @DELETE("guru/classes/{classId}/students/{studentId}")
+    suspend fun removeStudent(
+        @Path("classId") classId: String,
+        @Path("studentId") studentId: String
+    ): Response<ApiEnvelope<EmptyData>>
 }

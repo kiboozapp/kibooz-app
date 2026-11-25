@@ -283,6 +283,33 @@ class PesertaKelasViewModel(
         }
     }
 
+    fun removeStudent(student: ClassStudent) {
+        val repo = classManagementRepository ?: return
+        val classId = _uiState.value.classId?.takeIf { it.isNotBlank() } ?: return
+        if (_uiState.value.busyStudentId != null) return
+        if (_uiState.value.classArchived) {
+            _uiState.value = _uiState.value.copy(
+                actionMessage = PesertaMessage(R.string.error_class_archived)
+            )
+            return
+        }
+
+        _uiState.value = _uiState.value.copy(busyStudentId = student.id, actionMessage = null)
+        viewModelScope.launch {
+            when (val res = repo.removeStudent(classId, student.id)) {
+                is ApiResult.Success -> {
+                    val remaining = _uiState.value.students.filterNot { it.id == student.id }
+                    _uiState.value = _uiState.value.copy(
+                        students = remaining,
+                        busyStudentId = null,
+                        actionMessage = PesertaMessage(R.string.peserta_keluarkan_sukses, student.fullName)
+                    )
+                }
+                else -> handleNisnError(classId, res)
+            }
+        }
+    }
+
     private suspend fun handleNisnError(classId: String, result: ApiResult<*>) {
         val code = (result as? ApiResult.Failure)?.errorCode
         val archivedNow = _uiState.value.classArchived || code == "CLASS_ARCHIVED"
@@ -290,17 +317,19 @@ class PesertaKelasViewModel(
             "NISN_ALREADY_REGISTERED" -> R.string.peserta_nisn_error_sudah_dipakai
             else -> result.errorMessageRes() ?: R.string.error_unknown
         }
+        var updatedStudents = _uiState.value.students
+        if (code == "STUDENT_NOT_FOUND" || code == "NISN_NOT_SET") {
+            val refreshed = classRepository.allStudents(classId)
+            if (refreshed is ApiResult.Success) {
+                updatedStudents = refreshed.data
+            }
+        }
         _uiState.value = _uiState.value.copy(
+            students = updatedStudents,
             classArchived = archivedNow,
             busyStudentId = null,
             actionMessage = PesertaMessage(resId)
         )
-        if (code == "STUDENT_NOT_FOUND" || code == "NISN_NOT_SET") {
-            val refreshed = classRepository.allStudents(classId)
-            if (refreshed is ApiResult.Success) {
-                _uiState.value = _uiState.value.copy(students = refreshed.data)
-            }
-        }
     }
 
     fun actionMessageShown() {

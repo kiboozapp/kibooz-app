@@ -3,6 +3,9 @@ package com.nthb.kibooz.ui.guru
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.text.SpannableString
+import android.text.Spanned
+import android.text.style.ForegroundColorSpan
 import android.view.Gravity
 import android.view.View
 import android.widget.ImageView
@@ -11,6 +14,7 @@ import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -140,7 +144,8 @@ class PesertaKelasActivity : AppCompatActivity() {
     private fun formatActionMessage(msg: PesertaMessage): String = when (msg.resId) {
         R.string.peserta_nisn_sukses_verif_geser -> getString(msg.resId, msg.studentName.orEmpty(), msg.count)
         R.string.peserta_nisn_sukses_verif,
-        R.string.peserta_nisn_sukses_batal -> getString(msg.resId, msg.studentName.orEmpty())
+        R.string.peserta_nisn_sukses_batal,
+        R.string.peserta_keluarkan_sukses -> getString(msg.resId, msg.studentName.orEmpty())
         else -> getString(msg.resId)
     }
 
@@ -167,7 +172,7 @@ class PesertaKelasActivity : AppCompatActivity() {
                     setBackgroundResource(ripple.resourceId)
                     isClickable = true
                     isFocusable = true
-                    setOnClickListener { onStudentNisnClicked(student, state) }
+                    setOnClickListener { showStudentOptionsDialog(student, state) }
                 }
             }
 
@@ -219,6 +224,7 @@ class PesertaKelasActivity : AppCompatActivity() {
 
             if (isTeacher) {
                 val badge = createNisnBadgeView(student, state, balooFont, density)
+                badge.setOnClickListener { onStudentNisnClicked(student, state) }
                 textContainer.addView(badge)
             }
 
@@ -253,6 +259,22 @@ class PesertaKelasActivity : AppCompatActivity() {
                 }
             }
             row.addView(moodBadge)
+
+            if (isTeacher) {
+                val moreButton = ImageView(this).apply {
+                    layoutParams = LinearLayout.LayoutParams((36 * density).toInt(), (36 * density).toInt()).apply {
+                        marginStart = (4 * density).toInt()
+                    }
+                    val borderlessRipple = android.util.TypedValue()
+                    context.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, borderlessRipple, true)
+                    setBackgroundResource(borderlessRipple.resourceId)
+                    setPadding((6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt(), (6 * density).toInt())
+                    setImageResource(R.drawable.ic_more_vert)
+                    contentDescription = getString(R.string.peserta_opsi_cd, student.fullName)
+                    setOnClickListener { showStudentOptionsDialog(student, state) }
+                }
+                row.addView(moreButton)
+            }
 
             binding.llStudentList.addView(row)
 
@@ -332,6 +354,54 @@ class PesertaKelasActivity : AppCompatActivity() {
             setTextColor(textColor)
             setPadding((10 * density).toInt(), (3 * density).toInt(), (10 * density).toInt(), (3 * density).toInt())
         }
+    }
+
+    private fun showStudentOptionsDialog(student: ClassStudent, state: PesertaUiState) {
+        if (state.busyStudentId != null) return
+        if (state.classArchived) {
+            Snackbar.make(binding.root, R.string.error_class_archived, Snackbar.LENGTH_LONG).show()
+            return
+        }
+
+        val needsInput = student.nisnNeedsUpdate || student.nisn.isBlank() || student.nisn == "-"
+        val nisnLabel: CharSequence = when {
+            needsInput -> getString(R.string.peserta_opsi_nisn_kosong)
+            student.nisnVerified -> getString(R.string.peserta_opsi_batal_nisn, student.nisn)
+            else -> getString(R.string.peserta_opsi_verifikasi_nisn, student.nisn)
+        }
+        val kickText = SpannableString(getString(R.string.peserta_opsi_keluarkan)).apply {
+            setSpan(
+                ForegroundColorSpan(ContextCompat.getColor(this@PesertaKelasActivity, R.color.kibooz_red_danger)),
+                0,
+                length,
+                Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            )
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(getString(R.string.peserta_opsi_judul, student.fullName))
+            .setItems(arrayOf(nisnLabel, kickText)) { _, which ->
+                when (which) {
+                    0 -> onStudentNisnClicked(student, state)
+                    1 -> confirmRemoveStudent(student)
+                }
+            }
+            .setNegativeButton(R.string.batal, null)
+            .show()
+    }
+
+    private fun confirmRemoveStudent(student: ClassStudent) {
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.peserta_keluarkan_judul, student.fullName))
+            .setMessage(getString(R.string.peserta_keluarkan_pesan, student.fullName))
+            .setPositiveButton(R.string.peserta_keluarkan_ya) { _, _ ->
+                viewModel.removeStudent(student)
+            }
+            .setNegativeButton(R.string.batal, null)
+            .show()
+
+        dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            ?.setTextColor(ContextCompat.getColor(this, R.color.kibooz_red_danger))
     }
 
     private fun onStudentNisnClicked(student: ClassStudent, state: PesertaUiState) {

@@ -222,6 +222,9 @@ class DevBypassInterceptor(
 
             path.endsWith("/nisn-verification") -> handleMockNisnVerification(path, method)
 
+            path.contains("/guru/classes/") && path.contains("/students/") && method == "DELETE" ->
+                handleMockRemoveStudent(path)
+
             path.contains("/students") -> {
                 val studentsJson = mockStudents.joinToString(",") { s ->
                     """
@@ -736,6 +739,14 @@ class DevBypassInterceptor(
             target.nisnVerified = false
             """{"success":true,"message":"NISN verification removed","data":{"nisnVerified":false,"displaced":0}}"""
         }
+    }
+
+    private fun handleMockRemoveStudent(path: String): String {
+        val segments = path.split('/').filter { it.isNotEmpty() }
+        val studentsIdx = segments.indexOf("students")
+        val studentId = if (studentsIdx >= 0 && studentsIdx + 1 < segments.size) segments[studentsIdx + 1] else ""
+        mockStudents.removeAll { it.id == studentId }
+        return """{"success":true,"message":"Student removed","data":null}"""
     }
 
     private fun jsonString(value: String): String =
