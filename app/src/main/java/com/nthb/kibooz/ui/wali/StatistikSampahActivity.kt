@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -93,6 +94,10 @@ class StatistikSampahActivity : AppCompatActivity() {
     }
 
     private fun showStats(stats: TrashStats) {
+        val quota = stats.scanQuota()
+        binding.cardSisaScan.isVisible = true
+        binding.tvSisaScan.text = getString(quota.messageRes, quota.remaining, quota.dailyLimit)
+
         binding.tvOrganik.text = countText(stats, TrashCategory.ORGANIK)
         binding.tvAnorganik.text = countText(stats, TrashCategory.ANORGANIK)
         binding.tvB3.text = getString(R.string.sampah_b3_ringkas, stats.scansOf(TrashCategory.B3))
@@ -101,13 +106,12 @@ class StatistikSampahActivity : AppCompatActivity() {
         binding.tvBannerBody.text = if (stats.classRank > 0) {
             getString(
                 R.string.sampah_banner_isi,
-                stats.student.fullName, stats.totalScans, stats.totalPoints, stats.classRank,
-                stats.remainingDailyScans, stats.dailyLimit
+                stats.student.fullName, stats.totalScans, stats.totalPoints, stats.classRank
             )
         } else {
             getString(
                 R.string.sampah_banner_isi_tanpa_peringkat,
-                stats.student.fullName, stats.totalScans, stats.totalPoints, stats.remainingDailyScans, stats.dailyLimit
+                stats.student.fullName, stats.totalScans, stats.totalPoints
             )
         }
     }

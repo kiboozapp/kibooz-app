@@ -11,9 +11,15 @@ import com.nthb.kibooz.data.remote.DashboardStudent
 import com.nthb.kibooz.data.remote.EmptyData
 import com.nthb.kibooz.data.remote.GuidanceApplyRequest
 import com.nthb.kibooz.data.remote.PointsSummary
+import com.nthb.kibooz.data.remote.ScanClaimData
+import com.nthb.kibooz.data.remote.ScanClaimRequest
+import com.nthb.kibooz.data.remote.TrashApi
+import com.nthb.kibooz.data.remote.TrashStats
+import com.nthb.kibooz.data.remote.TrashStatsStudent
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliDashboard
 import com.nthb.kibooz.data.repository.ClassRepository
+import com.nthb.kibooz.data.repository.TrashRepository
 import com.nthb.kibooz.data.repository.WaliRepository
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -70,13 +76,33 @@ class WaliDashboardViewModelTest {
             error("not used")
     }
 
+    /** Menjawab statistik anak yang diminta (tanpa id: "s1", anak bawaan) dengan sisa scan [remaining] dari 5. */
+    private class FakeTrashApi : TrashApi {
+        var remaining = 3
+        var fail = false
+
+        override suspend fun scanClaim(idempotencyKey: String, body: ScanClaimRequest): Response<ApiEnvelope<ScanClaimData>> =
+            error("not used")
+
+        override suspend fun stats(studentId: String?): Response<ApiEnvelope<TrashStats>> {
+            if (fail) throw IOException("offline")
+            val id = studentId ?: "s1"
+            return Response.success(
+                ApiEnvelope(true, null, TrashStats(TrashStatsStudent(id, "x"), 0, 0, 0, 0, emptyList(), 5 - remaining, 5, remaining))
+            )
+        }
+    }
+
     private val waliApi = FakeWaliApi()
+    private val trashApi = FakeTrashApi()
     private val classApi = FakeClassApi(
         listOf(ChildSummary("s1", "Amelia", "001", null, "c1", "Bunga"), ChildSummary("s2", "Budi", "002", null, "c1", "Bunga"))
     )
     private val moshi = Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()
 
-    private fun viewModel() = WaliDashboardViewModel(WaliRepository(waliApi, moshi), ClassRepository(classApi, moshi))
+    private fun viewModel() = WaliDashboardViewModel(
+        WaliRepository(waliApi, moshi), ClassRepository(classApi, moshi), TrashRepository(trashApi, moshi)
+    )
 
     private fun <T> failure(code: Int, errorCode: String): Response<ApiEnvelope<T>> = Response.error(
         code,
@@ -167,6 +193,31 @@ class WaliDashboardViewModelTest {
 
         assertEquals("Amelia", state.dashboard?.student?.fullName)
         assertTrue(state.children.isEmpty())
+        assertNull(state.error)
+    }
+
+    @Test
+    fun `the daily scan quota of the shown child loads with the dashboard and follows a child switch`() {
+        trashApi.remaining = 2
+        val viewModel = viewModel()
+
+        assertEquals(ScanQuota(remaining = 2, dailyLimit = 5), viewModel.state.value.scanQuota)
+
+        trashApi.remaining = 0
+        viewModel.selectChild("s2")
+
+        assertEquals(ScanQuota(remaining = 0, dailyLimit = 5), viewModel.state.value.scanQuota)
+        assertEquals(R.string.sampah_sisa_scan_habis, viewModel.state.value.scanQuota?.messageRes)
+    }
+
+    @Test
+    fun `a failing stats call hides the scan quota but keeps the dashboard`() {
+        trashApi.fail = true
+
+        val state = viewModel().state.value
+
+        assertNull(state.scanQuota)
+        assertEquals("Amelia", state.dashboard?.student?.fullName)
         assertNull(state.error)
     }
 }

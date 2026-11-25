@@ -9,6 +9,7 @@ import com.nthb.kibooz.data.remote.ChildSummary
 import com.nthb.kibooz.data.remote.WaliDashboard
 import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.repository.ClassRepository
+import com.nthb.kibooz.data.repository.TrashRepository
 import com.nthb.kibooz.data.repository.WaliRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -23,6 +24,8 @@ data class WaliDashboardState(
     val dashboard: WaliDashboard? = null,
     /** Semua anak Wali, untuk berpindah anak. Kosong jika daftarnya belum termuat. */
     val children: List<ChildSummary> = emptyList(),
+    /** Kuota scan sampah hari ini untuk anak yang ditampilkan. Null jika belum termuat, sehingga kotaknya disembunyikan. */
+    val scanQuota: ScanQuota? = null,
     /** True jika server menjawab bahwa Wali belum punya anak (`NO_CHILD_REGISTERED`). */
     val noChild: Boolean = false,
     @StringRes val error: Int? = null
@@ -34,7 +37,8 @@ data class WaliDashboardState(
  */
 class WaliDashboardViewModel(
     private val repository: WaliRepository,
-    private val classRepository: ClassRepository
+    private val classRepository: ClassRepository,
+    private val trashRepository: TrashRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WaliDashboardState())
@@ -62,6 +66,7 @@ class WaliDashboardViewModel(
             coroutineScope {
                 val dashboard = async { repository.dashboard(studentId) }
                 val children = async { classRepository.children() }
+                val trash = async { trashRepository.stats(studentId) }
 
                 var next = _state.value.copy(loading = false)
 
@@ -89,6 +94,14 @@ class WaliDashboardViewModel(
                 // Daftar anak hanya pelengkap, galatnya tidak menutupi dasbor
                 (children.await() as? ApiResult.Success)?.let { next = next.copy(children = it.data) }
 
+                // Kuota scan juga pelengkap: jika gagal kotaknya disembunyikan. Dicocokkan dengan anak di dasbor supaya
+                // kuota anak lain tidak pernah tertampil, misalnya sesaat setelah berpindah anak.
+                next = next.copy(
+                    scanQuota = (trash.await() as? ApiResult.Success)?.data
+                        ?.takeIf { it.student.id == next.dashboard?.student?.id }
+                        ?.scanQuota()
+                )
+
                 _state.value = next
             }
         }
@@ -100,10 +113,11 @@ class WaliDashboardViewModel(
 
     class Factory(
         private val repository: WaliRepository,
-        private val classRepository: ClassRepository
+        private val classRepository: ClassRepository,
+        private val trashRepository: TrashRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            WaliDashboardViewModel(repository, classRepository) as T
+            WaliDashboardViewModel(repository, classRepository, trashRepository) as T
     }
 }
