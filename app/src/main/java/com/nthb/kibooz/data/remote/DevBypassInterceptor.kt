@@ -1,10 +1,14 @@
 package com.nthb.kibooz.data.remote
 
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.Types
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
+import okhttp3.Request
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import okio.Buffer
 
 /**
  * Interseptor khusus mode pengembang/bypass (token berawalan "mock-").
@@ -14,6 +18,20 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 class DevBypassInterceptor(
     private val tokenProvider: TokenProvider
 ) : Interceptor {
+
+    private val moshi = Moshi.Builder().build()
+    private val mapAdapter = moshi.adapter<Map<String, Any?>>(
+        Types.newParameterizedType(Map::class.java, String::class.java, Any::class.java)
+    )
+
+    private var mockGuruName = "Tika Sartika, S.Pd"
+    private var mockGuruPhone = "081234567890"
+    private var mockGuruAddress = "Jl. Melati No. 14, Lowokwaru, Kota Malang"
+
+    private var mockWaliName = "Budi Santoso"
+    private var mockWaliPhone = "081234567890"
+    private var mockWaliWhatsapp = "081234567890"
+    private var mockWaliAddress = "Jl. Pendidikan No. 12, Malang"
 
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
@@ -25,7 +43,8 @@ class DevBypassInterceptor(
         }
 
         val path = request.url.encodedPath
-        val json = mockResponseFor(path, request.method) ?: return chain.proceed(request)
+        val bodyMap = readBodyMap(request)
+        val json = mockResponseFor(path, request.method, bodyMap) ?: return chain.proceed(request)
 
         return Response.Builder()
             .request(request)
@@ -36,8 +55,73 @@ class DevBypassInterceptor(
             .build()
     }
 
-    private fun mockResponseFor(path: String, method: String): String? {
+    private fun readBodyMap(request: Request): Map<String, Any?> {
+        val body = request.body ?: return emptyMap()
+        return runCatching {
+            val buffer = Buffer()
+            body.writeTo(buffer)
+            mapAdapter.fromJson(buffer.readUtf8()).orEmpty()
+        }.getOrDefault(emptyMap())
+    }
+
+    private fun mockResponseFor(path: String, method: String, body: Map<String, Any?>): String? {
         return when {
+            path.endsWith("/guru/profile") && method == "GET" -> """
+                {
+                    "success": true,
+                    "data": {
+                        "id": "guru-bypass-1",
+                        "fullName": ${jsonString(mockGuruName)},
+                        "nip": "198705122010012003",
+                        "schoolName": "SD Negeri Percobaan",
+                        "avatarUrl": null
+                    }
+                }
+            """.trimIndent()
+
+            path.endsWith("/guru/profile/detail") || (path.endsWith("/guru/profile") && method == "PUT") -> {
+                if (method == "PUT") {
+                    (body["fullName"] as? String)?.trim()?.takeIf { it.isNotEmpty() }?.let { mockGuruName = it }
+                    (body["phoneNumber"] as? String)?.let { mockGuruPhone = it.trim() }
+                    (body["address"] as? String)?.let { mockGuruAddress = it.trim() }
+                }
+                """
+                {
+                    "success": true,
+                    "data": {
+                        "id": "guru-bypass-1",
+                        "fullName": ${jsonString(mockGuruName)},
+                        "nip": "198705122010012003",
+                        "schoolName": "SD Negeri Percobaan",
+                        "avatarUrl": null,
+                        "email": "tika.sartika@kibooz.com",
+                        "phoneNumber": ${jsonString(mockGuruPhone)},
+                        "address": ${jsonString(mockGuruAddress)},
+                        "joinedAt": "2024-07-15T00:00:00Z"
+                    }
+                }
+                """.trimIndent()
+            }
+
+            path.endsWith("/wali/profile") && method == "PATCH" -> {
+                (body["fullName"] as? String)?.trim()?.takeIf { it.isNotEmpty() }?.let { mockWaliName = it }
+                (body["phoneNumber"] as? String)?.let { mockWaliPhone = it.trim() }
+                (body["whatsappNumber"] as? String)?.let { mockWaliWhatsapp = it.trim() }
+                (body["address"] as? String)?.let { mockWaliAddress = it.trim() }
+                """
+                {
+                    "success": true,
+                    "data": {
+                        "fullName": ${jsonString(mockWaliName)},
+                        "email": "budi.santoso@kibooz.com",
+                        "phoneNumber": ${jsonString(mockWaliPhone)},
+                        "whatsappNumber": ${jsonString(mockWaliWhatsapp)},
+                        "address": ${jsonString(mockWaliAddress)}
+                    }
+                }
+                """.trimIndent()
+            }
+
             path.endsWith("/guru/dashboard") -> """
                 {
                     "success": true,
@@ -326,11 +410,11 @@ class DevBypassInterceptor(
                         "seasonPoints": 120,
                         "classRank": 1,
                         "guardian": {
-                            "fullName": "Budi Santoso",
+                            "fullName": ${jsonString(mockWaliName)},
                             "email": "budi.santoso@kibooz.com",
-                            "phoneNumber": "081234567890",
-                            "whatsappNumber": "081234567890",
-                            "address": "Jl. Pendidikan No. 12, Malang"
+                            "phoneNumber": ${jsonString(mockWaliPhone)},
+                            "whatsappNumber": ${jsonString(mockWaliWhatsapp)},
+                            "address": ${jsonString(mockWaliAddress)}
                         }
                     }
                 }
@@ -620,4 +704,7 @@ class DevBypassInterceptor(
             else -> null
         }
     }
+
+    private fun jsonString(value: String): String =
+        moshi.adapter(String::class.java).toJson(value)
 }
