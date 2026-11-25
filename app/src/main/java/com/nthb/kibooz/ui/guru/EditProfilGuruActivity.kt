@@ -12,6 +12,7 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityEditProfilGuruBinding
 import com.nthb.kibooz.ui.account.AvatarPickerHelper
+import com.nthb.kibooz.ui.location.LocationPickerHelper
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
@@ -39,6 +40,7 @@ class EditProfilGuruActivity : AppCompatActivity() {
     }
 
     private lateinit var avatarPicker: AvatarPickerHelper
+    private lateinit var locationPicker: LocationPickerHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +54,11 @@ class EditProfilGuruActivity : AppCompatActivity() {
 
         avatarPicker = AvatarPickerHelper(this) { croppedFile ->
             viewModel.uploadAvatar(croppedFile)
+        }
+        locationPicker = LocationPickerHelper(this) { pickedAddress ->
+            binding.etAlamat.setText(pickedAddress)
+            binding.etAlamat.setSelection(pickedAddress.length)
+            binding.etAlamat.error = null
         }
 
         setupListeners()
@@ -69,6 +76,12 @@ class EditProfilGuruActivity : AppCompatActivity() {
         binding.cardAvatar.setOnClickListener { pickAvatar() }
         binding.ivChangePhoto.setOnClickListener { pickAvatar() }
         binding.tvUbahFoto.setOnClickListener { pickAvatar() }
+
+        binding.btnPilihPeta.setOnClickListener {
+            if (!viewModel.state.value.busy) {
+                locationPicker.launch(binding.etAlamat.text?.toString())
+            }
+        }
 
         binding.btnSimpan.setOnClickListener {
             viewModel.saveProfile(
@@ -100,6 +113,7 @@ class EditProfilGuruActivity : AppCompatActivity() {
                     }
 
                     binding.btnSimpan.isEnabled = !state.busy && profile != null
+                    binding.btnPilihPeta.isEnabled = !state.busy
                     binding.etNamaGuru.error = state.fieldErrors[GuruEditField.FULL_NAME]?.let(::getString)
                     binding.etPhone.error = state.fieldErrors[GuruEditField.PHONE]?.let(::getString)
                     binding.etAlamat.error = state.fieldErrors[GuruEditField.ADDRESS]?.let(::getString)

@@ -321,4 +321,19 @@
     <string name="guru_kelas_ringkas">%1$s · %2$d siswa</string>
     <string name="guru_kelas_kosong_mood">%1$s · Belum ada mood tercatat hari ini</string>
     <string name="detail_profil_belum_ada_mood">Belum ada mood tercatat hari ini pada kelas %1$s</string>
+
+    <!-- Pemilih Lokasi Peta (Guru dan Wali) -->
+    <string name="lokasi_pilih_lewat_peta">Pilih Lokasi lewat Peta</string>
+    <string name="lokasi_peta_judul">Pilih Lokasi di Peta</string>
+    <string name="lokasi_cari_hint">Cari sekolah, nama jalan, atau kota…</string>
+    <string name="lokasi_cari_tombol">Cari</string>
+    <string name="lokasi_gps_tombol">Lokasi Saya</string>
+    <string name="lokasi_memuat_alamat">Mencari detail alamat…</string>
+    <string name="lokasi_petunjuk_geser">Geser peta atau ketuk area untuk menempatkan pin</string>
+    <string name="lokasi_gunakan">Gunakan Lokasi Ini</string>
+    <string name="lokasi_tidak_ditemukan">Lokasi tidak ditemukan, coba kata kunci lain</string>
+    <string name="lokasi_gps_tidak_aktif">Aktifkan GPS atau izinkan akses lokasi untuk melacak posisi saat ini</string>
+    <string name="lokasi_izin_ditolak">Izin lokasi belum diberikan. Kamu tetap bisa menggeser peta atau mencari alamat.</string>
+    <string name="lokasi_fallback_offline">Gagal memuat nama jalan, koordinat lokasi tetap dapat disimpan atau disunting manual</string>
+    <string name="lokasi_koordinat_format">Titik peta: %1$.5f, %2$.5f</string>
 </resources>

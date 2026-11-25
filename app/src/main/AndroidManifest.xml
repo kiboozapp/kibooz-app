@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Permissions for Camera and Internet -->
+    <!-- Permissions for Camera, Internet, and Location -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Pengingat sisa scan sampah, wajib diminta saat runtime sejak Android 13 -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -137,6 +140,12 @@
         <activity
             android:name=".ui.account.CropAvatarActivity"
             android:exported="false" />
+
+        <!-- 11d. Lokasi (Guru dan Wali): Pemilih Lokasi lewat Peta -->
+        <activity
+            android:name=".ui.location.PickLocationActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustNothing" />
 
         <!-- 12. Wali Flow: Dashboard Wali & Siswa -->
         <activity
