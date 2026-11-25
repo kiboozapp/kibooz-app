@@ -5,4 +5,10 @@
     <string name="error_chat_conversation_not_found">Percakapan tidak ditemukan. Kembali ke daftar lalu muat ulang</string>
     <string name="error_chat_message_not_found">Pesan tidak ditemukan, mungkin sudah dihapus</string>
     <string name="error_chat_sending_closed">Percakapan ini sudah ditutup, pesan baru tidak bisa dikirim</string>
+
+    <!-- Percakapan -->
+    <string name="chat_error_terlalu_panjang">Pesan terlalu panjang, paling banyak 4000 huruf</string>
+    <string name="chat_ditutup_kelas_arsip">Kelas ini sudah diarsipkan, jadi ruang kelasnya hanya bisa dibaca.</string>
+    <string name="chat_ditutup_akun_dihapus">Akun lawan bicara sudah dihapus, jadi percakapan ini hanya bisa dibaca.</string>
+    <string name="chat_ditutup_tidak_sekelas">Kalian tidak lagi berada di kelas yang sama, jadi percakapan ini hanya bisa dibaca.</string>
 </resources>
