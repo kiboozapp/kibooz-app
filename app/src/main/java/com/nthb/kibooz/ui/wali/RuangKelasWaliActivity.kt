@@ -242,16 +242,20 @@ class RuangKelasWaliActivity : AppCompatActivity() {
                     if (result.errorCode == "MOVE_REQUEST_PENDING") {
                         loadPendingMoveRequest(targetStudentId)
                     }
-                    val message = when (result.errorCode) {
-                        "MOVE_REQUEST_PENDING" -> getString(R.string.kelas_gabung_menunggu)
-                        "CLASS_CODE_NOT_FOUND" -> getString(R.string.kelas_gabung_kode_tidak_ditemukan)
-                        "STUDENT_NOT_FOUND" -> getString(R.string.kelas_gabung_siswa_tidak_ditemukan)
-                        "ALREADY_IN_CLASS" -> getString(R.string.error_already_in_class)
-                        "CLASS_JOINING_CLOSED" -> getString(R.string.error_class_joining_closed)
-                        "CLASS_FULL" -> getString(R.string.error_class_full)
-                        else -> getString(R.string.kelas_gabung_gagal, result.message ?: result.errorCode ?: "Error")
+                    val (title, message) = when (result.errorCode) {
+                        "MOVE_REQUEST_PENDING" -> "Pengajuan Masih Menunggu" to getString(R.string.kelas_gabung_menunggu)
+                        "CLASS_CODE_NOT_FOUND" -> "Kode Kelas Tidak Ditemukan" to getString(R.string.kelas_gabung_kode_tidak_ditemukan)
+                        "STUDENT_NOT_FOUND" -> "Siswa Tidak Ditemukan" to getString(R.string.kelas_gabung_siswa_tidak_ditemukan)
+                        "ALREADY_IN_CLASS" -> "Sudah Terdaftar di Kelas Ini" to getString(R.string.error_already_in_class)
+                        "CLASS_JOINING_CLOSED" -> "Pendaftaran Kelas Ditutup" to getString(R.string.anak_error_kelas_tutup)
+                        "CLASS_FULL" -> "Kelas Sudah Penuh" to getString(R.string.error_class_full)
+                        else -> "Gagal Mengajukan Pindah" to getString(R.string.kelas_gabung_gagal, result.message ?: result.errorCode ?: "Error")
                     }
-                    Toast.makeText(this@RuangKelasWaliActivity, message, Toast.LENGTH_LONG).show()
+                    com.google.android.material.dialog.MaterialAlertDialogBuilder(this@RuangKelasWaliActivity)
+                        .setTitle(title)
+                        .setMessage(message)
+                        .setPositiveButton("Mengerti", null)
+                        .show()
                 }
                 is ApiResult.NetworkError -> {
                     Toast.makeText(this@RuangKelasWaliActivity, R.string.error_network, Toast.LENGTH_SHORT).show()
