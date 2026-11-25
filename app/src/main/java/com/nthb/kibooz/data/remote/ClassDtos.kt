@@ -19,7 +19,17 @@ data class ClassStudent(
     val seasonPoints: Int,
     val classRank: Int,
     /** Mood terbaru hari ini, null jika belum dicatat. */
-    val todayMood: Emotion?
+    val todayMood: Emotion?,
+    /** True selama guru menjamin kebenaran NISN siswa ini. */
+    val nisnVerified: Boolean = false,
+    /** True jika NISN dikosongkan karena guru memverifikasi nomor sama untuk anak lain. */
+    val nisnNeedsUpdate: Boolean = false
+)
+
+/** `data` dari `POST/DELETE /guru/classes/{classId}/students/{studentId}/nisn-verification`. */
+data class NisnVerificationData(
+    val nisnVerified: Boolean,
+    val displaced: Int = 0
 )
 
 /** `data` dari `GET /guru/classes`: halaman kelas yang diajar Guru beserta `page`, `limit` dan `total`. */

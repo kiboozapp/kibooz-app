@@ -329,4 +329,27 @@
     <string name="lokasi_izin_ditolak">Izin lokasi belum diberikan. Kamu tetap bisa menggeser peta atau mencari alamat.</string>
     <string name="lokasi_fallback_offline">Gagal memuat nama jalan, koordinat lokasi tetap dapat disimpan atau disunting manual</string>
     <string name="lokasi_koordinat_format">Titik peta: %1$.5f, %2$.5f</string>
+
+    <!-- Verifikasi NISN oleh Guru di Peserta Kelas -->
+    <string name="error_nisn_not_set">NISN siswa belum diisi oleh wali murid</string>
+    <string name="peserta_nisn_petunjuk_guru">Ketuk status NISN atau nama siswa untuk memverifikasi NISN sesuai data sekolah.</string>
+    <string name="peserta_nisn_terverifikasi">NISN Terverifikasi</string>
+    <string name="peserta_nisn_verifikasi_aksi">Verifikasi NISN</string>
+    <string name="peserta_nisn_perlu_isi">NISN Perlu Diisi Wali</string>
+    <string name="peserta_nisn_kosong_label">NISN belum diisi</string>
+    <string name="peserta_nisn_memproses">Memproses…</string>
+    <string name="peserta_nisn_dialog_verif_judul">Verifikasi NISN %1$s?</string>
+    <string name="peserta_nisn_dialog_verif_pesan">Pastikan NISN %1$s sesuai dengan data resmi sekolah. Jika ada siswa lain yang memakai nomor sama dan belum diverifikasi, NISN mereka akan dikosongkan agar wali mengisi ulang.</string>
+    <string name="peserta_nisn_dialog_verif_ya">Verifikasi</string>
+    <string name="peserta_nisn_dialog_batal_judul">Batalkan verifikasi NISN %1$s?</string>
+    <string name="peserta_nisn_dialog_batal_pesan">Nomor NISN %1$s tidak lagi terkunci sebagai terverifikasi sehingga wali dapat mengubahnya atau guru memverifikasi ulang. Siswa lain yang sebelumnya kehilangan nomor tidak otomatis dikembalikan.</string>
+    <string name="peserta_nisn_dialog_batal_ya">Batalkan Verifikasi</string>
+    <string name="peserta_nisn_dialog_kosong_judul">NISN Belum Tersedia</string>
+    <string name="peserta_nisn_dialog_kosong_pesan">NISN %1$s belum diisi atau dikosongkan karena bentrok. Minta wali murid mengisi ulang NISN di profil anak terlebih dahulu.</string>
+    <string name="peserta_nisn_sukses_verif">NISN %1$s berhasil diverifikasi.</string>
+    <string name="peserta_nisn_sukses_verif_geser">NISN %1$s diverifikasi (%2$d siswa lain dengan nomor sama diminta mengisi ulang).</string>
+    <string name="peserta_nisn_sukses_batal">Verifikasi NISN %1$s dibatalkan.</string>
+    <string name="peserta_nisn_error_sudah_dipakai">NISN ini sudah diverifikasi guru untuk siswa lain. Periksa kembali datanya.</string>
+    <string name="peserta_nisn_ringkasan_judul">Status Verifikasi NISN</string>
+    <string name="peserta_nisn_ringkasan_isi">%1$s\n\n• Terverifikasi: %2$d siswa\n• Menunggu verifikasi: %3$d siswa\n• Perlu diisi ulang wali: %4$d siswa</string>
 </resources>

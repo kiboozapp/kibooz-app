@@ -17,6 +17,7 @@ class ApiErrorMessagesTest {
         assertEquals(R.string.error_class_full, failure(409, "CLASS_FULL").messageRes())
         assertEquals(R.string.error_trash_daily_limit, failure(429, "TRASH_DAILY_LIMIT_REACHED").messageRes())
         assertEquals(R.string.error_nisn_taken, failure(409, "NISN_ALREADY_REGISTERED").messageRes())
+        assertEquals(R.string.error_nisn_not_set, failure(409, "NISN_NOT_SET").messageRes())
     }
 
     @Test
