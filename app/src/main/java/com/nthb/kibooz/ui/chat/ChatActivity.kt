@@ -124,7 +124,7 @@ class ChatActivity : AppCompatActivity() {
         if (!isRoom) {
             binding.tvInitials.text = initialsOf(title)
             val avatarUrl = intent.getStringExtra(EXTRA_PEER_AVATAR).takeUnless { peerDeleted }
-            appContainer.avatarLoader.load(binding.ivAvatar, avatarUrl, android.R.color.transparent)
+            appContainer.avatarLoader.load(binding.ivAvatar, avatarUrl, R.drawable.bg_chat_empty)
         }
 
         binding.btnCobaLagi.setOnClickListener { viewModel.load() }

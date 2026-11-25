@@ -74,7 +74,7 @@ class ChatListAdapter(
             binding.ivAvatar.isVisible = !conversation.isRoom
             if (!conversation.isRoom) {
                 binding.tvInitials.text = initialsOf(name)
-                avatarLoader.load(binding.ivAvatar, peer?.avatarUrl.takeUnless { peer?.deleted == true }, android.R.color.transparent)
+                avatarLoader.load(binding.ivAvatar, peer?.avatarUrl.takeUnless { peer?.deleted == true }, R.drawable.bg_chat_empty)
             }
 
             val last = conversation.lastMessage
@@ -127,7 +127,7 @@ class ChatListAdapter(
             binding.tvInitials.isVisible = true
             binding.ivAvatar.isVisible = true
             binding.tvInitials.text = initialsOf(contact.fullName)
-            avatarLoader.load(binding.ivAvatar, contact.avatarUrl, android.R.color.transparent)
+            avatarLoader.load(binding.ivAvatar, contact.avatarUrl, R.drawable.bg_chat_empty)
 
             showOpening(row.opening)
             binding.cardStarter.setOnClickListener { onContact(contact) }
