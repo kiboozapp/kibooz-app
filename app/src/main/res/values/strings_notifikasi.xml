@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pengingat sisa scan sampah untuk Wali -->
+    <string name="notif_scan_channel_nama">Pengingat scan sampah</string>
+    <string name="notif_scan_channel_deskripsi">Pengingat siang jika anak masih punya sisa scan sampah hari ini</string>
+    <string name="notif_scan_judul">Masih ada kesempatan scan sampah hari ini!</string>
+    <string name="notif_scan_baris">%1$s: sisa %2$d scan</string>
+</resources>

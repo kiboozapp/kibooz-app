@@ -102,6 +102,11 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
+    // Pengingat sisa scan sampah pukul 12.00
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    // Mendeteksi aplikasi masuk ke latar belakang, untuk pengingat demo setelah aplikasi ditutup
+    implementation("androidx.lifecycle:lifecycle-process:2.8.7")
+
     testImplementation("junit:junit:4.13.2")
     testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0")
