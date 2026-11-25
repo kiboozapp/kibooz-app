@@ -69,6 +69,10 @@ private fun messageForCode(code: String): Int? = when (code) {
         "TRASH_DAILY_LIMIT_REACHED" -> R.string.error_trash_daily_limit
         "MOOD_LOG_LIMIT_REACHED" -> R.string.error_mood_log_limit
         "RATE_LIMITED" -> R.string.error_rate_limited
+        "CHAT_CONTACT_NOT_ALLOWED" -> R.string.error_chat_contact_not_allowed
+        "CHAT_CONVERSATION_NOT_FOUND" -> R.string.error_chat_conversation_not_found
+        "CHAT_MESSAGE_NOT_FOUND" -> R.string.error_chat_message_not_found
+        "CHAT_SENDING_CLOSED" -> R.string.error_chat_sending_closed
         "IDEMPOTENCY_IN_PROGRESS" -> R.string.error_request_in_progress
         "IDEMPOTENCY_KEY_REUSED" -> R.string.error_key_reused
         "BODY_TOO_LARGE" -> R.string.error_file_too_large

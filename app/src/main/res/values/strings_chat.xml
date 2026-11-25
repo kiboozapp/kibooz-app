@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Pesan galat dari kode chat server -->
+    <string name="error_chat_contact_not_allowed">Orang ini tidak bisa dihubungi. Pilih dari daftar kontak</string>
+    <string name="error_chat_conversation_not_found">Percakapan tidak ditemukan. Kembali ke daftar lalu muat ulang</string>
+    <string name="error_chat_message_not_found">Pesan tidak ditemukan, mungkin sudah dihapus</string>
+    <string name="error_chat_sending_closed">Percakapan ini sudah ditutup, pesan baru tidak bisa dikirim</string>
+</resources>
