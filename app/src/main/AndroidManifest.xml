@@ -54,6 +54,12 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 4c. Kode verifikasi email untuk akun baru -->
+        <activity
+            android:name=".ui.auth.VerifikasiEmailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
         <!-- 5. Guru Flow: Dashboard Guru -->
         <activity
             android:name=".ui.guru.DashboardGuruActivity"

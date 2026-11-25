@@ -13,6 +13,12 @@ interface AuthApi {
     @POST("auth/login")
     suspend fun login(@Body body: LoginRequest): Response<ApiEnvelope<AuthData>>
 
+    @POST("auth/verify-email")
+    suspend fun verifyEmail(@Body body: VerifyEmailRequest): Response<ApiEnvelope<AuthData>>
+
+    @POST("auth/resend-verification")
+    suspend fun resendVerification(@Body body: ResendVerificationRequest): Response<ApiEnvelope<VerificationDto>>
+
     // refresh dan logout dijalankan dengan execute() di thread pemanggil, bukan lewat antrean dispatcher
     // OkHttp (maksimal 5 request per host). Kalau lewat antrean, 5 request yang sama-sama 401 menahan semua
     // slot sambil menunggu refresh, dan request refresh tidak pernah kebagian slot.

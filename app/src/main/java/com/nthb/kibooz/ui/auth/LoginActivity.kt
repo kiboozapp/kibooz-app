@@ -94,6 +94,12 @@ class LoginActivity : AppCompatActivity() {
             viewModel.errorShown()
         }
         state.signedIn?.let(::openPortal)
+        state.verificationEmail?.let(::openVerification)
+    }
+
+    private fun openVerification(email: String) {
+        viewModel.verificationOpened()
+        startActivity(VerifikasiEmailActivity.intent(this, email, VerifySource.LOGIN, selectedRole))
     }
 
     private fun openPortal(user: SessionUser) {

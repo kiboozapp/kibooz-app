@@ -13,6 +13,7 @@ import com.nthb.kibooz.data.remote.RegisterRequest
 import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.remote.outageKind
 import com.nthb.kibooz.data.repository.AuthRepository
+import com.nthb.kibooz.data.repository.RegisterOutcome
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
 import com.nthb.kibooz.util.FormRules
@@ -51,7 +52,18 @@ data class RegisterUiState(
     /** Terisi jika server tidak terjangkau. Layar menampilkan kartu gangguan, bukan [error], dan pengguna yang mencoba lagi. */
     val outage: OutageKind? = null,
     /** Terisi setelah pendaftaran berhasil. Server langsung memberi sesi, jadi pengguna sudah masuk. */
-    val signedIn: SessionUser? = null
+    val signedIn: SessionUser? = null,
+    /** Terisi jika server mewajibkan verifikasi email. Akunnya ada tetapi belum punya sesi, jadi layar membuka layar kode. */
+    val verification: PendingVerification? = null
+)
+
+/** Yang dibutuhkan layar kode setelah pendaftaran. Kata sandi sengaja tidak ikut. */
+data class PendingVerification(
+    val email: String,
+    val sent: Boolean,
+    val resendAfterSeconds: Int,
+    /** Dari balasan register, hanya jatah batas per perangkat. Dibawa ke layar kode lewat Intent. */
+    val deviceToken: String?
 )
 
 /** Pemeriksaan isian pendaftaran sebelum dikirim. Aturannya sama dengan batas di `openapi.yaml`. */
@@ -124,7 +136,17 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
         _state.value = RegisterUiState(loading = true)
         viewModelScope.launch {
             _state.value = when (val result = repository.register(RegisterRules.toRequest(form))) {
-                is ApiResult.Success -> signedInOrDenied(result.data)
+                is ApiResult.Success -> when (val outcome = result.data) {
+                    is RegisterOutcome.SignedIn -> signedInOrDenied(outcome.user)
+                    is RegisterOutcome.VerificationRequired -> RegisterUiState(
+                        verification = PendingVerification(
+                            outcome.email,
+                            outcome.verification.sent,
+                            outcome.verification.resendAfterSeconds,
+                            outcome.deviceToken
+                        )
+                    )
+                }
                 is ApiResult.Failure -> failed(result)
                 is ApiResult.NetworkError -> RegisterUiState(error = result.errorMessageRes(), outage = result.outageKind())
             }
