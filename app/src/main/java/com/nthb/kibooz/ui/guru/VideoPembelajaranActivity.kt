@@ -2,19 +2,23 @@ package com.nthb.kibooz.ui.guru
 
 import android.content.Intent
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextUtils
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.View
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.card.MaterialCardView
@@ -25,13 +29,19 @@ import com.nthb.kibooz.data.remote.VideoItem
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityVideoPembelajaranBinding
 import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
 
+/** Layar daftar video pembelajaran kelas. Guru dapat menambah, mengubah metadata, dan menghapus video. */
 class VideoPembelajaranActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityVideoPembelajaranBinding
     private var activeClassId: String? = null
-    private val dynamicVideoCards = mutableListOf<Pair<View, String>>()
+    private var currentSubjectName: String = "Bahasa & Komunikasi"
+    private var isTeacher: Boolean = false
+
+    private val loadedVideos = mutableListOf<VideoItem>()
+    private val dynamicVideoCards = mutableListOf<Pair<View, VideoItem>>()
 
     private var videoUrl1: String = "https://www.youtube.com/watch?v=e23kDLhj_qA"
     private var videoUrl2: String = "https://www.youtube.com/watch?v=VoukA9eehoQ"
@@ -48,13 +58,13 @@ class VideoPembelajaranActivity : AppCompatActivity() {
             fab = binding.fabTambahVideo
         )
 
-        val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Bahasa & Komunikasi"
+        currentSubjectName = intent.getStringExtra("NAMA_KELAS") ?: "Bahasa & Komunikasi"
         activeClassId = intent.getStringExtra("CLASS_ID")
-        binding.tvKelasTitle.text = namaKelas
+        binding.tvKelasTitle.text = currentSubjectName
 
-        // Periksa peran pengguna untuk Role-Gating: Wali murid hanya menonton, Guru dapat menambah video
+        // Periksa peran pengguna untuk Role-Gating: Wali murid hanya menonton, Guru dapat mengelola video
         val sessionUser = appContainer.authRepository.session.value?.user
-        val isTeacher = sessionUser?.role == Role.GURU
+        isTeacher = sessionUser?.role == Role.GURU
         binding.fabTambahVideo.visibility = if (isTeacher) View.VISIBLE else View.GONE
 
         // Sembunyikan kartu fallback dari awal agar tidak ada kedipan visual (flicker)
@@ -62,8 +72,8 @@ class VideoPembelajaranActivity : AppCompatActivity() {
         binding.cardVideo2.visibility = View.GONE
         binding.cardVideo3.visibility = View.GONE
 
-        setupListeners(namaKelas)
-        resolveClassAndLoadVideos(namaKelas)
+        setupListeners(currentSubjectName)
+        resolveClassAndLoadVideos()
     }
 
     private fun adaptFallbackVideos(namaKelas: String) {
@@ -127,7 +137,7 @@ class VideoPembelajaranActivity : AppCompatActivity() {
         binding.tvDateVideo3.text = "Diunggah 5 hari lalu • ${fmt.format(cal.time)}"
     }
 
-    private fun resolveClassAndLoadVideos(namaKelas: String) {
+    private fun resolveClassAndLoadVideos() {
         val videoRepo = appContainer.videoRepository
         val classRepo = appContainer.classRepository
 
@@ -148,33 +158,49 @@ class VideoPembelajaranActivity : AppCompatActivity() {
 
             val classId = activeClassId
             val result = if (!classId.isNullOrBlank()) videoRepo.videos(classId) else null
+            loadedVideos.clear()
             if (result is ApiResult.Success && result.data.videos.isNotEmpty()) {
-                binding.cardVideo1.visibility = View.GONE
-                binding.cardVideo2.visibility = View.GONE
-                binding.cardVideo3.visibility = View.GONE
-                result.data.videos.forEach { video ->
-                    renderVideoCard(video)
-                }
-            } else {
-                // Tampilkan fallback hanya saat data backend benar-benar kosong atau tidak tersedia
-                adaptFallbackVideos(namaKelas)
-                binding.cardVideo1.visibility = View.VISIBLE
-                binding.cardVideo2.visibility = View.VISIBLE
-                binding.cardVideo3.visibility = View.VISIBLE
+                loadedVideos.addAll(result.data.videos)
             }
+            renderVideoList()
         }
     }
 
-    private fun renderVideoCard(video: VideoItem) {
+    private fun renderVideoList() {
+        dynamicVideoCards.forEach { (view, _) -> binding.llVideoContainer.removeView(view) }
+        dynamicVideoCards.clear()
+
+        if (loadedVideos.isNotEmpty()) {
+            binding.cardVideo1.visibility = View.GONE
+            binding.cardVideo2.visibility = View.GONE
+            binding.cardVideo3.visibility = View.GONE
+            loadedVideos.forEachIndexed { index, video ->
+                val card = buildVideoCard(video)
+                binding.llVideoContainer.addView(card, DYNAMIC_INSERT_INDEX + index)
+                dynamicVideoCards.add(card to video)
+            }
+        } else {
+            // Tampilkan kartu bawaan hanya jika daftar backend kosong atau gagal dimuat
+            adaptFallbackVideos(currentSubjectName)
+            binding.cardVideo1.visibility = View.VISIBLE
+            binding.cardVideo2.visibility = View.VISIBLE
+            binding.cardVideo3.visibility = View.VISIBLE
+        }
+
+        filterVideos(binding.etSearchVideo.text?.toString().orEmpty().trim())
+    }
+
+    private fun buildVideoCard(video: VideoItem): MaterialCardView {
         val density = resources.displayMetrics.density
         val balooFont = ResourcesCompat.getFont(this, R.font.baloo2)
+        val primaryPurple = ContextCompat.getColor(this, R.color.kibooz_primary_purple)
 
         val card = MaterialCardView(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = (16 * density).toInt()
+                topMargin = (14 * density).toInt()
             }
             radius = 18 * density
             cardElevation = 2 * density
@@ -183,51 +209,98 @@ class VideoPembelajaranActivity : AppCompatActivity() {
             strokeWidth = (1 * density).toInt()
             isClickable = true
             isFocusable = true
-            setOnClickListener {
-                playVideo(video.videoUrl, video.title)
-            }
+            setOnClickListener { playVideo(video.videoUrl, video.title) }
         }
 
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
+            val pad = (16 * density).toInt()
+            setPadding(pad, pad, pad, pad)
         }
 
-        // Thumbnail dengan tampilan kaya
-        val thumbnail = ImageView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                (170 * density).toInt()
-            )
-            scaleType = ImageView.ScaleType.CENTER_CROP
-            setBackgroundColor(Color.parseColor("#DEF2EE"))
-            setImageResource(R.drawable.img_onboarding_1)
-            contentDescription = "Thumbnail ${video.title}"
+        val headerRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
         }
 
-        val detailsContainer = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setPadding((14 * density).toInt(), (14 * density).toInt(), (14 * density).toInt(), (14 * density).toInt())
+        val iconBadge = FrameLayout(this).apply {
+            val size = (38 * density).toInt()
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            setBackgroundResource(R.drawable.bg_tag_lavender)
         }
+        val videoIcon = ImageView(this).apply {
+            val iconSize = (20 * density).toInt()
+            layoutParams = FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER)
+            setImageResource(R.drawable.ic_video)
+            setColorFilter(primaryPurple)
+        }
+        iconBadge.addView(videoIcon)
 
         val titleTv = TextView(this).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = (12 * density).toInt()
+            }
             text = video.title
             setTextColor(Color.parseColor("#221C38"))
             textSize = 16f
+            maxLines = 2
+            ellipsize = TextUtils.TruncateAt.END
             typeface = balooFont
             paint.isFakeBoldText = true
         }
 
+        headerRow.addView(iconBadge)
+        headerRow.addView(titleTv)
+        container.addView(headerRow)
+
+        val description = video.description?.trim()?.takeIf { it.isNotEmpty() }
+            ?: "Video materi pembelajaran si kecil"
         val descTv = TextView(this).apply {
-            text = video.description ?: "Video materi pembelajaran si kecil"
+            text = description
             setTextColor(Color.parseColor("#75718E"))
-            textSize = 12f
+            textSize = 13f
             typeface = balooFont
-            val lp = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-            lp.topMargin = (4 * density).toInt()
-            layoutParams = lp
+            ).apply {
+                topMargin = (8 * density).toInt()
+            }
+        }
+        container.addView(descTv)
+
+        TimeFormat.localDate(video.createdAt)?.let { formattedDate ->
+            val dateRow = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    topMargin = (6 * density).toInt()
+                }
+            }
+            val calIcon = ImageView(this).apply {
+                val size = (14 * density).toInt()
+                layoutParams = LinearLayout.LayoutParams(size, size)
+                setImageResource(R.drawable.ic_calendar)
+                setColorFilter(Color.parseColor("#75718E"))
+            }
+            val dateTv = TextView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginStart = (6 * density).toInt()
+                }
+                text = "Diunggah $formattedDate"
+                setTextColor(Color.parseColor("#75718E"))
+                textSize = 12f
+                typeface = balooFont
+            }
+            dateRow.addView(calIcon)
+            dateRow.addView(dateTv)
+            container.addView(dateRow)
         }
 
         val actionRow = LinearLayout(this).apply {
@@ -243,46 +316,87 @@ class VideoPembelajaranActivity : AppCompatActivity() {
 
         val playBtn = TextView(this).apply {
             text = "Putar Video"
-            setTextColor(Color.parseColor("#6366F1"))
-            textSize = 14f
+            setTextColor(primaryPurple)
+            textSize = 13f
             typeface = balooFont
             paint.isFakeBoldText = true
-            setOnClickListener {
-                playVideo(video.videoUrl, video.title)
-            }
+            setOnClickListener { playVideo(video.videoUrl, video.title) }
         }
 
-        val shareBtn = ImageView(this).apply {
-            layoutParams = LinearLayout.LayoutParams((32 * density).toInt(), (32 * density).toInt())
-            setImageResource(R.drawable.ic_share)
-            setColorFilter(Color.parseColor("#6366F1"))
-            setOnClickListener { shareVideo(video.title, video.videoUrl) }
-        }
-
-        val spacer = TextView(this).apply {
+        val spacer = View(this).apply {
             layoutParams = LinearLayout.LayoutParams(0, 0, 1f)
         }
 
         actionRow.addView(playBtn)
         actionRow.addView(spacer)
+
+        if (isTeacher) {
+            val editChip = buildActionChip(
+                label = "Edit",
+                textColor = primaryPurple,
+                bgColor = Color.parseColor("#F1EEFD"),
+                font = balooFont,
+                density = density
+            ) { showVideoFormDialog(video) }
+            val deleteChip = buildActionChip(
+                label = "Hapus",
+                textColor = Color.parseColor("#DC2626"),
+                bgColor = Color.parseColor("#FEE2E2"),
+                font = balooFont,
+                density = density
+            ) { confirmDeleteVideo(video) }
+            actionRow.addView(editChip)
+            actionRow.addView(deleteChip)
+        }
+
+        val shareBtn = ImageView(this).apply {
+            val size = (28 * density).toInt()
+            val pad = (4 * density).toInt()
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            setPadding(pad, pad, pad, pad)
+            setImageResource(R.drawable.ic_share)
+            setColorFilter(primaryPurple)
+            contentDescription = "Bagikan Video"
+            setOnClickListener { shareVideo(video.title, video.videoUrl) }
+        }
         actionRow.addView(shareBtn)
 
-        detailsContainer.addView(titleTv)
-        detailsContainer.addView(descTv)
-        detailsContainer.addView(actionRow)
-
-        container.addView(thumbnail)
-        container.addView(detailsContainer)
+        container.addView(actionRow)
         card.addView(container)
+        return card
+    }
 
-        binding.llVideoContainer.addView(card, 2)
-        dynamicVideoCards.add(card to video.title)
+    private fun buildActionChip(
+        label: String,
+        textColor: Int,
+        bgColor: Int,
+        font: android.graphics.Typeface?,
+        density: Float,
+        onClick: () -> Unit
+    ): TextView = TextView(this).apply {
+        text = label
+        setTextColor(textColor)
+        textSize = 12f
+        typeface = font
+        paint.isFakeBoldText = true
+        val padH = (10 * density).toInt()
+        val padV = (4 * density).toInt()
+        setPadding(padH, padV, padH, padV)
+        background = GradientDrawable().apply {
+            cornerRadius = 12 * density
+            setColor(bgColor)
+        }
+        layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        ).apply {
+            marginEnd = (8 * density).toInt()
+        }
+        setOnClickListener { onClick() }
     }
 
     private fun setupListeners(namaKelas: String) {
-        binding.ivBack.setOnClickListener {
-            finish()
-        }
+        binding.ivBack.setOnClickListener { finish() }
 
         binding.etSearchVideo.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -296,46 +410,32 @@ class VideoPembelajaranActivity : AppCompatActivity() {
             Toast.makeText(this, "Opsi Video Kelas $namaKelas", Toast.LENGTH_SHORT).show()
         }
 
-        binding.fabTambahVideo.setOnClickListener {
-            showTambahVideoDialog()
-        }
+        binding.fabTambahVideo.setOnClickListener { showVideoFormDialog() }
 
-        binding.btnShareVideo1.setOnClickListener {
-            shareVideo(binding.tvTitleVideo1.text.toString(), videoUrl1)
-        }
+        binding.btnShareVideo1.setOnClickListener { shareVideo(binding.tvTitleVideo1.text.toString(), videoUrl1) }
+        binding.btnShareVideo2.setOnClickListener { shareVideo(binding.tvTitleVideo2.text.toString(), videoUrl2) }
+        binding.btnShareVideo3.setOnClickListener { shareVideo(binding.tvTitleVideo3.text.toString(), videoUrl3) }
 
-        binding.btnShareVideo2.setOnClickListener {
-            shareVideo(binding.tvTitleVideo2.text.toString(), videoUrl2)
-        }
-
-        binding.btnShareVideo3.setOnClickListener {
-            shareVideo(binding.tvTitleVideo3.text.toString(), videoUrl3)
-        }
-
-        // Klik pada kartu langsung memutar video edukasi riil via Intent
-        binding.cardVideo1.setOnClickListener {
-            playVideo(videoUrl1, binding.tvTitleVideo1.text.toString())
-        }
-
-        binding.cardVideo2.setOnClickListener {
-            playVideo(videoUrl2, binding.tvTitleVideo2.text.toString())
-        }
-
-        binding.cardVideo3.setOnClickListener {
-            playVideo(videoUrl3, binding.tvTitleVideo3.text.toString())
-        }
+        binding.cardVideo1.setOnClickListener { playVideo(videoUrl1, binding.tvTitleVideo1.text.toString()) }
+        binding.cardVideo2.setOnClickListener { playVideo(videoUrl2, binding.tvTitleVideo2.text.toString()) }
+        binding.cardVideo3.setOnClickListener { playVideo(videoUrl3, binding.tvTitleVideo3.text.toString()) }
     }
 
     private fun playVideo(url: String, title: String) {
         try {
-            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(browserIntent)
-        } catch (e: Exception) {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (_: Exception) {
             Toast.makeText(this, "Membuka video: $title", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun showTambahVideoDialog() {
+    private fun showVideoFormDialog(existing: VideoItem? = null) {
+        val classId = activeClassId
+        if (classId.isNullOrBlank()) {
+            Toast.makeText(this, "Kelas belum tersedia, muat ulang halaman", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val density = resources.displayMetrics.density
         val container = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -345,55 +445,125 @@ class VideoPembelajaranActivity : AppCompatActivity() {
         val etTitle = EditText(this).apply {
             hint = "Judul Video (cth. Belajar Berhitung)"
             setSingleLine()
+            setText(existing?.title.orEmpty())
         }
         val etUrl = EditText(this).apply {
             hint = "Alamat URL Video (https://...)"
             setSingleLine()
+            setText(existing?.videoUrl.orEmpty())
+            if (existing != null) {
+                isEnabled = false
+                alpha = 0.65f
+            }
         }
         val etDesc = EditText(this).apply {
-            hint = "Deskripsi Singkat"
+            hint = if (existing != null) "Deskripsi Singkat (kosongkan untuk hapus)" else "Deskripsi Singkat (opsional)"
             setSingleLine()
+            setText(existing?.description.orEmpty())
         }
 
         container.addView(etTitle)
         container.addView(etUrl)
+        if (existing != null) {
+            val urlNote = TextView(this).apply {
+                text = "URL video tidak dapat diubah setelah ditambahkan"
+                textSize = 11f
+                setTextColor(Color.parseColor("#75718E"))
+            }
+            container.addView(urlNote)
+        }
         container.addView(etDesc)
 
-        AlertDialog.Builder(this)
-            .setTitle("Tambah Video Pembelajaran")
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(if (existing == null) "Tambah Video Pembelajaran" else "Edit Video Pembelajaran")
             .setView(container)
-            .setPositiveButton("Unggah") { _, _ ->
+            .setPositiveButton(if (existing == null) "Unggah" else "Simpan", null)
+            .setNegativeButton("Batal", null)
+            .create()
+
+        dialog.setOnShowListener {
+            val submitBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE)
+            submitBtn.setOnClickListener {
                 val title = etTitle.text.toString().trim()
                 val url = etUrl.text.toString().trim()
                 val desc = etDesc.text.toString().trim()
 
-                if (title.isBlank() || url.isBlank()) {
-                    Toast.makeText(this, "Judul dan URL video wajib diisi", Toast.LENGTH_SHORT).show()
-                    return@setPositiveButton
+                if (title.isBlank()) {
+                    Toast.makeText(this, "Judul video wajib diisi", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
                 }
+                if (existing == null) {
+                    if (url.isBlank() || !url.startsWith("https://", ignoreCase = true)) {
+                        Toast.makeText(this, "URL video wajib diawali https://", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                    submitBtn.isEnabled = false
+                    lifecycleScope.launch {
+                        val result = appContainer.videoRepository.createVideo(
+                            classId = classId,
+                            title = title,
+                            videoUrl = url,
+                            description = desc.ifBlank { null }
+                        )
+                        submitBtn.isEnabled = true
+                        handleVideoMutationResult(result, "Video berhasil ditambahkan!", dialog) { saved ->
+                            loadedVideos.add(0, saved)
+                        }
+                    }
+                } else {
+                    submitBtn.isEnabled = false
+                    lifecycleScope.launch {
+                        val result = appContainer.videoRepository.updateVideo(
+                            classId = classId,
+                            videoId = existing.id,
+                            title = title,
+                            description = desc
+                        )
+                        submitBtn.isEnabled = true
+                        handleVideoMutationResult(result, "Video berhasil diperbarui!", dialog) { updated ->
+                            val idx = loadedVideos.indexOfFirst { it.id == updated.id }
+                            if (idx >= 0) loadedVideos[idx] = updated else loadedVideos.add(0, updated)
+                        }
+                    }
+                }
+            }
+        }
+        dialog.show()
+    }
 
-                val classId = activeClassId ?: "078c0dcb-39d5-4e16-b91c-5a5dd116897b"
+    private fun handleVideoMutationResult(
+        result: ApiResult<VideoItem>,
+        successMessage: String,
+        dialog: AlertDialog,
+        onSuccess: (VideoItem) -> Unit
+    ) {
+        when (result) {
+            is ApiResult.Success -> {
+                onSuccess(result.data)
+                renderVideoList()
+                Toast.makeText(this, successMessage, Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            is ApiResult.Failure -> Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+            is ApiResult.NetworkError -> Toast.makeText(this, "Koneksi internet bermasalah", Toast.LENGTH_SHORT).show()
+        }
+    }
 
+    private fun confirmDeleteVideo(video: VideoItem) {
+        val classId = activeClassId ?: return
+        AlertDialog.Builder(this)
+            .setTitle("Hapus Video?")
+            .setMessage("Video \"${video.title}\" akan dihapus dari daftar kelas ini.")
+            .setPositiveButton("Hapus") { _, _ ->
                 lifecycleScope.launch {
-                    when (val result = appContainer.videoRepository.createVideo(
-                        classId = classId,
-                        title = title,
-                        videoUrl = url,
-                        description = desc.ifBlank { null }
-                    )) {
-                        is ApiResult.Success<*> -> {
-                            Toast.makeText(this@VideoPembelajaranActivity, "Video berhasil ditambahkan!", Toast.LENGTH_SHORT).show()
-                            binding.cardVideo1.visibility = View.GONE
-                            binding.cardVideo2.visibility = View.GONE
-                            binding.cardVideo3.visibility = View.GONE
-                            renderVideoCard(result.data as VideoItem)
+                    when (val result = appContainer.videoRepository.deleteVideo(classId, video.id)) {
+                        is ApiResult.Success -> {
+                            loadedVideos.removeAll { it.id == video.id }
+                            renderVideoList()
+                            Toast.makeText(this@VideoPembelajaranActivity, "Video berhasil dihapus", Toast.LENGTH_SHORT).show()
                         }
-                        is ApiResult.Failure -> {
-                            Toast.makeText(this@VideoPembelajaranActivity, result.message, Toast.LENGTH_SHORT).show()
-                        }
-                        is ApiResult.NetworkError -> {
-                            Toast.makeText(this@VideoPembelajaranActivity, "Koneksi internet bermasalah", Toast.LENGTH_SHORT).show()
-                        }
+                        is ApiResult.Failure -> Toast.makeText(this@VideoPembelajaranActivity, result.message, Toast.LENGTH_SHORT).show()
+                        is ApiResult.NetworkError -> Toast.makeText(this@VideoPembelajaranActivity, "Koneksi internet bermasalah", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -412,20 +582,28 @@ class VideoPembelajaranActivity : AppCompatActivity() {
     }
 
     private fun filterVideos(query: String) {
+        if (dynamicVideoCards.isNotEmpty()) {
+            dynamicVideoCards.forEach { (card, video) ->
+                val matches = query.isEmpty() ||
+                    video.title.contains(query, ignoreCase = true) ||
+                    video.description.orEmpty().contains(query, ignoreCase = true)
+                card.visibility = if (matches) View.VISIBLE else View.GONE
+            }
+            return
+        }
+
         val fallbackCards = listOf(
             binding.cardVideo1 to binding.tvTitleVideo1.text.toString(),
             binding.cardVideo2 to binding.tvTitleVideo2.text.toString(),
             binding.cardVideo3 to binding.tvTitleVideo3.text.toString()
         )
-
-        val targetCards = if (dynamicVideoCards.isNotEmpty()) dynamicVideoCards else fallbackCards
-        targetCards.forEach { (card, title) ->
-            if (query.isEmpty() || title.contains(query, ignoreCase = true)) {
-                card.visibility = View.VISIBLE
-            } else {
-                card.visibility = View.GONE
-            }
+        fallbackCards.forEach { (card, title) ->
+            val matches = query.isEmpty() || title.contains(query, ignoreCase = true)
+            card.visibility = if (matches) View.VISIBLE else View.GONE
         }
     }
-}
 
+    private companion object {
+        const val DYNAMIC_INSERT_INDEX = 2
+    }
+}

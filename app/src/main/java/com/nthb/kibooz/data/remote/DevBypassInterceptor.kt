@@ -25,7 +25,7 @@ class DevBypassInterceptor(
         }
 
         val path = request.url.encodedPath
-        val json = mockResponseFor(path) ?: return chain.proceed(request)
+        val json = mockResponseFor(path, request.method) ?: return chain.proceed(request)
 
         return Response.Builder()
             .request(request)
@@ -36,7 +36,7 @@ class DevBypassInterceptor(
             .build()
     }
 
-    private fun mockResponseFor(path: String): String? {
+    private fun mockResponseFor(path: String, method: String): String? {
         return when {
             path.endsWith("/guru/dashboard") -> """
                 {
@@ -364,36 +364,69 @@ class DevBypassInterceptor(
                 }
             """.trimIndent()
 
-            path.contains("/videos") -> """
-                {
-                    "success": true,
-                    "data": {
-                        "page": 1,
-                        "limit": 20,
-                        "total": 2,
-                        "videos": [
-                            {
-                                "id": "vid-1",
-                                "title": "Mengenal Emosi Dasar Manusia",
-                                "description": "Video animasi edukasi mengenal emosi senang, sedih, dan marah untuk anak.",
-                                "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                                "thumbnailUrl": null,
-                                "durationSeconds": 300,
-                                "createdAt": "2026-11-24T07:00:00Z"
-                            },
-                            {
-                                "id": "vid-2",
-                                "title": "Panduan Memilah Sampah Sekolah",
-                                "description": "Cara mudah membedakan sampah organik, anorganik, dan B3.",
-                                "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                                "thumbnailUrl": null,
-                                "durationSeconds": 240,
-                                "createdAt": "2026-11-24T08:00:00Z"
-                            }
-                        ]
+            path.contains("/videos") -> when (method) {
+                "DELETE" -> """{"success": true, "message": "Learning video deleted", "data": null}"""
+                "PATCH" -> """
+                    {
+                        "success": true,
+                        "message": "Learning video updated",
+                        "data": {
+                            "id": "vid-1",
+                            "title": "Video Pembelajaran Diperbarui",
+                            "description": "Deskripsi diperbarui",
+                            "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                            "thumbnailUrl": null,
+                            "durationSeconds": 300,
+                            "createdAt": "2026-11-24T07:00:00Z"
+                        }
                     }
-                }
-            """.trimIndent()
+                """.trimIndent()
+                "POST" -> """
+                    {
+                        "success": true,
+                        "message": "Learning video added",
+                        "data": {
+                            "id": "vid-new",
+                            "title": "Video Pembelajaran Baru",
+                            "description": "Materi pembelajaran kelas",
+                            "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                            "thumbnailUrl": null,
+                            "durationSeconds": null,
+                            "createdAt": "2026-11-25T12:00:00Z"
+                        }
+                    }
+                """.trimIndent()
+                else -> """
+                    {
+                        "success": true,
+                        "data": {
+                            "page": 1,
+                            "limit": 20,
+                            "total": 2,
+                            "videos": [
+                                {
+                                    "id": "vid-1",
+                                    "title": "Mengenal Emosi Dasar Manusia",
+                                    "description": "Video animasi edukasi mengenal emosi senang, sedih, dan marah untuk anak.",
+                                    "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                                    "thumbnailUrl": null,
+                                    "durationSeconds": 300,
+                                    "createdAt": "2026-11-24T07:00:00Z"
+                                },
+                                {
+                                    "id": "vid-2",
+                                    "title": "Panduan Memilah Sampah Sekolah",
+                                    "description": "Cara mudah membedakan sampah organik, anorganik, dan B3.",
+                                    "videoUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                                    "thumbnailUrl": null,
+                                    "durationSeconds": 240,
+                                    "createdAt": "2026-11-24T08:00:00Z"
+                                }
+                            ]
+                        }
+                    }
+                """.trimIndent()
+            }
 
             path.contains("/mood/scan") -> """
                 {
