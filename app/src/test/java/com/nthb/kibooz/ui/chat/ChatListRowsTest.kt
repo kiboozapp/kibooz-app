@@ -1,0 +1,92 @@
+package com.nthb.kibooz.ui.chat
+
+import com.nthb.kibooz.R
+import com.nthb.kibooz.ui.chat.ChatFixtures.contact
+import com.nthb.kibooz.ui.chat.ChatFixtures.direct
+import com.nthb.kibooz.ui.chat.ChatFixtures.room
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class ChatListRowsTest {
+
+    private val bunga = ChatClassOption("c1", "Bunga")
+    private val mawar = ChatClassOption("c2", "Mawar")
+
+    @Test
+    fun `the first tab lists the conversations in the order the server gave`() {
+        val state = ChatListState(
+            conversations = ChatSection(loading = false, data = listOf(direct("b"), room("r"), direct("a")))
+        )
+
+        assertEquals(listOf("v:b", "v:r", "v:a"), buildChatListRows(state).map { it.key })
+    }
+
+    @Test
+    fun `nothing loaded gives no rows`() {
+        assertTrue(buildChatListRows(ChatListState()).isEmpty())
+        assertTrue(buildChatListRows(ChatListState(tab = ChatListTab.NEW)).isEmpty())
+    }
+
+    @Test
+    fun `the new tab lists the class rooms first and then the contacts, each under its own heading`() {
+        val state = ChatListState(
+            tab = ChatListTab.NEW,
+            starters = ChatSection(
+                loading = false,
+                data = ChatStarters(listOf(contact("u1"), contact("u2")), listOf(bunga, mawar))
+            )
+        )
+
+        val rows = buildChatListRows(state)
+
+        assertEquals(listOf("s:${R.string.chat_bagian_ruang_kelas}", "c:c1", "c:c2", "s:${R.string.chat_bagian_kontak}", "u:u1", "u:u2"), rows.map { it.key })
+    }
+
+    @Test
+    fun `a heading is left out when its group is empty`() {
+        val onlyContacts = ChatListState(
+            tab = ChatListTab.NEW,
+            starters = ChatSection(loading = false, data = ChatStarters(listOf(contact("u1")), emptyList()))
+        )
+        val onlyRooms = ChatListState(
+            tab = ChatListTab.NEW,
+            starters = ChatSection(loading = false, data = ChatStarters(emptyList(), listOf(bunga)))
+        )
+
+        assertEquals(listOf("s:${R.string.chat_bagian_kontak}", "u:u1"), buildChatListRows(onlyContacts).map { it.key })
+        assertEquals(listOf("s:${R.string.chat_bagian_ruang_kelas}", "c:c1"), buildChatListRows(onlyRooms).map { it.key })
+    }
+
+    @Test
+    fun `only the contact or class that is being opened shows the opening state`() {
+        val state = ChatListState(
+            tab = ChatListTab.NEW,
+            starters = ChatSection(loading = false, data = ChatStarters(listOf(contact("u1"), contact("u2")), listOf(bunga))),
+            opening = openingKey(contact("u2"))
+        )
+
+        val rows = buildChatListRows(state)
+
+        assertFalse((rows.first { it.key == "u:u1" } as ContactRow).opening)
+        assertTrue((rows.first { it.key == "u:u2" } as ContactRow).opening)
+        assertFalse((rows.first { it.key == "c:c1" } as ClassRow).opening)
+    }
+
+    @Test
+    fun `a contact and a class with the same id do not share an opening key`() {
+        assertFalse(openingKey(contact("x")) == openingKey(ChatClassOption("x", "Bunga")))
+    }
+
+    @Test
+    fun `the conversation tab ignores what the new tab holds`() {
+        val state = ChatListState(
+            tab = ChatListTab.CONVERSATIONS,
+            conversations = ChatSection(loading = false, data = listOf(direct("a"))),
+            starters = ChatSection(loading = false, data = ChatStarters(listOf(contact("u1")), listOf(bunga)))
+        )
+
+        assertEquals(listOf("v:a"), buildChatListRows(state).map { it.key })
+    }
+}

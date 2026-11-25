@@ -19,6 +19,7 @@ import com.nthb.kibooz.data.remote.RecommendedGuidance
 import com.nthb.kibooz.databinding.ActivityDashboardWaliBinding
 import com.nthb.kibooz.notification.ScanReminderNotifier
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
+import com.nthb.kibooz.ui.chat.ChatListActivity
 import com.nthb.kibooz.ui.common.NotificationInboxDialog
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
@@ -259,6 +260,9 @@ class DashboardWaliActivity : AppCompatActivity() {
                     .putExtra(RuangKelasWaliActivity.EXTRA_STUDENT_ID, studentId)
             )
         }
+
+        // Pesan dengan guru
+        binding.cardPesan.setOnClickListener { startActivity(ChatListActivity.intent(this)) }
 
         // Navigasi ke Profil Wali (Settings-First seperti Guru)
         binding.llStudentProfile.setOnClickListener { onStudentHeaderClicked() }

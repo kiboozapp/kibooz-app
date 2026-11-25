@@ -4,6 +4,7 @@ import android.content.Context
 import com.nthb.kibooz.data.remote.AccountApi
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
+import com.nthb.kibooz.data.remote.ChatApi
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.ForumApi
 import com.nthb.kibooz.data.remote.GuruApi
@@ -22,6 +23,7 @@ import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliProfileApi
 import com.nthb.kibooz.data.repository.AccountRepository
 import com.nthb.kibooz.data.repository.AuthRepository
+import com.nthb.kibooz.data.repository.ChatRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.ForumRepository
@@ -123,6 +125,10 @@ class AppContainer(context: Context) {
 
     val historyRepository: HistoryRepository by lazy {
         HistoryRepository(apiClient.create(HistoryApi::class.java), apiClient.moshi)
+    }
+
+    val chatRepository: ChatRepository by lazy {
+        ChatRepository(apiClient.create(ChatApi::class.java), apiClient.moshi)
     }
 
     val avatarLoader: AvatarLoader by lazy {

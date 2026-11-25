@@ -15,6 +15,7 @@ import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
+import com.nthb.kibooz.ui.chat.ChatListActivity
 import com.nthb.kibooz.ui.wali.LeaderboardActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
 import com.nthb.kibooz.ui.common.NotificationInboxDialog
@@ -237,6 +238,9 @@ class DashboardGuruActivity : AppCompatActivity() {
                     .putExtra(LeaderboardActivity.EXTRA_CLASS_ID, activeClassId())
             )
         }
+
+        // Pesan dengan wali murid
+        binding.cardPesan.setOnClickListener { startActivity(ChatListActivity.intent(this)) }
 
         // Notification & History
         binding.ivNotification.setOnClickListener {
