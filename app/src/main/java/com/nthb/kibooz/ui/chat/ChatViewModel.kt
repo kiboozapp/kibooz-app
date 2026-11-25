@@ -104,6 +104,12 @@ class ChatViewModel(
     private var pollTicks = 0
     private var pollSkips = 0
 
+    /**
+     * Kursor `after` untuk polling. Hanya maju dari jawaban daftar server, tidak pernah dari pesan yang baru dikirim
+     * atau dihapus sendiri. Kalau tidak, pesan lawan bicara dengan id di bawah pesan kita terlewat selamanya.
+     */
+    private var pollCursor = 0L
+
     /** Id pesan terakhir yang tanda bacanya sudah dikirim atau sedang dikirim. */
     private var lastReadSent = 0L
     private var visible = false
@@ -131,6 +137,7 @@ class ChatViewModel(
             when (val result = repository.latestMessages(conversationId)) {
                 is ApiResult.Success -> {
                     outageAttempts = 0
+                    advancePollCursor(result.data.messages)
                     _state.update {
                         it.copy(
                             loading = false,
@@ -199,7 +206,7 @@ class ChatViewModel(
         }
         pollTicks++
 
-        var cursor = start.timeline.newestId ?: 0L
+        var cursor = pollCursor
         val fetched = mutableListOf<ChatMessage>()
 
         for (page in 1..MAX_POLL_PAGES) {
@@ -223,6 +230,7 @@ class ChatViewModel(
         // Pesan sendiri sedang dikirim, jadi hasilnya dibuang dan tick berikutnya mengambilnya lagi tanpa pesan ganda
         if (_state.value.local?.status is LocalStatus.Sending) return
 
+        advancePollCursor(fetched)
         _state.update { it.copy(offline = false, timeline = it.timeline.merge(fetched)) }
         if (fetched.isNotEmpty()) markReadIfSeen()
         if (pollTicks % SLOW_EVERY == 0) refreshSlowly()
@@ -240,6 +248,7 @@ class ChatViewModel(
     private suspend fun refreshSlowly() {
         val latest = repository.latestMessages(conversationId)
         if (latest is ApiResult.Success && _state.value.local?.status !is LocalStatus.Sending) {
+            advancePollCursor(latest.data.messages)
             _state.update { it.copy(timeline = it.timeline.merge(latest.data.messages)) }
         }
 
@@ -368,7 +377,14 @@ class ChatViewModel(
 
     private suspend fun refreshLatestQuietly() {
         val latest = repository.latestMessages(conversationId)
-        if (latest is ApiResult.Success) _state.update { it.copy(timeline = it.timeline.merge(latest.data.messages)) }
+        if (latest is ApiResult.Success) {
+            advancePollCursor(latest.data.messages)
+            _state.update { it.copy(timeline = it.timeline.merge(latest.data.messages)) }
+        }
+    }
+
+    private fun advancePollCursor(fromServerList: List<ChatMessage>) {
+        fromServerList.maxOfOrNull { it.id }?.let { if (it > pollCursor) pollCursor = it }
     }
 
     // Tanda baca

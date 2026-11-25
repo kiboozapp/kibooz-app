@@ -255,6 +255,24 @@ class ChatViewModelTest {
     }
 
     @Test
+    fun `a message of the other person that arrived before ours is still fetched after we send`() = runBlocking {
+        // Lawan bicara menulis id 3, lalu kita mengirim dan mendapat id 4 sebelum polling sempat mengambil id 3
+        api.sendReply = { body -> ok(message(4, senderId = "me", body = body)) }
+        api.messagesReply = { after, _ ->
+            if (after == 2L) messages(message(3, senderId = "u2"), message(4, senderId = "me")) else messages(message(1), message(2, senderId = "me"))
+        }
+        val viewModel = viewModel()
+
+        viewModel.send("halo")
+        assertEquals(listOf(1L, 2L, 4L), ids(viewModel))
+
+        viewModel.poll()
+
+        assertEquals(listOf(1L, 2L, 3L, 4L), ids(viewModel))
+        assertEquals(2L to null, api.messageCalls.last())
+    }
+
+    @Test
     fun `a poll that arrives out of order is still shown in id order`() = runBlocking {
         api.messagesReply = { after, _ -> if (after == null) messages(message(1)) else messages(message(4), message(2), message(3)) }
         val viewModel = viewModel()
