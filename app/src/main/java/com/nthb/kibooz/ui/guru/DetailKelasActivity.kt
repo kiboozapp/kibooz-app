@@ -435,6 +435,7 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun showFallbackModules() {
+        binding.tabModul.text = "Modul (4)"
         binding.llDynamicModules.visibility = View.GONE
         binding.llDynamicModules.removeAllViews()
         binding.cardModul1.visibility = View.VISIBLE
@@ -444,6 +445,7 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun renderDynamicModules(modules: List<ModuleItem>) {
+        binding.tabModul.text = "Modul (${modules.size})"
         binding.cardModul1.visibility = View.GONE
         binding.cardModul2.visibility = View.GONE
         binding.cardModul3.visibility = View.GONE

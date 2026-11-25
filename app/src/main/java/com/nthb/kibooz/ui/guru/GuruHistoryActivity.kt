@@ -89,7 +89,9 @@ class GuruHistoryActivity : AppCompatActivity() {
                         return@launch
                     }
 
-                    binding.tvClassSubtitle.text = "Kelas ${events.first().className} (${res.data.total} catatan)"
+                    val rawClass = events.first().className
+                    val label = if (rawClass.startsWith("Kelas", ignoreCase = true)) rawClass else "Kelas $rawClass"
+                    binding.tvClassSubtitle.text = "$label (${res.data.total} catatan)"
                     binding.tvEmptyState.visibility = View.GONE
                     events.forEach { event ->
                         binding.llTimelineContainer.addView(buildEventCard(event))

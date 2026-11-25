@@ -235,6 +235,77 @@ class DevBypassInterceptor(
                 }
             """.trimIndent()
 
+            path.endsWith("/guru/history") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "page": 1,
+                        "limit": 30,
+                        "total": 2,
+                        "events": [
+                            {
+                                "id": "hist-1",
+                                "type": "mood",
+                                "classId": "class-demo-1",
+                                "className": "Kelas Bintang",
+                                "studentId": "child-demo-1",
+                                "studentName": "Adit Pratama",
+                                "actorName": "Tika Sartika, S.Pd",
+                                "moodType": "SENANG",
+                                "confidenceScore": 0.94,
+                                "title": "Adit Pratama: Happy / Cheerful",
+                                "description": "Antusias mengikuti pelajaran",
+                                "occurredAt": "2026-11-25T08:15:00Z"
+                            },
+                            {
+                                "id": "hist-2",
+                                "type": "video",
+                                "classId": "class-demo-1",
+                                "className": "Kelas Bintang",
+                                "actorName": "Tika Sartika, S.Pd",
+                                "title": "Mengenal Emosi Dasar Manusia",
+                                "description": "Video materi kelas",
+                                "occurredAt": "2026-11-24T08:00:00Z"
+                            }
+                        ]
+                    }
+                }
+            """.trimIndent()
+
+            path.contains("/history") -> """
+                {
+                    "success": true,
+                    "data": {
+                        "page": 1,
+                        "limit": 30,
+                        "total": 2,
+                        "student": {
+                            "id": "child-demo-1",
+                            "fullName": "Adit Pratama",
+                            "className": "Kelas 4A • SD Negeri Percobaan"
+                        },
+                        "events": [
+                            {
+                                "id": "w-hist-1",
+                                "type": "mood",
+                                "moodType": "SENANG",
+                                "title": "Mood: Happy / Cheerful",
+                                "description": "Ceria di kelas pagi ini",
+                                "occurredAt": "2026-11-25T08:15:00Z"
+                            },
+                            {
+                                "id": "w-hist-2",
+                                "type": "trash",
+                                "trashType": "ORGANIK",
+                                "pointsAwarded": 10,
+                                "title": "ORGANIK (+10 points)",
+                                "occurredAt": "2026-11-24T10:00:00Z"
+                            }
+                        ]
+                    }
+                }
+            """.trimIndent()
+
             path.contains("/wali/child") -> """
                 {
                     "success": true,
@@ -545,77 +616,6 @@ class DevBypassInterceptor(
                     }
                 """.trimIndent()
             }
-
-            path.endsWith("/guru/history") -> """
-                {
-                    "success": true,
-                    "data": {
-                        "page": 1,
-                        "limit": 30,
-                        "total": 2,
-                        "events": [
-                            {
-                                "id": "hist-1",
-                                "type": "mood",
-                                "classId": "class-demo-1",
-                                "className": "Kelas Bintang",
-                                "studentId": "child-demo-1",
-                                "studentName": "Adit Pratama",
-                                "actorName": "Tika Sartika, S.Pd",
-                                "moodType": "SENANG",
-                                "confidenceScore": 0.94,
-                                "title": "Adit Pratama: Happy / Cheerful",
-                                "description": "Antusias mengikuti pelajaran",
-                                "occurredAt": "2026-11-25T08:15:00Z"
-                            },
-                            {
-                                "id": "hist-2",
-                                "type": "video",
-                                "classId": "class-demo-1",
-                                "className": "Kelas Bintang",
-                                "actorName": "Tika Sartika, S.Pd",
-                                "title": "Mengenal Emosi Dasar Manusia",
-                                "description": "Video materi kelas",
-                                "occurredAt": "2026-11-24T08:00:00Z"
-                            }
-                        ]
-                    }
-                }
-            """.trimIndent()
-
-            path.contains("/history") -> """
-                {
-                    "success": true,
-                    "data": {
-                        "page": 1,
-                        "limit": 30,
-                        "total": 2,
-                        "student": {
-                            "id": "child-demo-1",
-                            "fullName": "Adit Pratama",
-                            "className": "Kelas Bintang"
-                        },
-                        "events": [
-                            {
-                                "id": "w-hist-1",
-                                "type": "mood",
-                                "moodType": "SENANG",
-                                "title": "Mood: Happy / Cheerful",
-                                "description": "Ceria di kelas pagi ini",
-                                "occurredAt": "2026-11-25T08:15:00Z"
-                            },
-                            {
-                                "id": "w-hist-2",
-                                "type": "trash",
-                                "trashType": "ORGANIK",
-                                "pointsAwarded": 10,
-                                "title": "ORGANIK (+10 points)",
-                                "occurredAt": "2026-11-24T10:00:00Z"
-                            }
-                        ]
-                    }
-                }
-            """.trimIndent()
 
             else -> null
         }
