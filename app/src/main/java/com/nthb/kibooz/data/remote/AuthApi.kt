@@ -19,6 +19,12 @@ interface AuthApi {
     @POST("auth/resend-verification")
     suspend fun resendVerification(@Body body: ResendVerificationRequest): Response<ApiEnvelope<VerificationDto>>
 
+    @POST("auth/google")
+    suspend fun googleLogin(@Body body: GoogleLoginRequest): Response<ApiEnvelope<GoogleAuthData>>
+
+    @POST("auth/google/register")
+    suspend fun googleRegister(@Body body: GoogleRegisterRequest): Response<ApiEnvelope<AuthData>>
+
     // refresh dan logout dijalankan dengan execute() di thread pemanggil, bukan lewat antrean dispatcher
     // OkHttp (maksimal 5 request per host). Kalau lewat antrean, 5 request yang sama-sama 401 menahan semua
     // slot sambil menunggu refresh, dan request refresh tidak pernah kebagian slot.

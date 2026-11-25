@@ -6,6 +6,10 @@ import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.AuthData
 import com.nthb.kibooz.data.remote.ChangePasswordRequest
 import com.nthb.kibooz.data.remote.ERROR_MALFORMED_RESPONSE
+import com.nthb.kibooz.data.remote.GoogleAuthData
+import com.nthb.kibooz.data.remote.GoogleLoginRequest
+import com.nthb.kibooz.data.remote.GoogleProfileData
+import com.nthb.kibooz.data.remote.GoogleRegisterRequest
 import com.nthb.kibooz.data.remote.LoginRequest
 import com.nthb.kibooz.data.remote.LogoutRequest
 import com.nthb.kibooz.data.remote.RefreshRequest
@@ -42,6 +46,11 @@ sealed interface RegisterOutcome {
         /** Dari balasan register. Sengaja tidak ditulis ke penyimpanan, hanya dibawa ke layar kode. */
         val deviceToken: String?
     ) : RegisterOutcome
+}
+
+sealed interface GoogleSignInOutcome {
+    data class SignedIn(val user: SessionUser) : GoogleSignInOutcome
+    data class NeedsRegistration(val profile: GoogleProfileData) : GoogleSignInOutcome
 }
 
 /**
@@ -85,6 +94,60 @@ class AuthRepository(
         val deviceToken = store.readDeviceToken(cleanEmail)
 
         return startSession(cleanEmail) { api.login(LoginRequest(cleanEmail, password, role, deviceToken)) }
+    }
+
+    /** Memverifikasi Google ID token ke server: masuk langsung jika terdaftar, atau kembalikan profil onboarding. */
+    suspend fun googleLogin(idToken: String, role: Role, emailHint: String? = null): ApiResult<GoogleSignInOutcome> {
+        val cleanHint = emailHint?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+        val deviceToken = cleanHint?.let { store.readDeviceToken(it) }
+
+        return when (val result = safeApiCall(moshi) { api.googleLogin(GoogleLoginRequest(idToken, role, deviceToken)) }) {
+            is ApiResult.Success -> handleGoogleAuthSuccess(result.data, result.message)
+            is ApiResult.Failure -> result
+            is ApiResult.NetworkError -> result
+        }
+    }
+
+    /** Menyelesaikan pendaftaran akun baru menggunakan Google ID token yang sudah terverifikasi. */
+    suspend fun googleRegister(request: GoogleRegisterRequest, emailHint: String? = null): ApiResult<SessionUser> {
+        val cleanEmail = emailHint?.trim()?.lowercase()?.takeIf { it.isNotEmpty() }
+        val knownDeviceToken = cleanEmail?.let { store.readDeviceToken(it) }
+        val payload = if (knownDeviceToken != null && request.deviceToken == null) {
+            request.copy(deviceToken = knownDeviceToken)
+        } else {
+            request
+        }
+
+        return when (val result = safeApiCall(moshi) { api.googleRegister(payload) }) {
+            is ApiResult.Success -> {
+                val data = result.data
+                data.deviceToken?.let { store.writeDeviceToken(data.user.email, it) }
+                val session = data.toSession()
+                persist(session)
+                ApiResult.Success(session.user, result.message)
+            }
+            is ApiResult.Failure -> result
+            is ApiResult.NetworkError -> result
+        }
+    }
+
+    private suspend fun handleGoogleAuthSuccess(data: GoogleAuthData, message: String?): ApiResult<GoogleSignInOutcome> {
+        if (data.needsRegistration) {
+            val profile = data.googleProfile
+                ?: return ApiResult.Failure(200, "MALFORMED_RESPONSE", "Google onboarding profile missing")
+            return ApiResult.Success(GoogleSignInOutcome.NeedsRegistration(profile), message)
+        }
+        val token = data.token
+        val refreshToken = data.refreshToken
+        val user = data.user
+        if (token.isNullOrBlank() || refreshToken.isNullOrBlank() || user == null) {
+            return ApiResult.Failure(200, "MALFORMED_RESPONSE", "Google auth session payload incomplete")
+        }
+        val authData = AuthData(token = token, refreshToken = refreshToken, deviceToken = data.deviceToken, user = user)
+        data.deviceToken?.let { store.writeDeviceToken(user.email, it) }
+        val session = authData.toSession()
+        persist(session)
+        return ApiResult.Success(GoogleSignInOutcome.SignedIn(session.user), message)
     }
 
     /** Shortcut bypass pengujian manual untuk login cepat sebagai Guru atau Wali. */

@@ -27,6 +27,11 @@ android {
             .getOrElse(false)
         buildConfigField("boolean", "ALLOW_PLACEHOLDER_MODELS", allowPlaceholderModels.toString())
 
+        // Web Client ID OAuth 2.0 Google untuk Credential Manager: -Pkibooz.googleWebClientId=...
+        val googleWebClientId = providers.gradleProperty("kibooz.googleWebClientId")
+            .getOrElse("")
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
+
         // Build selain debug harus https agar token dan kata sandi tidak terkirim tanpa enkripsi. Tugas tanpa
         // nama varian seperti assemble, build dan bundle juga membangun varian rilis, jadi ikut diperiksa.
         val releaseRequested = gradle.startParameter.taskNames.any { task ->
@@ -100,6 +105,9 @@ dependencies {
 
     // Penyimpanan sesi (FE-03)
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
 
     // Pengingat sisa scan sampah pukul 12.00

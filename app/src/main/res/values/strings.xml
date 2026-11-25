@@ -27,6 +27,12 @@
     <string name="btn_login">Masuk</string>
     <string name="login_google_belum_tersedia">Masuk dengan Google belum tersedia di versi ini</string>
     <string name="login_with_google">Google</string>
+    <string name="login_google_demo_debug">Mode Demo (Debug)</string>
+    <string name="login_google_no_account">Tidak ada akun Google aktif di perangkat ini</string>
+    <string name="login_google_failed">Gagal masuk dengan Google, coba lagi</string>
+    <string name="login_google_not_configured_title">Konfigurasi Google Sign-In Belum Diisi</string>
+    <string name="login_google_not_configured_message">Tambahkan properti kibooz.googleWebClientId (Web Client ID dari Google Cloud Console) di gradle.properties atau BuildConfig sebelum login Google ke server live.</string>
+    <string name="daftar_subjudul_google">Lengkapi data untuk menyelesaikan pendaftaran dengan Google (%1$s).</string>
     <string name="or_login_with">Atau Masuk dengan</string>
 
     <!-- Izin kamera -->
@@ -161,6 +167,10 @@
 
     <!-- Pesan galat dari API, dipetakan di ApiErrorMessages.kt -->
     <string name="error_invalid_credentials">Email atau kata sandi salah</string>
+    <string name="error_google_unavailable">Layanan masuk Google sedang tidak tersedia atau belum dikonfigurasi di server</string>
+    <string name="error_google_invalid">Kredensial Google tidak valid atau kedaluwarsa, coba pilih ulang akun Google</string>
+    <string name="error_role_mismatch">Akun Google ini sudah terdaftar dengan peran lain</string>
+    <string name="error_password_not_set">Akun ini masuk memakai Google dan belum memakai kata sandi</string>
     <string name="error_password_incorrect">Kata sandi salah</string>
     <string name="error_password_baru_ditolak">Kata sandi baru ditolak. Hindari kata sandi yang umum dan yang memuat email, nama atau nomor telepon akun</string>
     <string name="error_session_ended">Sesi telah berakhir, silakan masuk kembali</string>

@@ -25,6 +25,7 @@ class RegisterActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityRegisterBinding
     private var role: Role = Role.WALI
+    private var googleIdToken: String? = null
     private val viewModel: RegisterViewModel by viewModels { RegisterViewModel.Factory(appContainer.authRepository) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,7 +41,20 @@ class RegisterActivity : AppCompatActivity() {
         binding.groupGuru.isVisible = isGuru
         binding.groupWali.isVisible = !isGuru
         binding.tvRegisterTitle.setText(if (isGuru) R.string.daftar_judul_guru else R.string.daftar_judul_wali)
-        binding.tvRegisterSubtitle.setText(if (isGuru) R.string.daftar_subjudul_guru else R.string.daftar_subjudul_wali)
+
+        googleIdToken = intent.getStringExtra(EXTRA_GOOGLE_ID_TOKEN)?.takeIf { it.isNotBlank() }
+        if (googleIdToken != null) {
+            val googleEmail = intent.getStringExtra(EXTRA_GOOGLE_EMAIL).orEmpty()
+            val googleName = intent.getStringExtra(EXTRA_GOOGLE_FULL_NAME).orEmpty()
+            binding.etFullName.setText(googleName)
+            binding.etEmail.setText(googleEmail)
+            binding.etEmail.isEnabled = false
+            binding.etEmail.alpha = 0.7f
+            binding.tilPassword.isVisible = false
+            binding.tvRegisterSubtitle.text = getString(R.string.daftar_subjudul_google, googleEmail)
+        } else {
+            binding.tvRegisterSubtitle.setText(if (isGuru) R.string.daftar_subjudul_guru else R.string.daftar_subjudul_wali)
+        }
 
         binding.btnRegister.setOnClickListener { viewModel.register(readForm()) }
         binding.connectionStatus.onRetry = { viewModel.register(readForm()) }
@@ -66,7 +80,8 @@ class RegisterActivity : AppCompatActivity() {
         academicYear = binding.etAcademicYear.text.toString(),
         classCode = binding.etClassCode.text.toString(),
         childName = binding.etChildName.text.toString(),
-        nisn = binding.etNisn.text.toString()
+        nisn = binding.etNisn.text.toString(),
+        googleIdToken = googleIdToken
     )
 
     private fun render(state: RegisterUiState) {
@@ -109,5 +124,11 @@ class RegisterActivity : AppCompatActivity() {
             Intent(this, target).apply { flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK }
         )
         finish()
+    }
+
+    companion object {
+        const val EXTRA_GOOGLE_ID_TOKEN = "GOOGLE_ID_TOKEN"
+        const val EXTRA_GOOGLE_EMAIL = "GOOGLE_EMAIL"
+        const val EXTRA_GOOGLE_FULL_NAME = "GOOGLE_FULL_NAME"
     }
 }
