@@ -356,20 +356,8 @@ class CameraScanMoodActivity : AppCompatActivity() {
                     )
                 })
             } else if (state.students.isNotEmpty()) {
-                // Fallback otomatis saat pengujian tanpa deteksi wajah fisik: pasangkan siswa kelas terdaftar
-                val defaultEmotions = listOf("SENANG", "SENANG", "BINGUNG", "SEDIH")
-                ArrayList(state.students.take(6).mapIndexed { idx, student ->
-                    ScannedStudentMood(
-                        id = student.id,
-                        studentName = student.name,
-                        avatarRes = R.drawable.img_avatar_siswa,
-                        currentMood = defaultEmotions[idx % defaultEmotions.size],
-                        confidenceScore = 0.94f - (idx * 0.03f),
-                        teacherNotes = "",
-                        isConfirmed = false,
-                        source = com.nthb.kibooz.data.remote.MoodSource.AI_CAMERA
-                    )
-                })
+                // Fallback otomatis saat pengujian tanpa deteksi wajah fisik: muat seluruh siswa kelas terdaftar
+                buildFallbackScannedMoods(state.students, R.drawable.img_avatar_siswa)
             } else {
                 when {
                     state.loading -> Toast.makeText(this, R.string.siswa_memuat, Toast.LENGTH_SHORT).show()

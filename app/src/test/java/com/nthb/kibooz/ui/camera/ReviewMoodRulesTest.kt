@@ -150,4 +150,20 @@ class ReviewMoodRulesTest {
         assertEquals(REVIEW_MOOD_LABELS.size, texts.toSet().size)
         assertTrue(texts.none { it in REVIEW_MOOD_LABELS })
     }
+
+    @Test
+    fun `fallback builder loads all students ready to save while staying editable`() {
+        val students = (1..16).map { Student("s-$it", "Siswa $it") }
+
+        val rows = buildFallbackScannedMoods(students, avatarRes = 0)
+
+        assertEquals(16, rows.size)
+        assertEquals(students.map { it.id }, rows.map { it.id })
+        assertTrue(rows.none { it.needsConfirmation() })
+        assertTrue(rows.all { it.confidenceScore in MIN_CONFIDENCE..1f })
+
+        val changed = rows.last().copy(currentMood = "MARAH")
+        assertEquals(MoodSource.MANUAL_INPUT, changed.toEntry().source)
+        assertEquals(Emotion.MARAH, changed.toEntry().moodType)
+    }
 }
