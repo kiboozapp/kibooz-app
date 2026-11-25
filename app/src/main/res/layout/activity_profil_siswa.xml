@@ -405,26 +405,6 @@
 
                 </LinearLayout>
 
-                <!-- Tombol Keluar Akun -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnLogout"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="12dp"
-                    android:backgroundTint="#FFEBEE"
-                    android:fontFamily="@font/baloo2"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="@string/anak_keluar"
-                    android:textAllCaps="false"
-                    android:textColor="#C62828"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="#FFEBEE"
-                    app:cornerRadius="26dp"
-                    app:strokeColor="#FFCDD2"
-                    app:strokeWidth="1dp" />
-
             </LinearLayout>
 
         </LinearLayout>

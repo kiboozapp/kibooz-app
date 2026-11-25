@@ -38,7 +38,6 @@
     <string name="anak_nisn_isi_sekarang">Isi NISN Sekarang</string>
     <string name="anak_batas_tercapai">Akun ini sudah punya 10 anak, jumlah paling banyak.</string>
     <string name="anak_hapus">Hapus Anak Ini</string>
-    <string name="anak_keluar">Keluar dari Akun Wali</string>
     <string name="anak_kosong_judul">Belum ada anak yang terdaftar</string>
     <string name="anak_kosong_pesan">Tambahkan anak dengan kode kelas dari guru untuk melihat dasbor, statistik sampah, dan peringkatnya.</string>
     <string name="anak_memuat">Memuat data</string>
