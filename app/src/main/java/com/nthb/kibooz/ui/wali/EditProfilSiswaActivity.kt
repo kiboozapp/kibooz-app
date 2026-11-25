@@ -2,6 +2,7 @@ package com.nthb.kibooz.ui.wali
 
 import android.app.Activity
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -154,13 +155,16 @@ class EditProfilSiswaActivity : AppCompatActivity() {
         )
         fields.forEach { (field, layout) -> layout.error = state.fieldErrors[field]?.let { getString(it) } }
 
+        // Anak yang sudah tidak ada tidak bisa disimpan lagi, jadi layar ditutup. Pesannya memakai Toast supaya tetap tampil
+        val closing = state.gone && profile != null
         state.message?.let {
-            Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
+            if (closing) Toast.makeText(this, it, Toast.LENGTH_LONG).show() else Snackbar.make(binding.root, it, Snackbar.LENGTH_LONG).show()
             viewModel.messageShown()
         }
 
         // Anak yang sudah tidak ada juga membuat layar sebelumnya memuat ulang, karena dihapus dari perangkat lain
         if (state.changed || state.gone) setResult(Activity.RESULT_OK)
+        if (closing) finish()
     }
 
     private fun showProfile(profile: ChildProfile, state: EditProfilState) {

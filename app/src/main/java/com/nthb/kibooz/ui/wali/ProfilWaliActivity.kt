@@ -181,6 +181,7 @@ class ProfilWaliActivity : AppCompatActivity() {
             startActivity(
                 Intent(this, DashboardWaliActivity::class.java).apply {
                     flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    viewModel.state.value.profile?.id?.let { putExtra(ProfilSiswaActivity.EXTRA_STUDENT_ID, it) }
                 }
             )
             finish()

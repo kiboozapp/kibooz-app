@@ -215,6 +215,7 @@ class ProfilSiswaActivity : AppCompatActivity() {
             // Kembali ke dasbor yang sudah ada, bukan menumpuk dasbor baru
             val intent = Intent(this, DashboardWaliActivity::class.java).apply {
                 flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                viewModel.state.value.profile?.id?.let { putExtra(EXTRA_STUDENT_ID, it) }
             }
             startActivity(intent)
             finish()
