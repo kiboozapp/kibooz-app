@@ -700,6 +700,47 @@
 
                         </LinearLayout>
 
+                        <!-- Sisa scan hari ini: disembunyikan sampai datanya termuat -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardSisaScan"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:visibility="gone"
+                            app:cardBackgroundColor="@color/kibooz_lavender_light"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal"
+                                android:padding="12dp">
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:importantForAccessibility="no"
+                                    android:src="@drawable/ic_scan_waste"
+                                    app:tint="@color/kibooz_primary_purple" />
+
+                                <TextView
+                                    android:id="@+id/tvSisaScan"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="10dp"
+                                    android:layout_weight="1"
+                                    android:fontFamily="@font/baloo2"
+                                    android:text="…"
+                                    android:textColor="@color/kibooz_primary_purple"
+                                    android:textSize="13sp"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
+
+                        </com.google.android.material.card.MaterialCardView>
+
                         <!-- Tombol Buka Statistik Sampah -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnStatistikSampah"

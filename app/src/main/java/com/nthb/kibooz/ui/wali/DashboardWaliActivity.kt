@@ -27,7 +27,7 @@ class DashboardWaliActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardWaliBinding
     private val viewModel: WaliDashboardViewModel by viewModels {
-        WaliDashboardViewModel.Factory(appContainer.waliRepository, appContainer.classRepository)
+        WaliDashboardViewModel.Factory(appContainer.waliRepository, appContainer.classRepository, appContainer.trashRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +87,12 @@ class DashboardWaliActivity : AppCompatActivity() {
             binding.tvAnorganik.text = countWithShare(points.anorganicCount, sorted)
 
             showGuidance(data.recommendedGuidance)
+        }
+
+        val quota = state.scanQuota
+        binding.cardSisaScan.isVisible = quota != null
+        if (quota != null) {
+            binding.tvSisaScan.text = getString(quota.messageRes, quota.remaining, quota.dailyLimit)
         }
 
         if (state.noChild) {
