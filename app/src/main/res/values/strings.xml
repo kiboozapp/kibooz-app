@@ -295,4 +295,13 @@
     <string name="review_tambah_berhasil">%1$s ditambahkan</string>
     <string name="senter_nyalakan">Nyalakan senter</string>
     <string name="senter_matikan">Matikan senter</string>
+    <string name="guru_pilih_kelas_judul">Pilih kelas</string>
+    <string name="guru_ganti_kelas_label">Ganti kelas</string>
+    <string name="guru_ganti_kelas_pill">Ganti kelas ▾</string>
+    <string name="guru_ganti_kelas_singkat">Ganti ▾</string>
+    <string name="guru_kelas_item_aktif">%1$s (%2$d siswa)</string>
+    <string name="guru_kelas_item_arsip">%1$s (%2$d siswa, arsip)</string>
+    <string name="guru_kelas_ringkas">%1$s · %2$d siswa</string>
+    <string name="guru_kelas_kosong_mood">%1$s · Belum ada mood tercatat hari ini</string>
+    <string name="detail_profil_belum_ada_mood">Belum ada mood tercatat hari ini pada kelas %1$s</string>
 </resources>

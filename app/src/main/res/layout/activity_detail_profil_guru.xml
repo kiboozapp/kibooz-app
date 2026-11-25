@@ -333,16 +333,78 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Section Title: Statistik Kinerja -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- Section Title: Statistik Kinerja + Switcher Kelas -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="@font/baloo2"
+                    android:text="Statistik Kinerja"
+                    android:textColor="#221C38"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/llClassSwitcher"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_tag_lavender"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="6dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="15dp"
+                        android:layout_height="15dp"
+                        android:src="@drawable/ic_class"
+                        app:tint="@color/kibooz_primary_purple" />
+
+                    <TextView
+                        android:id="@+id/tvSelectedClass"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="6dp"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/baloo2"
+                        android:maxLines="1"
+                        android:maxWidth="150dp"
+                        android:textColor="@color/kibooz_primary_purple"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSwitchClassBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:fontFamily="@font/baloo2"
+                        android:text="▾"
+                        android:textColor="@color/kibooz_primary_purple"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvPerformanceClassNote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:fontFamily="@font/baloo2"
-                android:text="Statistik Kinerja"
-                android:textColor="#221C38"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textColor="#75718E"
+                android:textSize="12sp"
+                android:visibility="gone" />
 
             <!-- Card Kinerja Mood -->
             <com.google.android.material.card.MaterialCardView

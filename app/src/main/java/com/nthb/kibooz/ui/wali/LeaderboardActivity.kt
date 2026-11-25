@@ -17,8 +17,10 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.LeaderboardPeriod
 import com.nthb.kibooz.data.remote.RankEntry
+import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityLeaderboardBinding
 import com.nthb.kibooz.databinding.ItemRankingRowBinding
+import com.nthb.kibooz.ui.guru.bindClassSwitcher
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
@@ -30,8 +32,27 @@ class LeaderboardActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLeaderboardBinding
     private val viewModel: LeaderboardViewModel by viewModels {
-        LeaderboardViewModel.Factory(appContainer.leaderboardRepository, intent.getStringExtra(EXTRA_CLASS_ID))
+        val user = sessionUser()
+        val extraClassId = intent.getStringExtra(EXTRA_CLASS_ID)
+        val guruMode = user?.role == Role.GURU
+        if (guruMode && !extraClassId.isNullOrBlank() && appContainer.guruClassSelection.current(user?.id) == null) {
+            appContainer.guruClassSelection.select(user?.id, extraClassId)
+        }
+        val initialClassId = if (guruMode) {
+            extraClassId ?: appContainer.guruClassSelection.current(user?.id)
+        } else {
+            extraClassId
+        }
+        LeaderboardViewModel.Factory(
+            repository = appContainer.leaderboardRepository,
+            classId = initialClassId,
+            classRepository = if (guruMode) appContainer.classRepository else null
+        )
     }
+
+    private fun sessionUser() = appContainer.authRepository.session.value?.user
+
+    private val isGuru: Boolean get() = sessionUser()?.role == Role.GURU
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +79,13 @@ class LeaderboardActivity : AppCompatActivity() {
         super.onResume()
         // Muat ulang setiap kali layar kembali terlihat supaya poin anak lain yang masuk sementara itu ikut tampil.
         // Dilewati saat masih memuat, sehingga pembukaan pertama (sudah dimuat oleh init) tidak mengirim dua request.
+        if (isGuru) {
+            val sharedId = appContainer.guruClassSelection.current(sessionUser()?.id)
+            if (sharedId != null && sharedId != viewModel.state.value.selectedClassId) {
+                viewModel.syncClass(sharedId)
+                return
+            }
+        }
         if (!viewModel.state.value.loading) viewModel.load()
     }
 
@@ -70,6 +98,25 @@ class LeaderboardActivity : AppCompatActivity() {
         )
 
     private fun render(state: LeaderboardState) {
+        if (isGuru) {
+            val userId = sessionUser()?.id
+            if (!state.selectedClassId.isNullOrBlank() && appContainer.guruClassSelection.current(userId) == null) {
+                appContainer.guruClassSelection.select(userId, state.selectedClassId)
+            }
+            bindClassSwitcher(
+                container = binding.cardClassSwitcher,
+                labelView = binding.tvSelectedClass,
+                actionView = binding.tvSwitchClassBadge,
+                classes = state.classes,
+                selectedClassId = state.selectedClassId
+            ) { chosen ->
+                appContainer.guruClassSelection.select(userId, chosen.id)
+                viewModel.selectClass(chosen.id)
+            }
+        } else {
+            binding.cardClassSwitcher.isVisible = false
+        }
+
         showPeriod(state.period)
 
         val data = state.data

@@ -110,4 +110,8 @@ class AppContainer(context: Context) {
     val avatarLoader: AvatarLoader by lazy {
         AvatarLoader(apiClient.okHttpClient)
     }
+
+    val guruClassSelection: com.nthb.kibooz.ui.guru.GuruClassSelection by lazy {
+        com.nthb.kibooz.ui.guru.GuruClassSelection()
+    }
 }

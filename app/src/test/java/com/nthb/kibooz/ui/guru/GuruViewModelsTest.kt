@@ -8,6 +8,7 @@ import com.nthb.kibooz.data.remote.ClassList
 import com.nthb.kibooz.data.remote.ClassOverview
 import com.nthb.kibooz.data.remote.ClassStudent
 import com.nthb.kibooz.data.remote.ClassStudentList
+import com.nthb.kibooz.data.remote.ClassSummary
 import com.nthb.kibooz.data.remote.DailyMoodDistribution
 import com.nthb.kibooz.data.remote.GuruApi
 import com.nthb.kibooz.data.remote.GuruDashboard
@@ -53,31 +54,43 @@ class GuruViewModelsTest {
 
     private class FakeGuruApi : GuruApi {
         var dashboardReply: () -> Response<ApiEnvelope<GuruDashboard>> = { error("not set") }
+        var dashboardReplyFor: ((String?) -> Response<ApiEnvelope<GuruDashboard>>)? = null
         var analyticsReply: () -> Response<ApiEnvelope<MoodAnalytics>> = { error("not set") }
+        var analyticsReplyFor: ((String?) -> Response<ApiEnvelope<MoodAnalytics>>)? = null
         var dashboardCalls = 0
+        val dashboardClassIds = mutableListOf<String?>()
+        val analyticsClassIds = mutableListOf<String?>()
         val ranges = mutableListOf<String>()
 
         override suspend fun dashboard(classId: String?): Response<ApiEnvelope<GuruDashboard>> {
             dashboardCalls++
-            return dashboardReply()
+            dashboardClassIds += classId
+            return dashboardReplyFor?.invoke(classId) ?: dashboardReply()
         }
 
         override suspend fun moodAnalytics(classId: String?, range: String): Response<ApiEnvelope<MoodAnalytics>> {
+            analyticsClassIds += classId
             ranges += range
-            return analyticsReply()
+            return analyticsReplyFor?.invoke(classId) ?: analyticsReply()
         }
     }
 
     private class FakeClassApi(var students: List<ClassStudent> = emptyList(), var fail: Boolean = false) : ClassApi {
         val classIds = mutableListOf<String>()
+        var classes: List<ClassSummary>? = null
+        val studentsByClass = mutableMapOf<String, List<ClassStudent>>()
 
         override suspend fun listStudents(classId: String, page: Int, limit: Int): Response<ApiEnvelope<ClassStudentList>> {
             classIds += classId
             if (fail) throw IOException("offline")
-            return Response.success(ApiEnvelope(true, null, ClassStudentList(page, limit, students.size, students)))
+            val items = studentsByClass[classId] ?: students
+            return Response.success(ApiEnvelope(true, null, ClassStudentList(page, limit, items.size, items)))
         }
 
-        override suspend fun listClasses(page: Int, limit: Int): Response<ApiEnvelope<ClassList>> = error("not used")
+        override suspend fun listClasses(page: Int, limit: Int): Response<ApiEnvelope<ClassList>> {
+            val items = classes ?: error("not used")
+            return Response.success(ApiEnvelope(true, null, ClassList(page, limit, items.size, items)))
+        }
 
         override suspend fun listChildren(): Response<ApiEnvelope<ChildList>> = error("not used")
     }
@@ -195,5 +208,78 @@ class GuruViewModelsTest {
         assertEquals(emptyList<String>(), classApi.classIds)
         assertNull(viewModel.state.value.today)
         assertNotNull(viewModel.state.value.error)
+    }
+
+    @Test
+    fun `dashboard loads active classes and selectClass switches active metrics`() {
+        val c1 = ClassSummary("c1", "Kelas Matahari", "TK-A", "TK", "2025/2026", "ABC123", true, 16, "2026-01-01T00:00:00Z")
+        val c2 = ClassSummary("c2", "Kelas Sakura", "TK-A", "TK", "2025/2026", "SAK456", true, 15, "2026-01-02T00:00:00Z")
+        val archived = ClassSummary("c3", "Arsip", "TK-A", "TK", "2024/2025", "OLD999", false, 8, "2025-01-01T00:00:00Z", "2025-12-31T00:00:00Z")
+        classApi.classes = listOf(c1, c2, archived)
+
+        val dash2 = GuruDashboard(
+            teacher = dashboard.teacher,
+            classOverview = ClassOverview("c2", "Kelas Sakura", "SAK456", true, 15, 3, Emotion.BINGUNG),
+            dailyMoodDistribution = DailyMoodDistribution(2, 1, 0, 0)
+        )
+        guruApi.dashboardReplyFor = { requestedClassId ->
+            Response.success(ApiEnvelope(true, null, if (requestedClassId == "c2") dash2 else dashboard))
+        }
+
+        val viewModel = GuruDashboardViewModel(guruRepository, classRepository)
+
+        assertEquals(listOf("c1", "c2"), viewModel.state.value.classes.map { it.id })
+        assertEquals("c1", viewModel.state.value.selectedClassId)
+        assertEquals(dashboard, viewModel.state.value.dashboard)
+
+        viewModel.selectClass("c2")
+
+        assertEquals("c2", viewModel.state.value.selectedClassId)
+        assertEquals(dash2, viewModel.state.value.dashboard)
+        assertEquals(listOf<String?>(null, "c2"), guruApi.dashboardClassIds)
+    }
+
+    @Test
+    fun `mood stats load class options and switching class refreshes all datasets`() {
+        val c1 = ClassSummary("c1", "Kelas Matahari", "TK-A", "TK", "2025/2026", "ABC123", true, 2, "2026-01-01T00:00:00Z")
+        val c2 = ClassSummary("c2", "Kelas Sakura", "TK-A", "TK", "2025/2026", "SAK456", true, 1, "2026-01-02T00:00:00Z")
+        classApi.classes = listOf(c1, c2)
+        classApi.studentsByClass["c1"] = listOf(student("1", Emotion.SENANG), student("2", null))
+        classApi.studentsByClass["c2"] = listOf(student("3", Emotion.MARAH))
+
+        val dash2 = GuruDashboard(
+            teacher = dashboard.teacher,
+            classOverview = ClassOverview("c2", "Kelas Sakura", "SAK456", true, 1, 1, Emotion.MARAH),
+            dailyMoodDistribution = DailyMoodDistribution(0, 0, 0, 1)
+        )
+        val analytics2 = MoodAnalytics(
+            donutSummary = emptyList(),
+            weeklyTrend = listOf(WeeklyPoint("Monday", 20)),
+            monthlyDistribution = listOf(MonthlyCount(Emotion.MARAH, 1))
+        )
+        guruApi.dashboardReplyFor = { requestedClassId ->
+            Response.success(ApiEnvelope(true, null, if (requestedClassId == "c2") dash2 else dashboard))
+        }
+        guruApi.analyticsReplyFor = { requestedClassId ->
+            Response.success(ApiEnvelope(true, null, if (requestedClassId == "c2") analytics2 else analytics))
+        }
+
+        val viewModel = MoodStatsViewModel(guruRepository, classRepository, loadClassOptions = true)
+
+        assertEquals(listOf("c1", "c2"), viewModel.state.value.classes.map { it.id })
+        assertEquals("Class A (Bunga)", viewModel.state.value.className)
+        assertEquals(2, viewModel.state.value.students.size)
+
+        viewModel.selectClass("c2")
+
+        val state = viewModel.state.value
+        assertEquals("c2", state.selectedClassId)
+        assertEquals("Kelas Sakura", state.className)
+        assertEquals(DailyMoodDistribution(0, 0, 0, 1), state.today)
+        assertEquals(1, state.weekly.size)
+        assertEquals(1, state.monthly.first { it.mood == Emotion.MARAH }.count)
+        assertEquals(listOf("Siswa 3"), state.students.map { it.fullName })
+        assertEquals(listOf<String?>(null, "c2"), guruApi.analyticsClassIds)
+        assertEquals(listOf("c1", "c2"), classApi.classIds)
     }
 }

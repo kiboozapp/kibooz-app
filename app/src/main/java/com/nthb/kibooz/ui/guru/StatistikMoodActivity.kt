@@ -32,8 +32,23 @@ class StatistikMoodActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityStatistikMoodBinding
     private val viewModel: MoodStatsViewModel by viewModels {
-        MoodStatsViewModel.Factory(appContainer.guruRepository, appContainer.classRepository)
+        val userId = currentUserId()
+        val extraClassId = intent.getStringExtra(EXTRA_CLASS_ID)
+        if (!extraClassId.isNullOrBlank() && appContainer.guruClassSelection.current(userId) == null) {
+            appContainer.guruClassSelection.select(userId, extraClassId)
+        }
+        MoodStatsViewModel.Factory(
+            guruRepository = appContainer.guruRepository,
+            classRepository = appContainer.classRepository,
+            initialClassId = extraClassId ?: appContainer.guruClassSelection.current(userId),
+            loadClassOptions = true
+        )
     }
+
+    private fun currentUserId(): String? = appContainer.authRepository.session.value?.user?.id
+
+    private fun activeClassId(): String? =
+        viewModel.state.value.selectedClassId ?: appContainer.guruClassSelection.current(currentUserId())
 
     private var students: List<ClassStudent> = emptyList()
 
@@ -93,27 +108,65 @@ class StatistikMoodActivity : AppCompatActivity() {
         }
 
         binding.fabScan.setOnClickListener {
-            startActivity(Intent(this, CameraScanMoodActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanMoodActivity::class.java)
+                    .putExtra(CameraScanMoodActivity.EXTRA_CLASS_ID, activeClassId())
+            )
         }
         binding.btnScanUlang.setOnClickListener {
-            startActivity(Intent(this, CameraScanMoodActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanMoodActivity::class.java)
+                    .putExtra(CameraScanMoodActivity.EXTRA_CLASS_ID, activeClassId())
+            )
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Selesai scan lalu kembali ke sini harus menampilkan hasil yang baru disimpan
-        if (!viewModel.state.value.loading) viewModel.load()
+        // Selesai scan atau berpindah kelas di layar lain menampilkan hasil untuk kelas terpilih
+        val sharedClassId = appContainer.guruClassSelection.current(currentUserId())
+        val state = viewModel.state.value
+        if (sharedClassId != null && sharedClassId != state.selectedClassId) {
+            viewModel.selectClass(sharedClassId)
+        } else if (!state.loading) {
+            viewModel.load(sharedClassId)
+        }
     }
 
     private fun render(state: MoodStatsState) {
-        state.today?.let { today ->
-            val percentages = MoodChartMath.percentages(today)
-            binding.donutMoodChart.setDistribution(today)
+        val userId = currentUserId()
+        if (!state.selectedClassId.isNullOrBlank() && appContainer.guruClassSelection.current(userId) == null) {
+            appContainer.guruClassSelection.select(userId, state.selectedClassId)
+        }
+
+        bindClassSwitcher(
+            container = binding.cardClassSwitcher,
+            labelView = binding.tvSelectedClass,
+            actionView = binding.tvSwitchClassBadge,
+            classes = state.classes,
+            selectedClassId = state.selectedClassId,
+            fallbackClassName = state.className
+        ) { chosen ->
+            appContainer.guruClassSelection.select(userId, chosen.id)
+            viewModel.selectClass(chosen.id)
+        }
+
+        val todayDistribution = state.today
+        if (todayDistribution != null) {
+            val percentages = MoodChartMath.percentages(todayDistribution)
+            binding.donutMoodChart.setDistribution(todayDistribution)
             binding.tvLegendSenang.text = legend("🟡", Emotion.SENANG, percentages)
             binding.tvLegendBingung.text = legend("🟠", Emotion.BINGUNG, percentages)
             binding.tvLegendSedih.text = legend("🔵", Emotion.SEDIH, percentages)
             binding.tvLegendMarah.text = legend("🔴", Emotion.MARAH, percentages)
+        } else {
+            val emptyDistribution = com.nthb.kibooz.data.remote.DailyMoodDistribution(0, 0, 0, 0)
+            val emptyPercentages = MoodChartMath.percentages(emptyDistribution)
+            binding.donutMoodChart.setDistribution(emptyDistribution)
+            binding.tvLegendSenang.text = legend("🟡", Emotion.SENANG, emptyPercentages)
+            binding.tvLegendBingung.text = legend("🟠", Emotion.BINGUNG, emptyPercentages)
+            binding.tvLegendSedih.text = legend("🔵", Emotion.SEDIH, emptyPercentages)
+            binding.tvLegendMarah.text = legend("🔴", Emotion.MARAH, emptyPercentages)
         }
         binding.weeklyLineChart.setData(state.weekly)
         binding.monthlyBarChart.setData(state.monthly)
@@ -159,5 +212,9 @@ class StatistikMoodActivity : AppCompatActivity() {
             )
             rows.addView(empty.root)
         }
+    }
+
+    companion object {
+        const val EXTRA_CLASS_ID = "CLASS_ID"
     }
 }
