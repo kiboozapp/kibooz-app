@@ -8,6 +8,7 @@ import com.nthb.kibooz.data.remote.NisnVerificationData
 import com.nthb.kibooz.data.remote.SetJoiningRequest
 import com.nthb.kibooz.data.remote.newIdempotencyKey
 import com.nthb.kibooz.data.remote.safeApiCall
+import com.nthb.kibooz.data.remote.safeApiCallEmpty
 import com.squareup.moshi.Moshi
 
 /**
@@ -61,4 +62,8 @@ class ClassManagementRepository(
     /** Mencabut status verifikasi NISN siswa (misalnya saat salah klik). */
     suspend fun unverifyNisn(classId: String, studentId: String): ApiResult<NisnVerificationData> =
         safeApiCall(moshi) { api.unverifyStudentNisn(classId, studentId) }
+
+    /** Mengeluarkan murid secara permanen dari kelas (soft-delete + bebas NISN). */
+    suspend fun removeStudent(classId: String, studentId: String): ApiResult<Unit> =
+        safeApiCallEmpty(moshi) { api.removeStudent(classId, studentId) }
 }

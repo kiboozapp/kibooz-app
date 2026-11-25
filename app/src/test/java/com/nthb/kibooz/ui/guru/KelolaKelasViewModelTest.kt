@@ -8,6 +8,7 @@ import com.nthb.kibooz.data.remote.ClassList
 import com.nthb.kibooz.data.remote.ClassStudentList
 import com.nthb.kibooz.data.remote.ClassSummary
 import com.nthb.kibooz.data.remote.CreateClassRequest
+import com.nthb.kibooz.data.remote.EmptyData
 import com.nthb.kibooz.data.remote.GuruClassApi
 import com.nthb.kibooz.data.remote.JoinCodeData
 import com.nthb.kibooz.data.remote.JoiningData
@@ -99,6 +100,9 @@ class KelolaKelasViewModelTest {
             error("not used")
 
         override suspend fun unverifyStudentNisn(classId: String, studentId: String): Response<ApiEnvelope<NisnVerificationData>> =
+            error("not used")
+
+        override suspend fun removeStudent(classId: String, studentId: String): Response<ApiEnvelope<EmptyData>> =
             error("not used")
     }
 

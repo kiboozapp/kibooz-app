@@ -248,4 +248,89 @@ class PesertaKelasViewModelTest {
         assertEquals(R.string.error_class_archived, archivedState.actionMessage?.resId)
         assertTrue(archivedState.classArchived)
     }
+
+    @Test
+    fun `removeStudent deletes student from list and emits confirmation message`() {
+        val roster = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 2,
+                "students": [
+                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"},
+                  {"id":"s2","fullName":"Cahya Putra","nisn":"0012345673","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":80,"seasonPoints":80,"classRank":2,"todayMood":null}
+                ]
+              }
+            }
+        """.trimIndent()
+
+        server.enqueue(jsonResponse(roster))
+        server.enqueue(jsonResponse("""{"success":true,"message":"Student removed","data":null}"""))
+
+        val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
+        viewModel.loadPeserta(initialClassId = "class-1")
+        val loaded = settled(viewModel)
+        assertEquals(2, loaded.students.size)
+
+        viewModel.removeStudent(loaded.students[1])
+
+        val afterRemove = actionSettled(viewModel)
+        assertEquals(1, afterRemove.students.size)
+        assertEquals("s1", afterRemove.students.first().id)
+        assertEquals(R.string.peserta_keluarkan_sukses, afterRemove.actionMessage?.resId)
+        assertEquals("Cahya Putra", afterRemove.actionMessage?.studentName)
+    }
+
+    @Test
+    fun `removeStudent refreshes roster on STUDENT_NOT_FOUND and locks on CLASS_ARCHIVED`() {
+        val initialRoster = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 2,
+                "students": [
+                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":null},
+                  {"id":"s2","fullName":"Bella","nisn":"0012345672","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":80,"seasonPoints":80,"classRank":2,"todayMood":null}
+                ]
+              }
+            }
+        """.trimIndent()
+        val updatedRoster = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 1,
+                "students": [
+                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":null}
+                ]
+              }
+            }
+        """.trimIndent()
+
+        server.enqueue(jsonResponse(initialRoster))
+        server.enqueue(jsonResponse(failureJson("STUDENT_NOT_FOUND"), 404))
+        server.enqueue(jsonResponse(updatedRoster))
+        server.enqueue(jsonResponse(failureJson("CLASS_ARCHIVED"), 409))
+
+        val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
+        viewModel.loadPeserta(initialClassId = "class-1")
+        val loaded = settled(viewModel)
+
+        viewModel.removeStudent(loaded.students[1])
+        val afterNotFound = actionSettled(viewModel)
+        assertEquals(R.string.error_not_found, afterNotFound.actionMessage?.resId)
+        assertEquals(1, afterNotFound.students.size)
+        viewModel.actionMessageShown()
+
+        viewModel.removeStudent(afterNotFound.students[0])
+        val afterArchived = actionSettled(viewModel)
+        assertEquals(R.string.error_class_archived, afterArchived.actionMessage?.resId)
+        assertTrue(afterArchived.classArchived)
+    }
 }

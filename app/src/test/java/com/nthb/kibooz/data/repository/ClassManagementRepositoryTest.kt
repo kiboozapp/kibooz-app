@@ -335,6 +335,24 @@ class ClassManagementRepositoryTest {
         assertEquals(0, result.data.displaced)
     }
 
+    // DELETE /guru/classes/{classId}/students/{studentId}
+
+    @Test
+    fun `removeStudent deletes student route and propagates archived and missing errors`() = runBlocking {
+        server.enqueue(jsonResponse("""{"success":true,"message":"Student removed","data":null}"""))
+        server.enqueue(failure(409, "CLASS_ARCHIVED"))
+        server.enqueue(failure(404, "STUDENT_NOT_FOUND"))
+
+        val ok = repository.removeStudent("c1", "s1") as ApiResult.Success
+        val request = server.takeRequest()
+        assertEquals("DELETE", request.method)
+        assertEquals("/api/v1/guru/classes/c1/students/s1", request.path)
+        assertEquals(Unit, ok.data)
+
+        assertEquals("CLASS_ARCHIVED", (repository.removeStudent("c1", "s2") as ApiResult.Failure).errorCode)
+        assertEquals("STUDENT_NOT_FOUND", (repository.removeStudent("c1", "s9") as ApiResult.Failure).errorCode)
+    }
+
     @Test
     fun `offline is a network error for every call`() = runBlocking {
         server.shutdown()
@@ -347,5 +365,6 @@ class ClassManagementRepositoryTest {
         assertTrue(repository.restore("c1") is ApiResult.NetworkError)
         assertTrue(repository.verifyNisn("c1", "s1") is ApiResult.NetworkError)
         assertTrue(repository.unverifyNisn("c1", "s1") is ApiResult.NetworkError)
+        assertTrue(repository.removeStudent("c1", "s1") is ApiResult.NetworkError)
     }
 }

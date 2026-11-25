@@ -339,7 +339,7 @@
 
     <!-- Verifikasi NISN oleh Guru di Peserta Kelas -->
     <string name="error_nisn_not_set">NISN siswa belum diisi oleh wali murid</string>
-    <string name="peserta_nisn_petunjuk_guru">Ketuk status NISN atau nama siswa untuk memverifikasi NISN sesuai data sekolah.</string>
+    <string name="peserta_nisn_petunjuk_guru">Ketuk status NISN untuk memverifikasi, atau ketuk siswa / ikon ⋮ untuk mengelola &amp; mengeluarkan murid.</string>
     <string name="peserta_nisn_terverifikasi">NISN Terverifikasi</string>
     <string name="peserta_nisn_verifikasi_aksi">Verifikasi NISN</string>
     <string name="peserta_nisn_perlu_isi">NISN Perlu Diisi Wali</string>
@@ -359,4 +359,16 @@
     <string name="peserta_nisn_error_sudah_dipakai">NISN ini sudah diverifikasi guru untuk siswa lain. Periksa kembali datanya.</string>
     <string name="peserta_nisn_ringkasan_judul">Status Verifikasi NISN</string>
     <string name="peserta_nisn_ringkasan_isi">%1$s\n\n• Terverifikasi: %2$d siswa\n• Menunggu verifikasi: %3$d siswa\n• Perlu diisi ulang wali: %4$d siswa</string>
+
+    <!-- Keluarkan Murid dari Kelas oleh Guru -->
+    <string name="peserta_opsi_cd">Kelola %1$s</string>
+    <string name="peserta_opsi_judul">Kelola %1$s</string>
+    <string name="peserta_opsi_verifikasi_nisn">Verifikasi NISN (%1$s)</string>
+    <string name="peserta_opsi_batal_nisn">Batalkan Verifikasi NISN (%1$s)</string>
+    <string name="peserta_opsi_nisn_kosong">Status NISN Belum Diisi Wali</string>
+    <string name="peserta_opsi_keluarkan">Keluarkan dari Kelas</string>
+    <string name="peserta_keluarkan_judul">Keluarkan %1$s dari kelas?</string>
+    <string name="peserta_keluarkan_pesan">Tindakan ini permanen dan tidak bisa dibatalkan. %1$s akan dihapus dari daftar peserta, dasbor, dan papan peringkat kelas, serta foto anak dihapus dari server dalam beberapa menit. Akun wali tetap aktif dan NISN dapat dipakai lagi untuk masuk ke kelas lain.</string>
+    <string name="peserta_keluarkan_ya">Ya, Keluarkan</string>
+    <string name="peserta_keluarkan_sukses">%1$s telah dikeluarkan dari kelas.</string>
 </resources>
