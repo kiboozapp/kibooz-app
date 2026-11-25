@@ -27,6 +27,7 @@ class DetailKelasActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDetailKelasBinding
     private var activeClassId: String? = null
+    private var resolvedRombelName: String? = null
     private var isTeacherRole: Boolean = true
     private var selectedMeetingIndex: Int = 3
     private var currentKodeKelas: String = ""
@@ -47,6 +48,8 @@ class DetailKelasActivity : AppCompatActivity() {
         val rawKodeKelas = intent.getStringExtra("KODE_KELAS").orEmpty()
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
         activeClassId = intent.getStringExtra("CLASS_ID")
+        resolvedRombelName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
+            ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
 
         // Role-Gating: Wali murid hanya memantau modul dan aktivitas, Guru dapat mengelola modul dan menyalin kode
         val sessionUser = appContainer.authRepository.session.value?.user
@@ -89,26 +92,35 @@ class DetailKelasActivity : AppCompatActivity() {
             } else {
                 if (isTeacherRole) 0 else 1
             }
-            if (activeClassId.isNullOrBlank()) {
+            if (activeClassId.isNullOrBlank() || resolvedRombelName.isNullOrBlank()) {
                 if (isTeacherRole) {
                     val teacherClasses = appContainer.classRepository.teacherClasses()
                     if (teacherClasses is ApiResult.Success) {
                         val match = teacherClasses.data.firstOrNull {
-                            it.joinCode.equals(kodeKelas, ignoreCase = true) || it.name.equals(namaKelas, ignoreCase = true)
+                            (!activeClassId.isNullOrBlank() && it.id == activeClassId) ||
+                                it.joinCode.equals(kodeKelas, ignoreCase = true) ||
+                                it.name.equals(namaKelas, ignoreCase = true)
                         } ?: teacherClasses.data.firstOrNull()
-                        activeClassId = match?.id
+                        if (activeClassId.isNullOrBlank()) activeClassId = match?.id
                         if (match != null) {
+                            if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = match.name
                             count = match.totalStudents
                         }
                     }
                 } else {
                     when (val dash = appContainer.waliRepository.dashboard()) {
                         is ApiResult.Success -> {
-                            activeClassId = dash.data.student.classId
+                            if (activeClassId.isNullOrBlank()) activeClassId = dash.data.student.classId
+                            if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = dash.data.student.className
                         }
                         else -> {}
                     }
                 }
+            }
+
+            resolvedRombelName?.let { className ->
+                binding.tvTitleBar.text = className
+                binding.tvTitleForumDiskusi.text = "Ruang Diskusi $className"
             }
 
             val classId = activeClassId
@@ -208,9 +220,9 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun setupViews(kodeKelas: String, namaKelas: String, initialCount: Int) {
-        val rombelName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
-            ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
+        val rombelName = resolvedRombelName
         binding.tvTitleBar.text = rombelName ?: "Detail $namaKelas"
+        binding.tvTitleForumDiskusi.text = rombelName?.let { "Ruang Diskusi $it" } ?: "Ruang Diskusi Kelas Aktif"
         binding.tvNamaKelas.text = namaKelas
         binding.tvKodeKelas.text = kodeKelas
         binding.tabModul.text = "Modul (4)"
@@ -306,10 +318,10 @@ class DetailKelasActivity : AppCompatActivity() {
 
         // Navigasi ke Forum Diskusi
         binding.cardQuickForum.setOnClickListener {
-            openForumDiskusi(namaKelas)
+            openForumDiskusi(kodeKelas)
         }
         binding.tabForum.setOnClickListener {
-            openForumDiskusi(namaKelas)
+            openForumDiskusi(kodeKelas)
         }
 
         // Tab switches
@@ -361,9 +373,13 @@ class DetailKelasActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun openForumDiskusi(namaKelas: String, kodeKelas: String? = null) {
+    private fun openForumDiskusi(kodeKelas: String? = null) {
+        val classTitle = resolvedRombelName?.takeIf { it.isNotBlank() }
         val intent = Intent(this, ForumDiskusiActivity::class.java).apply {
-            putExtra("NAMA_KELAS", namaKelas)
+            if (classTitle != null) {
+                putExtra("ROMBEL_NAME", classTitle)
+                putExtra("NAMA_KELAS", classTitle)
+            }
             putExtra("CLASS_ID", activeClassId)
             if (kodeKelas != null) putExtra("KODE_KELAS", kodeKelas)
         }
