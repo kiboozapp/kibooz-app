@@ -41,16 +41,28 @@
                     app:layout_constraintTop_toTopOf="parent" />
 
                 <!-- Avatar Siswa -->
-                <ImageView
-                    android:id="@+id/ivAvatarSiswa"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAvatarSiswa"
                     android:layout_width="84dp"
                     android:layout_height="84dp"
                     android:layout_marginTop="16dp"
-                    android:contentDescription="@string/anak_avatar_siswa"
-                    android:src="@drawable/img_avatar_siswa"
+                    app:cardCornerRadius="42dp"
+                    app:cardElevation="4dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvHeaderTitle" />
+                    app:layout_constraintTop_toBottomOf="@+id/tvHeaderTitle"
+                    app:strokeColor="@color/kibooz_white"
+                    app:strokeWidth="3dp">
+
+                    <ImageView
+                        android:id="@+id/ivAvatarSiswa"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="@string/anak_avatar_siswa"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_siswa" />
+
+                </com.google.android.material.card.MaterialCardView>
 
                 <!-- Student Name, dengan lebih dari satu anak ketukan membuka pilihan anak -->
                 <TextView
@@ -67,7 +79,7 @@
                     android:visibility="gone"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/ivAvatarSiswa" />
+                    app:layout_constraintTop_toBottomOf="@+id/cardAvatarSiswa" />
 
                 <!-- Student Class -->
                 <TextView
@@ -392,26 +404,6 @@
                         app:strokeColor="#FFCDD2" />
 
                 </LinearLayout>
-
-                <!-- Tombol Keluar Akun -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnLogout"
-                    android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginTop="12dp"
-                    android:backgroundTint="#FFEBEE"
-                    android:fontFamily="@font/baloo2"
-                    android:insetTop="0dp"
-                    android:insetBottom="0dp"
-                    android:text="@string/anak_keluar"
-                    android:textAllCaps="false"
-                    android:textColor="#C62828"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    app:backgroundTint="#FFEBEE"
-                    app:cornerRadius="26dp"
-                    app:strokeColor="#FFCDD2"
-                    app:strokeWidth="1dp" />
 
             </LinearLayout>
 

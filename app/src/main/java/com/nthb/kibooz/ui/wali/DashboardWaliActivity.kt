@@ -16,6 +16,7 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.RecommendedGuidance
 import com.nthb.kibooz.databinding.ActivityDashboardWaliBinding
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
+import com.nthb.kibooz.ui.common.NotificationInboxDialog
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
@@ -43,6 +44,7 @@ class DashboardWaliActivity : AppCompatActivity() {
         )
 
         setupListeners()
+        binding.tvDate.text = TimeFormat.compactHomeDate()
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -65,7 +67,8 @@ class DashboardWaliActivity : AppCompatActivity() {
             val points = data.pointsSummary
 
             binding.tvNamaSiswa.text = if (state.children.size > 1) "${student.fullName} ▾" else student.fullName
-            binding.tvKelasNisn.text = "${student.className} | NISN: ${student.nisn}"
+            binding.tvKelasNisn.text = "${student.className}\nNISN: ${student.nisn}"
+            appContainer.avatarLoader.load(binding.ivAvatarSiswa, student.avatarUrl, R.drawable.img_avatar_siswa)
 
             val rank = if (points.classRank > 0) "#${points.classRank}" else "-"
             binding.tvRank.text = rank
@@ -212,12 +215,20 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         // Riwayat Aktivitas Si Kecil
         binding.ivHistory.setOnClickListener {
-            Toast.makeText(this, R.string.wali_riwayat_belum_tersedia, Toast.LENGTH_SHORT).show()
+            val studentId = viewModel.state.value.dashboard?.student?.id
+            startActivity(
+                Intent(this, RiwayatAktivitasWaliActivity::class.java)
+                    .putExtra(RiwayatAktivitasWaliActivity.EXTRA_STUDENT_ID, studentId)
+            )
         }
 
         // Navigasi ke Ruang Kelas Si Kecil (Screenshot 154028)
         binding.cardRuangKelasWali.setOnClickListener {
-            startActivity(Intent(this, RuangKelasWaliActivity::class.java))
+            val studentId = viewModel.state.value.dashboard?.student?.id
+            startActivity(
+                Intent(this, RuangKelasWaliActivity::class.java)
+                    .putExtra(RuangKelasWaliActivity.EXTRA_STUDENT_ID, studentId)
+            )
         }
 
         // Navigasi ke Profil Wali (Settings-First seperti Guru)
@@ -232,9 +243,9 @@ class DashboardWaliActivity : AppCompatActivity() {
             )
         }
 
-        // Notifikasi
+        // Notifikasi in-app
         binding.ivNotification.setOnClickListener {
-            Toast.makeText(this, "Tidak ada notifikasi baru untuk wali murid", Toast.LENGTH_SHORT).show()
+            NotificationInboxDialog.show(this)
         }
     }
 }

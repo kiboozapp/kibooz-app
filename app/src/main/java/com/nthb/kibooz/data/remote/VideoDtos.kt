@@ -24,3 +24,11 @@ data class CreateVideoRequest(
     val thumbnailUrl: String? = null,
     val durationSeconds: Int? = null
 )
+
+/** Perubahan metadata video. Nilai null tidak mengubah field di server; teks kosong menghapus isi lama. URL video tetap. */
+data class UpdateVideoRequest(
+    val title: String? = null,
+    val description: String? = null,
+    val thumbnailUrl: String? = null,
+    val durationSeconds: Int? = null
+)

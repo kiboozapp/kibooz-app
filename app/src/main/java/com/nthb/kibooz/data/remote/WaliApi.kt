@@ -5,6 +5,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface WaliApi {
@@ -18,4 +19,12 @@ interface WaliApi {
         @Header(IDEMPOTENCY_KEY_HEADER) idempotencyKey: String,
         @Body body: GuidanceApplyRequest
     ): Response<ApiEnvelope<EmptyData>>
+
+    /** Mengajukan perpindahan kelas untuk anak. */
+    @POST("wali/children/{studentId}/move-requests")
+    suspend fun requestMove(
+        @Path("studentId") studentId: String,
+        @Header(IDEMPOTENCY_KEY_HEADER) idempotencyKey: String,
+        @Body body: MoveRequestInput
+    ): Response<ApiEnvelope<MoveRequest>>
 }

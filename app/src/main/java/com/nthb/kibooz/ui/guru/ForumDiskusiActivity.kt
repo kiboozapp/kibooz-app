@@ -27,6 +27,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityForumDiskusiBinding
     private var activeClassId: String? = null
+    private var activeClassName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +40,10 @@ class ForumDiskusiActivity : AppCompatActivity() {
             bottomBar = binding.clInputBar
         )
 
-        val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
+        activeClassName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
+            ?: intent.getStringExtra("NAMA_KELAS")?.takeIf { it.isNotBlank() }
         activeClassId = intent.getStringExtra("CLASS_ID")
-        binding.tvForumTitle.text = "Forum $namaKelas"
+        binding.tvForumTitle.text = formatForumHeaderTitle(activeClassName)
 
         setupListeners()
         resolveClassAndLoadThreads()
@@ -52,27 +54,47 @@ class ForumDiskusiActivity : AppCompatActivity() {
         val classRepo = appContainer.classRepository
 
         lifecycleScope.launch {
-            if (activeClassId.isNullOrBlank()) {
-                val childrenRes = classRepo.children()
-                if (childrenRes is ApiResult.Success) {
-                    activeClassId = childrenRes.data.firstOrNull()?.classId
+            val session = appContainer.sessionStore.readSession()
+            val isWali = session?.user?.role == com.nthb.kibooz.data.session.Role.WALI
+            if (activeClassId.isNullOrBlank() || activeClassName.isNullOrBlank()) {
+                if (session == null || isWali) {
+                    val childrenRes = classRepo.children()
+                    if (childrenRes is ApiResult.Success) {
+                        val matched = childrenRes.data.firstOrNull {
+                            !activeClassId.isNullOrBlank() && it.classId == activeClassId
+                        } ?: childrenRes.data.firstOrNull()
+                        if (activeClassId.isNullOrBlank()) activeClassId = matched?.classId
+                        if (!matched?.className.isNullOrBlank()) activeClassName = matched?.className
+                    }
                 }
-
-                if (activeClassId.isNullOrBlank()) {
+                if ((session == null && activeClassId.isNullOrBlank()) ||
+                    (!isWali && (activeClassId.isNullOrBlank() || activeClassName.isNullOrBlank()))
+                ) {
                     val teacherClasses = classRepo.teacherClasses()
                     if (teacherClasses is ApiResult.Success) {
-                        activeClassId = teacherClasses.data.firstOrNull()?.id
+                        val matched = teacherClasses.data.firstOrNull {
+                            !activeClassId.isNullOrBlank() && it.id == activeClassId
+                        } ?: teacherClasses.data.firstOrNull()
+                        if (activeClassId.isNullOrBlank()) activeClassId = matched?.id
+                        if (!matched?.name.isNullOrBlank()) activeClassName = matched?.name
                     }
                 }
             }
+            binding.tvForumTitle.text = formatForumHeaderTitle(activeClassName)
 
             val classId = activeClassId ?: return@launch
-            val session = appContainer.sessionStore.readSession()
-            val studentsRes = classRepo.allStudents(classId)
-            val sCount = if (studentsRes is ApiResult.Success) {
-                studentsRes.data.size
-            } else 1
-            binding.tvSubtitleForum.text = "$sCount Siswa • 1 Guru Pengajar"
+            val sCount = if (isWali) {
+                val lbRes = appContainer.leaderboardRepository.leaderboard(classId)
+                if (lbRes is ApiResult.Success) {
+                    maxOf(1, lbRes.data.podium.size + lbRes.data.rankings.size)
+                } else 1
+            } else {
+                val studentsRes = classRepo.allStudents(classId)
+                if (studentsRes is ApiResult.Success) {
+                    studentsRes.data.size
+                } else 1
+            }
+            binding.tvSubtitleForum.text = "Forum Kelas • $sCount Siswa • 1 Guru Pengajar"
 
             val result = forumRepo.threads(classId)
             if (result is ApiResult.Success) {
@@ -231,3 +253,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
         }
     }
 }
+
+/** Menampilkan nama kelas aktif pada header forum karena 1 forum dipakai bersama oleh seluruh mata pelajaran di kelas. */
+fun formatForumHeaderTitle(className: String?): String =
+    className?.trim()?.takeIf { it.isNotEmpty() } ?: "Forum Diskusi Kelas"

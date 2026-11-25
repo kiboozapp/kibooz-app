@@ -17,8 +17,10 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.LeaderboardPeriod
 import com.nthb.kibooz.data.remote.RankEntry
+import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityLeaderboardBinding
 import com.nthb.kibooz.databinding.ItemRankingRowBinding
+import com.nthb.kibooz.ui.guru.bindClassSwitcher
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
@@ -30,8 +32,27 @@ class LeaderboardActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLeaderboardBinding
     private val viewModel: LeaderboardViewModel by viewModels {
-        LeaderboardViewModel.Factory(appContainer.leaderboardRepository, intent.getStringExtra(EXTRA_CLASS_ID))
+        val user = sessionUser()
+        val extraClassId = intent.getStringExtra(EXTRA_CLASS_ID)
+        val guruMode = user?.role == Role.GURU
+        if (guruMode && !extraClassId.isNullOrBlank() && appContainer.guruClassSelection.current(user?.id) == null) {
+            appContainer.guruClassSelection.select(user?.id, extraClassId)
+        }
+        val initialClassId = if (guruMode) {
+            extraClassId ?: appContainer.guruClassSelection.current(user?.id)
+        } else {
+            extraClassId
+        }
+        LeaderboardViewModel.Factory(
+            repository = appContainer.leaderboardRepository,
+            classId = initialClassId,
+            classRepository = if (guruMode) appContainer.classRepository else null
+        )
     }
+
+    private fun sessionUser() = appContainer.authRepository.session.value?.user
+
+    private val isGuru: Boolean get() = sessionUser()?.role == Role.GURU
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +79,13 @@ class LeaderboardActivity : AppCompatActivity() {
         super.onResume()
         // Muat ulang setiap kali layar kembali terlihat supaya poin anak lain yang masuk sementara itu ikut tampil.
         // Dilewati saat masih memuat, sehingga pembukaan pertama (sudah dimuat oleh init) tidak mengirim dua request.
+        if (isGuru) {
+            val sharedId = appContainer.guruClassSelection.current(sessionUser()?.id)
+            if (sharedId != null && sharedId != viewModel.state.value.selectedClassId) {
+                viewModel.syncClass(sharedId)
+                return
+            }
+        }
         if (!viewModel.state.value.loading) viewModel.load()
     }
 
@@ -70,6 +98,25 @@ class LeaderboardActivity : AppCompatActivity() {
         )
 
     private fun render(state: LeaderboardState) {
+        if (isGuru) {
+            val userId = sessionUser()?.id
+            if (!state.selectedClassId.isNullOrBlank() && appContainer.guruClassSelection.current(userId) == null) {
+                appContainer.guruClassSelection.select(userId, state.selectedClassId)
+            }
+            bindClassSwitcher(
+                container = binding.cardClassSwitcher,
+                labelView = binding.tvSelectedClass,
+                actionView = binding.tvSwitchClassBadge,
+                classes = state.classes,
+                selectedClassId = state.selectedClassId
+            ) { chosen ->
+                appContainer.guruClassSelection.select(userId, chosen.id)
+                viewModel.selectClass(chosen.id)
+            }
+        } else {
+            binding.cardClassSwitcher.isVisible = false
+        }
+
         showPeriod(state.period)
 
         val data = state.data
@@ -109,16 +156,21 @@ class LeaderboardActivity : AppCompatActivity() {
     /** Juara yang belum ada disembunyikan, kelas kecil bisa punya kurang dari tiga anak. */
     private fun showPodium(podium: List<RankEntry>) {
         val slots = listOf(
-            Triple(binding.podiumRank1, binding.tvNameRank1, binding.tvPoinRank1),
-            Triple(binding.podiumRank2, binding.tvNameRank2, binding.tvPoinRank2),
-            Triple(binding.podiumRank3, binding.tvNameRank3, binding.tvPoinRank3)
+            listOf(binding.podiumRank1, binding.tvNameRank1, binding.tvPoinRank1, binding.ivAvatarRank1),
+            listOf(binding.podiumRank2, binding.tvNameRank2, binding.tvPoinRank2, binding.ivAvatarRank2),
+            listOf(binding.podiumRank3, binding.tvNameRank3, binding.tvPoinRank3, binding.ivAvatarRank3)
         )
-        slots.forEachIndexed { index, (container, name, points) ->
+        slots.forEachIndexed { index, views ->
+            val container = views[0]
+            val name = views[1] as TextView
+            val points = views[2] as TextView
+            val avatar = views[3] as android.widget.ImageView
             val entry = podium.getOrNull(index)
             container.isVisible = entry != null
             if (entry != null) {
                 name.text = entry.studentName
                 points.text = getString(R.string.leaderboard_poin, entry.points)
+                appContainer.avatarLoader.load(avatar, entry.avatarUrl, R.drawable.img_avatar_siswa)
             }
         }
         binding.ivCrown.isVisible = podium.isNotEmpty()
@@ -141,6 +193,7 @@ class LeaderboardActivity : AppCompatActivity() {
             row.tvRank.text = entry.rank.toString()
             row.tvName.text = if (isMine) getString(R.string.leaderboard_anakmu, entry.studentName) else entry.studentName
             row.tvPoints.text = getString(R.string.leaderboard_poin, entry.points)
+            appContainer.avatarLoader.load(row.ivAvatar, entry.avatarUrl, R.drawable.img_avatar_siswa)
             if (isMine) {
                 row.root.backgroundTintList = ColorStateList.valueOf(HIGHLIGHT_ROW_COLOR)
             }

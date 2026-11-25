@@ -136,6 +136,49 @@
                             android:textSize="16sp"
                             android:textStyle="bold" />
 
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/cardAvatarAnak"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                app:cardCornerRadius="32dp"
+                                app:cardElevation="2dp"
+                                app:strokeColor="@color/kibooz_border"
+                                app:strokeWidth="1dp">
+
+                                <ImageView
+                                    android:id="@+id/ivAvatarAnak"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:contentDescription="@string/anak_avatar_siswa"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/img_avatar_siswa" />
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnUbahFotoAnak"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="44dp"
+                                android:layout_marginStart="14dp"
+                                android:fontFamily="@font/baloo2"
+                                android:text="@string/avatar_ubah_foto_anak"
+                                android:textAllCaps="false"
+                                android:textColor="@color/kibooz_primary_purple"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                app:cornerRadius="22dp"
+                                app:strokeColor="@color/kibooz_primary_purple" />
+
+                        </LinearLayout>
+
                         <TextView
                             android:id="@+id/tvNisnPrompt"
                             android:layout_width="match_parent"
@@ -229,6 +272,49 @@
                             android:textColor="@color/kibooz_text_dark"
                             android:textSize="16sp"
                             android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/cardAvatarWali"
+                                android:layout_width="64dp"
+                                android:layout_height="64dp"
+                                app:cardCornerRadius="32dp"
+                                app:cardElevation="2dp"
+                                app:strokeColor="@color/kibooz_border"
+                                app:strokeWidth="1dp">
+
+                                <ImageView
+                                    android:id="@+id/ivAvatarWali"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:contentDescription="@string/anak_avatar_wali"
+                                    android:scaleType="centerCrop"
+                                    android:src="@drawable/img_avatar_guru" />
+
+                            </com.google.android.material.card.MaterialCardView>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnUbahFotoWali"
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:layout_width="wrap_content"
+                                android:layout_height="44dp"
+                                android:layout_marginStart="14dp"
+                                android:fontFamily="@font/baloo2"
+                                android:text="@string/avatar_ubah_foto_wali"
+                                android:textAllCaps="false"
+                                android:textColor="@color/kibooz_primary_purple"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                app:cornerRadius="22dp"
+                                app:strokeColor="@color/kibooz_primary_purple" />
+
+                        </LinearLayout>
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:id="@+id/tilNamaWali"

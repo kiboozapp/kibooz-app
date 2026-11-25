@@ -29,7 +29,9 @@ class PesertaKelasActivity : AppCompatActivity() {
 
     private val viewModel: PesertaKelasViewModel by viewModels {
         PesertaKelasViewModel.Factory(
-            appContainer.classRepository
+            appContainer.classRepository,
+            appContainer.leaderboardRepository,
+            appContainer.authRepository
         )
     }
 
@@ -49,15 +51,50 @@ class PesertaKelasActivity : AppCompatActivity() {
         binding.tvKelasTitle.text = namaKelas
 
         val sessionUser = appContainer.authRepository.session.value?.user
-        if (sessionUser?.fullName?.isNotBlank() == true) {
+        val isTeacher = sessionUser?.role == com.nthb.kibooz.data.session.Role.GURU
+        if (isTeacher) {
+            appContainer.avatarLoader.load(binding.ivTeacherAvatar, sessionUser?.avatarUrl, com.nthb.kibooz.R.drawable.img_avatar_guru)
+        }
+        if (isTeacher && sessionUser?.fullName?.isNotBlank() == true) {
             binding.tvTeacherName.text = sessionUser.fullName
+            binding.tvTeacherRole.text = "Wali Kelas & Pendidik Utama"
         } else {
+            binding.tvTeacherName.text = "Ibu Dewi Lestari, S.Pd."
+            binding.tvTeacherRole.text = "Wali Kelas & Pendidik Utama"
+        }
+
+        val refreshPendingMoveCard: (String) -> Unit = { targetClassId ->
             lifecycleScope.launch {
-                val stored = appContainer.sessionStore.readSession()?.user
-                if (stored?.fullName?.isNotBlank() == true) {
-                    binding.tvTeacherName.text = stored.fullName
+                val res = appContainer.moveRequestRepository.classMoveRequests(targetClassId)
+                if (res is com.nthb.kibooz.data.remote.ApiResult.Success) {
+                    val count = res.data.size
+                    if (count > 0) {
+                        binding.tvTitlePermintaanPindah.text = getString(com.nthb.kibooz.R.string.guru_pindah_cek_jumlah, count)
+                        binding.tvSubPermintaanPindah.text = "$count pengajuan pindah kelas menunggu persetujuan Anda"
+                    } else {
+                        binding.tvTitlePermintaanPindah.text = getString(com.nthb.kibooz.R.string.guru_pindah_cek)
+                        binding.tvSubPermintaanPindah.text = "Belum ada pengajuan pindah masuk yang menunggu"
+                    }
                 }
             }
+        }
+
+        val moveRequestsLauncher = registerForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == android.app.Activity.RESULT_OK && !classId.isNullOrBlank()) {
+                viewModel.loadPeserta(classId, namaKelas)
+                refreshPendingMoveCard(classId)
+            }
+        }
+
+        if (isTeacher && !classId.isNullOrBlank()) {
+            binding.cardPermintaanPindah.visibility = View.VISIBLE
+            binding.cardPermintaanPindah.setOnClickListener {
+                val currentTitle = binding.tvKelasTitle.text?.toString()?.takeIf { it.isNotBlank() } ?: namaKelas
+                moveRequestsLauncher.launch(PermintaanPindahKelasActivity.intent(this, classId, currentTitle))
+            }
+            refreshPendingMoveCard(classId)
         }
 
         setupListeners(namaKelas)
@@ -117,7 +154,7 @@ class PesertaKelasActivity : AppCompatActivity() {
                     LinearLayout.LayoutParams.MATCH_PARENT
                 )
                 scaleType = ImageView.ScaleType.CENTER_CROP
-                setImageResource(R.drawable.img_avatar_siswa)
+                appContainer.avatarLoader.load(this, student.avatarUrl, R.drawable.img_avatar_siswa)
             }
             card.addView(avatar)
             row.addView(card)
@@ -136,7 +173,11 @@ class PesertaKelasActivity : AppCompatActivity() {
                 paint.isFakeBoldText = true
             }
             val subText = TextView(this).apply {
-                text = "NISN: ${student.nisn} • ${student.currentPoints} Poin"
+                text = if (student.nisn != "-" && student.nisn.isNotBlank()) {
+                    "NISN: ${student.nisn} • ${student.currentPoints} Poin"
+                } else {
+                    "Peringkat #${student.classRank} • ${student.currentPoints} Poin Eco"
+                }
                 setTextColor(Color.parseColor("#75718E"))
                 textSize = 11f
                 typeface = balooFont
@@ -168,8 +209,8 @@ class PesertaKelasActivity : AppCompatActivity() {
                         setTextColor(Color.parseColor("#EF4444"))
                     }
                     null -> {
-                        text = "⚪ Belum Ada"
-                        setTextColor(Color.parseColor("#9CA3AF"))
+                        text = "Siswa Aktif"
+                        setTextColor(Color.parseColor("#6B7280"))
                     }
                 }
             }

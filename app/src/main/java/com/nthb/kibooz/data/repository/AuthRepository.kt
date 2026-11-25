@@ -164,6 +164,18 @@ class AuthRepository(
             is ApiResult.NetworkError -> result
         }
 
+    /** Memperbarui nama atau avatar akun aktif di memori dan SessionStore lokal setelah edit/unggah berhasil. */
+    suspend fun updateSessionUser(fullName: String? = null, avatarUrl: String? = null) {
+        val current = restore() ?: return
+        val updatedUser = current.user.copy(
+            fullName = fullName ?: current.user.fullName,
+            avatarUrl = avatarUrl ?: current.user.avatarUrl
+        )
+        if (updatedUser != current.user) {
+            persist(current.copy(user = updatedUser))
+        }
+    }
+
     private suspend fun persist(session: Session) {
         try {
             store.writeSession(session)

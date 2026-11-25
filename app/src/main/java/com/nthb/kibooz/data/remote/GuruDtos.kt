@@ -44,3 +44,32 @@ data class DonutSlice(val mood: Emotion, val percentage: Int, val colorHex: Stri
 data class WeeklyPoint(val day: String, val averageHappyScore: Int)
 
 data class MonthlyCount(val mood: Emotion, val count: Int)
+
+/** `data` dari `GET /guru/profile`. */
+data class GuruProfile(
+    val id: String,
+    val fullName: String,
+    val nip: String?,
+    val schoolName: String,
+    val avatarUrl: String?
+)
+
+/** `data` dari `GET /guru/profile/detail` dan `PUT /guru/profile`. */
+data class GuruProfileDetail(
+    val id: String,
+    val fullName: String,
+    val nip: String?,
+    val schoolName: String,
+    val avatarUrl: String?,
+    val email: String,
+    val phoneNumber: String?,
+    val address: String?,
+    val joinedAt: String
+)
+
+/** Isi `PUT /guru/profile`. Field null tidak dikirim dan mempertahankan nilai lama di server. */
+data class UpdateGuruProfileRequest(
+    val fullName: String? = null,
+    val phoneNumber: String? = null,
+    val address: String? = null
+)

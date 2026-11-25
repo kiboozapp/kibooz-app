@@ -30,9 +30,13 @@
 
         <TextView
             android:id="@+id/tvKelasTitle"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginHorizontal="8dp"
+            android:ellipsize="end"
             android:fontFamily="@font/baloo2"
+            android:gravity="center"
+            android:maxLines="1"
             android:text="Bahasa &amp; Komunikasi"
             android:textColor="@color/kibooz_white"
             android:textSize="20sp"
@@ -62,18 +66,83 @@
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:clipChildren="false"
         android:clipToPadding="false"
         android:fillViewport="true"
-        android:paddingBottom="40dp"
+        android:paddingBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/clTopBar">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
-            android:paddingTop="20dp">
+            android:paddingTop="20dp"
+            android:paddingBottom="24dp">
+
+            <!-- Kartu Permintaan Pindah Masuk (hanya Guru) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPermintaanPindah"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                app:cardBackgroundColor="#F5F3FF"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/kibooz_primary_purple"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="14dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvTitlePermintaanPindah"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="@string/guru_pindah_cek"
+                            android:textColor="@color/kibooz_primary_purple"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvSubPermintaanPindah"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:text="Tinjau pengajuan pindah masuk dari wali murid"
+                            android:textColor="@color/kibooz_text_secondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/baloo2"
+                        android:paddingStart="8dp"
+                        android:text="Buka >"
+                        android:textColor="@color/kibooz_primary_purple"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Section 1: Guru -->
             <TextView
@@ -112,11 +181,12 @@
                         app:strokeWidth="1dp">
 
                         <ImageView
+                            android:id="@+id/ivTeacherAvatar"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:scaleType="centerCrop"
                             android:src="@drawable/img_avatar_guru"
-                            android:contentDescription="Avatar Siti Rahayu" />
+                            android:contentDescription="Avatar Guru" />
 
                     </com.google.android.material.card.MaterialCardView>
 
@@ -195,9 +265,11 @@
 
             <!-- Students List Container Card -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardStudentsList"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
+                android:layout_marginBottom="8dp"
                 app:cardBackgroundColor="@color/kibooz_white"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="2dp"

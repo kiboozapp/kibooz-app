@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ClassStudent
+import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.repository.ClassRepository
+import com.nthb.kibooz.data.repository.LeaderboardRepository
+import com.nthb.kibooz.data.session.Role
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +24,9 @@ data class PesertaUiState(
 )
 
 class PesertaKelasViewModel(
-    private val classRepository: ClassRepository
+    private val classRepository: ClassRepository,
+    private val leaderboardRepository: LeaderboardRepository? = null,
+    private val authRepository: AuthRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PesertaUiState(isLoading = true))
@@ -67,6 +72,53 @@ class PesertaKelasViewModel(
                 return@launch
             }
 
+            val isWaliRole = authRepository?.session?.value?.user?.role == Role.WALI
+            if (isWaliRole && leaderboardRepository != null) {
+                when (val lbResult = leaderboardRepository.leaderboard(resolvedClassId)) {
+                    is ApiResult.Success -> {
+                        val allEntries = lbResult.data.podium + lbResult.data.rankings
+                        val mappedStudents = allEntries.map { entry ->
+                            ClassStudent(
+                                id = entry.studentName,
+                                fullName = entry.studentName,
+                                nisn = "-",
+                                avatarUrl = entry.avatarUrl,
+                                currentPoints = entry.points,
+                                seasonPoints = entry.points,
+                                classRank = entry.rank,
+                                todayMood = null
+                            )
+                        }
+                        _uiState.value = PesertaUiState(
+                            isLoading = false,
+                            className = resolvedClassName,
+                            teacherName = teacherName,
+                            students = mappedStudents,
+                            errorMessage = null
+                        )
+                        return@launch
+                    }
+                    is ApiResult.Failure -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            className = resolvedClassName,
+                            teacherName = teacherName,
+                            errorMessage = lbResult.message
+                        )
+                        return@launch
+                    }
+                    is ApiResult.NetworkError -> {
+                        _uiState.value = _uiState.value.copy(
+                            isLoading = false,
+                            className = resolvedClassName,
+                            teacherName = teacherName,
+                            errorMessage = "Koneksi internet bermasalah"
+                        )
+                        return@launch
+                    }
+                }
+            }
+
             when (val studentsResult = classRepository.allStudents(resolvedClassId)) {
                 is ApiResult.Success -> {
                     _uiState.value = PesertaUiState(
@@ -98,10 +150,12 @@ class PesertaKelasViewModel(
     }
 
     class Factory(
-        private val classRepository: ClassRepository
+        private val classRepository: ClassRepository,
+        private val leaderboardRepository: LeaderboardRepository? = null,
+        private val authRepository: AuthRepository? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            PesertaKelasViewModel(classRepository) as T
+            PesertaKelasViewModel(classRepository, leaderboardRepository, authRepository) as T
     }
 }

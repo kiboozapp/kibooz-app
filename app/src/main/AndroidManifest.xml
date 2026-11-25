@@ -78,10 +78,23 @@
         <activity
             android:name=".ui.guru.VideoPembelajaranActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.guru.GuruHistoryActivity"
+            android:exported="false" />
+
+        <!-- 8a. Guru Flow: Daftar 6 Tema Pembelajaran dalam Kelas -->
+        <activity
+            android:name=".ui.guru.TemaKelasGuruActivity"
+            android:exported="false" />
 
         <!-- 8c. Guru Flow: Peserta Kelas (Guru & Siswa) -->
         <activity
             android:name=".ui.guru.PesertaKelasActivity"
+            android:exported="false" />
+
+        <!-- 8d. Guru Flow: Persetujuan Permintaan Pindah Kelas -->
+        <activity
+            android:name=".ui.guru.PermintaanPindahKelasActivity"
             android:exported="false" />
 
         <!-- 9. Guru Flow: Forum Diskusi Kelas -->
@@ -112,6 +125,11 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- 11c. Akun (Guru dan Wali): Pangkas Foto Profil -->
+        <activity
+            android:name=".ui.account.CropAvatarActivity"
+            android:exported="false" />
+
         <!-- 12. Wali Flow: Dashboard Wali & Siswa -->
         <activity
             android:name=".ui.wali.DashboardWaliActivity"
@@ -120,6 +138,11 @@
         <!-- 13. Wali Flow: Ruang Kelas Si Kecil (Screenshot 154028) -->
         <activity
             android:name=".ui.wali.RuangKelasWaliActivity"
+            android:exported="false" />
+
+        <!-- 13c. Wali Flow: Riwayat Aktivitas Si Kecil -->
+        <activity
+            android:name=".ui.wali.RiwayatAktivitasWaliActivity"
             android:exported="false" />
 
         <!-- 14. Wali Flow: Detail Panduan Penanganan Mood 4-Langkah -->

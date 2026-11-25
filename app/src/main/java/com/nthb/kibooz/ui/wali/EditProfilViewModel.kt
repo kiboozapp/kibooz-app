@@ -8,9 +8,12 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ChildProfile
 import com.nthb.kibooz.data.remote.OutageKind
+import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.remote.outageKind
+import com.nthb.kibooz.data.repository.AccountRepository
 import com.nthb.kibooz.data.repository.WaliProfileRepository
 import com.nthb.kibooz.util.FormRules
+import java.io.File
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,6 +29,8 @@ data class EditProfilState(
     val outage: OutageKind? = null,
     val savingChild: Boolean = false,
     val savingParent: Boolean = false,
+    val uploadingAvatar: Boolean = false,
+    val parentAvatarUrl: String? = null,
     /** Galat per isian, kuncinya isian yang salah. */
     val fieldErrors: Map<EditField, Int> = emptyMap(),
     /** Pesan sekali tampil. Panggil [EditProfilViewModel.messageShown] setelah ditampilkan. */
@@ -35,7 +40,7 @@ data class EditProfilState(
     /** True jika server menjawab bahwa anak ini sudah tidak ada. Layar ditutup dan layar sebelumnya memuat ulang. */
     val gone: Boolean = false
 ) {
-    val saving: Boolean get() = savingChild || savingParent
+    val saving: Boolean get() = savingChild || savingParent || uploadingAvatar
 }
 
 /** Pemeriksaan isian sebelum dikirim. Aturannya sama dengan `openapi.yaml` dan dengan pola telepon di server. */
@@ -79,7 +84,10 @@ object EditProfilRules {
  */
 class EditProfilViewModel(
     private val repository: WaliProfileRepository,
-    private val studentId: String
+    private val studentId: String,
+    private val accountRepository: AccountRepository? = null,
+    private val onSelfAvatarUpdated: (suspend (String) -> Unit)? = null,
+    private val onSelfNameUpdated: (suspend (String) -> Unit)? = null
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(EditProfilState())
@@ -182,6 +190,9 @@ class EditProfilViewModel(
         _state.value = _state.value.copy(savingParent = true, fieldErrors = emptyMap())
         viewModelScope.launch {
             val result = repository.updateProfile(nameToSend, phoneToSend, whatsappToSend, addressToSend)
+            if (result is ApiResult.Success && nameToSend != null) {
+                onSelfNameUpdated?.invoke(result.data.fullName)
+            }
             _state.value = when (result) {
                 is ApiResult.Success -> _state.value.copy(
                     savingParent = false,
@@ -190,6 +201,45 @@ class EditProfilViewModel(
                     changed = true
                 )
                 else -> failedSave(result, childSave = false)
+            }
+        }
+    }
+
+    /** Mengunggah foto profil Anak ([forChild] = true) atau foto profil Wali ([forChild] = false). */
+    fun uploadAvatar(jpegFile: File, forChild: Boolean) {
+        val current = _state.value.profile ?: return
+        val repo = accountRepository ?: return
+        if (_state.value.saving) return
+
+        _state.value = _state.value.copy(uploadingAvatar = true, message = R.string.avatar_mengunggah)
+        viewModelScope.launch {
+            val targetStudentId = if (forChild) current.id else null
+            when (val res = repo.uploadAvatar(jpegFile, targetStudentId)) {
+                is ApiResult.Success -> {
+                    val newUrl = res.data
+                    if (forChild) {
+                        _state.value = _state.value.copy(
+                            uploadingAvatar = false,
+                            profile = current.copy(avatarUrl = newUrl),
+                            message = R.string.avatar_sukses,
+                            changed = true
+                        )
+                    } else {
+                        onSelfAvatarUpdated?.invoke(newUrl)
+                        _state.value = _state.value.copy(
+                            uploadingAvatar = false,
+                            parentAvatarUrl = newUrl,
+                            message = R.string.avatar_sukses,
+                            changed = true
+                        )
+                    }
+                }
+                else -> {
+                    _state.value = _state.value.copy(
+                        uploadingAvatar = false,
+                        message = res.errorMessageRes() ?: res.childErrorRes()
+                    )
+                }
             }
         }
     }
@@ -236,8 +286,15 @@ class EditProfilViewModel(
         _state.value = _state.value.copy(message = null)
     }
 
-    class Factory(private val repository: WaliProfileRepository, private val studentId: String) : ViewModelProvider.Factory {
+    class Factory(
+        private val repository: WaliProfileRepository,
+        private val studentId: String,
+        private val accountRepository: AccountRepository? = null,
+        private val onSelfAvatarUpdated: (suspend (String) -> Unit)? = null,
+        private val onSelfNameUpdated: (suspend (String) -> Unit)? = null
+    ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = EditProfilViewModel(repository, studentId) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            EditProfilViewModel(repository, studentId, accountRepository, onSelfAvatarUpdated, onSelfNameUpdated) as T
     }
 }

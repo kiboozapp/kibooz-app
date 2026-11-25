@@ -17,14 +17,13 @@ import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.wali.LeaderboardActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.ui.common.NotificationInboxDialog
 import com.nthb.kibooz.ui.common.PulseAnimator
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.util.InsetsUtil
-import java.text.SimpleDateFormat
+import com.nthb.kibooz.util.TimeFormat
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -35,7 +34,13 @@ import kotlinx.coroutines.launch
 class DashboardGuruActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardGuruBinding
-    private val viewModel: GuruDashboardViewModel by viewModels { GuruDashboardViewModel.Factory(appContainer.guruRepository) }
+    private val viewModel: GuruDashboardViewModel by viewModels {
+        GuruDashboardViewModel.Factory(
+            repository = appContainer.guruRepository,
+            classRepository = appContainer.classRepository,
+            initialClassId = appContainer.guruClassSelection.current(currentUserId())
+        )
+    }
 
     // Angka dan donat berkedip selama data pertama belum tiba. Muat ulang berikutnya tidak mengosongkan layar
     private val loadingPulse by lazy {
@@ -57,7 +62,7 @@ class DashboardGuruActivity : AppCompatActivity() {
 
         setupListeners()
 
-        binding.tvDate.text = SimpleDateFormat("EEEE, d MMMM yyyy", Locale("id", "ID")).format(Date())
+        binding.tvDate.text = TimeFormat.compactHomeDate()
         binding.tvGreeting.setText(greetingRes(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)))
 
         binding.connectionStatus.onRetry = { viewModel.load() }
@@ -87,10 +92,23 @@ class DashboardGuruActivity : AppCompatActivity() {
         viewModel.retryAfterOutage()
     }
 
+    private fun currentUserId(): String? = appContainer.authRepository.session.value?.user?.id
+
+    private fun activeClassId(): String? =
+        appContainer.guruClassSelection.current(currentUserId())
+            ?: viewModel.state.value.selectedClassId
+            ?: viewModel.state.value.dashboard?.classOverview?.classId
+
     override fun onResume() {
         super.onResume()
-        // Kembali dari layar scan atau statistik membawa angka yang baru
-        if (!viewModel.state.value.loading && viewModel.state.value.dashboard != null) viewModel.load()
+        // Kembali dari layar scan, statistik, ranking, atau profil membawa kelas terpilih dan angka terbaru
+        val sharedClassId = appContainer.guruClassSelection.current(currentUserId())
+        val state = viewModel.state.value
+        if (sharedClassId != null && sharedClassId != state.selectedClassId) {
+            viewModel.selectClass(sharedClassId)
+        } else if (!state.loading && state.dashboard != null) {
+            viewModel.load(sharedClassId)
+        }
     }
 
     override fun onDestroy() {
@@ -101,13 +119,33 @@ class DashboardGuruActivity : AppCompatActivity() {
     private fun render(state: GuruDashboardState) {
         if (state.loading && state.dashboard == null) loadingPulse.start() else loadingPulse.stop()
 
+        val userId = currentUserId()
         val data = state.dashboard
+        val resolvedClassId = state.selectedClassId ?: data?.classOverview?.classId
+        if (resolvedClassId != null && appContainer.guruClassSelection.current(userId) == null) {
+            appContainer.guruClassSelection.select(userId, resolvedClassId)
+        }
+
+        bindClassSwitcher(
+            container = binding.cardClassSwitcher,
+            labelView = binding.tvSelectedClass,
+            actionView = binding.tvSwitchClassBadge,
+            classes = state.classes,
+            selectedClassId = resolvedClassId,
+            fallbackClassName = data?.classOverview?.className
+        ) { chosen ->
+            appContainer.guruClassSelection.select(userId, chosen.id)
+            viewModel.selectClass(chosen.id)
+        }
+
         if (data != null) {
             val overview = data.classOverview
             val today = data.dailyMoodDistribution
             val percentages = MoodChartMath.percentages(today)
 
             binding.tvTeacherName.text = data.teacher.fullName
+            val avatarUrl = data.teacher.avatarUrl ?: appContainer.authRepository.session.value?.user?.avatarUrl
+            appContainer.avatarLoader.load(binding.ivAvatarGuru, avatarUrl, R.drawable.img_avatar_guru)
             binding.tvTotalSiswa.text = "🎯 ${overview.totalStudents}"
             binding.tvHadirLabel.text = getString(R.string.guru_hadir_label, overview.presentStudents, overview.totalStudents)
             binding.tvHadir.text = "✅ " + (DashboardMath.attendancePercent(overview.presentStudents, overview.totalStudents)
@@ -117,7 +155,7 @@ class DashboardGuruActivity : AppCompatActivity() {
                 ?.let { "${it.emoji()} ${it.displayName()}" }
                 ?: getString(R.string.mood_belum_dicatat)
             binding.tvKelasInfo.text = if (today.total == 0) {
-                getString(R.string.guru_belum_ada_mood)
+                getString(R.string.guru_kelas_kosong_mood, overview.className)
             } else {
                 getString(R.string.guru_kelas_info, overview.className, overview.joinCode)
             }
@@ -153,10 +191,16 @@ class DashboardGuruActivity : AppCompatActivity() {
     private fun setupListeners() {
         // Navigasi ke Statistik Mood
         binding.cvMoodKelas.setOnClickListener {
-            startActivity(Intent(this, StatistikMoodActivity::class.java))
+            startActivity(
+                Intent(this, StatistikMoodActivity::class.java)
+                    .putExtra(StatistikMoodActivity.EXTRA_CLASS_ID, activeClassId())
+            )
         }
         binding.tabStatistik.setOnClickListener {
-            startActivity(Intent(this, StatistikMoodActivity::class.java))
+            startActivity(
+                Intent(this, StatistikMoodActivity::class.java)
+                    .putExtra(StatistikMoodActivity.EXTRA_CLASS_ID, activeClassId())
+            )
         }
 
         // Navigasi ke Ruang Kelas
@@ -174,27 +218,39 @@ class DashboardGuruActivity : AppCompatActivity() {
 
         // Navigasi ke Kamera Scan Face / Mood Siswa
         binding.fabScanner.setOnClickListener {
-            startActivity(Intent(this, CameraScanMoodActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanMoodActivity::class.java)
+                    .putExtra(CameraScanMoodActivity.EXTRA_CLASS_ID, activeClassId())
+            )
         }
         binding.btnScanUlang.setOnClickListener {
-            startActivity(Intent(this, CameraScanMoodActivity::class.java))
+            startActivity(
+                Intent(this, CameraScanMoodActivity::class.java)
+                    .putExtra(CameraScanMoodActivity.EXTRA_CLASS_ID, activeClassId())
+            )
         }
 
         // Banner Ranking Kelas
         binding.cvRankingKelas.setOnClickListener {
-            // Kelas yang sama dengan angka di dasbor. Sebelum dasbor termuat server memilih kelas pertama Guru
-            val classId = viewModel.state.value.dashboard?.classOverview?.classId
             startActivity(
-                Intent(this, LeaderboardActivity::class.java).putExtra(LeaderboardActivity.EXTRA_CLASS_ID, classId)
+                Intent(this, LeaderboardActivity::class.java)
+                    .putExtra(LeaderboardActivity.EXTRA_CLASS_ID, activeClassId())
             )
         }
 
         // Notification & History
         binding.ivNotification.setOnClickListener {
-            Toast.makeText(this, "Tidak ada notifikasi baru", Toast.LENGTH_SHORT).show()
+            NotificationInboxDialog.show(this)
         }
         binding.ivHistory.setOnClickListener {
-            Toast.makeText(this, "Riwayat absensi mood terakhir diperbarui hari ini", Toast.LENGTH_SHORT).show()
+            startActivity(
+                Intent(this, GuruHistoryActivity::class.java)
+                    .putExtra(GuruHistoryActivity.EXTRA_CLASS_ID, activeClassId())
+                    .putExtra(
+                        GuruHistoryActivity.EXTRA_CLASS_NAME,
+                        viewModel.state.value.dashboard?.classOverview?.className
+                    )
+            )
         }
     }
 }

@@ -329,9 +329,18 @@ class CameraScanMoodActivity : AppCompatActivity() {
         binding.faceOverlay.onFaceTapped = { trackingId -> showStudentPicker(trackingId) }
 
         binding.btnCaptureMood.setOnClickListener {
-            val classId = viewModel.state.value.classId ?: "class-demo-1"
-
             val state = viewModel.state.value
+            val classId = state.classId
+            if (classId.isNullOrBlank()) {
+                val msg = when {
+                    state.loading -> R.string.siswa_memuat
+                    state.error != null -> state.error
+                    else -> R.string.review_kelas_belum_dipilih
+                }
+                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val results = session.results()
             val scannedList = if (results.isNotEmpty()) {
                 ArrayList(results.map { mood ->
@@ -347,36 +356,19 @@ class CameraScanMoodActivity : AppCompatActivity() {
                     )
                 })
             } else if (state.students.isNotEmpty()) {
-                // Fallback otomatis saat pengujian tanpa deteksi wajah fisik: pasangkan siswa kelas terdaftar
-                val defaultEmotions = listOf("SENANG", "SENANG", "BINGUNG", "SEDIH")
-                ArrayList(state.students.take(6).mapIndexed { idx, student ->
-                    ScannedStudentMood(
-                        id = student.id,
-                        studentName = student.name,
-                        avatarRes = R.drawable.img_avatar_siswa,
-                        currentMood = defaultEmotions[idx % defaultEmotions.size],
-                        confidenceScore = 0.94f - (idx * 0.03f),
-                        teacherNotes = "",
-                        isConfirmed = false,
-                        source = com.nthb.kibooz.data.remote.MoodSource.AI_CAMERA
-                    )
-                })
+                // Fallback otomatis saat pengujian tanpa deteksi wajah fisik: muat seluruh siswa kelas terdaftar
+                buildFallbackScannedMoods(state.students, R.drawable.img_avatar_siswa)
             } else {
-                // Fallback demo saat kelas belum memiliki data siswa terdaftar
-                val demoNames = listOf("Alya Rahma", "Budi Pratama", "Cahya Putra")
-                val defaultEmotions = listOf("SENANG", "BINGUNG", "SENANG")
-                ArrayList(demoNames.mapIndexed { idx, name ->
-                    ScannedStudentMood(
-                        id = "demo-student-${idx + 1}",
-                        studentName = name,
-                        avatarRes = R.drawable.img_avatar_siswa,
-                        currentMood = defaultEmotions[idx],
-                        confidenceScore = 0.95f,
-                        teacherNotes = "",
-                        isConfirmed = false,
-                        source = com.nthb.kibooz.data.remote.MoodSource.AI_CAMERA
-                    )
-                })
+                when {
+                    state.loading -> Toast.makeText(this, R.string.siswa_memuat, Toast.LENGTH_SHORT).show()
+                    state.error != null -> Toast.makeText(this, state.error, Toast.LENGTH_LONG).show()
+                    else -> MaterialAlertDialogBuilder(this)
+                        .setTitle(R.string.siswa_kelas_kosong)
+                        .setMessage("Kelas ini belum memiliki siswa terdaftar. Minta orang tua bergabung memakai kode kelas sebelum menyimpan presensi mood.")
+                        .setPositiveButton("Mengerti", null)
+                        .show()
+                }
+                return@setOnClickListener
             }
 
             val intent = Intent(this, ReviewScanMoodActivity::class.java)

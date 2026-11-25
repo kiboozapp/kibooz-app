@@ -19,7 +19,8 @@ data class DashboardStudent(
     val classId: String,
     val className: String,
     val avatarUrl: String?,
-    val nisn: String
+    val nisn: String,
+    val joinCode: String? = null
 )
 
 data class TodayMood(
@@ -47,3 +48,18 @@ data class RecommendedGuidance(val id: String, val title: String, val category: 
 
 /** [parentNotes] opsional dan paling panjang 500 karakter. Null tidak ikut terkirim. */
 data class GuidanceApplyRequest(val guidanceId: String, val studentId: String, val parentNotes: String? = null)
+
+data class MoveRequestInput(val classCode: String)
+
+data class MoveRequest(
+    val id: String,
+    val studentId: String,
+    val classId: String,
+    val className: String,
+    val status: String,
+    val requestedAt: String,
+    val decidedAt: String? = null
+)
+
+data class MoveRequestList(val requests: List<MoveRequest> = emptyList())
+

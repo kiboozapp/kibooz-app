@@ -30,7 +30,7 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_marginStart="12dp"
-            android:src="@drawable/img_mapel_seni"
+            android:src="@drawable/ic_kibooz_bear"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toEndOf="@+id/ivBack"
             app:layout_constraintTop_toTopOf="parent" />
@@ -49,8 +49,10 @@
                 android:id="@+id/tvForumTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:fontFamily="@font/baloo2"
-                android:text="Forum Diskusi Seni"
+                android:maxLines="1"
+                android:text="Forum Diskusi Kelas"
                 android:textColor="@color/kibooz_white"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -60,7 +62,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/baloo2"
-                android:text="1 Siswa • 1 Guru Pengajar"
+                android:text="Forum Kelas • 1 Siswa • 1 Guru Pengajar"
                 android:textColor="#E0DBF5"
                 android:textSize="12sp" />
 

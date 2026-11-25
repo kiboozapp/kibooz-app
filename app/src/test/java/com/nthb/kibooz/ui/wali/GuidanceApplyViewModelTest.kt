@@ -4,6 +4,8 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiEnvelope
 import com.nthb.kibooz.data.remote.EmptyData
 import com.nthb.kibooz.data.remote.GuidanceApplyRequest
+import com.nthb.kibooz.data.remote.MoveRequest
+import com.nthb.kibooz.data.remote.MoveRequestInput
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliDashboard
 import com.nthb.kibooz.data.repository.WaliRepository
@@ -45,6 +47,12 @@ class GuidanceApplyViewModelTest {
             replies.removeFirstOrNull()?.let { return it() }
             return Response.success(ApiEnvelope(true, "Guidance applied", null))
         }
+
+        override suspend fun requestMove(
+            studentId: String,
+            idempotencyKey: String,
+            body: MoveRequestInput
+        ): Response<ApiEnvelope<MoveRequest>> = error("not used")
     }
 
     private val api = FakeWaliApi()

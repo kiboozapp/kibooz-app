@@ -28,7 +28,8 @@ data class ChildProfile(
     val currentPoints: Int,
     val seasonPoints: Int,
     val classRank: Int,
-    val guardian: Guardian
+    val guardian: Guardian,
+    val joinCode: String? = null
 )
 
 /** Isi `POST /wali/children`. [classCode] huruf besar 4 sampai 12 huruf atau angka. */

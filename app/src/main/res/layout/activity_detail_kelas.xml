@@ -27,17 +27,22 @@
 
         <TextView
             android:id="@+id/tvTitleBar"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="14dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
             android:fontFamily="@font/baloo2"
+            android:maxLines="1"
             android:text="Detail Kelas"
             android:textColor="@color/kibooz_white"
             android:textSize="20sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/ivShareKelas"
             app:layout_constraintStart_toEndOf="@+id/ivBack"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_goneMarginEnd="8dp" />
 
         <ImageView
             android:id="@+id/ivMenuKelas"
@@ -72,6 +77,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:clipChildren="false"
+        android:clipToPadding="false"
         android:fillViewport="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/clTopBar">
@@ -79,10 +86,12 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:clipChildren="false"
+            android:clipToPadding="false"
             android:orientation="vertical"
             android:paddingHorizontal="20dp"
             android:paddingTop="16dp"
-            android:paddingBottom="80dp">
+            android:paddingBottom="96dp">
 
             <!-- Card Header Kelas Info -->
             <com.google.android.material.card.MaterialCardView
@@ -235,7 +244,7 @@
                         android:fontFamily="@font/baloo2"
                         android:paddingHorizontal="18dp"
                         android:paddingVertical="8dp"
-                        android:text="Modul (6)"
+                        android:text="Modul (4)"
                         android:textColor="@color/kibooz_white"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -318,6 +327,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleForumDiskusi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -327,10 +337,11 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvSubForumDiskusi"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="5 pesan baru dari wali murid &amp; guru"
+                            android:text="Memuat diskusi wali murid &amp; guru..."
                             android:textColor="@color/kibooz_text_muted"
                             android:textSize="12sp" />
 
@@ -379,6 +390,7 @@
                         android:orientation="vertical">
 
                         <TextView
+                            android:id="@+id/tvTitleDaftarPeserta"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -388,6 +400,7 @@
                             android:textStyle="bold" />
 
                         <TextView
+                            android:id="@+id/tvSubDaftarPeserta"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
@@ -417,6 +430,17 @@
                 android:textColor="@color/kibooz_text_dark"
                 android:textSize="16sp"
                 android:textStyle="bold" />
+
+            <!-- Kontainer dinamis dari backend modul -->
+            <LinearLayout
+                android:id="@+id/llDynamicModules"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:clipChildren="false"
+                android:clipToPadding="false"
+                android:orientation="vertical"
+                android:visibility="gone" />
 
             <!-- Pertemuan 1 -->
             <com.google.android.material.card.MaterialCardView
@@ -625,6 +649,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:layout_marginBottom="12dp"
                 app:cardBackgroundColor="@color/kibooz_white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="2dp">

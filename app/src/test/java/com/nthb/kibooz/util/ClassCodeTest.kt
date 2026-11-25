@@ -32,4 +32,11 @@ class ClassCodeTest {
         assertNull(ClassCode.normalize(""))
         assertNull(ClassCode.normalize("   "))
     }
+
+    @Test
+    fun `server join code is preferred over static mapping`() {
+        assertEquals("NEW12345", ClassCode.preferJoinCode("  NEW12345 ", "0f732106-3c02-4d93-9faa-3361ec8ab3e8"))
+        assertEquals("84NGBK3N", ClassCode.preferJoinCode(null, "0f732106-3c02-4d93-9faa-3361ec8ab3e8"))
+        assertEquals("84NGBK3N", ClassCode.preferJoinCode("   ", "0f732106-3c02-4d93-9faa-3361ec8ab3e8"))
+    }
 }

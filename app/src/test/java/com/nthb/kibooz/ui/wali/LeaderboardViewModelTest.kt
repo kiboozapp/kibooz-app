@@ -2,10 +2,16 @@ package com.nthb.kibooz.ui.wali
 
 import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiEnvelope
+import com.nthb.kibooz.data.remote.ChildList
+import com.nthb.kibooz.data.remote.ClassApi
+import com.nthb.kibooz.data.remote.ClassList
+import com.nthb.kibooz.data.remote.ClassStudentList
+import com.nthb.kibooz.data.remote.ClassSummary
 import com.nthb.kibooz.data.remote.LeaderboardApi
 import com.nthb.kibooz.data.remote.LeaderboardData
 import com.nthb.kibooz.data.remote.LeaderboardPeriod
 import com.nthb.kibooz.data.remote.RankEntry
+import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
@@ -173,5 +179,53 @@ class LeaderboardViewModelTest {
         assertEquals(newer, viewModel.state.value.data)
         assertEquals(listOf<String?>("c1", "c1", "c1"), api.asked)
         assertEquals(listOf<String?>(null, "week", "week"), api.askedPeriods)
+    }
+
+    @Test
+    fun `guru leaderboard loads classes and selectClass reloads ranking while keeping period`() {
+        val c1 = ClassSummary("c1", "Matahari", "TK-A", "TK", "2025/2026", "ABC123", true, 16, "2026-01-01T00:00:00Z")
+        val c2 = ClassSummary("c2", "Sakura", "TK-A", "TK", "2025/2026", "SAK456", true, 15, "2026-01-02T00:00:00Z")
+        val fakeClassApi = object : ClassApi {
+            override suspend fun listStudents(classId: String, page: Int, limit: Int): Response<ApiEnvelope<ClassStudentList>> =
+                error("not used")
+
+            override suspend fun listClasses(page: Int, limit: Int): Response<ApiEnvelope<ClassList>> =
+                Response.success(ApiEnvelope(true, null, ClassList(page, limit, 2, listOf(c1, c2))))
+
+            override suspend fun listChildren(): Response<ApiEnvelope<ChildList>> = error("not used")
+        }
+        val viewModel = LeaderboardViewModel(
+            repository = LeaderboardRepository(api, moshi),
+            initialClassId = "c1",
+            classRepository = ClassRepository(fakeClassApi, moshi)
+        )
+
+        viewModel.selectPeriod(LeaderboardPeriod.MONTH)
+        val sakuraData = LeaderboardData(
+            podium = listOf(RankEntry(1, "Sakura 1", 70, null)),
+            rankings = emptyList()
+        )
+        api.reply = { Response.success(ApiEnvelope(true, null, sakuraData)) }
+
+        viewModel.selectClass("c2")
+
+        assertEquals(listOf("c1", "c2"), viewModel.state.value.classes.map { it.id })
+        assertEquals("c2", viewModel.state.value.selectedClassId)
+        assertEquals(LeaderboardPeriod.MONTH, viewModel.state.value.period)
+        assertEquals(sakuraData, viewModel.state.value.data)
+        assertEquals(listOf<String?>("c1", "c1", "c2"), api.asked)
+        assertEquals(listOf<String?>(null, "month", "month"), api.askedPeriods)
+    }
+
+    @Test
+    fun `syncClass only reloads when a different class id arrives`() {
+        val viewModel = viewModel("c1")
+
+        viewModel.syncClass("c1")
+        assertEquals(listOf<String?>("c1"), api.asked)
+
+        viewModel.syncClass("c2")
+        assertEquals(listOf<String?>("c1", "c2"), api.asked)
+        assertEquals("c2", viewModel.state.value.selectedClassId)
     }
 }

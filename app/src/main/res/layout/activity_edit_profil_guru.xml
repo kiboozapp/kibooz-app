@@ -63,15 +63,28 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal">
 
-                <ImageView
-                    android:id="@+id/ivAvatar"
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardAvatar"
                     android:layout_width="96dp"
                     android:layout_height="96dp"
-                    android:src="@drawable/img_avatar_guru"
+                    app:cardCornerRadius="48dp"
+                    app:cardElevation="3dp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:strokeColor="@color/kibooz_white"
+                    app:strokeWidth="3dp">
+
+                    <ImageView
+                        android:id="@+id/ivAvatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Foto Profil Guru"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/img_avatar_guru" />
+
+                </com.google.android.material.card.MaterialCardView>
 
                 <ImageView
                     android:id="@+id/ivChangePhoto"
@@ -79,20 +92,26 @@
                     android:layout_height="32dp"
                     android:background="@drawable/bg_button_purple"
                     android:contentDescription="Ganti Foto"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_search"
-                    app:layout_constraintBottom_toBottomOf="@+id/ivAvatar"
-                    app:layout_constraintEnd_toEndOf="@+id/ivAvatar"
+                    android:elevation="4dp"
+                    android:padding="7dp"
+                    android:src="@drawable/ic_camera"
+                    app:layout_constraintBottom_toBottomOf="@+id/cardAvatar"
+                    app:layout_constraintEnd_toEndOf="@+id/cardAvatar"
                     app:tint="@color/kibooz_white" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
             <TextView
+                android:id="@+id/tvUbahFoto"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginTop="8dp"
+                android:clickable="true"
+                android:focusable="true"
                 android:fontFamily="@font/baloo2"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
                 android:text="Ketuk untuk ubah foto profil"
                 android:textColor="@color/kibooz_primary_purple"
                 android:textSize="13sp"
@@ -138,10 +157,13 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_input_field"
+                android:cursorVisible="false"
+                android:focusable="false"
                 android:fontFamily="@font/baloo2"
+                android:longClickable="false"
                 android:paddingHorizontal="16dp"
-                android:text="19850312 201101 2 003"
-                android:textColor="@color/kibooz_text_dark"
+                android:text="-"
+                android:textColor="@color/kibooz_text_muted"
                 android:textSize="14sp" />
 
             <!-- Email -->
@@ -161,12 +183,24 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="6dp"
                 android:background="@drawable/bg_input_field"
+                android:cursorVisible="false"
+                android:focusable="false"
                 android:fontFamily="@font/baloo2"
                 android:inputType="textEmailAddress"
+                android:longClickable="false"
                 android:paddingHorizontal="16dp"
-                android:text="siti.rahayu@kibooz.sch.id"
-                android:textColor="@color/kibooz_text_dark"
+                android:text="-"
+                android:textColor="@color/kibooz_text_muted"
                 android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo2"
+                android:text="@string/guru_profil_nip_email_tetap"
+                android:textColor="@color/kibooz_text_muted"
+                android:textSize="12sp" />
 
             <!-- Nomor HP -->
             <TextView

@@ -87,6 +87,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/ivHeaderLogo">
 
                     <ImageView
+                        android:id="@+id/ivAvatarGuru"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
@@ -101,42 +102,54 @@
                     android:layout_marginStart="14dp"
                     android:orientation="vertical"
                     app:layout_constraintBottom_toBottomOf="@+id/cvAvatar"
-                    app:layout_constraintEnd_toStartOf="@+id/tvDate"
+                    app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toEndOf="@+id/cvAvatar"
                     app:layout_constraintTop_toTopOf="@+id/cvAvatar">
 
-                    <TextView
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:fontFamily="@font/baloo2"
-                        android:id="@+id/tvGreeting"
-                        android:text="Selamat datang"
-                        android:textColor="#E5DEFF"
-                        android:textSize="13sp" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:id="@+id/tvGreeting"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:ellipsize="end"
+                            android:fontFamily="@font/baloo2"
+                            android:maxLines="1"
+                            android:text="Selamat datang"
+                            android:textColor="#E5DEFF"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2"
+                            android:maxLines="1"
+                            android:text=""
+                            android:textColor="#E5DEFF"
+                            android:textSize="12sp" />
+
+                    </LinearLayout>
 
                     <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:fontFamily="@font/baloo2"
                         android:id="@+id/tvTeacherName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/baloo2"
+                        android:maxLines="2"
                         android:text="…"
                         android:textColor="@color/kibooz_white"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
                 </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="@font/baloo2"
-                    android:text=""
-                    android:textColor="#E5DEFF"
-                    android:textSize="12sp"
-                    app:layout_constraintBottom_toBottomOf="@+id/cvAvatar"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintTop_toTopOf="@+id/cvAvatar" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -259,13 +272,72 @@
 
             </androidx.cardview.widget.CardView>
 
+            <!-- Pemilih kelas aktif untuk multi-kelas Guru -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardClassSwitcher"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="20dp"
+                android:layout_marginTop="14dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/kibooz_white"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeColor="#E8E4F8"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingHorizontal="14dp"
+                    android:paddingVertical="10dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_class"
+                        app:tint="@color/kibooz_primary_purple" />
+
+                    <TextView
+                        android:id="@+id/tvSelectedClass"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:ellipsize="end"
+                        android:fontFamily="@font/baloo2"
+                        android:maxLines="1"
+                        android:textColor="@color/kibooz_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvSwitchClassBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/bg_tag_lavender"
+                        android:fontFamily="@font/baloo2"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="4dp"
+                        android:text="@string/guru_ganti_kelas_pill"
+                        android:textColor="@color/kibooz_primary_purple"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Gangguan server: offline atau layanan tidak tersedia (FE-12) -->
             <com.nthb.kibooz.ui.common.ConnectionStatusView
                 android:id="@+id/connectionStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="12dp"
                 android:visibility="gone" />
 
             <!-- Card: Mood Kelas Hari Ini -->
@@ -274,7 +346,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="18dp"
+                android:layout_marginTop="12dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"

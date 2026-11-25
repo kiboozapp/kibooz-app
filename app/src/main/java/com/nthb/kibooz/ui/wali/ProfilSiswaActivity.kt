@@ -18,7 +18,6 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ChildProfile
 import com.nthb.kibooz.databinding.ActivityProfilSiswaBinding
 import com.nthb.kibooz.databinding.ItemInfoRowBinding
-import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
@@ -112,6 +111,7 @@ class ProfilSiswaActivity : AppCompatActivity() {
             if (state.canPickChild) getString(R.string.anak_pilih_anak_desc, profile.fullName) else null
         binding.tvNamaSiswa.isClickable = state.canPickChild
         binding.tvKelasSiswa.text = getString(R.string.anak_kelas_ringkas, className, profile.schoolName)
+        appContainer.avatarLoader.load(binding.ivAvatarSiswa, profile.avatarUrl, R.drawable.img_avatar_siswa)
 
         binding.cardNisnPrompt.isVisible = profile.nisnNeedsUpdate
         binding.btnTambahAnak.isVisible = state.canAddChild
@@ -209,17 +209,6 @@ class ProfilSiswaActivity : AppCompatActivity() {
         binding.btnHapusAnak.setOnClickListener { confirmDelete() }
         binding.btnRetry.setOnClickListener { viewModel.load() }
         binding.connectionStatus.onRetry = { viewModel.load() }
-
-        binding.btnLogout.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Keluar Akun Wali")
-                .setMessage("Apakah Anda yakin ingin keluar dari akun Kibooz Orang Tua?")
-                .setPositiveButton("Ya, Keluar") { _, _ ->
-                    sessionManager.signOut()
-                }
-                .setNegativeButton("Batal", null)
-                .show()
-        }
 
         // Bottom Navigation. Anak yang dipilih ikut dibawa supaya statistik dan peringkatnya milik anak yang sama
         binding.tabHome.setOnClickListener {
