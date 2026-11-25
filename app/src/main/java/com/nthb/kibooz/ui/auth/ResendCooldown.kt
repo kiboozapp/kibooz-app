@@ -1,11 +1,13 @@
 package com.nthb.kibooz.ui.auth
 
+import android.os.SystemClock
+
 /**
  * Hitung mundur tombol kirim ulang kode. Yang disimpan adalah waktu tenggatnya, bukan sisa detik, jadi hitungan
- * tetap benar setelah layar diputar dan setelah aplikasi lama di latar belakang. Kelas biasa tanpa Android,
- * jam diberikan dari luar supaya pengujian bisa memajukan waktu.
+ * tetap benar setelah layar diputar dan setelah aplikasi lama di latar belakang. Jam bawaannya SystemClock.elapsedRealtime,
+ * yang tetap jalan saat perangkat tidur. Pengujian memberi jam sendiri supaya bisa memajukan waktu.
  */
-class ResendCooldown(private val nowMillis: () -> Long = { System.nanoTime() / NANOS_PER_MILLI }) {
+class ResendCooldown(private val nowMillis: () -> Long = { SystemClock.elapsedRealtime() }) {
 
     private var deadlineMillis = 0L
     private var running = false
@@ -34,6 +36,5 @@ class ResendCooldown(private val nowMillis: () -> Long = { System.nanoTime() / N
         const val MAX_SECONDS = 3_600L
 
         private const val MILLIS_PER_SECOND = 1_000L
-        private const val NANOS_PER_MILLI = 1_000_000L
     }
 }

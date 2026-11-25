@@ -23,6 +23,7 @@
     <string name="verifikasi_kode_enam_digit">Kode terdiri dari 6 angka</string>
     <string name="verifikasi_error_kode_salah">Kode salah, sudah kedaluwarsa, atau kesempatannya habis. Periksa kodenya atau kirim ulang kode baru.</string>
     <string name="verifikasi_error_terlalu_cepat">Kode baru saja dikirim, tunggu hitung mundurnya selesai</string>
+    <string name="verifikasi_error_batas_jam">Batas pengiriman kode per jam sudah habis, coba lagi saat hitung mundurnya selesai</string>
     <string name="verifikasi_error_kirim_gagal">Email belum bisa dikirim, coba lagi nanti</string>
     <string name="verifikasi_error_belum_terverifikasi">Email akun ini belum diverifikasi</string>
     <string name="verifikasi_sudah_terverifikasi">Email ini sudah terverifikasi, silakan masuk</string>

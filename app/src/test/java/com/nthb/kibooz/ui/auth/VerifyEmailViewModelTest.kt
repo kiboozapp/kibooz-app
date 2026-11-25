@@ -11,6 +11,7 @@ import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.resendJson
 import com.nthb.kibooz.data.session.Role
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -18,8 +19,10 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import okhttp3.logging.HttpLoggingInterceptor
+import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import okhttp3.mockwebserver.SocketPolicy
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -83,6 +86,30 @@ class VerifyEmailViewModelTest {
     )
 
     private fun VerifyEmailViewModel.settled(): VerifyEmailState = runBlocking { state.first { !it.busy } }
+
+    /**
+     * Memutus setiap permintaan sampai tanda online dinyalakan, lalu menjawab dengan [answer]. Jumlah antrean tidak dipakai,
+     * karena berapa kali OkHttp mencoba lagi satu permintaan yang diputus tidak bisa dipastikan.
+     */
+    private fun serveWhenOnline(answer: MockResponse): AtomicBoolean {
+        val online = AtomicBoolean(false)
+        server.dispatcher = object : Dispatcher() {
+            // MockWebServer asks peek() before it reads a request, and the disconnect at start only works from there
+            override fun peek(): MockResponse =
+                if (online.get()) MockResponse() else MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)
+
+            override fun dispatch(request: RecordedRequest): MockResponse =
+                if (online.get()) answer else MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)
+        }
+        return online
+    }
+
+    /** Isi permintaan terakhir yang sampai ke server. */
+    private fun lastRequestBody(): String {
+        var body = ""
+        while (true) body = (server.takeRequest(200, TimeUnit.MILLISECONDS) ?: break).body.readUtf8()
+        return body
+    }
 
     // Kode verifikasi
 
@@ -278,19 +305,19 @@ class VerifyEmailViewModelTest {
 
     @Test
     fun `a missing connection raises the outage card and its retry sends the same code and password again`() {
-        repeat(2) { server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)) }
-        server.enqueue(json(authJson("access-1", "refresh-1")))
+        val online = serveWhenOnline(json(authJson("access-1", "refresh-1")))
         val vm = viewModel()
 
         vm.verify("123456", password)
         assertEquals(OutageKind.OFFLINE, vm.settled().outage)
 
+        online.set(true)
         vm.retryAfterOutage()
         val state = vm.settled()
 
         assertNull(state.outage)
         assertNotNull(state.signedIn)
-        val body = server.takeRequest().body.readUtf8()
+        val body = lastRequestBody()
         assertTrue(body, body.contains("123456") && body.contains(password))
     }
 
@@ -485,19 +512,19 @@ class VerifyEmailViewModelTest {
 
     @Test
     fun `a missing connection during resend raises the card and its retry resends with the same password`() {
-        repeat(2) { server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)) }
-        server.enqueue(json(resendJson()))
+        val online = serveWhenOnline(json(resendJson()))
         val vm = viewModel()
 
         vm.resend(password)
         assertEquals(OutageKind.OFFLINE, vm.settled().outage)
 
+        online.set(true)
         vm.retryAfterOutage()
         val state = vm.settled()
 
         assertNull(state.outage)
         assertEquals(60, state.resendSecondsLeft)
-        assertTrue(server.takeRequest().body.readUtf8().contains(password))
+        assertTrue(lastRequestBody().contains(password))
     }
 
     @Test

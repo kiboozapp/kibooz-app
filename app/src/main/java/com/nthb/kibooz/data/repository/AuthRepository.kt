@@ -202,7 +202,9 @@ class AuthRepository(
         if (current.accessToken != failedAccessToken) return current.accessToken
 
         when (val result = safeApiCall(moshi) { withContext(Dispatchers.IO) { api.refreshToken(RefreshRequest(current.refreshToken)).execute() } }) {
-            is ApiResult.Success -> result.data.toSession().also { persist(it) }.accessToken
+            is ApiResult.Success ->
+                if (result.data.token.isBlank() || result.data.refreshToken.isBlank()) null
+                else result.data.toSession().also { persist(it) }.accessToken
             is ApiResult.Failure -> {
                 if (result.status == 401 && !current.refreshToken.startsWith("mock-")) endSession()
                 null

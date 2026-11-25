@@ -236,8 +236,11 @@ class VerifyEmailViewModel(
                     idle.copy(error = result.errorMessageRes(), resendSecondsLeft = 0)
                 }
                 result.errorCode == "VERIFICATION_RESEND_TOO_SOON" || result.status == 429 -> {
-                    cooldown.start(result.retryAfterSeconds ?: DEFAULT_WAIT_SECONDS)
-                    idle.copy(error = result.errorMessageRes(), resendSecondsLeft = cooldown.secondsLeft())
+                    val wait = result.retryAfterSeconds ?: DEFAULT_WAIT_SECONDS
+                    cooldown.start(wait)
+                    // Lebih dari jeda biasa berarti jatah kirim satu jam sudah habis, bukan sekadar belum waktunya
+                    val message = if (wait > DEFAULT_WAIT_SECONDS) R.string.verifikasi_error_batas_jam else result.errorMessageRes()
+                    idle.copy(error = message, resendSecondsLeft = cooldown.secondsLeft())
                 }
                 else -> failed(idle, result, Action.RESEND)
             }
