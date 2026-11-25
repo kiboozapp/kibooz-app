@@ -282,9 +282,14 @@
     <string name="leaderboard_poin">🔥 %1$d Poin</string>
     <string name="leaderboard_semua_judul">Peringkat Kelas</string>
     <string name="leaderboard_anakmu">%1$s (Anakmu)</string>
-    <string name="sampah_item_persen">%1$d item (%2$d%%)</string>
     <string name="sampah_item">%1$d item</string>
-    <string name="sampah_b3_ringkas">Sampah B3: %1$d item, diserahkan ke orang dewasa dan tidak diberi poin</string>
+    <string name="sampah_organik_judul">Sampah organik</string>
+    <string name="sampah_organik_contoh">Daun, sisa buah, kertas</string>
+    <string name="sampah_anorganik_judul">Sampah anorganik</string>
+    <string name="sampah_anorganik_contoh">Botol plastik, kemasan snack</string>
+    <string name="sampah_b3_judul">Sampah B3</string>
+    <string name="sampah_b3_contoh">Baterai dan lampu. Serahkan ke orang dewasa, tidak diberi poin</string>
+    <string name="sampah_diagram_deskripsi">Diagram lingkaran sampah: organik %1$d persen, anorganik %2$d persen, B3 %3$d persen</string>
     <string name="sampah_banner_judul">%1$d poin semester ini</string>
     <string name="sampah_banner_isi">%1$s sudah memilah %2$d sampah, total %3$d poin dan peringkat #%4$d di kelas.</string>
     <string name="sampah_banner_isi_tanpa_peringkat">%1$s sudah memilah %2$d sampah, total %3$d poin.</string>

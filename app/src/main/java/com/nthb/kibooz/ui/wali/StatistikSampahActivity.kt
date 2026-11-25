@@ -98,9 +98,14 @@ class StatistikSampahActivity : AppCompatActivity() {
         binding.cardSisaScan.isVisible = true
         binding.tvSisaScan.text = getString(quota.messageRes, quota.remaining, quota.dailyLimit)
 
-        binding.tvOrganik.text = countText(stats, TrashCategory.ORGANIK)
-        binding.tvAnorganik.text = countText(stats, TrashCategory.ANORGANIK)
-        binding.tvB3.text = getString(R.string.sampah_b3_ringkas, stats.scansOf(TrashCategory.B3))
+        // Persentase hanya di diagram, legenda cukup jumlahnya
+        val organik = stats.scansOf(TrashCategory.ORGANIK)
+        val anorganik = stats.scansOf(TrashCategory.ANORGANIK)
+        val b3 = stats.scansOf(TrashCategory.B3)
+        binding.pieSampah.setCounts(organik, anorganik, b3)
+        binding.tvOrganik.text = getString(R.string.sampah_item, organik)
+        binding.tvAnorganik.text = getString(R.string.sampah_item, anorganik)
+        binding.tvB3.text = getString(R.string.sampah_item, b3)
 
         binding.tvBannerTitle.text = getString(R.string.sampah_banner_judul, stats.seasonPoints)
         binding.tvBannerBody.text = if (stats.classRank > 0) {
@@ -113,15 +118,6 @@ class StatistikSampahActivity : AppCompatActivity() {
                 R.string.sampah_banner_isi_tanpa_peringkat,
                 stats.student.fullName, stats.totalScans, stats.totalPoints
             )
-        }
-    }
-
-    private fun countText(stats: TrashStats, category: TrashCategory): String {
-        val scans = stats.scansOf(category)
-        return if (stats.totalScans > 0) {
-            getString(R.string.sampah_item_persen, scans, stats.percentOf(category))
-        } else {
-            getString(R.string.sampah_item, scans)
         }
     }
 
