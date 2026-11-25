@@ -6,18 +6,24 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.databinding.ActivityProfilGuruBinding
 import com.nthb.kibooz.sessionManager
+import com.nthb.kibooz.ui.account.AvatarPickerHelper
 import com.nthb.kibooz.ui.account.HapusAkunActivity
 import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
 
 class ProfilGuruActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfilGuruBinding
+    private lateinit var avatarPicker: AvatarPickerHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,6 +38,10 @@ class ProfilGuruActivity : AppCompatActivity() {
             fab = binding.fabScannerFace
         )
 
+        avatarPicker = AvatarPickerHelper(this) { croppedFile ->
+            uploadAvatar(croppedFile)
+        }
+
         setupListeners()
         bindProfileData()
     }
@@ -43,21 +53,61 @@ class ProfilGuruActivity : AppCompatActivity() {
 
     private fun bindProfileData() {
         val sessionUser = appContainer.authRepository.session.value?.user
-        if (!sessionUser?.fullName.isNullOrBlank()) {
-            binding.tvNamaGuru.text = sessionUser?.fullName
+        if (sessionUser != null) {
+            if (sessionUser.fullName.isNotBlank()) binding.tvNamaGuru.text = sessionUser.fullName
+            appContainer.avatarLoader.load(binding.ivAvatarGuru, sessionUser.avatarUrl, R.drawable.img_avatar_guru)
         }
 
         lifecycleScope.launch {
             if (sessionUser == null) {
                 val stored = appContainer.sessionStore.readSession()?.user
-                if (!stored?.fullName.isNullOrBlank()) {
-                    binding.tvNamaGuru.text = stored?.fullName
+                if (stored != null) {
+                    if (stored.fullName.isNotBlank()) binding.tvNamaGuru.text = stored.fullName
+                    appContainer.avatarLoader.load(binding.ivAvatarGuru, stored.avatarUrl, R.drawable.img_avatar_guru)
+                }
+            }
+            when (val res = appContainer.guruProfileRepository.profileDetail()) {
+                is ApiResult.Success -> {
+                    val d = res.data
+                    binding.tvNamaGuru.text = d.fullName
+                    val joined = TimeFormat.localDate(d.joinedAt)
+                    binding.tvJoinDate.text = if (joined != null) "Bergabung sejak $joined" else d.schoolName
+                    appContainer.avatarLoader.load(binding.ivAvatarGuru, d.avatarUrl, R.drawable.img_avatar_guru)
+                    appContainer.authRepository.updateSessionUser(fullName = d.fullName, avatarUrl = d.avatarUrl)
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    private fun uploadAvatar(jpegFile: java.io.File) {
+        Toast.makeText(this, R.string.avatar_mengunggah, Toast.LENGTH_SHORT).show()
+        val oldUrl = appContainer.authRepository.session.value?.user?.avatarUrl
+        lifecycleScope.launch {
+            when (val res = appContainer.accountRepository.uploadAvatar(jpegFile, studentId = null)) {
+                is ApiResult.Success -> {
+                    appContainer.avatarLoader.evict(oldUrl)
+                    appContainer.authRepository.updateSessionUser(avatarUrl = res.data)
+                    appContainer.avatarLoader.load(binding.ivAvatarGuru, res.data, R.drawable.img_avatar_guru)
+                    Toast.makeText(this@ProfilGuruActivity, R.string.avatar_sukses, Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    Toast.makeText(
+                        this@ProfilGuruActivity,
+                        res.errorMessageRes() ?: R.string.error_unknown,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
     }
 
     private fun setupListeners() {
+        // Ketuk avatar untuk langsung memilih dan memangkas foto profil baru
+        binding.cardAvatar.setOnClickListener {
+            avatarPicker.launchPicker()
+        }
+
         // Tombol Lihat Detail -> Membuka Detail Profil Guru
         binding.btnLihatDetail.setOnClickListener {
             startActivity(Intent(this, DetailProfilGuruActivity::class.java))

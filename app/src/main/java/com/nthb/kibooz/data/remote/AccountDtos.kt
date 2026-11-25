@@ -8,3 +8,6 @@ data class DeleteAccountRequest(
     val password: String,
     val successorEmail: String? = null
 )
+
+/** `data` dari `POST /users/avatar`. */
+data class AvatarData(val avatarUrl: String)

@@ -19,6 +19,7 @@
         android:textStyle="bold" />
 
     <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/ivAvatar"
         android:layout_width="38dp"
         android:layout_height="38dp"
         android:layout_marginStart="8dp"

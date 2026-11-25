@@ -7,6 +7,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.R
+import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.databinding.ActivityProfilWaliBinding
 import kotlinx.coroutines.launch
 
@@ -35,6 +36,8 @@ private fun AppCompatActivity.render(binding: ActivityProfilWaliBinding, state: 
     val profile = state.profile
     val hasContent = profile != null || state.noChild
     val name = state.parentName
+    val selfAvatarUrl = appContainer.authRepository.session.value?.user?.avatarUrl
+    appContainer.avatarLoader.load(binding.ivAvatarWali, selfAvatarUrl, R.drawable.img_avatar_guru)
 
     binding.tvNamaWali.isVisible = name != null
     binding.tvNamaWali.text = name

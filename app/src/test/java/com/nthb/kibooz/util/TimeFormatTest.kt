@@ -24,5 +24,15 @@ class TimeFormatTest {
     fun `a time that cannot be read gives null instead of a crash`() {
         assertNull(TimeFormat.localTime("kemarin", jakarta))
         assertNull(TimeFormat.localTime("", jakarta))
+        assertNull(TimeFormat.localDate("kemarin", jakarta))
+        assertNull(TimeFormat.localDateTime("kemarin", jakarta))
+    }
+
+    @Test
+    fun `localDate and localDateTime convert UTC ISO timestamps to Indonesian date strings`() {
+        val date = TimeFormat.localDate("2026-11-25T02:00:00Z", jakarta)
+        val dateTime = TimeFormat.localDateTime("2026-11-25T00:05:30.45Z", jakarta)
+        assertEquals("25 November 2026", date)
+        assertEquals("25 Nov 2026, 07:05", dateTime)
     }
 }

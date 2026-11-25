@@ -113,6 +113,25 @@
 
         </LinearLayout>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPermintaanPindah"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:fontFamily="@font/baloo2"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:text="@string/guru_pindah_cek"
+            android:textAllCaps="false"
+            android:textColor="@color/kibooz_primary_purple"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:cornerRadius="20dp"
+            app:strokeColor="@color/kibooz_primary_purple" />
+
         <!-- Aksi kelas aktif -->
         <LinearLayout
             android:id="@+id/llAksi"

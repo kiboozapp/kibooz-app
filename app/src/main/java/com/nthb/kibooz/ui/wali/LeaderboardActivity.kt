@@ -109,16 +109,21 @@ class LeaderboardActivity : AppCompatActivity() {
     /** Juara yang belum ada disembunyikan, kelas kecil bisa punya kurang dari tiga anak. */
     private fun showPodium(podium: List<RankEntry>) {
         val slots = listOf(
-            Triple(binding.podiumRank1, binding.tvNameRank1, binding.tvPoinRank1),
-            Triple(binding.podiumRank2, binding.tvNameRank2, binding.tvPoinRank2),
-            Triple(binding.podiumRank3, binding.tvNameRank3, binding.tvPoinRank3)
+            listOf(binding.podiumRank1, binding.tvNameRank1, binding.tvPoinRank1, binding.ivAvatarRank1),
+            listOf(binding.podiumRank2, binding.tvNameRank2, binding.tvPoinRank2, binding.ivAvatarRank2),
+            listOf(binding.podiumRank3, binding.tvNameRank3, binding.tvPoinRank3, binding.ivAvatarRank3)
         )
-        slots.forEachIndexed { index, (container, name, points) ->
+        slots.forEachIndexed { index, views ->
+            val container = views[0]
+            val name = views[1] as TextView
+            val points = views[2] as TextView
+            val avatar = views[3] as android.widget.ImageView
             val entry = podium.getOrNull(index)
             container.isVisible = entry != null
             if (entry != null) {
                 name.text = entry.studentName
                 points.text = getString(R.string.leaderboard_poin, entry.points)
+                appContainer.avatarLoader.load(avatar, entry.avatarUrl, R.drawable.img_avatar_siswa)
             }
         }
         binding.ivCrown.isVisible = podium.isNotEmpty()
@@ -141,6 +146,7 @@ class LeaderboardActivity : AppCompatActivity() {
             row.tvRank.text = entry.rank.toString()
             row.tvName.text = if (isMine) getString(R.string.leaderboard_anakmu, entry.studentName) else entry.studentName
             row.tvPoints.text = getString(R.string.leaderboard_poin, entry.points)
+            appContainer.avatarLoader.load(row.ivAvatar, entry.avatarUrl, R.drawable.img_avatar_siswa)
             if (isMine) {
                 row.root.backgroundTintList = ColorStateList.valueOf(HIGHLIGHT_ROW_COLOR)
             }

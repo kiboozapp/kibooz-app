@@ -54,8 +54,68 @@ class RuangKelasWaliActivity : AppCompatActivity() {
                     childClassName = st.className
                     childClassId = st.classId
                     binding.tvSubtitleRuangKelas.text = "Kelas Aktif: ${st.className} • 6 Tema Pembelajaran"
+                    loadPendingMoveRequest(st.id)
                 }
                 else -> {}
+            }
+        }
+    }
+
+    private fun loadPendingMoveRequest(targetStudentId: String) {
+        lifecycleScope.launch {
+            when (val res = appContainer.moveRequestRepository.childMoveRequests(targetStudentId)) {
+                is ApiResult.Success -> {
+                    val pending = res.data.firstOrNull { it.status == "pending" }
+                    if (pending != null) {
+                        binding.cardStatusPindah.visibility = android.view.View.VISIBLE
+                        binding.tvStatusPindah.text = getString(R.string.pindah_kelas_pending_info, pending.className)
+                        binding.btnBatalPindah.isEnabled = true
+                        binding.btnBatalPindah.setOnClickListener { confirmCancelMove(targetStudentId, pending) }
+                    } else {
+                        binding.cardStatusPindah.visibility = android.view.View.GONE
+                    }
+                }
+                else -> Unit
+            }
+        }
+    }
+
+    private fun confirmCancelMove(targetStudentId: String, req: com.nthb.kibooz.data.remote.MoveRequest) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle("Batalkan Pengajuan Pindah?")
+            .setMessage("Pengajuan pindah ke ${req.className} akan dibatalkan.")
+            .setPositiveButton(R.string.pindah_kelas_batalkan) { _, _ ->
+                cancelPendingMove(targetStudentId, req.id)
+            }
+            .setNegativeButton(R.string.batal, null)
+            .show()
+    }
+
+    private fun cancelPendingMove(targetStudentId: String, requestId: String) {
+        binding.btnBatalPindah.isEnabled = false
+        lifecycleScope.launch {
+            when (val res = appContainer.moveRequestRepository.cancelChildMoveRequest(targetStudentId, requestId)) {
+                is ApiResult.Success -> {
+                    binding.cardStatusPindah.visibility = android.view.View.GONE
+                    Toast.makeText(this@RuangKelasWaliActivity, R.string.pindah_kelas_dibatalkan, Toast.LENGTH_SHORT).show()
+                }
+                is ApiResult.Failure -> {
+                    binding.btnBatalPindah.isEnabled = true
+                    if (res.errorCode == "MOVE_REQUEST_NOT_FOUND") {
+                        binding.cardStatusPindah.visibility = android.view.View.GONE
+                        loadChildClassInfo()
+                    }
+                    val msg = if (res.errorCode == "MOVE_REQUEST_NOT_FOUND") {
+                        getString(R.string.error_move_request_not_found)
+                    } else {
+                        res.message ?: getString(R.string.error_unknown)
+                    }
+                    Toast.makeText(this@RuangKelasWaliActivity, msg, Toast.LENGTH_LONG).show()
+                }
+                is ApiResult.NetworkError -> {
+                    binding.btnBatalPindah.isEnabled = true
+                    Toast.makeText(this@RuangKelasWaliActivity, R.string.error_network, Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -128,10 +188,10 @@ class RuangKelasWaliActivity : AppCompatActivity() {
         }
 
         AlertDialog.Builder(this)
-            .setTitle("Gabung Kelas Si Kecil")
-            .setMessage("Masukkan kode kelas yang diberikan oleh wali kelas:")
+            .setTitle("Ajukan Pindah Kelas Si Kecil")
+            .setMessage("Anak hanya dapat terdaftar di 1 kelas aktif. Masukkan kode kelas tujuan dari wali kelas baru:")
             .setView(container)
-            .setPositiveButton("Gabung") { _, _ ->
+            .setPositiveButton("Ajukan Pindah") { _, _ ->
                 val raw = input.text.toString()
                 val normalized = ClassCode.normalize(raw)
                 when {
@@ -171,6 +231,7 @@ class RuangKelasWaliActivity : AppCompatActivity() {
 
             when (val result = appContainer.waliRepository.requestMove(targetStudentId, classCode)) {
                 is ApiResult.Success -> {
+                    loadPendingMoveRequest(targetStudentId)
                     Toast.makeText(
                         this@RuangKelasWaliActivity,
                         getString(R.string.kelas_gabung_sukses, result.data.className),
@@ -178,10 +239,16 @@ class RuangKelasWaliActivity : AppCompatActivity() {
                     ).show()
                 }
                 is ApiResult.Failure -> {
+                    if (result.errorCode == "MOVE_REQUEST_PENDING") {
+                        loadPendingMoveRequest(targetStudentId)
+                    }
                     val message = when (result.errorCode) {
                         "MOVE_REQUEST_PENDING" -> getString(R.string.kelas_gabung_menunggu)
                         "CLASS_CODE_NOT_FOUND" -> getString(R.string.kelas_gabung_kode_tidak_ditemukan)
                         "STUDENT_NOT_FOUND" -> getString(R.string.kelas_gabung_siswa_tidak_ditemukan)
+                        "ALREADY_IN_CLASS" -> getString(R.string.error_already_in_class)
+                        "CLASS_JOINING_CLOSED" -> getString(R.string.error_class_joining_closed)
+                        "CLASS_FULL" -> getString(R.string.error_class_full)
                         else -> getString(R.string.kelas_gabung_gagal, result.message ?: result.errorCode ?: "Error")
                     }
                     Toast.makeText(this@RuangKelasWaliActivity, message, Toast.LENGTH_LONG).show()

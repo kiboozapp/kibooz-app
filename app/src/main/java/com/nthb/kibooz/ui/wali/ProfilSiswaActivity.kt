@@ -112,6 +112,7 @@ class ProfilSiswaActivity : AppCompatActivity() {
             if (state.canPickChild) getString(R.string.anak_pilih_anak_desc, profile.fullName) else null
         binding.tvNamaSiswa.isClickable = state.canPickChild
         binding.tvKelasSiswa.text = getString(R.string.anak_kelas_ringkas, className, profile.schoolName)
+        appContainer.avatarLoader.load(binding.ivAvatarSiswa, profile.avatarUrl, R.drawable.img_avatar_siswa)
 
         binding.cardNisnPrompt.isVisible = profile.nisnNeedsUpdate
         binding.btnTambahAnak.isVisible = state.canAddChild

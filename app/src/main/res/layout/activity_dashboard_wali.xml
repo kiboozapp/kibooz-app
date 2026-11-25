@@ -91,11 +91,22 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/ivHeaderLogo">
 
-                    <ImageView
-                        android:id="@+id/ivAvatarSiswa"
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="54dp"
                         android:layout_height="54dp"
-                        android:src="@drawable/img_avatar_siswa" />
+                        app:cardCornerRadius="27dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/kibooz_white"
+                        app:strokeWidth="2dp">
+
+                        <ImageView
+                            android:id="@+id/ivAvatarSiswa"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/img_avatar_siswa" />
+
+                    </com.google.android.material.card.MaterialCardView>
 
                     <LinearLayout
                         android:layout_width="0dp"

@@ -50,6 +50,9 @@ private fun messageForCode(code: String): Int? = when (code) {
         "CLASS_NOT_ARCHIVED" -> R.string.error_class_not_archived
         "CLASS_NO_ACTIVE_TEACHER" -> R.string.error_class_no_teacher
         "CLASS_NOT_FOUND" -> R.string.error_class_gone
+        "ALREADY_IN_CLASS" -> R.string.error_already_in_class
+        "MOVE_REQUEST_PENDING" -> R.string.kelas_gabung_menunggu
+        "MOVE_REQUEST_NOT_FOUND" -> R.string.error_move_request_not_found
         "NO_CHILD_REGISTERED" -> R.string.error_no_child
         "STUDENT_NOT_FOUND" -> R.string.error_not_found
         "PROFILE_NOT_FOUND" -> R.string.error_not_found

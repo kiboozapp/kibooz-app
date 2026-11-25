@@ -47,6 +47,15 @@ class RuangKelasGuruActivity : AppCompatActivity() {
         KelolaKelasViewModel.Factory(appContainer.classManagementRepository)
     }
 
+    private val moveRequestsLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            renderedCards = null
+            viewModel.load()
+        }
+    }
+
     private var addDialog: AlertDialog? = null
     private var addDialogBinding: DialogTambahKelasBinding? = null
 
@@ -226,6 +235,7 @@ class RuangKelasGuruActivity : AppCompatActivity() {
         // Kelas yang diarsipkan hanya bisa dipulihkan. Kode, pendaftaran, kode baru dan arsip ditolak server
         card.llKode.isVisible = !archived
         card.llAksi.isVisible = !archived
+        card.btnPermintaanPindah.isVisible = !archived
         card.btnPulihkan.isVisible = archived
 
         if (archived) {
@@ -242,6 +252,27 @@ class RuangKelasGuruActivity : AppCompatActivity() {
             }
         } else {
             card.cardKelas.setOnClickListener { openDetailKelas(item) }
+
+            card.btnPermintaanPindah.tag = item.id
+            card.btnPermintaanPindah.text = getString(R.string.guru_pindah_cek)
+            card.btnPermintaanPindah.setStrokeColorResource(R.color.kibooz_primary_purple)
+            card.btnPermintaanPindah.setTextColor(getColor(R.color.kibooz_primary_purple))
+            card.btnPermintaanPindah.backgroundTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
+            card.btnPermintaanPindah.setOnClickListener {
+                moveRequestsLauncher.launch(PermintaanPindahKelasActivity.intent(this, item.id, item.name))
+            }
+            lifecycleScope.launch {
+                val res = appContainer.moveRequestRepository.classMoveRequests(item.id)
+                if (res is com.nthb.kibooz.data.remote.ApiResult.Success && card.btnPermintaanPindah.tag == item.id) {
+                    val count = res.data.size
+                    if (count > 0) {
+                        card.btnPermintaanPindah.text = getString(R.string.guru_pindah_cek_jumlah, count)
+                        card.btnPermintaanPindah.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                            getColor(R.color.kibooz_lavender_light)
+                        )
+                    }
+                }
+            }
 
             card.tvKode.text = item.joinCode
             card.btnSalin.contentDescription = getString(R.string.kelola_salin_cd, item.joinCode)

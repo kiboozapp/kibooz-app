@@ -80,3 +80,13 @@ data class ChildSummary(
     /** Waktu kelas diarsipkan, hilang selama belum. Kelas arsip hanya bisa dibaca. */
     val classArchivedAt: String? = null
 )
+
+/** Satu permohonan pindah kelas yang menunggu keputusan guru (`GET /guru/classes/{classId}/move-requests`). */
+data class ClassMoveRequest(
+    val id: String,
+    val studentId: String,
+    val studentName: String,
+    val requestedAt: String
+)
+
+data class ClassMoveRequestList(val requests: List<ClassMoveRequest> = emptyList())

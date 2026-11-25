@@ -60,3 +60,5 @@ data class MoveRequest(
     val decidedAt: String? = null
 )
 
+data class MoveRequestList(val requests: List<MoveRequest> = emptyList())
+

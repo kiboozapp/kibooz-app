@@ -6,17 +6,24 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.databinding.ActivityProfilWaliBinding
 import com.nthb.kibooz.sessionManager
+import com.nthb.kibooz.ui.account.AvatarPickerHelper
 import com.nthb.kibooz.ui.account.HapusAkunActivity
 import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.util.InsetsUtil
+import kotlinx.coroutines.launch
 
 class ProfilWaliActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityProfilWaliBinding
+    private lateinit var avatarPicker: AvatarPickerHelper
     private val viewModel: WaliProfileViewModel by viewModels {
         WaliProfileViewModel.Factory(appContainer.waliProfileRepository, intent.getStringExtra(ProfilSiswaActivity.EXTRA_STUDENT_ID)) {
             appContainer.authRepository.restore()?.user?.fullName
@@ -35,6 +42,10 @@ class ProfilWaliActivity : AppCompatActivity() {
             fab = binding.fabScannerSampah
         )
 
+        avatarPicker = AvatarPickerHelper(this) { croppedFile ->
+            uploadSelfAvatar(croppedFile)
+        }
+
         setupListeners()
         bindWaliProfile(binding, viewModel)
     }
@@ -43,9 +54,46 @@ class ProfilWaliActivity : AppCompatActivity() {
         super.onRestart()
         // Kembali dari profil siswa membawa nama atau anak yang mungkin berubah
         viewModel.load()
+        refreshAvatar()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshAvatar()
+    }
+
+    private fun refreshAvatar() {
+        val url = appContainer.authRepository.session.value?.user?.avatarUrl
+        appContainer.avatarLoader.load(binding.ivAvatarWali, url, R.drawable.img_avatar_guru)
+    }
+
+    private fun uploadSelfAvatar(jpegFile: java.io.File) {
+        Toast.makeText(this, R.string.avatar_mengunggah, Toast.LENGTH_SHORT).show()
+        val oldUrl = appContainer.authRepository.session.value?.user?.avatarUrl
+        lifecycleScope.launch {
+            when (val res = appContainer.accountRepository.uploadAvatar(jpegFile, studentId = null)) {
+                is ApiResult.Success -> {
+                    appContainer.avatarLoader.evict(oldUrl)
+                    appContainer.authRepository.updateSessionUser(avatarUrl = res.data)
+                    appContainer.avatarLoader.load(binding.ivAvatarWali, res.data, R.drawable.img_avatar_guru)
+                    Toast.makeText(this@ProfilWaliActivity, R.string.avatar_sukses, Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    Toast.makeText(
+                        this@ProfilWaliActivity,
+                        res.errorMessageRes() ?: R.string.error_unknown,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
     private fun setupListeners() {
+        binding.cardAvatar.setOnClickListener {
+            avatarPicker.launchPicker()
+        }
+
         // Menu 1: Ubah Kata Sandi
         binding.menuUbahSandi.setOnClickListener {
             startActivity(Intent(this, UbahKataSandiActivity::class.java))
@@ -103,8 +151,8 @@ class ProfilWaliActivity : AppCompatActivity() {
                     "Ajak si kecil memilah sampah organik atau anorganik di rumah, lalu ketuk tombol kamera scanner di bagian tengah bawah untuk mendeteksi sampah dan mendapatkan poin.\n\n" +
                     "4. Memantau Ranking & Statistik:\n" +
                     "Ketuk menu Sampah atau Leaderboard di navigasi bawah untuk melihat peringkat keaktifan pilah sampah anak di kelasnya.\n\n" +
-                    "5. Bergabung atau Pindah Kelas:\n" +
-                    "Buka Ruang Kelas Si Kecil lalu ketuk tombol 'Gabung kelas' di kanan atas untuk memasukkan kode kelas baru dari wali kelas."
+                    "5. Pindah Kelas:\n" +
+                    "Buka Ruang Kelas Si Kecil lalu ketuk tombol 'Pindah kelas' di kanan atas untuk mengajukan pindah menggunakan kode kelas tujuan."
                 )
                 .setPositiveButton("Tutup", null)
                 .show()

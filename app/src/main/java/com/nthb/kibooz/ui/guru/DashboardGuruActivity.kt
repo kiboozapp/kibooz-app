@@ -108,6 +108,8 @@ class DashboardGuruActivity : AppCompatActivity() {
             val percentages = MoodChartMath.percentages(today)
 
             binding.tvTeacherName.text = data.teacher.fullName
+            val avatarUrl = data.teacher.avatarUrl ?: appContainer.authRepository.session.value?.user?.avatarUrl
+            appContainer.avatarLoader.load(binding.ivAvatarGuru, avatarUrl, R.drawable.img_avatar_guru)
             binding.tvTotalSiswa.text = "🎯 ${overview.totalStudents}"
             binding.tvHadirLabel.text = getString(R.string.guru_hadir_label, overview.presentStudents, overview.totalStudents)
             binding.tvHadir.text = "✅ " + (DashboardMath.attendancePercent(overview.presentStudents, overview.totalStudents)
