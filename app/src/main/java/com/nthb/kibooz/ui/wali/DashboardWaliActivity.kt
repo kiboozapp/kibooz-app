@@ -66,7 +66,7 @@ class DashboardWaliActivity : AppCompatActivity() {
             val points = data.pointsSummary
 
             binding.tvNamaSiswa.text = if (state.children.size > 1) "${student.fullName} ▾" else student.fullName
-            binding.tvKelasNisn.text = "${student.className} | NISN: ${student.nisn}"
+            binding.tvKelasNisn.text = "${student.className}\nNISN: ${student.nisn}"
             appContainer.avatarLoader.load(binding.ivAvatarSiswa, student.avatarUrl, R.drawable.img_avatar_siswa)
 
             val rank = if (points.classRank > 0) "#${points.classRank}" else "-"

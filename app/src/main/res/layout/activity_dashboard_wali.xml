@@ -167,7 +167,7 @@
                             android:layout_height="wrap_content"
                             android:ellipsize="end"
                             android:fontFamily="@font/baloo2"
-                            android:maxLines="2"
+                            android:maxLines="3"
                             android:text="…"
                             android:textColor="#E0DBF5"
                             android:textSize="12sp" />
