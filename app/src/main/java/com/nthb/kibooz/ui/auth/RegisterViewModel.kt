@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.GoogleRegisterRequest
 import com.nthb.kibooz.data.remote.NewClass
 import com.nthb.kibooz.data.remote.NewStudent
 import com.nthb.kibooz.data.remote.OutageKind
@@ -39,8 +40,12 @@ data class RegisterForm(
     // WALI
     val classCode: String = "",
     val childName: String = "",
-    val nisn: String = ""
-)
+    val nisn: String = "",
+    // Terisi jika melanjutkan onboarding akun Google tanpa kata sandi
+    val googleIdToken: String? = null
+) {
+    val isGoogleOnboarding: Boolean get() = !googleIdToken.isNullOrBlank()
+}
 
 data class RegisterUiState(
     val loading: Boolean = false,
@@ -64,7 +69,9 @@ object RegisterRules {
 
         FormRules.fullName(form.fullName)?.let { errors[RegisterField.FULL_NAME] = it }
         FormRules.email(form.email)?.let { errors[RegisterField.EMAIL] = it }
-        FormRules.newPassword(form.password)?.let { errors[RegisterField.PASSWORD] = it }
+        if (!form.isGoogleOnboarding) {
+            FormRules.newPassword(form.password)?.let { errors[RegisterField.PASSWORD] = it }
+        }
         FormRules.phone(form.phone)?.let { errors[RegisterField.PHONE] = it }
 
         when (form.role) {
@@ -105,6 +112,32 @@ object RegisterRules {
             )
         }
     }
+
+    fun toGoogleRequest(form: RegisterForm): GoogleRegisterRequest {
+        fun String.orNull() = trim().takeIf { it.isNotEmpty() }
+        val token = requireNotNull(form.googleIdToken?.trim()?.takeIf { it.isNotEmpty() })
+
+        return if (form.role == Role.GURU) {
+            GoogleRegisterRequest(
+                idToken = token,
+                fullName = form.fullName.trim(),
+                role = Role.GURU,
+                phoneNumber = form.phone.orNull(),
+                nip = form.nip.orNull(),
+                schoolName = form.schoolName.orNull(),
+                classInfo = NewClass(form.className.trim(), form.gradeLevel.orNull(), form.academicYear.orNull())
+            )
+        } else {
+            GoogleRegisterRequest(
+                idToken = token,
+                fullName = form.fullName.trim(),
+                role = Role.WALI,
+                phoneNumber = form.phone.orNull(),
+                classCode = form.classCode.trim(),
+                student = NewStudent(form.nisn.trim(), form.childName.trim())
+            )
+        }
+    }
 }
 
 class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
@@ -123,7 +156,12 @@ class RegisterViewModel(private val repository: AuthRepository) : ViewModel() {
 
         _state.value = RegisterUiState(loading = true)
         viewModelScope.launch {
-            _state.value = when (val result = repository.register(RegisterRules.toRequest(form))) {
+            val result = if (form.isGoogleOnboarding) {
+                repository.googleRegister(RegisterRules.toGoogleRequest(form), emailHint = form.email)
+            } else {
+                repository.register(RegisterRules.toRequest(form))
+            }
+            _state.value = when (result) {
                 is ApiResult.Success -> signedInOrDenied(result.data)
                 is ApiResult.Failure -> failed(result)
                 is ApiResult.NetworkError -> RegisterUiState(error = result.errorMessageRes(), outage = result.outageKind())

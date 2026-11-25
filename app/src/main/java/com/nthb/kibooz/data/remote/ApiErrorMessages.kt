@@ -33,6 +33,11 @@ fun ApiResult.Failure.messageRes(): Int {
 @StringRes
 private fun messageForCode(code: String): Int? = when (code) {
         "AUTH_INVALID_CREDENTIALS" -> R.string.error_invalid_credentials
+        "AUTH_GOOGLE_UNAVAILABLE" -> R.string.error_google_unavailable
+        "AUTH_GOOGLE_INVALID" -> R.string.error_google_invalid
+        "AUTH_ROLE_MISMATCH" -> R.string.error_role_mismatch
+        "AUTH_PASSWORD_NOT_SET" -> R.string.error_password_not_set
+        "GOOGLE_ALREADY_REGISTERED" -> R.string.error_email_taken
         "AUTH_PASSWORD_INCORRECT" -> R.string.error_password_incorrect
         "AUTH_TOKEN_MISSING" -> R.string.error_session_ended
         "AUTH_TOKEN_INVALID" -> R.string.error_session_ended
@@ -40,6 +45,7 @@ private fun messageForCode(code: String): Int? = when (code) {
         "AUTH_FORBIDDEN" -> R.string.error_forbidden
         "EMAIL_ALREADY_REGISTERED" -> R.string.error_email_taken
         "NISN_ALREADY_REGISTERED" -> R.string.error_nisn_taken
+        "NISN_NOT_SET" -> R.string.error_nisn_not_set
         "NIP_ALREADY_REGISTERED" -> R.string.error_nip_taken
         "CHILD_LIMIT_REACHED" -> R.string.error_child_limit
         "CLASS_CODE_NOT_FOUND" -> R.string.error_class_code_not_found

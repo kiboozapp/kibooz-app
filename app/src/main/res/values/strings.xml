@@ -27,6 +27,12 @@
     <string name="btn_login">Masuk</string>
     <string name="login_google_belum_tersedia">Masuk dengan Google belum tersedia di versi ini</string>
     <string name="login_with_google">Google</string>
+    <string name="login_google_demo_debug">Mode Demo (Debug)</string>
+    <string name="login_google_no_account">Tidak ada akun Google aktif di perangkat ini</string>
+    <string name="login_google_failed">Gagal masuk dengan Google, coba lagi</string>
+    <string name="login_google_not_configured_title">Konfigurasi Google Sign-In Belum Diisi</string>
+    <string name="login_google_not_configured_message">Tambahkan properti kibooz.googleWebClientId (Web Client ID dari Google Cloud Console) di gradle.properties atau BuildConfig sebelum login Google ke server live.</string>
+    <string name="daftar_subjudul_google">Lengkapi data untuk menyelesaikan pendaftaran dengan Google (%1$s).</string>
     <string name="or_login_with">Atau Masuk dengan</string>
 
     <!-- Izin kamera -->
@@ -161,6 +167,10 @@
 
     <!-- Pesan galat dari API, dipetakan di ApiErrorMessages.kt -->
     <string name="error_invalid_credentials">Email atau kata sandi salah</string>
+    <string name="error_google_unavailable">Layanan masuk Google sedang tidak tersedia atau belum dikonfigurasi di server</string>
+    <string name="error_google_invalid">Kredensial Google tidak valid atau kedaluwarsa, coba pilih ulang akun Google</string>
+    <string name="error_role_mismatch">Akun Google ini sudah terdaftar dengan peran lain</string>
+    <string name="error_password_not_set">Akun ini masuk memakai Google dan belum memakai kata sandi</string>
     <string name="error_password_incorrect">Kata sandi salah</string>
     <string name="error_password_baru_ditolak">Kata sandi baru ditolak. Hindari kata sandi yang umum dan yang memuat email, nama atau nomor telepon akun</string>
     <string name="error_session_ended">Sesi telah berakhir, silakan masuk kembali</string>
@@ -304,4 +314,54 @@
     <string name="guru_kelas_ringkas">%1$s · %2$d siswa</string>
     <string name="guru_kelas_kosong_mood">%1$s · Belum ada mood tercatat hari ini</string>
     <string name="detail_profil_belum_ada_mood">Belum ada mood tercatat hari ini pada kelas %1$s</string>
+
+    <!-- Pemilih Lokasi Peta (Guru dan Wali) -->
+    <string name="lokasi_pilih_lewat_peta">Pilih Lokasi lewat Peta</string>
+    <string name="lokasi_peta_judul">Pilih Lokasi di Peta</string>
+    <string name="lokasi_cari_hint">Cari sekolah, nama jalan, atau kota…</string>
+    <string name="lokasi_cari_tombol">Cari</string>
+    <string name="lokasi_gps_tombol">Lokasi Saya</string>
+    <string name="lokasi_memuat_alamat">Mencari detail alamat…</string>
+    <string name="lokasi_petunjuk_geser">Geser peta atau ketuk area untuk menempatkan pin</string>
+    <string name="lokasi_gunakan">Gunakan Lokasi Ini</string>
+    <string name="lokasi_tidak_ditemukan">Lokasi tidak ditemukan, coba kata kunci lain</string>
+    <string name="lokasi_gps_tidak_aktif">Aktifkan GPS atau izinkan akses lokasi untuk melacak posisi saat ini</string>
+    <string name="lokasi_izin_ditolak">Izin lokasi belum diberikan. Kamu tetap bisa menggeser peta atau mencari alamat.</string>
+    <string name="lokasi_fallback_offline">Gagal memuat nama jalan, koordinat lokasi tetap dapat disimpan atau disunting manual</string>
+    <string name="lokasi_koordinat_format">Titik peta: %1$.5f, %2$.5f</string>
+
+    <!-- Verifikasi NISN oleh Guru di Peserta Kelas -->
+    <string name="error_nisn_not_set">NISN siswa belum diisi oleh wali murid</string>
+    <string name="peserta_nisn_petunjuk_guru">Ketuk status NISN untuk memverifikasi, atau ketuk siswa / ikon ⋮ untuk mengelola &amp; mengeluarkan murid.</string>
+    <string name="peserta_nisn_terverifikasi">NISN Terverifikasi</string>
+    <string name="peserta_nisn_verifikasi_aksi">Verifikasi NISN</string>
+    <string name="peserta_nisn_perlu_isi">NISN Perlu Diisi Wali</string>
+    <string name="peserta_nisn_kosong_label">NISN belum diisi</string>
+    <string name="peserta_nisn_memproses">Memproses…</string>
+    <string name="peserta_nisn_dialog_verif_judul">Verifikasi NISN %1$s?</string>
+    <string name="peserta_nisn_dialog_verif_pesan">Pastikan NISN %1$s sesuai dengan data resmi sekolah. Jika ada siswa lain yang memakai nomor sama dan belum diverifikasi, NISN mereka akan dikosongkan agar wali mengisi ulang.</string>
+    <string name="peserta_nisn_dialog_verif_ya">Verifikasi</string>
+    <string name="peserta_nisn_dialog_batal_judul">Batalkan verifikasi NISN %1$s?</string>
+    <string name="peserta_nisn_dialog_batal_pesan">Nomor NISN %1$s tidak lagi terkunci sebagai terverifikasi sehingga wali dapat mengubahnya atau guru memverifikasi ulang. Siswa lain yang sebelumnya kehilangan nomor tidak otomatis dikembalikan.</string>
+    <string name="peserta_nisn_dialog_batal_ya">Batalkan Verifikasi</string>
+    <string name="peserta_nisn_dialog_kosong_judul">NISN Belum Tersedia</string>
+    <string name="peserta_nisn_dialog_kosong_pesan">NISN %1$s belum diisi atau dikosongkan karena bentrok. Minta wali murid mengisi ulang NISN di profil anak terlebih dahulu.</string>
+    <string name="peserta_nisn_sukses_verif">NISN %1$s berhasil diverifikasi.</string>
+    <string name="peserta_nisn_sukses_verif_geser">NISN %1$s diverifikasi (%2$d siswa lain dengan nomor sama diminta mengisi ulang).</string>
+    <string name="peserta_nisn_sukses_batal">Verifikasi NISN %1$s dibatalkan.</string>
+    <string name="peserta_nisn_error_sudah_dipakai">NISN ini sudah diverifikasi guru untuk siswa lain. Periksa kembali datanya.</string>
+    <string name="peserta_nisn_ringkasan_judul">Status Verifikasi NISN</string>
+    <string name="peserta_nisn_ringkasan_isi">%1$s\n\n• Terverifikasi: %2$d siswa\n• Menunggu verifikasi: %3$d siswa\n• Perlu diisi ulang wali: %4$d siswa</string>
+
+    <!-- Keluarkan Murid dari Kelas oleh Guru -->
+    <string name="peserta_opsi_cd">Kelola %1$s</string>
+    <string name="peserta_opsi_judul">Kelola %1$s</string>
+    <string name="peserta_opsi_verifikasi_nisn">Verifikasi NISN (%1$s)</string>
+    <string name="peserta_opsi_batal_nisn">Batalkan Verifikasi NISN (%1$s)</string>
+    <string name="peserta_opsi_nisn_kosong">Status NISN Belum Diisi Wali</string>
+    <string name="peserta_opsi_keluarkan">Keluarkan dari Kelas</string>
+    <string name="peserta_keluarkan_judul">Keluarkan %1$s dari kelas?</string>
+    <string name="peserta_keluarkan_pesan">Tindakan ini permanen dan tidak bisa dibatalkan. %1$s akan dihapus dari daftar peserta, dasbor, dan papan peringkat kelas, serta foto anak dihapus dari server dalam beberapa menit. Akun wali tetap aktif dan NISN dapat dipakai lagi untuk masuk ke kelas lain.</string>
+    <string name="peserta_keluarkan_ya">Ya, Keluarkan</string>
+    <string name="peserta_keluarkan_sukses">%1$s telah dikeluarkan dari kelas.</string>
 </resources>
