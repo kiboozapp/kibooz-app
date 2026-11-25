@@ -55,7 +55,7 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:orientation="vertical"
-            android:paddingBottom="24dp">
+            android:paddingBottom="48dp">
 
             <!-- Pemilih kelas aktif untuk multi-kelas Guru -->
             <com.google.android.material.card.MaterialCardView
@@ -381,6 +381,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
                 app:cardBackgroundColor="@color/kibooz_white"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="4dp">
