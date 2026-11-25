@@ -45,12 +45,27 @@ class DashboardWaliActivity : AppCompatActivity() {
 
         setupListeners()
         binding.tvDate.text = TimeFormat.compactHomeDate()
+        // Hanya saat dibuka pertama kali. Setelah layar diputar, anak yang dipilih sudah ada di ViewModel
+        if (savedInstanceState == null) selectRequestedChild(intent)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect(::render)
             }
         }
+    }
+
+    /** Dibuka lagi dari layar lain lewat CLEAR_TOP, misalnya dari profil anak yang dipilih Wali. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        selectRequestedChild(intent)
+    }
+
+    /** Memakai anak yang diminta layar sebelumnya. Tanpa extra, anak yang sedang tampil tetap dipakai. */
+    private fun selectRequestedChild(intent: Intent) {
+        val childId = intent.getStringExtra(ProfilSiswaActivity.EXTRA_STUDENT_ID) ?: return
+        if (childId != viewModel.state.value.dashboard?.student?.id) viewModel.selectChild(childId)
     }
 
     override fun onResume() {
