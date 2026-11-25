@@ -38,6 +38,11 @@ private fun messageForCode(code: String): Int? = when (code) {
         "AUTH_TOKEN_INVALID" -> R.string.error_session_ended
         "AUTH_REFRESH_INVALID" -> R.string.error_session_ended
         "AUTH_FORBIDDEN" -> R.string.error_forbidden
+        "EMAIL_NOT_VERIFIED" -> R.string.verifikasi_error_belum_terverifikasi
+        "VERIFICATION_CODE_INVALID" -> R.string.verifikasi_error_kode_salah
+        "VERIFICATION_RESEND_TOO_SOON" -> R.string.verifikasi_error_terlalu_cepat
+        "EMAIL_ALREADY_VERIFIED" -> R.string.verifikasi_sudah_terverifikasi
+        "EMAIL_SEND_FAILED" -> R.string.verifikasi_error_kirim_gagal
         "EMAIL_ALREADY_REGISTERED" -> R.string.error_email_taken
         "NISN_ALREADY_REGISTERED" -> R.string.error_nisn_taken
         "NIP_ALREADY_REGISTERED" -> R.string.error_nip_taken

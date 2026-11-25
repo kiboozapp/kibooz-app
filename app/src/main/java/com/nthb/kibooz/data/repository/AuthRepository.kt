@@ -5,11 +5,15 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.AuthData
 import com.nthb.kibooz.data.remote.ChangePasswordRequest
+import com.nthb.kibooz.data.remote.ERROR_MALFORMED_RESPONSE
 import com.nthb.kibooz.data.remote.LoginRequest
 import com.nthb.kibooz.data.remote.LogoutRequest
 import com.nthb.kibooz.data.remote.RefreshRequest
 import com.nthb.kibooz.data.remote.RegisterRequest
+import com.nthb.kibooz.data.remote.ResendVerificationRequest
 import com.nthb.kibooz.data.remote.TokenProvider
+import com.nthb.kibooz.data.remote.VerificationDto
+import com.nthb.kibooz.data.remote.VerifyEmailRequest
 import com.nthb.kibooz.data.remote.safeApiCall
 import com.nthb.kibooz.data.remote.safeApiCallEmpty
 import com.nthb.kibooz.data.session.Role
@@ -25,6 +29,20 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import retrofit2.Response
+
+/** Hasil pendaftaran. Server yang mewajibkan verifikasi email tidak memberi sesi, hanya kode yang dikirim lewat email. */
+sealed interface RegisterOutcome {
+    /** Server langsung memberi sesi seperti login, dan sesinya sudah disimpan. */
+    data class SignedIn(val user: SessionUser) : RegisterOutcome
+
+    /** Akun sudah dibuat tetapi belum punya sesi. [verification] berkata apakah email berisi kode terkirim. */
+    data class VerificationRequired(
+        val email: String,
+        val verification: VerificationDto,
+        /** Dari balasan register. Sengaja tidak ditulis ke penyimpanan, hanya dibawa ke layar kode. */
+        val deviceToken: String?
+    ) : RegisterOutcome
+}
 
 /**
  * Login, refresh dan logout, plus sesi yang sedang aktif. Refresh token sekali pakai dan berputar,
@@ -98,12 +116,57 @@ class AuthRepository(
     }
 
     /**
-     * Mendaftar lalu langsung masuk: server membalas pasangan token seperti login, jadi sesinya disimpan
-     * dengan cara yang sama dan `deviceToken` dari balasan diingat untuk email ini.
+     * Mendaftar. Jika server memberi pasangan token seperti login, sesinya disimpan dengan cara yang sama dan
+     * `deviceToken` dari balasan diingat untuk email ini. Jika server mewajibkan verifikasi email, balasannya
+     * tanpa token dan tidak ada sesi yang disimpan, sampai [verifyEmail] menerima kodenya.
      */
-    suspend fun register(request: RegisterRequest): ApiResult<SessionUser> {
+    suspend fun register(request: RegisterRequest): ApiResult<RegisterOutcome> {
         val clean = request.copy(email = request.email.trim())
-        return startSession(clean.email) { api.register(clean) }
+
+        return when (val result = safeApiCall(moshi) { api.register(clean) }) {
+            is ApiResult.Success -> {
+                val data = result.data
+                val noTokens = data.token.isBlank() || data.refreshToken.isBlank()
+
+                when {
+                    data.verificationRequired || (noTokens && data.verification != null) ->
+                        ApiResult.Success(
+                            RegisterOutcome.VerificationRequired(
+                                clean.email,
+                                data.verification ?: VerificationDto(),
+                                data.deviceToken
+                            ),
+                            result.message
+                        )
+                    noTokens -> ApiResult.Failure(201, ERROR_MALFORMED_RESPONSE, "Response has no tokens")
+                    else -> ApiResult.Success(RegisterOutcome.SignedIn(saveSession(clean.email, data)), result.message)
+                }
+            }
+            is ApiResult.Failure -> result
+            is ApiResult.NetworkError -> result
+        }
+    }
+
+    /**
+     * Menukar kode 6 digit dari email dengan sesi pertama akun. Kata sandi dikirim bersama kodenya dan diperiksa
+     * lebih dulu di server, jadi kata sandi yang salah tidak memakai percobaan kode. Balasannya seperti login, jadi
+     * sesi dan `deviceToken` disimpan dengan cara yang sama. [code] tetap teks karena bisa diawali 0. [deviceToken]
+     * dari register dipakai jika ada, jika tidak yang tersimpan untuk email ini. Kata sandi tidak disimpan di sini.
+     */
+    suspend fun verifyEmail(email: String, password: String, code: String, deviceToken: String? = null): ApiResult<SessionUser> {
+        val cleanEmail = email.trim()
+        val token = deviceToken ?: store.readDeviceToken(cleanEmail)
+        return startSession(cleanEmail) { api.verifyEmail(VerifyEmailRequest(cleanEmail, password, code, token)) }
+    }
+
+    /**
+     * Meminta kode baru untuk akun yang belum terverifikasi. Kata sandi hanya dikirim dan tidak disimpan.
+     * Hasilnya memuat berapa detik sebelum kode berikutnya boleh diminta.
+     */
+    suspend fun resendVerification(email: String, password: String, deviceToken: String? = null): ApiResult<VerificationDto> {
+        val cleanEmail = email.trim()
+        val token = deviceToken ?: store.readDeviceToken(cleanEmail)
+        return safeApiCall(moshi) { api.resendVerification(ResendVerificationRequest(cleanEmail, password, token)) }
     }
 
     private suspend fun startSession(
@@ -111,15 +174,22 @@ class AuthRepository(
         call: suspend () -> Response<ApiEnvelope<AuthData>>
     ): ApiResult<SessionUser> =
         when (val result = safeApiCall(moshi, call)) {
-            is ApiResult.Success -> {
-                result.data.deviceToken?.let { store.writeDeviceToken(email, it) }
-                val session = result.data.toSession()
-                persist(session)
-                ApiResult.Success(session.user, result.message)
-            }
+            is ApiResult.Success ->
+                if (result.data.token.isBlank() || result.data.refreshToken.isBlank()) {
+                    ApiResult.Failure(200, ERROR_MALFORMED_RESPONSE, "Response has no tokens")
+                } else {
+                    ApiResult.Success(saveSession(email, result.data), result.message)
+                }
             is ApiResult.Failure -> result
             is ApiResult.NetworkError -> result
         }
+
+    private suspend fun saveSession(email: String, data: AuthData): SessionUser {
+        data.deviceToken?.let { store.writeDeviceToken(email, it) }
+        val session = data.toSession()
+        persist(session)
+        return session.user
+    }
 
     /**
      * Menukar refresh token setelah [failedAccessToken] ditolak server dan mengembalikan access token

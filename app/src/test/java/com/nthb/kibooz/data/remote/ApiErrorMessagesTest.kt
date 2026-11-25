@@ -20,6 +20,15 @@ class ApiErrorMessagesTest {
     }
 
     @Test
+    fun `the email verification codes have their own messages`() {
+        assertEquals(R.string.verifikasi_error_belum_terverifikasi, failure(403, "EMAIL_NOT_VERIFIED").messageRes())
+        assertEquals(R.string.verifikasi_error_kode_salah, failure(400, "VERIFICATION_CODE_INVALID").messageRes())
+        assertEquals(R.string.verifikasi_error_terlalu_cepat, failure(429, "VERIFICATION_RESEND_TOO_SOON").messageRes())
+        assertEquals(R.string.verifikasi_sudah_terverifikasi, failure(409, "EMAIL_ALREADY_VERIFIED").messageRes())
+        assertEquals(R.string.verifikasi_error_kirim_gagal, failure(503, "EMAIL_SEND_FAILED").messageRes())
+    }
+
+    @Test
     fun `every token error ends the session with the same message`() {
         listOf("AUTH_TOKEN_MISSING", "AUTH_TOKEN_INVALID", "AUTH_REFRESH_INVALID").forEach {
             assertEquals(it, R.string.error_session_ended, failure(401, it).messageRes())

@@ -4,6 +4,7 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.data.InMemorySessionStore
 import com.nthb.kibooz.data.authJson
 import com.nthb.kibooz.data.failureJson
+import com.nthb.kibooz.data.registerPendingJson
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.OutageKind
@@ -245,5 +246,43 @@ class RegisterViewModelTest {
         settled()
 
         assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `a server that needs the email code gives no session and opens the code screen`() {
+        server.enqueue(json(registerPendingJson(sent = true, resendAfter = 60, deviceToken = "device-9"), 201))
+
+        viewModel.register(wali.copy(email = " Sarah@Example.com "))
+        val state = settled()
+
+        assertEquals(PendingVerification("Sarah@Example.com", sent = true, resendAfterSeconds = 60, deviceToken = "device-9"), state.verification)
+        assertNull(state.signedIn)
+        assertNull(state.error)
+        assertTrue(state.fieldErrors.isEmpty())
+        assertNull(store.session)
+        assertNull(runBlocking { store.readDeviceToken("sarah@example.com") })
+    }
+
+    @Test
+    fun `a mail that did not go out is passed on so the resend button works at once`() {
+        server.enqueue(json(registerPendingJson(sent = false, resendAfter = 60), 201))
+
+        viewModel.register(guru)
+        val state = settled()
+
+        assertEquals(false, state.verification?.sent)
+        assertNull(state.signedIn)
+        assertNull(store.session)
+    }
+
+    @Test
+    fun `with the switch off the old flow signs in and opens no code screen`() {
+        server.enqueue(json(authJson("access-1", "refresh-1"), 201))
+
+        viewModel.register(guru)
+        val state = settled()
+
+        assertNotNull(state.signedIn)
+        assertNull(state.verification)
     }
 }

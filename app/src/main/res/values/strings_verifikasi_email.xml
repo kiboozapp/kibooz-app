@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Layar kode verifikasi email -->
+    <string name="verifikasi_judul">Verifikasi Email</string>
+    <string name="verifikasi_penjelasan">Masukkan kode 6 digit yang dikirim ke %1$s dan kata sandi akun ini. Kode berlaku 15 menit.</string>
+    <string name="verifikasi_label_kode">Kode verifikasi</string>
+    <string name="verifikasi_hint_kode">6 digit</string>
+    <string name="verifikasi_label_sandi">Kata sandi</string>
+    <string name="verifikasi_bantuan_sandi">Kata sandi tidak disimpan dan perlu diisi lagi jika layar ini dibuka ulang</string>
+    <string name="verifikasi_tombol">Verifikasi</string>
+    <string name="verifikasi_tombol_proses">Memverifikasi...</string>
+    <string name="verifikasi_kirim_ulang">Kirim ulang kode</string>
+    <string name="verifikasi_kirim_ulang_tunggu">Kirim ulang kode (%1$s)</string>
+    <string name="verifikasi_kirim_ulang_proses">Mengirim kode...</string>
+
+    <!-- Catatan di atas isian, tergantung dari mana layar dibuka -->
+    <string name="verifikasi_info_daftar">Pendaftaran berhasil. Akun ini baru bisa dipakai setelah kodenya dimasukkan.</string>
+    <string name="verifikasi_info_belum_terkirim">Pendaftaran berhasil, tetapi email berisi kode belum terkirim. Tekan Kirim ulang kode untuk meminta kode baru.</string>
+    <string name="verifikasi_info_login">Akun ini belum diverifikasi. Masukkan kode dari email Anda, atau kirim ulang kodenya.</string>
+    <string name="verifikasi_info_terkirim_ulang">Kode baru sudah dikirim. Kode yang lama tidak berlaku lagi.</string>
+
+    <!-- Galat -->
+    <string name="verifikasi_kode_enam_digit">Kode terdiri dari 6 angka</string>
+    <string name="verifikasi_error_kode_salah">Kode salah, sudah kedaluwarsa, atau kesempatannya habis. Periksa kodenya atau kirim ulang kode baru.</string>
+    <string name="verifikasi_error_terlalu_cepat">Kode baru saja dikirim, tunggu hitung mundurnya selesai</string>
+    <string name="verifikasi_error_kirim_gagal">Email belum bisa dikirim, coba lagi nanti</string>
+    <string name="verifikasi_error_belum_terverifikasi">Email akun ini belum diverifikasi</string>
+    <string name="verifikasi_sudah_terverifikasi">Email ini sudah terverifikasi, silakan masuk</string>
+</resources>
