@@ -8,6 +8,7 @@ import com.nthb.kibooz.data.remote.ChatApi
 import com.nthb.kibooz.data.remote.ChatSocket
 import com.nthb.kibooz.data.remote.ChatStorage
 import com.nthb.kibooz.data.remote.ClassApi
+import com.nthb.kibooz.data.remote.ClassMemberApi
 import com.nthb.kibooz.data.remote.ForumApi
 import com.nthb.kibooz.data.remote.GuruApi
 import com.nthb.kibooz.data.remote.GuruClassApi
@@ -30,6 +31,7 @@ import com.nthb.kibooz.data.repository.AccountRepository
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.repository.ChatRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
+import com.nthb.kibooz.data.repository.ClassMemberRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.ForumRepository
 import com.nthb.kibooz.data.repository.GuruProfileRepository
@@ -92,6 +94,10 @@ class AppContainer(context: Context) {
 
     val classManagementRepository: ClassManagementRepository by lazy {
         ClassManagementRepository(classRepository, apiClient.create(GuruClassApi::class.java), apiClient.moshi)
+    }
+
+    val classMemberRepository: ClassMemberRepository by lazy {
+        ClassMemberRepository(apiClient.create(ClassMemberApi::class.java), apiClient.moshi)
     }
 
     val trashRepository: TrashRepository by lazy {
