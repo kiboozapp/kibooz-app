@@ -8,11 +8,11 @@ Perubahan masuk ke `main` lewat pull request dari sebuah branch. Langkahnya ada 
 
 - Pull request boleh meminta `ArmJour`, `ValentinusMarvel`, `SyafaHadyan`, `FhmiSddq` atau `RozdanHanyv` sebagai reviewer.
 - Pull request digabung oleh pemilik repositori atau anggota tim yang punya izin menulis di repositori.
-- Kebiasaan tim adalah merge commit, sehingga setiap commit tetap ada di riwayat `main`.
+- Hanya merge commit yang diizinkan, sehingga setiap commit tetap ada di riwayat `main`.
 
 ## Pengecekan otomatis
 
-Repositori ini tidak memiliki pengecekan wajib dan tidak memiliki aturan branch yang memblokir merge. Pengecekan otomatis, jika ada, hanya melaporkan hasil. Hasil yang gagal tidak menghalangi merge, tetapi sebaiknya diperbaiki sebelum pull request digabung.
+Branch `main` dilindungi ruleset. Perubahan masuk lewat pull request, semua thread review harus diselesaikan, dan delapan pengecekan wajib harus berhasil. Persetujuan review tidak wajib. Daftar lengkapnya ada di [docs/ci-cd.md](docs/ci-cd.md).
 
 ## Rencana kerja
 

@@ -16,7 +16,7 @@ concurrency:
 permissions: {}
 
 # The three jobs are separate so that one failure does not hide the others. None of them needs a secret, so they also run on pull
-# requests from forks. This workflow is not a required check and a failed run reports only.
+# requests from forks. All three job names are required checks of the main ruleset.
 jobs:
   unit-tests:
     name: Unit tests
