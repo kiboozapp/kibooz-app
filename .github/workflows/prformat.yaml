@@ -46,7 +46,7 @@ jobs:
           bot="$(jq -r .author.is_bot <<<"$pr")"
 
           case "$branch" in
-            renovate/* | dependabot/*)
+            renovate/* | dependabot/* | release-please--*)
               if [ "$bot" = true ]; then
                 echo "The branch $branch belongs to a bot, so the format is not checked."
                 exit 0
