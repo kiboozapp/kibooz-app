@@ -34,9 +34,13 @@ class ClassCodeTest {
     }
 
     @Test
-    fun `server join code is preferred over static mapping`() {
-        assertEquals("NEW12345", ClassCode.preferJoinCode("  NEW12345 ", "0f732106-3c02-4d93-9faa-3361ec8ab3e8"))
-        assertEquals("84NGBK3N", ClassCode.preferJoinCode(null, "0f732106-3c02-4d93-9faa-3361ec8ab3e8"))
-        assertEquals("84NGBK3N", ClassCode.preferJoinCode("   ", "0f732106-3c02-4d93-9faa-3361ec8ab3e8"))
+    fun `server join code is trimmed`() {
+        assertEquals("NEW12345", ClassCode.fromServer("  NEW12345 "))
+    }
+
+    @Test
+    fun `a missing server join code stays empty`() {
+        assertEquals("", ClassCode.fromServer(null))
+        assertEquals("", ClassCode.fromServer("   "))
     }
 }
