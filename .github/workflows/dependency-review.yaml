@@ -41,14 +41,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          # The submission workflow runs from main only, so it cannot exist before it was merged there
-          if ! found="$(gh api "repos/$REPOSITORY/actions/workflows/dependency-submit.yaml" --jq .state 2>&1)"; then
-            if grep -q 'HTTP 404' <<<"$found"; then
-              echo "::warning title=Dependency review::main has no submission workflow yet, so the list is not awaited."
-              exit 0
-            fi
-          fi
-
           fail() {
             echo "::error title=Dependency list missing::$1"
             exit 1
