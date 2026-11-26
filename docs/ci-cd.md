@@ -27,7 +27,7 @@ Pengecekan lain, termasuk Actionlint dan Zizmor, hanya melaporkan hasil. Reposit
 | `android-ci.yaml` | Unit tests | pull request ke `main`, push ke `main`, manual | `./gradlew testDebugUnitTest` |
 | `android-ci.yaml` | Debug build | sama | `./gradlew assembleDebug` |
 | `android-ci.yaml` | Android lint | sama | `./gradlew lintDebug` |
-| `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
+| `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul, isi atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
 | `prformat.yaml` | PR format | pull request ke `main` (termasuk saat isi diubah) | Nama branch, label, assignee, dan isi pull request berupa daftar bullet |
 | `file-names.yaml` | File names | pull request ke `main`, push ke `main`, manual | Penamaan berkas menurut `.ls-lint.yml` |
 | `gitleaks.yaml` | Secret scan (gitleaks) | pull request ke `main`, push ke `main`, manual | Seluruh riwayat git dicek untuk rahasia yang tidak sengaja ikut |
