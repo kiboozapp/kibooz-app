@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mengeluarkan anak dari kelas di layar peserta, hanya untuk Guru -->
+    <string name="peserta_keluarkan_cd">Keluarkan %1$s dari kelas</string>
+    <string name="peserta_keluarkan_judul">Keluarkan %1$s?</string>
+    <string name="peserta_keluarkan_isi">%1$s dikeluarkan dari kelas ini. Anak hilang dari daftar peserta, dasbor dan papan peringkat, dan wali murid tidak lagi melihatnya. Anak yang dikeluarkan tidak bisa dipulihkan. Wali murid bisa mendaftarkan anak lagi dengan kode kelas.</string>
+    <string name="peserta_keluarkan_ya">Keluarkan</string>
+    <string name="peserta_hasil_dikeluarkan">%1$s dikeluarkan dari kelas</string>
+    <string name="peserta_sudah_tidak_ada">Anak ini sudah tidak ada di kelas</string>
+</resources>

@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.guru
 
+import com.nthb.kibooz.data.failureJson
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.jsonResponse
@@ -98,6 +99,39 @@ class PesertaKelasViewModelTest {
         assertEquals(150, state.students[0].currentPoints)
         assertEquals("Farhan Al-Fatih", state.students[1].fullName)
         assertEquals(Emotion.SEDIH, state.students[1].todayMood)
+    }
+
+    @Test
+    fun `a forbidden roster means the teacher lost access to the class`() {
+        server.enqueue(jsonResponse(failureJson("AUTH_FORBIDDEN"), 403))
+
+        val viewModel = PesertaKelasViewModel(classRepository)
+        viewModel.loadPeserta(initialClassId = "class-123")
+
+        assertTrue(settled(viewModel).accessLost)
+    }
+
+    @Test
+    fun `a removed child leaves the list and the roster keeps its class id`() {
+        server.enqueue(
+            jsonResponse(
+                """
+                {"success":true,"data":{"page":1,"limit":50,"total":2,"students":[
+                  {"id":"s1","fullName":"Amelia","nisn":"3124567890","avatarUrl":null,"currentPoints":1,"seasonPoints":1,"classRank":1,"todayMood":null},
+                  {"id":"s2","fullName":"Farhan","nisn":"3124567891","avatarUrl":null,"currentPoints":0,"seasonPoints":0,"classRank":2,"todayMood":null}
+                ]}}
+                """.trimIndent()
+            )
+        )
+        val viewModel = PesertaKelasViewModel(classRepository)
+        viewModel.loadPeserta(initialClassId = "class-123")
+        assertEquals("class-123", settled(viewModel).classId)
+
+        viewModel.onStudentRemoved("s1")
+
+        val state = viewModel.uiState.value
+        assertEquals(listOf("s2"), state.students.map { it.id })
+        assertFalse(state.accessLost)
     }
 
     @Test

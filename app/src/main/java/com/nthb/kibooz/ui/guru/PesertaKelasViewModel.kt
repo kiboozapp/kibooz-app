@@ -9,9 +9,11 @@ import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.nthb.kibooz.data.session.Role
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class PesertaUiState(
@@ -20,7 +22,11 @@ data class PesertaUiState(
     val teacherName: String = "Siti Rahayu, S.Pd.",
     val teacherRole: String = "Wali Kelas A & Pendidik Utama",
     val students: List<ClassStudent> = emptyList(),
-    val errorMessage: String? = null
+    val errorMessage: String? = null,
+    /** Kelas yang daftarnya sedang ditampilkan, null selama belum ada daftar yang berhasil dimuat. */
+    val classId: String? = null,
+    /** True jika server menjawab bahwa Guru sudah tidak punya akses ke kelas ini. */
+    val accessLost: Boolean = false
 )
 
 class PesertaKelasViewModel(
@@ -32,8 +38,17 @@ class PesertaKelasViewModel(
     private val _uiState = MutableStateFlow(PesertaUiState(isLoading = true))
     val uiState: StateFlow<PesertaUiState> = _uiState.asStateFlow()
 
+    private var loadJob: Job? = null
+
+    /** Anak sudah keluar dari kelas, jadi barisnya hilang tanpa menunggu muat ulang. */
+    fun onStudentRemoved(studentId: String) {
+        _uiState.update { state -> state.copy(students = state.students.filterNot { it.id == studentId }) }
+    }
+
     fun loadPeserta(initialClassId: String? = null, defaultClassName: String = "Kelas A") {
-        viewModelScope.launch {
+        // Muat yang lebih lama bisa membawa daftar basi, jadi hanya yang terbaru yang dipakai
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
 
             var resolvedClassId = initialClassId
@@ -126,7 +141,8 @@ class PesertaKelasViewModel(
                         className = resolvedClassName,
                         teacherName = teacherName,
                         students = studentsResult.data,
-                        errorMessage = null
+                        errorMessage = null,
+                        classId = resolvedClassId
                     )
                 }
                 is ApiResult.Failure -> {
@@ -134,7 +150,9 @@ class PesertaKelasViewModel(
                         isLoading = false,
                         className = resolvedClassName,
                         teacherName = teacherName,
-                        errorMessage = studentsResult.message
+                        errorMessage = studentsResult.message,
+                        // Rute `/classes/{classId}` menjawab 403 untuk guru yang sudah tidak mengajar di kelas itu
+                        accessLost = !isWaliRole && studentsResult.errorCode in LOST_ACCESS_CODES
                     )
                 }
                 is ApiResult.NetworkError -> {
@@ -147,6 +165,10 @@ class PesertaKelasViewModel(
                 }
             }
         }
+    }
+
+    private companion object {
+        val LOST_ACCESS_CODES = setOf("AUTH_FORBIDDEN", "CLASS_NOT_FOUND")
     }
 
     class Factory(
