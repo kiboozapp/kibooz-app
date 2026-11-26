@@ -246,6 +246,19 @@
                     android:textSize="14sp"
                     android:textStyle="bold" />
 
+                <TextView
+                    android:id="@+id/tvDebugDemoLogin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/baloo2"
+                    android:padding="6dp"
+                    android:text="@string/login_google_demo_debug"
+                    android:textColor="@color/kibooz_text_muted"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
             </LinearLayout>
 
         </ScrollView>

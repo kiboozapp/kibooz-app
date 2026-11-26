@@ -294,6 +294,65 @@ class ClassManagementRepositoryTest {
         assertEquals("CLASS_NOT_FOUND", (repository.restore("c9") as ApiResult.Failure).errorCode)
     }
 
+    // POST/DELETE /guru/classes/{classId}/students/{studentId}/nisn-verification
+
+    @Test
+    fun `verifyNisn posts to nisn-verification and returns verified and displaced counts`() = runBlocking {
+        server.enqueue(jsonResponse("""{"success":true,"data":{"nisnVerified":true,"displaced":2}}"""))
+
+        val result = repository.verifyNisn("c1", "s1") as ApiResult.Success
+
+        val request = server.takeRequest()
+        assertEquals("POST", request.method)
+        assertEquals("/api/v1/guru/classes/c1/students/s1/nisn-verification", request.path)
+        assertTrue(result.data.nisnVerified)
+        assertEquals(2, result.data.displaced)
+    }
+
+    @Test
+    fun `verifyNisn propagates NISN_NOT_SET, NISN_ALREADY_REGISTERED, CLASS_ARCHIVED and STUDENT_NOT_FOUND`() = runBlocking {
+        server.enqueue(failure(409, "NISN_NOT_SET"))
+        server.enqueue(failure(409, "NISN_ALREADY_REGISTERED"))
+        server.enqueue(failure(409, "CLASS_ARCHIVED"))
+        server.enqueue(failure(404, "STUDENT_NOT_FOUND"))
+
+        assertEquals("NISN_NOT_SET", (repository.verifyNisn("c1", "s1") as ApiResult.Failure).errorCode)
+        assertEquals("NISN_ALREADY_REGISTERED", (repository.verifyNisn("c1", "s2") as ApiResult.Failure).errorCode)
+        assertEquals("CLASS_ARCHIVED", (repository.verifyNisn("c1", "s3") as ApiResult.Failure).errorCode)
+        assertEquals("STUDENT_NOT_FOUND", (repository.verifyNisn("c1", "s4") as ApiResult.Failure).errorCode)
+    }
+
+    @Test
+    fun `unverifyNisn deletes on nisn-verification and returns nisnVerified false`() = runBlocking {
+        server.enqueue(jsonResponse("""{"success":true,"data":{"nisnVerified":false,"displaced":0}}"""))
+
+        val result = repository.unverifyNisn("c1", "s1") as ApiResult.Success
+
+        val request = server.takeRequest()
+        assertEquals("DELETE", request.method)
+        assertEquals("/api/v1/guru/classes/c1/students/s1/nisn-verification", request.path)
+        assertFalse(result.data.nisnVerified)
+        assertEquals(0, result.data.displaced)
+    }
+
+    // DELETE /guru/classes/{classId}/students/{studentId}
+
+    @Test
+    fun `removeStudent deletes student route and propagates archived and missing errors`() = runBlocking {
+        server.enqueue(jsonResponse("""{"success":true,"message":"Student removed","data":null}"""))
+        server.enqueue(failure(409, "CLASS_ARCHIVED"))
+        server.enqueue(failure(404, "STUDENT_NOT_FOUND"))
+
+        val ok = repository.removeStudent("c1", "s1") as ApiResult.Success
+        val request = server.takeRequest()
+        assertEquals("DELETE", request.method)
+        assertEquals("/api/v1/guru/classes/c1/students/s1", request.path)
+        assertEquals(Unit, ok.data)
+
+        assertEquals("CLASS_ARCHIVED", (repository.removeStudent("c1", "s2") as ApiResult.Failure).errorCode)
+        assertEquals("STUDENT_NOT_FOUND", (repository.removeStudent("c1", "s9") as ApiResult.Failure).errorCode)
+    }
+
     @Test
     fun `offline is a network error for every call`() = runBlocking {
         server.shutdown()
@@ -304,5 +363,8 @@ class ClassManagementRepositoryTest {
         assertTrue(repository.setJoining("c1", true) is ApiResult.NetworkError)
         assertTrue(repository.archive("c1") is ApiResult.NetworkError)
         assertTrue(repository.restore("c1") is ApiResult.NetworkError)
+        assertTrue(repository.verifyNisn("c1", "s1") is ApiResult.NetworkError)
+        assertTrue(repository.unverifyNisn("c1", "s1") is ApiResult.NetworkError)
+        assertTrue(repository.removeStudent("c1", "s1") is ApiResult.NetworkError)
     }
 }

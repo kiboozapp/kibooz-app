@@ -245,11 +245,35 @@
                 android:background="@drawable/bg_input_field"
                 android:fontFamily="@font/baloo2"
                 android:gravity="top|start"
+                android:hint="Ketik alamat manual atau pilih di peta"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="10dp"
                 android:text="Jl. Melati No. 14, Lowokwaru, Kota Malang"
                 android:textColor="@color/kibooz_text_dark"
                 android:textSize="14sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPilihPeta"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/baloo2"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="@string/lokasi_pilih_lewat_peta"
+                android:textAllCaps="false"
+                android:textColor="@color/kibooz_primary_purple"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/kibooz_lavender_light"
+                app:cornerRadius="16dp"
+                app:icon="@drawable/ic_location"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@color/kibooz_primary_purple"
+                app:strokeColor="@color/kibooz_primary_purple"
+                app:strokeWidth="1dp" />
 
             <!-- Button Simpan Perubahan -->
             <com.google.android.material.button.MaterialButton

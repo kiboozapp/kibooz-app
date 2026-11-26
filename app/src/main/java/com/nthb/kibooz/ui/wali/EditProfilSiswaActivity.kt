@@ -17,6 +17,7 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ChildProfile
 import com.nthb.kibooz.databinding.ActivityEditProfilSiswaBinding
 import com.nthb.kibooz.ui.account.AvatarPickerHelper
+import com.nthb.kibooz.ui.location.LocationPickerHelper
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
@@ -50,6 +51,7 @@ class EditProfilSiswaActivity : AppCompatActivity() {
     private var pendingUploadForChild = true
 
     private lateinit var avatarPicker: AvatarPickerHelper
+    private lateinit var locationPicker: LocationPickerHelper
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +68,11 @@ class EditProfilSiswaActivity : AppCompatActivity() {
                 appContainer.avatarLoader.evict(lastChildAvatarUrl)
             }
             viewModel.uploadAvatar(croppedFile, forChild = pendingUploadForChild)
+        }
+        locationPicker = LocationPickerHelper(this) { pickedAddress ->
+            binding.etAlamat.setText(pickedAddress)
+            binding.etAlamat.setSelection(pickedAddress.length)
+            binding.tilAlamat.error = null
         }
 
         setupListeners()
@@ -115,6 +122,12 @@ class EditProfilSiswaActivity : AppCompatActivity() {
             }
         }
 
+        binding.btnPilihPeta.setOnClickListener {
+            if (!viewModel.state.value.saving) {
+                locationPicker.launch(binding.etAlamat.text?.toString())
+            }
+        }
+
         binding.btnSimpanWali.setOnClickListener {
             viewModel.saveParent(
                 binding.etNamaWali.text.toString(),
@@ -144,6 +157,7 @@ class EditProfilSiswaActivity : AppCompatActivity() {
         binding.btnSimpanWali.isEnabled = !state.saving
         binding.btnUbahFotoAnak.isEnabled = !state.saving
         binding.btnUbahFotoWali.isEnabled = !state.saving
+        binding.btnPilihPeta.isEnabled = !state.saving
 
         val fields: Map<EditField, TextInputLayout> = mapOf(
             EditField.CHILD_NAME to binding.tilNamaAnak,
