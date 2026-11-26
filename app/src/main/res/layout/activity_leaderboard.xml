@@ -186,6 +186,7 @@
 
             <!-- Avatar Juara 2 (Perfect Circle via MaterialCardView) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAvatarRank2"
                 android:layout_width="62dp"
                 android:layout_height="62dp"
                 app:cardBackgroundColor="@android:color/transparent"
@@ -275,6 +276,7 @@
 
             <!-- Avatar Juara 1 (Perfect Circle via MaterialCardView) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAvatarRank1"
                 android:layout_width="74dp"
                 android:layout_height="74dp"
                 android:layout_marginTop="-4dp"
@@ -357,6 +359,7 @@
 
             <!-- Avatar Juara 3 (Perfect Circle via MaterialCardView) -->
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAvatarRank3"
                 android:layout_width="62dp"
                 android:layout_height="62dp"
                 app:cardBackgroundColor="@android:color/transparent"
@@ -499,5 +502,13 @@
         </androidx.core.widget.NestedScrollView>
 
     </com.google.android.material.card.MaterialCardView>
+
+    <!-- Confetti saat anak Wali masuk 3 besar. Di atas bottom sheet (16dp) dan tidak menangkap sentuhan -->
+    <nl.dionsegijn.konfetti.xml.KonfettiView
+        android:id="@+id/konfettiView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="24dp"
+        android:importantForAccessibility="no" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

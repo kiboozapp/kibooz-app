@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.view.isInvisible
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -20,9 +21,16 @@ import com.nthb.kibooz.data.remote.RankEntry
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityLeaderboardBinding
 import com.nthb.kibooz.databinding.ItemRankingRowBinding
+import com.nthb.kibooz.ui.common.animationsEnabled
 import com.nthb.kibooz.ui.guru.bindClassSwitcher
 import com.nthb.kibooz.util.InsetsUtil
+import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.launch
+import nl.dionsegijn.konfetti.core.Angle
+import nl.dionsegijn.konfetti.core.Party
+import nl.dionsegijn.konfetti.core.Position
+import nl.dionsegijn.konfetti.core.emitter.Emitter
+import nl.dionsegijn.konfetti.core.models.Shape
 
 /**
  * Papan peringkat kelas. Bawaannya poin semester yang berjalan, dan tab di atas mengganti rentangnya ke hari,
@@ -50,6 +58,11 @@ class LeaderboardActivity : AppCompatActivity() {
         )
     }
 
+    private lateinit var podiumAnimator: PodiumAnimator
+
+    /** True selama podium sedang tampil, supaya animasi hanya diputar saat data berganti dari kosong ke ada. */
+    private var podiumShown = false
+
     private fun sessionUser() = appContainer.authRepository.session.value?.user
 
     private val isGuru: Boolean get() = sessionUser()?.role == Role.GURU
@@ -65,6 +78,17 @@ class LeaderboardActivity : AppCompatActivity() {
         )
 
         binding.ivBack.setOnClickListener { finish() }
+
+        podiumAnimator = PodiumAnimator(
+            slots = listOf(
+                PodiumAnimator.Slot(binding.podiumRank1, binding.cardAvatarRank1, binding.tvPoinRank1),
+                PodiumAnimator.Slot(binding.podiumRank2, binding.cardAvatarRank2, binding.tvPoinRank2),
+                PodiumAnimator.Slot(binding.podiumRank3, binding.cardAvatarRank3, binding.tvPoinRank3)
+            ),
+            crown = binding.ivCrown
+        )
+        // Setelah layar diputar, data yang sama masih ada di ViewModel, jadi podium tidak dianimasikan ulang
+        podiumShown = savedInstanceState != null && viewModel.state.value.data != null
 
         periodTabs.forEach { (period, tab) -> tab.setOnClickListener { viewModel.selectPeriod(period) } }
 
@@ -87,6 +111,11 @@ class LeaderboardActivity : AppCompatActivity() {
             }
         }
         if (!viewModel.state.value.loading) viewModel.load()
+    }
+
+    override fun onDestroy() {
+        podiumAnimator.cancel()
+        super.onDestroy()
     }
 
     private val periodTabs: Map<LeaderboardPeriod, TextView>
@@ -124,6 +153,16 @@ class LeaderboardActivity : AppCompatActivity() {
             showPodium(data.podium)
             showRankings(state.allRanks)
             binding.tvEmpty.isVisible = state.empty
+        }
+        // Reload saat kembali ke layar ini tidak mengosongkan data, jadi tidak memutar ulang. Ganti tab atau kelas
+        // mengosongkan data dulu di ViewModel, sehingga podium yang baru ikut dianimasikan.
+        if (data != null && !podiumShown) {
+            podiumShown = true
+            animatePodium(data.podium)
+        } else if (data == null && podiumShown) {
+            podiumShown = false
+            podiumAnimator.cancel()
+            binding.konfettiView.stopGracefully()
         }
         // Tanpa data, misalnya saat rentang baru dimuat, daftar lama tidak boleh terlihat di bawah tab yang baru
         binding.llPodiumSection.isInvisible = data == null
@@ -176,6 +215,49 @@ class LeaderboardActivity : AppCompatActivity() {
         binding.ivCrown.isVisible = podium.isNotEmpty()
     }
 
+    private fun animatePodium(podium: List<RankEntry>) {
+        podiumAnimator.play(
+            points = podium.map { it.points },
+            formatPoints = { getString(R.string.leaderboard_poin, it) },
+            onFinished = { celebrateIfChildOnPodium(podium) }
+        )
+    }
+
+    /**
+     * Confetti hanya untuk Wali yang anaknya masuk 3 besar. Guru tidak mengirim nama sorotan, jadi tidak pernah melihatnya.
+     * Konfetti memakai timer sendiri dan tidak ikut setelan animasi perangkat, sehingga dicek manual di sini.
+     */
+    private fun celebrateIfChildOnPodium(podium: List<RankEntry>) {
+        if (!podium.hasStudent(intent.getStringExtra(EXTRA_HIGHLIGHT_NAME)) || !animationsEnabled()) return
+
+        val colors = listOf(
+            R.color.kibooz_yellow_gold,
+            R.color.kibooz_primary_purple,
+            R.color.kibooz_teal_guru,
+            R.color.mood_marah,
+            R.color.mood_happy,
+            R.color.kibooz_white
+        ).map { ContextCompat.getColor(this, it) }
+
+        // Hujan confetti dari sepanjang tepi atas layar. Jumlah diatur dengan perSecond(), bukan max(n): Konfetti
+        // menghitung max(n) dengan pembagian bulat, dan jika n lebih besar dari durasi dalam ms hasilnya 0, lalu partikel
+        // dibuat tanpa batas sampai aplikasi kehabisan memori.
+        binding.konfettiView.start(
+            Party(
+                angle = Angle.BOTTOM,
+                spread = 45,
+                speed = 2f,
+                maxSpeed = 8f,
+                damping = 0.95f,
+                colors = colors,
+                shapes = listOf(Shape.Square, Shape.Circle),
+                timeToLive = 3000L,
+                position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0)),
+                emitter = Emitter(duration = 2000, TimeUnit.MILLISECONDS).perSecond(100)
+            )
+        )
+    }
+
     /**
      * Daftar semua siswa di bawah podium, termasuk tiga besar. Baris anak milik Wali disorot. Balasan server tidak
      * membawa id siswa, jadi barisnya dikenali dari nama, dan dua anak sekelas dengan nama yang persis sama ikut tersorot.
@@ -214,3 +296,6 @@ class LeaderboardActivity : AppCompatActivity() {
         const val EXTRA_HIGHLIGHT_NAME = "HIGHLIGHT_NAME"
     }
 }
+
+/** True jika [name] ada di daftar ini. Dicocokkan dari nama seperti sorotan baris, karena balasan server tidak membawa id. */
+internal fun List<RankEntry>.hasStudent(name: String?): Boolean = name != null && any { it.studentName == name }
