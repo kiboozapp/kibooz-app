@@ -11,7 +11,10 @@ import com.nthb.kibooz.data.remote.ChatMedia
 import com.nthb.kibooz.data.remote.ChatMessage
 import com.nthb.kibooz.data.remote.ChatMessageList
 import com.nthb.kibooz.data.remote.ChatPerson
+import com.nthb.kibooz.data.remote.ChatPhotoUpload
 import com.nthb.kibooz.data.remote.ChatReadState
+import com.nthb.kibooz.data.remote.ChatVideoUpload
+import com.nthb.kibooz.data.remote.ChatVideoUploadRequest
 import com.nthb.kibooz.data.remote.ChildList
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.ClassList
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
 import okhttp3.Protocol
 import okhttp3.Request
 import okhttp3.ResponseBody.Companion.toResponseBody
@@ -96,8 +100,13 @@ object ChatFixtures {
 
     fun <T> ok(data: T): Response<ApiEnvelope<T>> = Response.success(ApiEnvelope(true, null, data))
 
-    /** Jawaban galat dengan kode galat, dan header Retry-After jika diberikan. */
-    fun <T> failure(status: Int, errorCode: String, retryAfter: String? = null): Response<ApiEnvelope<T>> {
+    /** Jawaban galat dengan kode galat, dan header Retry-After serta nama isian yang salah jika diberikan. */
+    fun <T> failure(
+        status: Int,
+        errorCode: String,
+        retryAfter: String? = null,
+        field: String? = null
+    ): Response<ApiEnvelope<T>> {
         val raw = okhttp3.Response.Builder()
             .code(status)
             .message("galat")
@@ -105,7 +114,9 @@ object ChatFixtures {
             .request(Request.Builder().url("http://localhost/").build())
             .apply { retryAfter?.let { header("Retry-After", it) } }
             .build()
-        val body = """{"success":false,"message":"x","errorCode":"$errorCode"}""".toResponseBody("application/json".toMediaType())
+        val details = field?.let { ""","details":{"$it":"salah"}""" }.orEmpty()
+        val body = """{"success":false,"message":"x","errorCode":"$errorCode"$details}"""
+            .toResponseBody("application/json".toMediaType())
 
         return Response.error(body, raw)
     }
@@ -127,9 +138,26 @@ class FakeChatApi : ChatApi {
     val started = mutableListOf<StartChatRequest>()
     val conversationPages = mutableListOf<Int>()
     val contactPages = mutableListOf<Int>()
+    val sendMediaKeys = mutableListOf<String?>()
+    val photoUploads = mutableListOf<MultipartBody.Part>()
+    val videoRequests = mutableListOf<ChatVideoUploadRequest>()
 
     var sendGate: CompletableDeferred<Unit>? = null
     var startGate: CompletableDeferred<Unit>? = null
+    var photoGate: CompletableDeferred<Unit>? = null
+
+    /** Setiap unggahan mendapat kunci baru (k1, k2, dan seterusnya) kecuali tes menggantinya. */
+    var photoReply: () -> Response<ApiEnvelope<ChatPhotoUpload>> =
+        { ChatFixtures.ok(ChatPhotoUpload("k${photoUploads.size}")) }
+    var videoReply: () -> Response<ApiEnvelope<ChatVideoUpload>> = {
+        ChatFixtures.ok(
+            ChatVideoUpload(
+                uploadUrl = "https://storage.example.org/pending/v${videoRequests.size}",
+                headers = mapOf("Content-Type" to "video/mp4"),
+                mediaKey = "v${videoRequests.size}"
+            )
+        )
+    }
 
     var contactsReply: (page: Int) -> Response<ApiEnvelope<ChatContactList>> =
         { page -> ChatFixtures.ok(ChatContactList(page, 50, 0, emptyList())) }
@@ -176,8 +204,23 @@ class FakeChatApi : ChatApi {
     ): Response<ApiEnvelope<ChatMessage>> {
         sendKeys += idempotencyKey
         sendBodies += body.body
+        sendMediaKeys += body.mediaKey
         sendGate?.await()
         return sendReply(body.body)
+    }
+
+    override suspend fun uploadPhoto(conversationId: String, file: MultipartBody.Part): Response<ApiEnvelope<ChatPhotoUpload>> {
+        photoUploads += file
+        photoGate?.await()
+        return photoReply()
+    }
+
+    override suspend fun createVideoUpload(
+        conversationId: String,
+        body: ChatVideoUploadRequest
+    ): Response<ApiEnvelope<ChatVideoUpload>> {
+        videoRequests += body
+        return videoReply()
     }
 
     override suspend fun deleteMessage(conversationId: String, messageId: Long): Response<ApiEnvelope<ChatMessage>> {

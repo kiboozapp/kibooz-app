@@ -34,7 +34,10 @@ data class ChatContactList(
     val contacts: List<ChatContact>
 )
 
-/** Lampiran foto atau video. Aplikasi belum membukanya, jadi hanya jenisnya yang dipakai. */
+/**
+ * Lampiran foto atau video. [url] bertanda tangan dan berganti di setiap jawaban, jadi berkas disimpan menurut id
+ * pesan. [url] kosong jika server gagal membuat alamatnya.
+ */
 data class ChatMedia(
     val kind: String,
     val contentType: String = "",
@@ -98,7 +101,22 @@ data class ChatReadState(val lastReadMessageId: Long, val unreadCount: Int)
 /** Isi `POST /chat/conversations`. Kirim tepat satu dari dua isian, yang null tidak ikut terkirim. */
 data class StartChatRequest(val userId: String? = null, val classId: String? = null)
 
-/** Isi `POST .../messages`. Hanya teks, karena lampiran belum dibuat. */
-data class SendChatMessageRequest(val body: String)
+/** Isi `POST .../messages`. Butuh [body] atau [mediaKey], dan [mediaKey] yang null tidak ikut terkirim. */
+data class SendChatMessageRequest(val body: String, val mediaKey: String? = null)
+
+/** `data` dari `POST .../media/photo`. */
+data class ChatPhotoUpload(val mediaKey: String)
+
+/** Isi `POST .../media/video-upload`. [sizeBytes] harus ukuran berkas yang tepat. */
+data class ChatVideoUploadRequest(val contentType: String, val sizeBytes: Long)
+
+/** `data` dari `POST .../media/video-upload`. Berkas dikirim dengan `PUT` ke [uploadUrl] sebelum [expiresAt]. */
+data class ChatVideoUpload(
+    val uploadUrl: String,
+    val method: String = "PUT",
+    val headers: Map<String, String> = emptyMap(),
+    val mediaKey: String,
+    val expiresAt: String = ""
+)
 
 data class MarkChatReadRequest(val messageId: Long)
