@@ -539,4 +539,18 @@ class ChatMediaViewModelTest {
         viewModel.refreshMedia(99)
         assertEquals(3, api.messageCalls.size)
     }
+
+    @Test
+    fun `many photos that fail at once ask for new addresses at most ten times a minute`() {
+        val all = (1L..12L).map { mediaMessage(it) }.toTypedArray()
+        api.messagesReply = { _, _ -> messages(*all) }
+        val viewModel = viewModel()
+
+        (1L..12L).forEach { viewModel.refreshMedia(it) }
+        assertEquals(11, api.messageCalls.size)
+
+        clock = 60_000L
+        viewModel.refreshMedia(12)
+        assertEquals(12, api.messageCalls.size)
+    }
 }

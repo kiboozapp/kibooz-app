@@ -523,11 +523,15 @@ class ChatViewModel(
         }
     }
 
-    /** Meminta alamat baru untuk lampiran yang gagal dimuat, paling sering sekali semenit untuk tiap pesan. */
+    /**
+     * Meminta alamat baru untuk lampiran yang gagal dimuat, paling sering sekali semenit untuk tiap pesan dan paling
+     * banyak [MEDIA_REFRESH_LIMIT] pesan dalam semenit, supaya banyak foto gagal tidak menghabiskan batas permintaan.
+     */
     fun refreshMedia(messageId: Long) {
         if (messageWithMedia(messageId) == null) return
         val last = mediaRefreshedAt[messageId]
         if (last != null && now() - last < MEDIA_REFRESH_GAP_MILLIS) return
+        if (mediaRefreshedAt.values.count { now() - it < MEDIA_REFRESH_GAP_MILLIS } >= MEDIA_REFRESH_LIMIT) return
 
         mediaRefreshedAt[messageId] = now()
         viewModelScope.launch { fetchMessage(messageId) }
@@ -664,6 +668,7 @@ class ChatViewModel(
 
         const val PROGRESS_STEP = 5
         const val MEDIA_REFRESH_GAP_MILLIS = 60_000L
+        const val MEDIA_REFRESH_LIMIT = 10
 
         const val STORAGE_UNAVAILABLE = "STORAGE_UNAVAILABLE"
         const val VALIDATION_ERROR = "VALIDATION_ERROR"

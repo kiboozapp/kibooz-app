@@ -11,6 +11,7 @@ import com.nthb.kibooz.util.decodeOrientedBitmap
 import java.io.ByteArrayInputStream
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -30,8 +31,16 @@ class ChatMediaLoader(private val storage: ChatStorage) {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
     }
 
-    /** Unduhan yang sedang jalan menurut sumbernya, supaya satu foto tidak diambil dua kali sekaligus. */
-    private val running = HashMap<String, Deferred<Bitmap?>>()
+    /** Satu unduhan yang sedang jalan. [source] dan [load] diganti jika alamat yang lebih baru datang. */
+    private class Download(var source: String, var load: suspend () -> Bitmap?) {
+        lateinit var job: Deferred<Bitmap?>
+    }
+
+    /**
+     * Unduhan yang sedang jalan menurut kunci fotonya, bukan menurut alamatnya, karena alamat bertanda tangan berganti
+     * selagi unduhan berjalan. Dengan begitu satu foto tidak diambil dua kali sekaligus.
+     */
+    private val running = HashMap<String, Download>()
 
     /**
      * Menampilkan foto pesan [messageKey] di [target]. [onResult] menerima false jika fotonya gagal dimuat, dan
@@ -86,15 +95,42 @@ class ChatMediaLoader(private val storage: ChatStorage) {
 
         // setImageBitmap(null) tetap memasang drawable kosong, padahal layar memeriksa drawable yang null
         if (placeholder != null) target.setImageBitmap(placeholder) else target.setImageDrawable(null)
-        val job = running.getOrPut(source + cacheKey) { scope.async { load()?.also { cache.put(cacheKey, it) } } }
+        val job = download(cacheKey, source, load)
         scope.launch {
             val bitmap = job.await()
-            if (running[source + cacheKey] === job) running.remove(source + cacheKey)
             if (target.getTag(R.id.tag_chat_media) != cacheKey) return@launch
 
             if (bitmap != null) target.setImageBitmap(bitmap)
             onResult(bitmap != null)
         }
+    }
+
+    /** Memakai unduhan foto yang sedang jalan jika ada. Kalau gagal dan alamatnya sudah berganti, dicoba dengan yang baru. */
+    private fun download(cacheKey: String, source: String, load: suspend () -> Bitmap?): Deferred<Bitmap?> {
+        running[cacheKey]?.let {
+            it.source = source
+            it.load = load
+            return it.job
+        }
+
+        val download = Download(source, load)
+        running[cacheKey] = download
+        val job = scope.async(start = CoroutineStart.LAZY) {
+            try {
+                var tried: String
+                var bitmap: Bitmap?
+                do {
+                    tried = download.source
+                    bitmap = download.load()
+                } while (bitmap == null && download.source != tried)
+                bitmap?.also { cache.put(cacheKey, it) }
+            } finally {
+                running.remove(cacheKey)
+            }
+        }
+        download.job = job
+        job.start()
+        return job
     }
 
     private companion object {
