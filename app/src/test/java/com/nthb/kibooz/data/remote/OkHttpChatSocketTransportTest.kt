@@ -70,6 +70,11 @@ class OkHttpChatSocketTransportTest {
     private fun upgrade(afterOpen: (WebSocket) -> Unit = {}): MockResponse =
         MockResponse().withWebSocketUpgrade(object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) = afterOpen(webSocket)
+
+            // Server tiruan membalas penutupan, kalau tidak shutdown() menyerah menunggu socket yang masih terbuka
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                webSocket.close(code, null)
+            }
         })
 
     @Test
@@ -126,6 +131,7 @@ class OkHttpChatSocketTransportTest {
         assertEquals("Bearer fresh", server.takeRequest(10, TimeUnit.SECONDS)?.getHeader("Authorization"))
 
         connection.close()
+        assertEquals("closed 1000", next())
     }
 
     @Test
