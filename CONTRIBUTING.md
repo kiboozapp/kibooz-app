@@ -42,7 +42,7 @@ Kedua pengecekan ini termasuk pengecekan wajib di ruleset `main`, sehingga pull 
 
 Workflow di pull request dari fork menunggu persetujuan maintainer sebelum berjalan. Kontributor dari fork biasanya tidak bisa memasang label atau assignee, jadi maintainer yang memasangnya.
 
-Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahkannya, jalankan ulang pengecekan "PR format" dari tab Checks.
+Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahkannya, jalankan ulang pengecekan "PR format" dari tab Checks. Menjalankan ulang memerlukan izin menulis di repositori. Tanpa izin itu, minta maintainer menjalankannya, atau ubah isi pull request agar pengecekan berjalan lagi.
 
 ## Melaporkan masalah
 
