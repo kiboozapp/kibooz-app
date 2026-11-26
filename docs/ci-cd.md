@@ -65,9 +65,18 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 | `renovate.json` | Pengaturan Renovate. Pembaruan rutin dibuat pada Senin pagi setelah rilisnya berumur 7 hari. Pembaruan keamanan bisa dibuat kapan saja. Pembaruan besar alat build dan versi minor Kotlin menunggu centang di dependency dashboard |
 | `.ls-lint.yml` | Aturan penamaan berkas untuk job File names |
 | `.github/zizmor.yml` | Pengaturan audit Zizmor, semua action wajib dipin ke SHA commit |
+| `release-please-config.json` | Pengaturan Release Please, termasuk versi awal 0.1.0 dan baris `versionName` yang diperbarui otomatis |
+| `.release-please-manifest.json` | Versi rilis terakhir, ditulis oleh Release Please |
 | `.gitleaksignore` | Sidik jari temuan gitleaks yang sudah diperiksa dan bukan rahasia |
 | `.github/CODEOWNERS` | Siapa yang diminta mereview berkas, tidak memblokir merge |
 | `.github/PULL_REQUEST_TEMPLATE.md` dan `.github/ISSUE_TEMPLATE` | Templat pull request dan issue |
+
+## Rilis
+
+- Release Please membuka dan memperbarui satu pull request rilis. Rilis dibuat saat pull request itu digabung.
+- Tag `v*` hanya bisa dibuat oleh GitHub App rilis, dan tidak bisa diubah atau dihapus oleh siapa pun.
+- Release immutability aktif, sehingga tag dan berkas rilis yang sudah terbit tidak bisa diganti.
+- `versionCode` di `app/build.gradle.kts` tidak diperbarui otomatis. Naikkan angkanya secara manual sebelum mengunggah build ke Play Store.
 
 ## Aturan semua workflow
 
