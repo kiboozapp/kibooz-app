@@ -324,6 +324,18 @@ class ChatSocketTest {
     }
 
     @Test
+    fun `the refresh names the token of the closed socket even when REST already replaced it`() {
+        socket.acquire()
+        val connection = healthyConnection()
+        token = "t2"
+        connection.closeBy(CLOSE_TOKEN_ENDED)
+
+        pause.releaseAll()
+
+        assertEquals(listOf("t1"), refreshed)
+    }
+
+    @Test
     fun `a refresh that fails while the session is alive backs off and tries again before it connects`() {
         socket.acquire()
         onRefresh = { null }

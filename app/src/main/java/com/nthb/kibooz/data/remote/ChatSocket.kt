@@ -172,11 +172,13 @@ class ChatSocket(
     private suspend fun loop() {
         var failures = 0
         var refreshFirst = false
+        // Token yang dipakai koneksi terakhir. REST bisa sudah menggantinya, dan [refresh] lalu tidak memanggil server
+        var sent: String? = null
 
         while (currentCoroutineContext().isActive) {
             if (refreshFirst) {
                 refreshFirst = false
-                val expired = tokenProvider.accessToken()
+                val expired = sent
                 // Token belum bisa diperbarui (jaringan atau 429) tapi sesinya masih ada, jadi coba lagi nanti
                 if (!expired.isNullOrBlank() && refresh(expired) == null && !tokenProvider.accessToken().isNullOrBlank()) {
                     failures++
@@ -189,6 +191,7 @@ class ChatSocket(
             val token = tokenProvider.accessToken()
             if (token.isNullOrBlank() || token.startsWith(MOCK_TOKEN_PREFIX)) return
 
+            sent = token
             val end = connectOnce()
             failures = if (end.healthy) 0 else failures + 1
 
@@ -211,11 +214,14 @@ class ChatSocket(
             override fun onOpen() = Unit
 
             override fun onText(text: String) {
-                if (current !== attempt) return
                 val frame = parseChatFrame(moshi, text) ?: return
-                if (frame == ChatFrame.Ready) {
-                    attempt.readyAt = now()
-                    _connected.value = true
+                // Pemeriksaan dan penandaan harus satu langkah, supaya koneksi yang sedang dibatalkan tidak tertandai tersambung
+                synchronized(lock) {
+                    if (current !== attempt) return
+                    if (frame == ChatFrame.Ready) {
+                        attempt.readyAt = now()
+                        _connected.value = true
+                    }
                 }
                 _frames.tryEmit(frame)
             }
@@ -235,9 +241,11 @@ class ChatSocket(
         } finally {
             connection.close()
             // Koneksi lama yang dibatalkan oleh reset() tidak boleh menandai koneksi baru sebagai putus
-            if (current === attempt) {
-                current = null
-                _connected.value = false
+            synchronized(lock) {
+                if (current === attempt) {
+                    current = null
+                    _connected.value = false
+                }
             }
         }
     }

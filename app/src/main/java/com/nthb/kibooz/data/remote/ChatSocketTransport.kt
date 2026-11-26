@@ -42,12 +42,13 @@ fun chatSocketUrl(apiBaseUrl: String): HttpUrl =
 /**
  * Transport dengan OkHttp. [baseClient] adalah klien API, jadi socket memakai TLS dan connection spec yang sama,
  * [AuthTokenInterceptor] mengisi header token, dan [TokenAuthenticator] memperbarui token sekali saat handshake
- * dijawab 401. Ping dimatikan karena server yang mengirim ping dan OkHttp membalasnya sendiri.
+ * dijawab 401. Klien juga mengirim ping tiap [PING_SECONDS] detik. Ping dari server hanya dibalas, jadi tanpa ping
+ * sendiri jaringan yang putus diam-diam tidak pernah ketahuan dan polling cadangan tidak pernah kembali.
  */
 class OkHttpChatSocketTransport(baseClient: OkHttpClient, private val url: HttpUrl) : ChatSocketTransport {
 
     private val client: OkHttpClient = baseClient.newBuilder()
-        .pingInterval(0, TimeUnit.SECONDS)
+        .pingInterval(PING_SECONDS, TimeUnit.SECONDS)
         .build()
 
     override fun connect(listener: ChatSocketTransport.Listener): ChatSocketTransport.Connection {
@@ -84,5 +85,6 @@ class OkHttpChatSocketTransport(baseClient: OkHttpClient, private val url: HttpU
 
     private companion object {
         const val NORMAL_CLOSE = 1000
+        const val PING_SECONDS = 30L
     }
 }
