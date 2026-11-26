@@ -38,7 +38,7 @@ Perubahan perilaku sebaiknya disertai test. Perbaikan bug sebaiknya disertai tes
 
 Pull request memicu dua pengecekan untuk format. Pengecekan "Conventional commits" memeriksa pesan commit dan judul pull request. Pengecekan "PR format" memeriksa nama branch, label, assignee dan isi pull request. Pull request yang dibuka bot dari branch `renovate/` atau `dependabot/` tidak diperiksa oleh "PR format".
 
-Kedua pengecekan ini hanya melaporkan. Keduanya bukan pengecekan wajib, dan hasil yang gagal tidak menghalangi merge. Meski begitu, mohon perbaiki yang gagal agar riwayat repositori tetap rapi.
+Kedua pengecekan ini termasuk pengecekan wajib di ruleset `main`, sehingga pull request tidak bisa digabung selama salah satunya gagal. Daftar lengkap pengecekan wajib dan aturan branch ada di [docs/ci-cd.md](docs/ci-cd.md).
 
 Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahkannya, jalankan ulang pengecekan "PR format" dari tab Checks.
 

@@ -5,7 +5,7 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, edited]
 
-# This check reports only. It is not a required check and a red run does not block a merge.
+# The job name is a required check of the main ruleset.
 #
 # Like commits.yaml, a run is never cancelled and every run has a group of its own. The pull request is read when the run starts and
 # not from the event, so a rerun checks what the pull request looks like now. A label or an assignee that was added after the last

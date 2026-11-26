@@ -2,9 +2,17 @@
 
 Halaman ini mendaftar semua workflow di `.github/workflows` dan menjelaskan apa yang dicek oleh masing-masing. Daftar ini sebaiknya diperbarui di pull request yang sama dengan perubahan workflow.
 
-## Tidak ada pengecekan wajib
+## Aturan branch main
 
-Repositori ini tidak memiliki ruleset dan tidak memiliki proteksi branch. Karena itu tidak ada pengecekan yang wajib hijau sebelum merge. Semua workflow di bawah ini hanya melaporkan hasil. Pengecekan yang gagal tidak menghalangi merge, tetapi sebaiknya diperbaiki dulu. Mengubah pengecekan menjadi wajib adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin ke repositori.
+Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
+
+- Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
+- Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
+- `main` tidak bisa dihapus dan tidak bisa di-force push.
+- Delapan pengecekan wajib berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks) dan Trivy filesystem scan.
+- Branch pull request tidak harus mutakhir terhadap `main`, dan commit tidak wajib ditandatangani.
+
+Pengecekan lain, termasuk Actionlint dan Zizmor, hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
 ## Daftar workflow
 
