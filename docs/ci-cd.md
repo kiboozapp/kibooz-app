@@ -51,7 +51,7 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 
 Beberapa catatan tentang isi pengecekan.
 
-- Job Android memakai JDK 17 dan Gradle wrapper repositori. Laporan pengujian dan lint diunggah sebagai artifact hanya saat job gagal. Job Debug build menyimpan APK debug sebagai artifact `kibooz-debug-apk` selama 7 hari. APK ini ditandatangani dengan kunci sementara runner, sehingga versi lama harus dihapus dari ponsel sebelum memasang yang baru.
+- Job Android memakai JDK 17 dan Gradle wrapper repositori. Laporan pengujian dan lint diunggah sebagai artifact hanya saat job gagal. Job Debug build menyimpan APK debug sebagai artifact `kibooz-debug-apk` selama 7 hari. APK ini ditandatangani dengan kunci sementara runner, sehingga versi lama harus dihapus dari ponsel sebelum memasang yang baru. Pasang hanya APK dari run di `main` atau dari pull request anggota tim.
 - Job Trivy tidak menemukan apa pun di dependensi Gradle, karena repositori tidak memiliki lock file. Hasilnya ditulis ke log dan ke ringkasan job, tidak ke code scanning GitHub.
 - Gitleaks memakai `.gitleaksignore` untuk empat contoh token atau UUID yang terpotong di riwayat awal PRD. Isinya bukan rahasia sungguhan.
 - PR format melewati pull request milik bot di cabang `renovate/*`, `dependabot/*` atau `release-please--*`. Conventional commits tetap memeriksa semua pull request.
@@ -83,7 +83,7 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 - Release Please membuka dan memperbarui satu pull request rilis. Rilis dibuat saat pull request itu digabung.
 - Tag `v*` hanya bisa dibuat oleh GitHub App rilis, dan tidak bisa diubah atau dihapus oleh siapa pun.
 - Release immutability aktif, sehingga tag dan berkas rilis yang sudah terbit tidak bisa diganti.
-- Rilis berisi `kibooz-app-<tag>.apk` dan berkas `.sha256`. APK ditandatangani dengan kunci rilis, dan job tersebut memeriksa sidik jari sertifikatnya. Kalau job pembangunan atau penandatanganan gagal, rilis tetap berupa draft. Jalankan ulang job yang gagal.
+- Rilis berisi `kibooz-app-<tag>.apk` dan berkas `.sha256`. APK ditandatangani dengan kunci rilis, dan job tersebut memeriksa sidik jari sertifikatnya. Kalau job pembangunan atau penandatanganan gagal, rilis tetap berupa draft. Jalankan ulang job yang gagal. Kalau itu tidak bisa, misalnya karena APK sementara sudah lewat 7 hari atau workflow-nya yang salah, jalankan `release-please.yaml` secara manual dari `main` dengan masukan `tag` berisi tag draft tersebut.
 - APK rilis belum memiliki Google Sign-In, dan layar pemindai tertutup selama modelnya masih model pengganti.
 - `versionCode` di `app/build.gradle.kts` tidak diperbarui otomatis. Naikkan angkanya secara manual sebelum mengunggah build ke Play Store.
 

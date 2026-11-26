@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: A draft release to build, sign and publish again, such as v0.1.0. Leave empty otherwise.
+        required: false
+        type: string
 
 concurrency:
   group: release-please-${{ github.ref }}
@@ -46,20 +51,23 @@ jobs:
           manifest-file: .release-please-manifest.json
 
   # The release stays a draft until the APK is attached, because a published release cannot be changed. When one of these two
-  # jobs fails, rerun the failed jobs of the run.
+  # jobs fails, rerun the failed jobs, or run this workflow by hand with the tag of the draft. They also run when Release
+  # Please created the release and then failed at a later step.
   release-build:
     name: Release APK
     needs: release-please
-    if: needs.release-please.outputs.release_created == 'true'
+    if: ${{ !cancelled() && (needs.release-please.outputs.release_created == 'true' || inputs.tag != '') }}
     permissions:
       contents: read
     uses: ./.github/workflows/release-build.yaml
     with:
-      ref: ${{ needs.release-please.outputs.tag_name }}
+      # The full name, so that a branch with the name of a tag is never built
+      ref: refs/tags/${{ inputs.tag || needs.release-please.outputs.tag_name }}
 
   publish:
     name: Sign and publish the release
     needs: [release-please, release-build]
+    if: ${{ !cancelled() && needs.release-build.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # The signing key is a secret of the release environment. This job runs no code of the repository.
@@ -78,11 +86,16 @@ jobs:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ vars.ANDROID_KEY_ALIAS }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
           # The public fingerprint of the signing certificate. A build signed with another key could not update an installed app.
           EXPECTED_CERTIFICATE: 9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb
         run: |
           set -euo pipefail
+
+          if ! grep -qxE 'v[0-9]+\.[0-9]+\.[0-9]+' <<<"$TAG"; then
+            echo "::error title=Wrong tag::A release tag looks like v1.2.3."
+            exit 1
+          fi
 
           tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
           keystore="$RUNNER_TEMP/release.p12"
@@ -107,9 +120,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          TAG: ${{ needs.release-please.outputs.tag_name }}
+          TAG: ${{ inputs.tag || needs.release-please.outputs.tag_name }}
         run: |
           set -euo pipefail
 
+          if [ "$(gh release view "$TAG" --json isDraft --jq .isDraft)" != true ]; then
+            echo "::error title=Not a draft::$TAG has no draft release, and a published release cannot be changed."
+            exit 1
+          fi
+
+          # A rerun of an older release must not take the Latest label from a newer one. The first release has none yet.
+          if ! latest="$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name 2>/dev/null)"; then
+            latest=""
+          fi
+          label="--latest=false"
+          if [ "$(printf '%s\n%s\n' "$latest" "$TAG" | sort -V | tail -n 1)" = "$TAG" ]; then
+            label="--latest"
+          fi
+
           gh release upload "$TAG" "release/kibooz-app-$TAG.apk" "release/kibooz-app-$TAG.apk.sha256" --clobber
-          gh release edit "$TAG" --draft=false --latest
+          gh release edit "$TAG" --draft=false "$label"
