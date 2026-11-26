@@ -118,9 +118,7 @@ class DetailKelasActivity : AppCompatActivity() {
                     if (activeClassId.isNullOrBlank()) activeClassId = match?.id
                     if (match != null) {
                         if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = match.name
-                        if (match.joinCode.isNotBlank()) {
-                            showClassCode(match.joinCode)
-                        }
+                        showClassCode(ClassCode.fromServer(match.joinCode))
                         count = match.totalStudents
                     }
                 }
@@ -130,9 +128,7 @@ class DetailKelasActivity : AppCompatActivity() {
                         val st = dash.data.student
                         if (activeClassId.isNullOrBlank()) activeClassId = st.classId
                         if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = st.className
-                        st.joinCode?.takeIf { it.isNotBlank() }?.let { liveCode ->
-                            showClassCode(liveCode)
-                        }
+                        showClassCode(ClassCode.fromServer(st.joinCode))
                     }
                     else -> {}
                 }
