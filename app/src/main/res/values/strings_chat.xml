@@ -76,6 +76,15 @@
     <string name="chat_kirim_ulang">Kirim ulang</string>
     <string name="chat_buang">Buang</string>
 
+    <!-- Galat lampiran foto dan video -->
+    <string name="chat_error_jenis_lampiran">Hanya foto atau video yang bisa dilampirkan</string>
+    <string name="chat_error_format_video">Video harus berformat MP4 atau WebM</string>
+    <string name="chat_error_video_terlalu_besar">Video terlalu besar, paling banyak 25 MB</string>
+    <string name="chat_error_lampiran_tidak_terbaca">Berkas tidak bisa dibaca. Pilih berkas lain</string>
+    <string name="chat_error_berkas_berubah">Berkas lampiran berubah atau hilang. Buang pesan ini lalu pilih berkasnya lagi</string>
+    <string name="chat_error_unggah_ditolak">Unggahan ditolak. Coba kirim ulang</string>
+    <string name="chat_error_lampiran_belum_diterima">Lampiran belum diterima server. Kirim ulang untuk mengunggahnya lagi</string>
+
     <!-- Hapus pesan sendiri -->
     <string name="chat_hapus_aksi">Hapus pesan</string>
     <string name="chat_hapus_judul">Hapus pesan ini?</string>
