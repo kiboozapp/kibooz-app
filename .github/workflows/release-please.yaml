@@ -21,6 +21,9 @@ jobs:
     environment: release
     # The token comes from the App, so the job needs nothing from the default GITHUB_TOKEN
     permissions: {}
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       # A pull request that the default GITHUB_TOKEN creates starts no other workflow, and the required checks would never report.
       # The App is also the only actor that the tag ruleset lets create a version tag.
@@ -35,8 +38,78 @@ jobs:
           permission-issues: write
 
       - name: Run release-please
+        id: release
         uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           token: ${{ steps.app-token.outputs.token }}
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+
+  # The release stays a draft until the APK is attached, because a published release cannot be changed. When one of these two
+  # jobs fails, rerun the failed jobs of the run.
+  release-build:
+    name: Release APK
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/release-build.yaml
+    with:
+      ref: ${{ needs.release-please.outputs.tag_name }}
+
+  publish:
+    name: Sign and publish the release
+    needs: [release-please, release-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The signing key is a secret of the release environment. This job runs no code of the repository.
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Download the unsigned release APK
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: kibooz-release-unsigned
+          path: unsigned
+
+      - name: Sign the APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ vars.ANDROID_KEY_ALIAS }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+          # The public fingerprint of the signing certificate. A build signed with another key could not update an installed app.
+          EXPECTED_CERTIFICATE: 9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb
+        run: |
+          set -euo pipefail
+
+          tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          keystore="$RUNNER_TEMP/release.p12"
+          trap 'rm -f "$keystore"' EXIT
+          base64 --decode <<<"$KEYSTORE_BASE64" >"$keystore"
+
+          mkdir release
+          apk="release/kibooz-app-$TAG.apk"
+          "$tools/zipalign" -c 4 unsigned/app-release-unsigned.apk
+          "$tools/apksigner" sign --ks "$keystore" --ks-key-alias "$KEY_ALIAS" --ks-pass env:KEYSTORE_PASSWORD --out "$apk" \
+            unsigned/app-release-unsigned.apk
+
+          certificates="$("$tools/apksigner" verify --print-certs "$apk" | sed -n 's/^.*certificate SHA-256 digest: //p' | sort -u)"
+          if [ "$certificates" != "$EXPECTED_CERTIFICATE" ]; then
+            echo "::error title=Wrong signing key::The APK is signed by an unexpected certificate."
+            exit 1
+          fi
+
+          (cd release && sha256sum "kibooz-app-$TAG.apk" >"kibooz-app-$TAG.apk.sha256")
+
+      - name: Attach the APK and publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ needs.release-please.outputs.tag_name }}
+        run: |
+          set -euo pipefail
+
+          gh release upload "$TAG" "release/kibooz-app-$TAG.apk" "release/kibooz-app-$TAG.apk.sha256" --clobber
+          gh release edit "$TAG" --draft=false --latest
