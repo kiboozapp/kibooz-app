@@ -244,7 +244,9 @@ class DetailKelasActivity : AppCompatActivity() {
     private fun showClassCode(code: String) {
         currentKodeKelas = code
         binding.tvKodeKelas.text = code
-        binding.rowKodeKelas.visibility = if (code.isNotBlank()) View.VISIBLE else View.GONE
+        val rowVisibility = if (code.isNotBlank()) View.VISIBLE else View.GONE
+        binding.dividerKodeKelas.visibility = rowVisibility
+        binding.rowKodeKelas.visibility = rowVisibility
         binding.ivShareKelas.visibility = if (isTeacherRole && code.isNotBlank()) View.VISIBLE else View.GONE
     }
 
