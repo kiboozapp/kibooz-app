@@ -40,6 +40,8 @@ Pull request memicu dua pengecekan untuk format. Pengecekan "Conventional commit
 
 Kedua pengecekan ini termasuk pengecekan wajib di ruleset `main`, sehingga pull request tidak bisa digabung selama salah satunya gagal. Daftar lengkap pengecekan wajib dan aturan branch ada di [docs/ci-cd.md](docs/ci-cd.md).
 
+Workflow di pull request dari fork menunggu persetujuan maintainer sebelum berjalan. Kontributor dari fork biasanya tidak bisa memasang label atau assignee, jadi maintainer yang memasangnya.
+
 Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahkannya, jalankan ulang pengecekan "PR format" dari tab Checks.
 
 ## Melaporkan masalah

@@ -9,8 +9,14 @@ Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
 - Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
-- Delapan pengecekan wajib berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks) dan Trivy filesystem scan.
-- Branch pull request tidak harus mutakhir terhadap `main`, dan commit tidak wajib ditandatangani.
+- Delapan pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks) dan Trivy filesystem scan.
+- Branch pull request harus mutakhir terhadap `main` sebelum digabung.
+- Persetujuan review yang sudah ada dibatalkan oleh push baru.
+- Commit tidak wajib ditandatangani.
+
+Mengubah branch tujuan sebuah pull request menjadi `main` hanya menjalankan Conventional commits dan PR format. Pengecekan lain berjalan setelah ada push baru, misalnya saat branch dimutakhirkan.
+
+Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan perubahan, buat branch `revert/deskripsi-singkat` sendiri dengan judul pull request `revert: deskripsi singkat`.
 
 Pengecekan lain, termasuk Actionlint dan Zizmor, hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
