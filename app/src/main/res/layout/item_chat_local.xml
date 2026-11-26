@@ -26,6 +26,15 @@
             android:textSize="12sp"
             android:textStyle="bold" />
 
+        <include
+            android:id="@+id/media"
+            layout="@layout/view_chat_media"
+            android:layout_width="220dp"
+            android:layout_height="165dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="4dp"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/tvBody"
             android:layout_width="wrap_content"
@@ -43,6 +52,17 @@
             android:fontFamily="@font/baloo2"
             android:textColor="@color/kibooz_text_secondary"
             android:textSize="12sp" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progressUpload"
+            android:layout_width="220dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:contentDescription="@string/chat_unggah_cd"
+            android:max="100"
+            android:visibility="gone"
+            app:indicatorColor="@color/kibooz_primary_purple"
+            app:trackColor="@color/kibooz_lavender" />
 
         <TextView
             android:id="@+id/tvError"

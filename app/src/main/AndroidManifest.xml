@@ -204,6 +204,9 @@
             android:name=".ui.chat.ChatActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ui.chat.ChatMediaActivity"
+            android:exported="false" />
 
         <!-- 18. AI Camera Overlay: Scan Mood Kelas (Guru) -->
         <activity

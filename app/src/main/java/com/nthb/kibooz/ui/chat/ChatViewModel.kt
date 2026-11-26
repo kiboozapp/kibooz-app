@@ -6,7 +6,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ApiResult
+import com.nthb.kibooz.data.remote.ChatAttachment
 import com.nthb.kibooz.data.remote.ChatMessage
+import com.nthb.kibooz.data.remote.ERROR_INSECURE_ADDRESS
+import com.nthb.kibooz.data.remote.ERROR_UPLOAD_REJECTED
+import com.nthb.kibooz.data.remote.ERROR_UPLOAD_SOURCE
 import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.remote.messageRes
@@ -34,11 +38,14 @@ data class ChatInfo(
 )
 
 /** Pesan sendiri yang belum diterima server. Tetap ada sampai ada jawaban 2xx atau pengguna membuangnya. */
-data class LocalMessage(val pending: PendingMessage, val status: LocalStatus)
+data class LocalMessage(val pending: PendingMessage, val status: LocalStatus, val attachment: ChatAttachment? = null)
 
 sealed interface LocalStatus {
-    /** Sedang dikirim. [waitSeconds] lebih dari 0 selama menunggu jeda `Retry-After` sebelum percobaan berikutnya. */
-    data class Sending(val waitSeconds: Int = 0) : LocalStatus
+    /**
+     * Sedang dikirim. [waitSeconds] lebih dari 0 selama menunggu jeda `Retry-After` sebelum percobaan berikutnya.
+     * [uploadPercent] terisi selama lampiran diunggah, dan null selama pesannya sendiri dikirim.
+     */
+    data class Sending(val waitSeconds: Int = 0, val uploadPercent: Int? = null) : LocalStatus
 
     /** Gagal terkirim. Kirim ulang memakai kunci yang sama, jadi tidak pernah menulis dua pesan. */
     data class Failed(@StringRes val error: Int) : LocalStatus
@@ -69,10 +76,23 @@ data class ChatState(
     val offline: Boolean = false,
     val notice: ChatNotice? = null,
     /** Teks yang tidak jadi terkirim karena percakapan ditutup. Layar mengembalikannya ke kotak tulis. */
-    val restoreDraft: String? = null
+    val restoreDraft: String? = null,
+    /** Lampiran yang sudah dipilih dan belum dikirim. */
+    val attachment: ChatAttachment? = null,
+    /** Berkas pilihan sedang disiapkan, misalnya foto sedang diperkecil. */
+    val preparing: Boolean = false,
+    /** Server menjawab `STORAGE_UNAVAILABLE`, jadi lampiran tidak ditawarkan lagi. */
+    val attachmentsOff: Boolean = false,
+    /** Pesan yang lampirannya siap dibuka. Layar membukanya lalu memanggil [ChatViewModel.mediaOpened]. */
+    val openMedia: ChatMessage? = null
 ) {
     /** Kotak tulis dan tombol kirim hidup hanya jika percakapan terbuka dan tidak ada pesan yang masih menunggu. */
     val canCompose: Boolean get() = canSend && loaded && local == null
+
+    val canAttach: Boolean get() = canCompose && !preparing && !attachmentsOff
+
+    /** True selagi pesannya sendiri sedang dikirim. Mengunggah lampiran tidak dihitung. */
+    val posting: Boolean get() = (local?.status as? LocalStatus.Sending)?.let { it.uploadPercent == null } == true
 }
 
 /**
@@ -81,6 +101,10 @@ data class ChatState(
  * `Idempotency-Key` untuk tiap pesan yang disimpan sampai ada jawaban 2xx. Selama ada pesan yang menunggu
  * atau gagal, pesan berikutnya tidak bisa dikirim, supaya urutan dan kunci tidak pernah tertukar. Pesan yang
  * belum sampai ke server hilang jika proses mati, dan itu diterima untuk tahap REST ini.
+ *
+ * Lampiran diunggah dulu lalu `mediaKey`-nya ikut disimpan di pesan yang menunggu. Unggahan hidup di
+ * [viewModelScope], jadi memutar layar tidak mengulanginya, dan menutup layar membatalkannya serta menghapus
+ * berkas sementara.
  */
 class ChatViewModel(
     private val repository: ChatRepository,
@@ -89,7 +113,9 @@ class ChatViewModel(
     private val pause: suspend (millis: Long) -> Unit = { delay(it) },
     private val jitter: () -> Long = { Random.nextLong(OUTAGE_JITTER_SECONDS) },
     /** Jam milidetik monoton, untuk menghitung jeda `Retry-After`. */
-    private val now: () -> Long = { System.nanoTime() / 1_000_000L }
+    private val now: () -> Long = { System.nanoTime() / 1_000_000L },
+    private val preparer: AttachmentPreparer =
+        AttachmentPreparer { PreparedAttachment.Rejected(R.string.chat_error_lampiran_tidak_terbaca) }
 ) : ViewModel() {
 
     private val conversationId = info.conversationId
@@ -101,6 +127,11 @@ class ChatViewModel(
 
     private var loadJob: Job? = null
     private var olderJob: Job? = null
+    private var prepareJob: Job? = null
+    private var openJob: Job? = null
+
+    /** Waktu menurut [now] saat alamat lampiran tiap pesan terakhir diminta ulang. */
+    private val mediaRefreshedAt = mutableMapOf<Long, Long>()
 
     private var outageAttempts = 0
     private var pollTicks = 0
@@ -203,12 +234,13 @@ class ChatViewModel(
      * membawa pesan lama yang dihapus lawan bicara, dan menyegarkan `canSend` serta tanda baca lawan bicara.
      *
      * Mengembalikan false jika tick ini belum selesai dan perlu diulang, misalnya selagi muat awal atau kirim masih
-     * jalan, selagi menunggu `Retry-After`, atau jika permintaannya gagal.
+     * jalan, selagi menunggu `Retry-After`, atau jika permintaannya gagal. Unggahan lampiran tidak menahan tick,
+     * karena belum ada pesan yang bisa tampil ganda dan unggahan video bisa lama.
      */
     suspend fun poll(reload: Boolean = false): Boolean {
         val start = _state.value
         if (start.gone) return true
-        if (!start.loaded || start.local?.status is LocalStatus.Sending) return false
+        if (!start.loaded || start.posting) return false
         pollBlockedUntil?.let { if (now() - it < 0) return false }
         pollBlockedUntil = null
         pollTicks++
@@ -238,7 +270,7 @@ class ChatViewModel(
         }
 
         // Pesan sendiri sedang dikirim, jadi hasilnya dibuang dan tick berikutnya mengambilnya lagi tanpa pesan ganda
-        if (_state.value.local?.status is LocalStatus.Sending) return false
+        if (_state.value.posting) return false
 
         advancePollCursor(fetched)
         _state.update { it.copy(offline = false, timeline = it.timeline.merge(fetched)) }
@@ -264,7 +296,7 @@ class ChatViewModel(
             onPollFailure(latest)
             if (latest.status == 429) return false
         }
-        val merged = latest is ApiResult.Success && _state.value.local?.status !is LocalStatus.Sending
+        val merged = latest is ApiResult.Success && !_state.value.posting
         if (latest is ApiResult.Success && merged) {
             advancePollCursor(latest.data.messages)
             _state.update { it.copy(timeline = it.timeline.merge(latest.data.messages)) }
@@ -281,96 +313,240 @@ class ChatViewModel(
         return merged && found is ApiResult.Success
     }
 
+    // Lampiran yang dipilih
+
+    /** Menyiapkan berkas [uri] sebagai lampiran pesan berikutnya, menggantikan yang sudah dipilih. */
+    fun attach(uri: String) {
+        val snapshot = _state.value
+        // Muat awal tidak ditunggu, karena hasil pemilih bisa datang ke proses yang baru hidup lagi
+        if (!snapshot.canSend || snapshot.gone || snapshot.local != null || snapshot.attachmentsOff) return
+
+        removeAttachment()
+        _state.update { it.copy(preparing = true) }
+        prepareJob = viewModelScope.launch {
+            when (val result = preparer.prepare(uri)) {
+                is PreparedAttachment.Ready -> _state.update { it.copy(preparing = false, attachment = result.attachment) }
+                is PreparedAttachment.Rejected -> _state.update {
+                    it.copy(preparing = false, notice = ChatNotice(result.error))
+                }
+            }
+        }
+    }
+
+    /** Membatalkan lampiran yang belum dikirim. */
+    fun removeAttachment() {
+        prepareJob?.cancel()
+        _state.value.attachment?.release()
+        _state.update { it.copy(attachment = null, preparing = false) }
+    }
+
     // Kirim
 
     /**
-     * Mengirim [text] sebagai pesan baru. Mengembalikan true jika pesan diterima untuk dikirim, supaya layar baru
-     * mengosongkan kotak tulis saat itu. Ditolak jika kosong, terlalu panjang, jika percakapan tertutup, atau jika
-     * masih ada pesan sendiri yang menunggu atau gagal.
+     * Mengirim [text] sebagai pesan baru, bersama lampiran yang dipilih jika ada. Mengembalikan true jika pesan
+     * diterima untuk dikirim, supaya layar baru mengosongkan kotak tulis saat itu. Ditolak jika kosong tanpa
+     * lampiran, terlalu panjang, jika percakapan tertutup, selagi lampiran disiapkan, atau jika masih ada pesan
+     * sendiri yang menunggu atau gagal.
      */
     fun send(text: String): Boolean {
         val body = text.trim()
         val snapshot = _state.value
-        if (body.isEmpty() || !snapshot.canCompose) return false
+        val attachment = snapshot.attachment
+        if ((body.isEmpty() && attachment == null) || !snapshot.canCompose || snapshot.preparing) return false
         if (body.length > MAX_BODY_LENGTH) {
             _state.update { it.copy(notice = ChatNotice(R.string.chat_error_terlalu_panjang)) }
             return false
         }
 
-        launchSend(LocalMessage(PendingMessage(body), LocalStatus.Sending()))
+        _state.update { it.copy(attachment = null) }
+        launchSend(PendingMessage(body), attachment)
         return true
     }
 
-    /** Mengirim ulang pesan yang gagal dengan kunci yang sama. */
+    /** Mengirim ulang pesan yang gagal dengan kunci yang sama. Lampiran yang sudah terunggah tidak diunggah lagi. */
     fun retry() {
         val local = _state.value.local ?: return
         if (local.status !is LocalStatus.Failed) return
 
-        launchSend(local.copy(status = LocalStatus.Sending()))
+        launchSend(local.pending, local.attachment)
     }
 
     /** Membuang pesan yang gagal supaya pesan berikutnya bisa dikirim. Server mungkin sudah menerimanya, dan itu muncul lewat polling. */
     fun discardFailed() {
-        _state.update { if (it.local?.status is LocalStatus.Failed) it.copy(local = null) else it }
+        val local = _state.value.local ?: return
+        if (local.status !is LocalStatus.Failed) return
+
+        local.attachment?.release()
+        _state.update { it.copy(local = null) }
     }
 
-    private fun launchSend(local: LocalMessage) {
-        _state.update { it.copy(local = local) }
-        viewModelScope.launch { deliver(local.pending) }
+    private fun launchSend(pending: PendingMessage, attachment: ChatAttachment?) {
+        val needsUpload = attachment != null && pending.mediaKey == null
+        showSending(pending, attachment, uploadPercent = if (needsUpload) 0 else null)
+        viewModelScope.launch { deliver(pending, attachment) }
     }
 
-    private suspend fun deliver(pending: PendingMessage) {
-        val first = sendOnce(pending)
-        val result = if (first is ApiResult.Failure && first.errorCode == IN_PROGRESS) {
-            // Percobaan pertama dengan kunci ini masih berjalan di server, tunggu lalu kirim sekali lagi
-            pause(IN_PROGRESS_WAIT_MILLIS)
-            sendOnce(pending)
-        } else {
-            first
+    private suspend fun deliver(start: PendingMessage, attachment: ChatAttachment?) {
+        // Kunci unggahan dari percobaan sebelumnya bisa sudah tidak berlaku, jadi boleh diunggah ulang sekali
+        val keyMayBeStale = start.mediaKey != null
+        var pending = start
+        if (attachment != null && pending.mediaKey == null) pending = upload(pending, attachment) ?: return
+
+        var result = post(pending)
+        if (attachment != null && keyMayBeStale && result.rejectsMediaKey()) {
+            pending = upload(pending.withMediaKey(null), attachment) ?: return
+            result = post(pending)
         }
 
         when (result) {
             is ApiResult.Success -> {
+                attachment?.release()
                 _state.update { it.copy(timeline = it.timeline.merge(listOf(result.data)), local = null) }
                 markReadIfSeen()
             }
-            is ApiResult.Failure -> onSendFailure(pending, result)
-            is ApiResult.NetworkError -> setFailed(pending, R.string.error_network)
+            is ApiResult.Failure -> onSendFailure(pending, attachment, result)
+            is ApiResult.NetworkError -> setFailed(pending, attachment, R.string.error_network)
         }
     }
 
-    private suspend fun sendOnce(pending: PendingMessage): ApiResult<ChatMessage> = retryWhenRateLimited(
-        onWait = { secondsLeft ->
-            _state.update { state ->
-                state.local?.let { state.copy(local = it.copy(status = LocalStatus.Sending(secondsLeft))) } ?: state
-            }
-        },
-        pause = pause
-    ) { repository.send(conversationId, pending) }
+    /** Mengunggah lampiran dan mengembalikan pesan dengan `mediaKey`-nya, atau null setelah menampilkan kegagalannya. */
+    private suspend fun upload(pending: PendingMessage, attachment: ChatAttachment): PendingMessage? {
+        showSending(pending, attachment, uploadPercent = 0)
+        val result = retryWhenRateLimited(onWait = ::showWait, pause = pause) {
+            repository.upload(conversationId, attachment) { sent -> showProgress(sent, attachment.sizeBytes) }
+        }
 
-    private fun onSendFailure(pending: PendingMessage, failure: ApiResult.Failure) {
-        when (failure.errorCode) {
-            SENDING_CLOSED -> _state.update {
-                it.copy(
-                    local = null,
-                    canSend = false,
-                    restoreDraft = pending.body,
-                    notice = ChatNotice(failure.messageRes())
-                )
+        return when (result) {
+            is ApiResult.Success -> pending.withMediaKey(result.data).also { showSending(it, attachment, uploadPercent = null) }
+            is ApiResult.Failure -> {
+                onSendFailure(pending, attachment, result)
+                null
             }
-            CONVERSATION_NOT_FOUND -> _state.update {
-                it.copy(local = null, gone = true, loadError = failure.messageRes(), restoreDraft = pending.body)
+            is ApiResult.NetworkError -> {
+                setFailed(pending, attachment, R.string.error_network)
+                null
+            }
+        }
+    }
+
+    private suspend fun post(pending: PendingMessage): ApiResult<ChatMessage> {
+        val first = sendOnce(pending)
+        if (first !is ApiResult.Failure || first.errorCode != IN_PROGRESS) return first
+
+        // Percobaan pertama dengan kunci ini masih berjalan di server, tunggu lalu kirim sekali lagi
+        pause(IN_PROGRESS_WAIT_MILLIS)
+        return sendOnce(pending)
+    }
+
+    private suspend fun sendOnce(pending: PendingMessage): ApiResult<ChatMessage> =
+        retryWhenRateLimited(onWait = ::showWait, pause = pause) { repository.send(conversationId, pending) }
+
+    private fun showSending(pending: PendingMessage, attachment: ChatAttachment?, uploadPercent: Int?) {
+        val status = LocalStatus.Sending(uploadPercent = uploadPercent)
+        _state.update { it.copy(local = LocalMessage(pending, status, attachment)) }
+    }
+
+    private fun showWait(secondsLeft: Int) = updateSending { it.copy(waitSeconds = secondsLeft) }
+
+    // Dipanggil dari thread jaringan. Dibulatkan ke kelipatan 5 supaya layar tidak digambar ulang tiap potongan
+    private fun showProgress(sentBytes: Long, totalBytes: Long) {
+        val percent = (sentBytes * 100 / totalBytes.coerceAtLeast(1)).toInt().coerceIn(0, 100)
+        updateSending { if (it.uploadPercent == null) it else it.copy(uploadPercent = percent - percent % PROGRESS_STEP) }
+    }
+
+    private fun updateSending(change: (LocalStatus.Sending) -> LocalStatus.Sending) {
+        _state.update { state ->
+            val local = state.local ?: return@update state
+            val status = local.status as? LocalStatus.Sending ?: return@update state
+            state.copy(local = local.copy(status = change(status)))
+        }
+    }
+
+    private fun onSendFailure(pending: PendingMessage, attachment: ChatAttachment?, failure: ApiResult.Failure) {
+        when {
+            failure.errorCode == SENDING_CLOSED -> giveBack(pending, attachment) {
+                it.copy(canSend = false, notice = ChatNotice(failure.messageRes()))
+            }
+            failure.errorCode == CONVERSATION_NOT_FOUND -> giveBack(pending, attachment) {
+                it.copy(gone = true, loadError = failure.messageRes())
+            }
+            // Mencoba lagi tidak menolong selama server tidak punya tempat menyimpan berkas
+            failure.errorCode == STORAGE_UNAVAILABLE && attachment != null -> giveBack(pending, attachment) {
+                it.copy(attachmentsOff = true, notice = ChatNotice(failure.messageRes()))
             }
             // Kunci ini sudah dipakai untuk isi lain, jadi pesan yang sama mendapat kunci baru untuk percobaan berikutnya
-            KEY_REUSED -> _state.update {
-                it.copy(local = LocalMessage(PendingMessage(pending.body), LocalStatus.Failed(failure.messageRes())))
-            }
-            else -> setFailed(pending, failure.messageRes())
+            failure.errorCode == KEY_REUSED -> setFailed(
+                PendingMessage(pending.body, mediaKey = pending.mediaKey),
+                attachment,
+                failure.messageRes()
+            )
+            attachment != null && failure.rejectsMediaKey() ->
+                setFailed(pending.withMediaKey(null), attachment, R.string.chat_error_lampiran_belum_diterima)
+            failure.errorCode == ERROR_UPLOAD_SOURCE ->
+                setFailed(pending, attachment, R.string.chat_error_berkas_berubah)
+            failure.errorCode == ERROR_UPLOAD_REJECTED || failure.errorCode == ERROR_INSECURE_ADDRESS ->
+                setFailed(pending, attachment, R.string.chat_error_unggah_ditolak)
+            else -> setFailed(pending, attachment, failure.messageRes())
         }
     }
 
-    private fun setFailed(pending: PendingMessage, @StringRes error: Int) {
-        _state.update { it.copy(local = LocalMessage(pending, LocalStatus.Failed(error))) }
+    /** Membatalkan pesan yang tidak akan pernah terkirim. Teksnya kembali ke kotak tulis dan lampirannya dibuang. */
+    private fun giveBack(pending: PendingMessage, attachment: ChatAttachment?, change: (ChatState) -> ChatState) {
+        attachment?.release()
+        _state.update { change(it.copy(local = null, restoreDraft = pending.body)) }
+    }
+
+    private fun setFailed(pending: PendingMessage, attachment: ChatAttachment?, @StringRes error: Int) {
+        _state.update { it.copy(local = LocalMessage(pending, LocalStatus.Failed(error), attachment)) }
+    }
+
+    private fun ApiResult<*>.rejectsMediaKey(): Boolean =
+        this is ApiResult.Failure && this.errorCode == VALIDATION_ERROR && this.details?.containsKey("mediaKey") == true
+
+    // Lampiran pesan
+
+    /** Meminta lampiran sebuah pesan dibuka. Alamatnya diminta ulang dulu, karena alamat lama bisa sudah habis. */
+    fun openMedia(messageId: Long) {
+        if (openJob?.isActive == true) return
+        val shown = messageWithMedia(messageId) ?: return
+
+        openJob = viewModelScope.launch {
+            // Jika permintaannya gagal, pesan yang ada tetap dibuka karena fotonya bisa sudah tersimpan
+            val latest = fetchMessage(messageId) ?: shown
+            _state.update {
+                if (latest.deleted || latest.media == null) {
+                    it.copy(notice = ChatNotice(R.string.chat_pesan_dihapus))
+                } else {
+                    it.copy(openMedia = latest)
+                }
+            }
+        }
+    }
+
+    /**
+     * Meminta alamat baru untuk lampiran yang gagal dimuat, paling sering sekali semenit untuk tiap pesan dan paling
+     * banyak [MEDIA_REFRESH_LIMIT] pesan dalam semenit, supaya banyak foto gagal tidak menghabiskan batas permintaan.
+     */
+    fun refreshMedia(messageId: Long) {
+        if (messageWithMedia(messageId) == null) return
+        val last = mediaRefreshedAt[messageId]
+        if (last != null && now() - last < MEDIA_REFRESH_GAP_MILLIS) return
+        if (mediaRefreshedAt.values.count { now() - it < MEDIA_REFRESH_GAP_MILLIS } >= MEDIA_REFRESH_LIMIT) return
+
+        mediaRefreshedAt[messageId] = now()
+        viewModelScope.launch { fetchMessage(messageId) }
+    }
+
+    private fun messageWithMedia(messageId: Long): ChatMessage? =
+        _state.value.timeline.messages.firstOrNull { it.id == messageId && !it.deleted && it.media != null }
+
+    /** Tidak ada rute untuk satu pesan, tetapi `before` id sesudahnya dengan batas 1 mengembalikan pesan itu. */
+    private suspend fun fetchMessage(messageId: Long): ChatMessage? {
+        val result = repository.olderMessages(conversationId, messageId + 1, limit = 1)
+        val message = (result as? ApiResult.Success)?.data?.messages?.firstOrNull { it.id == messageId } ?: return null
+        // Kursor polling sengaja tidak digeser, karena jawaban satu pesan bisa melompati pesan yang belum diambil
+        _state.update { it.copy(timeline = it.timeline.merge(listOf(message))) }
+        return message
     }
 
     // Hapus pesan sendiri
@@ -447,13 +623,31 @@ class ChatViewModel(
         _state.update { it.copy(restoreDraft = null) }
     }
 
+    fun mediaOpened() {
+        _state.update { it.copy(openMedia = null) }
+    }
+
+    // Unggahan sudah batal bersama viewModelScope, tinggal berkas sementaranya
+    override fun onCleared() {
+        _state.value.attachment?.release()
+        _state.value.local?.attachment?.release()
+    }
+
     class Factory(
         private val repository: ChatRepository,
         private val info: ChatInfo,
-        private val ownUserId: String
+        private val ownUserId: String,
+        private val preparer: AttachmentPreparer? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T = ChatViewModel(repository, info, ownUserId) as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            val viewModel = if (preparer == null) {
+                ChatViewModel(repository, info, ownUserId)
+            } else {
+                ChatViewModel(repository, info, ownUserId, preparer = preparer)
+            }
+            return viewModel as T
+        }
     }
 
     private companion object {
@@ -472,6 +666,12 @@ class ChatViewModel(
 
         const val IN_PROGRESS_WAIT_MILLIS = 2_000L
 
+        const val PROGRESS_STEP = 5
+        const val MEDIA_REFRESH_GAP_MILLIS = 60_000L
+        const val MEDIA_REFRESH_LIMIT = 10
+
+        const val STORAGE_UNAVAILABLE = "STORAGE_UNAVAILABLE"
+        const val VALIDATION_ERROR = "VALIDATION_ERROR"
         const val CONVERSATION_NOT_FOUND = "CHAT_CONVERSATION_NOT_FOUND"
         const val MESSAGE_NOT_FOUND = "CHAT_MESSAGE_NOT_FOUND"
         const val SENDING_CLOSED = "CHAT_SENDING_CLOSED"

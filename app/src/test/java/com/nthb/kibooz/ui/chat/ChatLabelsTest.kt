@@ -43,6 +43,25 @@ class ChatLabelsTest {
         assertEquals(PreviewKind.EMPTY, message(1, body = "  ").previewKind())
     }
 
+    // Lampiran
+
+    @Test
+    fun `a bubble shows a photo or a video, and nothing for a deleted or unknown attachment`() {
+        assertEquals("photo", message(1, body = "lihat", media = ChatMedia("photo")).shownMedia()?.kind)
+        assertEquals("video", message(1, body = "", media = ChatMedia("video")).shownMedia()?.kind)
+        assertNull(message(1, deleted = true, media = ChatMedia("photo")).shownMedia())
+        assertNull(message(1, media = ChatMedia("audio")).shownMedia())
+        assertNull(message(1).shownMedia())
+    }
+
+    @Test
+    fun `a file size reads in KB below one MB and in MB with an Indonesian comma above`() {
+        assertEquals("1 KB", fileSizeLabel(1))
+        assertEquals("320 KB", fileSizeLabel(320L * 1024))
+        assertEquals("3,2 MB", fileSizeLabel(3_354_000))
+        assertEquals("25,0 MB", fileSizeLabel(25L * 1024 * 1024))
+    }
+
     // Nama
 
     @Test

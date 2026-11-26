@@ -272,37 +272,116 @@
             android:id="@+id/llComposer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="bottom"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <EditText
-                android:id="@+id/etMessage"
-                android:layout_width="0dp"
+            <!-- Lampiran yang dipilih dan belum dikirim -->
+            <LinearLayout
+                android:id="@+id/llAttachment"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:layout_weight="1"
-                android:background="@drawable/bg_chat_input"
-                android:fontFamily="@font/baloo2"
-                android:hint="@string/chat_tulis_hint"
-                android:importantForAutofill="no"
-                android:inputType="textCapSentences|textMultiLine"
-                android:maxLength="4000"
-                android:maxLines="5"
-                android:minHeight="48dp"
-                android:paddingHorizontal="16dp"
-                android:paddingVertical="10dp"
-                android:textColor="@color/kibooz_text_dark"
-                android:textColorHint="@color/kibooz_text_secondary"
-                android:textSize="15sp" />
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
 
-            <ImageButton
-                android:id="@+id/btnSend"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:background="@drawable/bg_button_purple"
-                android:contentDescription="@string/chat_kirim_cd"
-                android:padding="12dp"
-                android:src="@drawable/ic_send" />
+                <FrameLayout
+                    android:layout_width="56dp"
+                    android:layout_height="56dp">
+
+                    <ImageView
+                        android:id="@+id/ivAttachment"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_chat_media"
+                        android:importantForAccessibility="no" />
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/progressAttachment"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:importantForAccessibility="no"
+                        android:indeterminate="true"
+                        android:visibility="gone"
+                        app:indicatorSize="28dp" />
+
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/tvAttachment"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_weight="1"
+                    android:accessibilityLiveRegion="polite"
+                    android:fontFamily="@font/baloo2"
+                    android:textColor="@color/kibooz_text_primary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/btnRemoveAttachment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/baloo2"
+                    android:gravity="center"
+                    android:paddingHorizontal="14dp"
+                    android:text="@string/chat_buang"
+                    android:textColor="@color/kibooz_purple_dark"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="bottom"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/btnAttach"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/chat_lampirkan_cd"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_attach" />
+
+                <EditText
+                    android:id="@+id/etMessage"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_chat_input"
+                    android:fontFamily="@font/baloo2"
+                    android:hint="@string/chat_tulis_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="textCapSentences|textMultiLine"
+                    android:maxLength="4000"
+                    android:maxLines="5"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/kibooz_text_dark"
+                    android:textColorHint="@color/kibooz_text_secondary"
+                    android:textSize="15sp" />
+
+                <ImageButton
+                    android:id="@+id/btnSend"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_button_purple"
+                    android:contentDescription="@string/chat_kirim_cd"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_send" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
