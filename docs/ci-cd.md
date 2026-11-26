@@ -18,6 +18,8 @@ Mengubah branch tujuan sebuah pull request menjadi `main` hanya menjalankan Conv
 
 Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan perubahan, buat branch `revert/deskripsi-singkat` sendiri dengan judul pull request `revert: deskripsi singkat`.
 
+Zizmor memakai data terbaru dari GitHub, jadi temuan baru pada action yang sudah dipakai bisa membuat semua pull request gagal. Jalan keluarnya adalah pull request yang memperbarui action itu, atau yang menambahkan pengecualian beserta alasannya di `.github/zizmor.yml`.
+
 Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
 ## Daftar workflow
