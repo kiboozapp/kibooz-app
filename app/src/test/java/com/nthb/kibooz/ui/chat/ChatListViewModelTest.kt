@@ -22,6 +22,7 @@ import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
@@ -173,6 +174,26 @@ class ChatListViewModelTest {
         viewModel.refreshQuietly()
 
         assertEquals(calls, chatApi.conversationPages.size)
+    }
+
+    @Test
+    fun `a tick reloads the list, and a rate limit stops further requests until Retry-After passed`() = runBlocking {
+        var clock = 0L
+        val viewModel = ChatListViewModel(repository, classes, Role.GURU, jitter = { 0L }, now = { clock })
+        chatApi.conversationsReply = { _ -> failure(429, "RATE_LIMITED", retryAfter = "10") }
+
+        assertFalse(viewModel.refreshOnTick())
+        val calls = chatApi.conversationPages.size
+
+        clock = 9_999L
+        assertFalse(viewModel.refreshOnTick())
+        viewModel.refreshQuietly()
+        assertEquals(calls, chatApi.conversationPages.size)
+
+        clock = 10_000L
+        chatApi.conversationsReply = { page -> ok(ChatConversationList(page, 50, 1, listOf(direct("z")))) }
+        assertTrue(viewModel.refreshOnTick())
+        assertEquals(listOf("z"), viewModel.state.value.conversations.data?.map { it.id })
     }
 
     // Mulai baru

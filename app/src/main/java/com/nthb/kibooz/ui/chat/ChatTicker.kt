@@ -27,6 +27,12 @@ const val CHAT_SAFETY_INTERVAL_MILLIS = 30_000L
 /** Sela polling daftar percakapan selagi socket putus. Daftar tidak dipoll sebelum ada socket, jadi sela ini lebih longgar dari layar percakapan. */
 const val CHAT_LIST_POLL_INTERVAL_MILLIS = 15_000L
 
+/** Sela sebelum tick yang belum selesai diminta lagi selagi socket tersambung. */
+const val CHAT_TICK_RETRY_MILLIS = 5_000L
+
+/** Sela terpendek antara dua tick, supaya ruang yang ramai tidak menghabiskan batas permintaan API. */
+const val CHAT_TICK_GAP_MILLIS = 2_000L
+
 /** Server mengirim `resync` ke semua socket sekaligus, jadi tiap aplikasi menunggu acak sampai selama ini. */
 const val CHAT_RESYNC_JITTER_MILLIS = 3_000L
 
@@ -37,8 +43,11 @@ const val CHAT_RESYNC_JITTER_MILLIS = 3_000L
  * sebelum ada socket.
  *
  * Tick yang menumpuk selagi tick sebelumnya berjalan digabung jadi satu, dan [ChatTick.RELOAD] menang atas
- * [ChatTick.NEW]. Dua tick tidak pernah berjalan bersamaan. Frame tidak membawa id pesan, jadi tidak ada jalan
- * bagi frame untuk menggeser kursor.
+ * [ChatTick.NEW]. Dua tick tidak pernah berjalan bersamaan, dan jaraknya paling sedikit [minGapMillis]. Frame
+ * tidak membawa id pesan, jadi tidak ada jalan bagi frame untuk menggeser kursor.
+ *
+ * `onTick` mengembalikan false jika tick itu belum selesai. Selagi socket tersambung tick yang sama diminta lagi
+ * sesudah [retryMillis], karena tick berikutnya bisa lama. Selagi putus, polling sudah mengulanginya.
  *
  * Berhenti saat coroutine pemanggilnya dibatalkan, misalnya lewat `repeatOnLifecycle`, dan melepas socket saat itu.
  */
@@ -48,13 +57,19 @@ class ChatTicker(
     private val safetyMillis: Long = CHAT_SAFETY_INTERVAL_MILLIS,
     private val catchUpOnStart: Boolean = true,
     private val pause: suspend (millis: Long) -> Unit = { delay(it) },
-    private val resyncJitter: () -> Long = { Random.nextLong(CHAT_RESYNC_JITTER_MILLIS) }
+    private val resyncJitter: () -> Long = { Random.nextLong(CHAT_RESYNC_JITTER_MILLIS) },
+    private val retryMillis: Long = CHAT_TICK_RETRY_MILLIS,
+    private val minGapMillis: Long = CHAT_TICK_GAP_MILLIS,
+    private val gap: suspend (millis: Long) -> Unit = { delay(it) }
 ) {
-    suspend fun run(tickFor: (ChatFrame) -> ChatTick?, onTick: suspend (ChatTick) -> Unit) {
+    suspend fun run(tickFor: (ChatFrame) -> ChatTick?, onTick: suspend (ChatTick) -> Boolean) {
         // Tingkat tick yang menunggu, NONE jika tidak ada. Dikosongkan hanya oleh pengonsumsi di bawah
         val pending = AtomicInteger(NONE)
         val wake = Channel<Unit>(Channel.CONFLATED)
         val resyncWaiting = AtomicBoolean(false)
+        // Tingkat tick yang harus diulang, dan apakah jeda ulangnya sedang berjalan
+        val retryLevel = AtomicInteger(NONE)
+        val retryWaiting = AtomicBoolean(false)
 
         fun request(tick: ChatTick) {
             val level = if (tick == ChatTick.RELOAD) LEVEL_RELOAD else LEVEL_NEW
@@ -95,13 +110,30 @@ class ChatTicker(
 
                 for (signal in wake) {
                     val level = pending.getAndSet(NONE)
-                    if (level != NONE) onTick(if (level == LEVEL_RELOAD) ChatTick.RELOAD else ChatTick.NEW)
+                    if (level == NONE) continue
+
+                    if (onTick(tickOf(level))) {
+                        retryLevel.updateAndGet { if (it <= level) NONE else it }
+                    } else if (link.connected.value) {
+                        retryLevel.updateAndGet { maxOf(it, level) }
+                        if (retryWaiting.compareAndSet(false, true)) {
+                            launch {
+                                pause(retryMillis)
+                                retryWaiting.set(false)
+                                val again = retryLevel.getAndSet(NONE)
+                                if (again != NONE) request(tickOf(again))
+                            }
+                        }
+                    }
+                    gap(minGapMillis)
                 }
             }
         } finally {
             link.release()
         }
     }
+
+    private fun tickOf(level: Int): ChatTick = if (level == LEVEL_RELOAD) ChatTick.RELOAD else ChatTick.NEW
 
     private companion object {
         const val NONE = 0

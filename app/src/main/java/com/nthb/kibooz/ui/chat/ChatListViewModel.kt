@@ -52,6 +52,9 @@ data class ChatListState(
     val opened: ChatConversation? = null
 )
 
+/** Jeda muat ulang di belakang layar setelah 429 tanpa `Retry-After`. */
+private const val QUIET_WAIT_SECONDS = 30L
+
 /** Kunci "sedang dibuka" untuk satu kontak. */
 fun openingKey(contact: ChatContact): String = "u:${contact.id}"
 
@@ -67,7 +70,9 @@ class ChatListViewModel(
     private val repository: ChatRepository,
     private val classes: ClassRepository,
     private val role: Role?,
-    private val jitter: () -> Long = { Random.nextLong(OUTAGE_JITTER_SECONDS) }
+    private val jitter: () -> Long = { Random.nextLong(OUTAGE_JITTER_SECONDS) },
+    /** Jam milidetik monoton, untuk menghitung jeda `Retry-After`. */
+    private val now: () -> Long = { System.nanoTime() / 1_000_000L }
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(ChatListState())
@@ -76,6 +81,8 @@ class ChatListViewModel(
     private var conversationsJob: Job? = null
     private var startersJob: Job? = null
     private var outageAttempts = 0
+    private var quietFailed = false
+    private var quietBlockedUntil: Long? = null
 
     init {
         loadConversations()
@@ -102,14 +109,45 @@ class ChatListViewModel(
     fun refreshQuietly() {
         val snapshot = _state.value
         if (snapshot.conversations.data == null || snapshot.conversations.loading) return
+        // Muat yang sedang jalan tidak dibatalkan, supaya frame yang beruntun tidak membuatnya tidak pernah selesai
+        if (conversationsJob?.isActive == true || quietBlocked()) return
 
-        conversationsJob?.cancel()
-        conversationsJob = viewModelScope.launch {
+        startQuietRefresh()
+    }
+
+    /**
+     * Satu tick dari [ChatTicker]. Menunggu sampai muat ulang selesai, supaya tick yang menumpuk digabung. Mengembalikan
+     * false jika perlu diulang, yaitu muat lain masih jalan, masih menunggu `Retry-After`, atau muat ulang gagal.
+     */
+    suspend fun refreshOnTick(): Boolean {
+        val running = conversationsJob?.takeIf { it.isActive }
+        if (running != null) {
+            // Muat itu mungkin dimulai sebelum frame ini, jadi diminta lagi
+            running.join()
+            return false
+        }
+        if (quietBlocked()) return false
+        val section = _state.value.conversations
+        if (section.data == null) return !section.loading
+
+        startQuietRefresh().join()
+        return !quietFailed
+    }
+
+    private fun quietBlocked(): Boolean = quietBlockedUntil?.let { now() - it < 0 } ?: false
+
+    private fun startQuietRefresh(): Job {
+        val job = viewModelScope.launch {
             val result = repository.allConversations()
+            quietFailed = result !is ApiResult.Success
             if (result is ApiResult.Success) {
                 _state.update { it.copy(conversations = ChatSection(loading = false, data = result.data)) }
+            } else if (result is ApiResult.Failure && result.status == 429) {
+                quietBlockedUntil = now() + (result.retryAfterSeconds ?: QUIET_WAIT_SECONDS) * 1_000L
             }
         }
+        conversationsJob = job
+        return job
     }
 
     fun selectTab(tab: ChatListTab) {

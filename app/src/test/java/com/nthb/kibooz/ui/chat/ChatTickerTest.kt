@@ -27,6 +27,8 @@ class ChatTickerTest {
     private val scope = CoroutineScope(Dispatchers.Unconfined)
     private val ticks = mutableListOf<ChatTick>()
     private var hold: CompletableDeferred<Unit>? = null
+    private var tickDone = true
+    private var gap: suspend (Long) -> Unit = {}
     private var job: Job? = null
 
     @After
@@ -45,7 +47,10 @@ class ChatTickerTest {
             safetyMillis = 30_000L,
             catchUpOnStart = catchUp,
             pause = { pause.pause(it) },
-            resyncJitter = { 2_500L }
+            resyncJitter = { 2_500L },
+            retryMillis = 4_000L,
+            minGapMillis = 1_500L,
+            gap = { gap(it) }
         )
         job = scope.launch {
             ticker.run(
@@ -53,6 +58,7 @@ class ChatTickerTest {
                 onTick = {
                     ticks += it
                     hold?.await()
+                    tickDone
                 }
             )
         }
@@ -241,6 +247,55 @@ class ChatTickerTest {
         link.emit(ChatFrame.Read("cv9", "u2"))
 
         assertEquals(listOf(ChatTick.RELOAD), ticks)
+    }
+
+    // Ulang dan jarak
+
+    @Test
+    fun `a tick that is not done is asked again after a short wait while the socket is up`() {
+        link.connected.value = true
+        start(catchUp = false)
+        tickDone = false
+
+        link.emit(ChatFrame.MessageDeleted("cv1"))
+        assertEquals(listOf(ChatTick.RELOAD), ticks)
+        assertEquals(1, pause.waits.count { it == 4_000L })
+
+        tickDone = true
+        pause.release(4_000L)
+
+        assertEquals(listOf(ChatTick.RELOAD, ChatTick.RELOAD), ticks)
+        assertEquals(1, pause.waits.count { it == 4_000L })
+    }
+
+    @Test
+    fun `while the socket is down a tick that is not done is left to the poll`() {
+        start()
+        tickDone = false
+
+        pause.releaseAll()
+
+        assertEquals(listOf(ChatTick.NEW), ticks)
+        assertEquals(0, pause.waits.count { it == 4_000L })
+    }
+
+    @Test
+    fun `frames that arrive during the gap after a tick become one tick`() {
+        val gate = CompletableDeferred<Unit>()
+        val gaps = mutableListOf<Long>()
+        gap = {
+            gaps += it
+            gate.await()
+        }
+        start()
+
+        repeat(4) { link.emit(ChatFrame.NewMessage("cv1")) }
+        assertEquals(listOf(ChatTick.NEW), ticks)
+        assertEquals(listOf(1_500L), gaps)
+
+        gate.complete(Unit)
+
+        assertEquals(listOf(ChatTick.NEW, ChatTick.NEW), ticks)
     }
 
     // Aturan frame

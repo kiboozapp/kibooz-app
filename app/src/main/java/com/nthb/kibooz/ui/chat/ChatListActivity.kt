@@ -72,7 +72,7 @@ class ChatListActivity : AppCompatActivity() {
                     // onResume sudah memuat ulang saat layar tampil, jadi tidak ada tick awal
                     ChatTicker(appContainer.chatSocket, pollMillis = CHAT_LIST_POLL_INTERVAL_MILLIS, catchUpOnStart = false).run(
                         tickFor = { it.tickForList(session?.user?.id.orEmpty()) },
-                        onTick = { viewModel.refreshQuietly() }
+                        onTick = { viewModel.refreshOnTick() }
                     )
                 }
             }

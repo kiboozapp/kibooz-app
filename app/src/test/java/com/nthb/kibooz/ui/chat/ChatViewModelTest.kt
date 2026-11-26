@@ -43,8 +43,10 @@ class ChatViewModelTest {
 
     private val openInfo = ChatInfo("cv1", isRoom = false, peerDeleted = false, canSend = true, peerLastReadMessageId = 0)
 
+    private var clock = 0L
+
     private fun viewModel(info: ChatInfo = openInfo) =
-        ChatViewModel(repository, info, ownUserId = "me", pause = { pauses += it }, jitter = { 0L })
+        ChatViewModel(repository, info, ownUserId = "me", pause = { pauses += it }, jitter = { 0L }, now = { clock })
 
     private fun ids(viewModel: ChatViewModel) = viewModel.state.value.timeline.messages.map { it.id }
 
@@ -401,16 +403,18 @@ class ChatViewModelTest {
         }
         val viewModel = viewModel()
 
-        viewModel.poll()
+        assertFalse(viewModel.poll())
         assertEquals(2, api.messageCalls.size)
         assertFalse(viewModel.state.value.offline)
 
         limited = false
-        // 10 detik dibagi tick 5 detik, ditambah satu, jadi tiga tick dilewati
-        repeat(3) { viewModel.poll() }
+        // Banyaknya tick tidak berpengaruh, hanya waktu yang sudah lewat
+        clock = 9_999L
+        repeat(20) { assertFalse(viewModel.poll()) }
         assertEquals(2, api.messageCalls.size)
 
-        viewModel.poll()
+        clock = 10_000L
+        assertTrue(viewModel.poll())
         assertEquals(3, api.messageCalls.size)
         assertEquals(listOf(1L, 2L), ids(viewModel))
     }
@@ -510,6 +514,26 @@ class ChatViewModelTest {
         assertEquals(listOf(1L, 2L, 3L, 4L), ids(viewModel))
         assertEquals(2L to null, api.messageCalls.last())
         job.cancelAndJoin()
+    }
+
+    @Test
+    fun `a reload whose requests fail is reported as not done`() = runBlocking {
+        var failing = false
+        api.messagesReply = { after, _ ->
+            when {
+                after == null && failing -> throw IOException("putus")
+                after == null -> messages(message(1))
+                else -> messages()
+            }
+        }
+        api.conversationsReply = { page -> ok(ChatConversationList(page, 50, 1, listOf(direct("cv1")))) }
+        val viewModel = viewModel()
+
+        failing = true
+        assertFalse(viewModel.poll(reload = true))
+
+        failing = false
+        assertTrue(viewModel.poll(reload = true))
     }
 
     @Test
