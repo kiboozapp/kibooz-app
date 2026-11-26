@@ -9,7 +9,7 @@ Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
 - Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
-- Sepuluh pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint dan Zizmor.
+- Sebelas pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint, Zizmor dan CodeQL analysis.
 - Branch pull request harus mutakhir terhadap `main` sebelum digabung.
 - Persetujuan review yang sudah ada dibatalkan oleh push baru.
 - Commit tidak wajib ditandatangani.
@@ -36,6 +36,8 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 | `trivy.yaml` | Trivy filesystem scan | pull request ke `main`, push ke `main`, setiap Senin, manual | Kerentanan, rahasia, dan salah konfigurasi di berkas repositori. Hanya temuan CRITICAL dan HIGH yang sudah punya perbaikan yang dilaporkan |
 | `workflow-lint.yaml` | Actionlint | pull request ke `main`, push ke `main`, manual | Sintaks berkas workflow |
 | `workflow-lint.yaml` | Zizmor | sama | Keamanan berkas workflow |
+| `codeql.yaml` | CodeQL analysis | pull request ke `main`, push ke `main`, setiap Selasa dini hari WIB | Analisis keamanan statis kode Kotlin dan Java. Temuannya masuk ke code scanning GitHub |
+| `scorecard.yaml` | OSSF Scorecard | push ke `main`, setiap Selasa dini hari WIB | Praktik keamanan repositori menurut OpenSSF Scorecard. Tidak pernah wajib |
 
 Beberapa catatan tentang isi pengecekan.
 
