@@ -3,16 +3,8 @@ name: Workflow lint
 on:
   pull_request:
     branches: [main]
-    paths:
-      - ".github/workflows/**"
-      - ".github/actions/**"
-      - ".github/zizmor.yml"
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/**"
-      - ".github/actions/**"
-      - ".github/zizmor.yml"
   workflow_dispatch:
 
 concurrency:
@@ -21,8 +13,8 @@ concurrency:
 
 permissions: {}
 
-# Both jobs report only. They are not required checks and a red run does not block a merge. Neither job needs a secret, so
-# they also run on pull requests from forks.
+# Both job names are required checks of the main ruleset, so the workflow has no path filter, which would leave a required
+# check waiting for ever. Neither job needs a secret, so they also run on pull requests from forks.
 jobs:
   actionlint:
     name: Actionlint
