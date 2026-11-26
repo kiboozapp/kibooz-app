@@ -112,7 +112,7 @@ class DetailKelasActivity : AppCompatActivity() {
                 if (teacherClasses is ApiResult.Success) {
                     val match = teacherClasses.data.firstOrNull {
                         (!activeClassId.isNullOrBlank() && it.id == activeClassId) ||
-                            it.joinCode.equals(kodeKelas, ignoreCase = true) ||
+                            (it.joinCode.isNotBlank() && it.joinCode.equals(kodeKelas, ignoreCase = true)) ||
                             it.name.equals(namaKelas, ignoreCase = true)
                     } ?: teacherClasses.data.firstOrNull()
                     if (activeClassId.isNullOrBlank()) activeClassId = match?.id
