@@ -6,7 +6,7 @@ Hanya kode di branch `main` yang ditangani.
 
 ## Melaporkan kerentanan
 
-Jangan membuka issue atau pull request publik untuk masalah keamanan. Kirim laporan secara pribadi lewat [Report a vulnerability](https://github.com/kiboozapp/kibooz-app/security/advisories/new) di tab Security repositori. Isinya hanya bisa dibaca oleh pengelola keamanan repositori dan orang yang mereka undang.
+Jangan membuka issue atau pull request publik untuk masalah keamanan. Kirim laporan secara pribadi lewat [Report a vulnerability](https://github.com/kiboozapp/kibooz-app/security/advisories/new) di tab Security and quality repositori. Laporan hanya bisa dibaca oleh Anda sebagai pelapor, pemilik organisasi, security manager organisasi, pengguna dengan akses admin ke repositori, dan kolaborator yang ditambahkan ke laporan itu.
 
 Laporan yang baik memuat hal berikut.
 

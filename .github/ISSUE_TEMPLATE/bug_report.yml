@@ -44,7 +44,7 @@ body:
     attributes:
       label: Sebelum mengirim
       options:
-        - label: Ini bukan masalah keamanan. Masalah keamanan dikirim secara pribadi lewat tombol Report a vulnerability di tab Security.
+        - label: Ini bukan masalah keamanan. Masalah keamanan dikirim secara pribadi lewat tombol Report a vulnerability di tab Security and quality.
           required: true
         - label: Saya sudah menghapus data rahasia dan data pribadi dari semua isian di atas.
           required: true
