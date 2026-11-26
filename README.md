@@ -213,3 +213,5 @@ Gunakan alur berikut untuk kolaborasi:
 ## Lisensi dan Hak Cipta
 
 Proyek ini dikembangkan untuk keperluan akademik mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain antarmuka, aset visual, dan maskot sepenuhnya dimiliki oleh Tim Nexus (Nexus Project).
+
+Seluruh isi repositori ini, termasuk kode, dokumentasi, desain antarmuka, aset visual, dan maskot, dilisensikan di bawah [GNU General Public License versi 3](LICENSE). Berkas pihak ketiga, misalnya model yang lisensinya ada di `app/src/main/assets/licenses`, tetap mengikuti lisensi pemiliknya.
