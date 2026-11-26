@@ -239,21 +239,10 @@ class LeaderboardActivity : AppCompatActivity() {
             R.color.kibooz_white
         ).map { ContextCompat.getColor(this, it) }
 
+        // Hujan confetti dari sepanjang tepi atas layar. Jumlah diatur dengan perSecond(), bukan max(n): Konfetti
+        // menghitung max(n) dengan pembagian bulat, dan jika n lebih besar dari durasi dalam ms hasilnya 0, lalu partikel
+        // dibuat tanpa batas sampai aplikasi kehabisan memori.
         binding.konfettiView.start(
-            // Semburan dari atas podium juara 1
-            Party(
-                speed = 0f,
-                maxSpeed = 30f,
-                damping = 0.9f,
-                spread = 360,
-                colors = colors,
-                shapes = listOf(Shape.Square, Shape.Circle),
-                position = Position.Relative(0.5, 0.3),
-                // Sekitar 120 partikel dalam 150 ms. Jangan pakai max(n) dengan n lebih besar dari durasi dalam ms:
-                // Konfetti menghitungnya dengan pembagian bulat, hasilnya 0, lalu partikel dibuat tanpa batas sampai OOM.
-                emitter = Emitter(duration = 150, TimeUnit.MILLISECONDS).perSecond(800)
-            ),
-            // Hujan pelan dari tepi atas layar
             Party(
                 angle = Angle.BOTTOM,
                 spread = 45,
@@ -264,7 +253,7 @@ class LeaderboardActivity : AppCompatActivity() {
                 shapes = listOf(Shape.Square, Shape.Circle),
                 timeToLive = 3000L,
                 position = Position.Relative(0.0, 0.0).between(Position.Relative(1.0, 0.0)),
-                emitter = Emitter(duration = 1500, TimeUnit.MILLISECONDS).perSecond(60)
+                emitter = Emitter(duration = 2000, TimeUnit.MILLISECONDS).perSecond(100)
             )
         )
     }
