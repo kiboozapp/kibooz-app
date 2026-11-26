@@ -1,0 +1,95 @@
+name: Dependency review
+
+# The job name is meant to be a required check, so the workflow only runs on pull requests and has no job condition.
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: dependency-review-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    # The wait below takes up to twenty minutes, and the retry of the review action up to ten more
+    timeout-minutes: 40
+    permissions:
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A fork sends no dependency list, so waiting for one would block every outside pull request for good
+      - name: Note that a fork has no Gradle check
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: echo "::warning title=Dependency review::This pull request comes from a fork, so its Gradle dependencies are not checked."
+
+      # Without the list of this commit the review would pass without looking at the Gradle dependencies, so the job fails instead
+      - name: Wait for the dependency list of this commit
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+
+          # The submission workflow runs from main only, so it cannot exist before it was merged there
+          if ! found="$(gh api "repos/$REPOSITORY/actions/workflows/dependency-submit.yaml" --jq .state 2>&1)"; then
+            if grep -q 'HTTP 404' <<<"$found"; then
+              echo "::warning title=Dependency review::main has no submission workflow yet, so the list is not awaited."
+              exit 0
+            fi
+          fi
+
+          fail() {
+            echo "::error title=Dependency list missing::$1"
+            exit 1
+          }
+
+          for _ in $(seq 1 40); do
+            # An API error is treated like a list that has not arrived, and the loop tries again
+            graph="$(gh api "repos/$REPOSITORY/actions/workflows/dependency-graph.yaml/runs?head_sha=$HEAD_SHA&event=pull_request&per_page=1" \
+              --jq '.workflow_runs[0] // empty | "\(.created_at) \(.conclusion // .status)"' || true)"
+            if [ -n "$graph" ]; then
+              read -r since result <<<"$graph"
+              # Only a submission that is newer than the graph run can belong to it. The runs come newest first.
+              submissions="$(gh api --paginate "repos/$REPOSITORY/actions/workflows/dependency-submit.yaml/runs?per_page=100&created=%3E%3D$since" \
+                --jq ".workflow_runs[] | select(.display_title == \"Dependency submission of $HEAD_SHA\") | .conclusion // .status" || true)"
+              if grep -qx success <<<"$submissions"; then
+                echo "The dependency list of $HEAD_SHA was submitted."
+                exit 0
+              fi
+              latest="$(grep -vx skipped <<<"$submissions" | head -n 1 || true)"
+              case "$latest" in
+                failure | cancelled | timed_out)
+                  fail "The submission of $HEAD_SHA did not succeed. Rerun it, then rerun this job."
+                  ;;
+              esac
+              case "$result" in
+                failure | cancelled | timed_out)
+                  fail "Dependency graph of $HEAD_SHA did not succeed. Rerun it, then rerun this job."
+                  ;;
+              esac
+            fi
+            sleep 30
+          done
+          fail "The dependency list of $HEAD_SHA did not arrive in time. Rerun this job after the submission finished."
+
+      # Looks at the dependencies that the pull request adds or changes. The retry gives GitHub time to process a list that was just
+      # submitted. The project is under GPL-3.0, so GPL dependencies fit, and SSPL does not.
+      - name: Dependency review
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: high
+          deny-licenses: SSPL-1.0
+          comment-summary-in-pr: never
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 600

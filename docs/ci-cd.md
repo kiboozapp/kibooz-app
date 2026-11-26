@@ -9,7 +9,7 @@ Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
 - Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
-- Sebelas pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint, Zizmor dan CodeQL analysis.
+- Dua belas pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint, Zizmor, CodeQL analysis dan Dependency review.
 - Branch pull request harus mutakhir terhadap `main` sebelum digabung.
 - Persetujuan review yang sudah ada dibatalkan oleh push baru.
 - Commit tidak wajib ditandatangani.
@@ -19,6 +19,8 @@ Mengubah branch tujuan sebuah pull request menjadi `main` hanya menjalankan Conv
 Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan perubahan, buat branch `revert/deskripsi-singkat` sendiri dengan judul pull request `revert: deskripsi singkat`.
 
 Zizmor memakai data terbaru dari GitHub, jadi temuan baru pada action yang sudah dipakai bisa membuat semua pull request gagal. Jalan keluarnya adalah pull request yang memperbarui action itu, atau yang menambahkan pengecualian beserta alasannya di `.github/zizmor.yml`.
+
+Dependency review menunggu daftar dependensi Gradle dari commit pull request itu, paling lama sekitar dua puluh menit. Kalau Dependency graph atau pengirimannya gagal, atau daftarnya tidak datang, pengecekan ini gagal. Jalankan ulang workflow yang gagal, lalu jalankan ulang Dependency review. Pull request dari fork tidak mengirim daftar, sehingga pengecekan ini hanya memberi peringatan dan dependensi Gradle di sana tidak diperiksa. Kalau Dependency graph atau pengirimannya gagal di `main`, jalankan ulang workflow itu. Kalau pengecekan ini melaporkan dependensi lama sebagai dependensi baru tepat setelah sebuah merge, tunggu pengiriman daftar `main` selesai, lalu jalankan ulang.
 
 CodeQL analysis juga bisa gagal bukan karena isi pull request, misalnya saat unduhan atau code scanning GitHub bermasalah, atau saat CodeQL default setup diaktifkan di pengaturan repositori. Jalankan ulang pengecekannya setelah penyebabnya hilang. Yang dianalisis hanya kode utama varian debug. Pengecekan ini gagal kalau analisisnya tidak selesai, bukan karena ada temuan.
 
@@ -41,6 +43,9 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 | `workflow-lint.yaml` | Zizmor | sama | Keamanan berkas workflow |
 | `codeql.yaml` | CodeQL analysis | pull request ke `main`, push ke `main`, setiap Selasa dini hari WIB | Analisis keamanan statis kode Kotlin dan Java. Temuannya masuk ke code scanning GitHub |
 | `scorecard.yaml` | OSSF Scorecard | push ke `main`, setiap Selasa dini hari WIB | Praktik keamanan repositori menurut OpenSSF Scorecard. Tidak pernah wajib |
+| `dependency-graph.yaml` | Dependency graph | pull request ke `main`, push ke `main` | Menyusun daftar dependensi Gradle dan menyimpannya sebagai artifact |
+| `dependency-submit.yaml` | Submit the dependency graph | setelah Dependency graph berhasil | Mengirim daftar itu ke dependency graph GitHub dengan token tulis, tanpa menjalankan kode pull request |
+| `dependency-review.yaml` | Dependency review | pull request ke `main` | Dependensi baru atau berubah tidak punya kerentanan tingkat high ke atas dan tidak berlisensi SSPL |
 
 Beberapa catatan tentang isi pengecekan.
 

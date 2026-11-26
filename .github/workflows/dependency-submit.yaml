@@ -1,0 +1,37 @@
+name: Dependency submission
+
+# Dependency review finds the run of a commit by this name, so change both files together
+run-name: Dependency submission of ${{ github.event.workflow_run.head_sha }}
+
+# Sends the dependency list of a finished Dependency graph run to GitHub. It runs the file of main with a write token, so it checks
+# out nothing and runs no code of the pull request. It only reads the artifact of that run and hands it to GitHub. Only runs of
+# branches of this repository are sent, so the content of the list never comes from outside.
+on:
+  workflow_run:
+    workflows: ["Dependency graph"]
+    types: [completed]
+
+concurrency:
+  group: dependency-submission-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  submit:
+    name: Submit the dependency graph
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - name: Submit the dependency graph
+        uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          dependency-graph: download-and-submit
+          # Nothing is built and nothing is checked out, and the cache step fails without build files
+          cache-disabled: true
