@@ -186,8 +186,9 @@ class TrashScanViewModel(
     }
 
     /**
-     * Permintaan yang belum diproses server boleh dikirim ulang dengan kunci yang sama. Batas harian
-     * (TRASH_DAILY_LIMIT_REACHED) tidak, karena baru reset tengah malam, dan galat validasi butuh permintaan baru.
+     * Permintaan yang belum diproses server boleh dikirim ulang dengan kunci yang sama. Server sekarang tidak lagi
+     * menolak klaim di atas batas harian (poinnya dikurangi), tetapi server lama masih bisa membalas
+     * TRASH_DAILY_LIMIT_REACHED yang baru reset tengah malam, jadi tidak diulang. Galat validasi butuh permintaan baru.
      */
     private fun ApiResult.Failure.isRetryable() =
         status >= 500 || errorCode == "IDEMPOTENCY_IN_PROGRESS" || errorCode == "RATE_LIMITED"

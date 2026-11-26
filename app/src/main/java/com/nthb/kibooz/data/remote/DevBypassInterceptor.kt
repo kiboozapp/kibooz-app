@@ -479,7 +479,8 @@ class DevBypassInterceptor(
                         "totalPoints": 130,
                         "seasonPoints": 130,
                         "newRank": 1,
-                        "remainingDailyScans": 1
+                        "remainingDailyScans": 1,
+                        "reducedPoints": false
                     }
                 }
             """.trimIndent()

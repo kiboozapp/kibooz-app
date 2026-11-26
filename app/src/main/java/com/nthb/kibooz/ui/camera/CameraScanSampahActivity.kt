@@ -229,16 +229,17 @@ class CameraScanSampahActivity : AppCompatActivity() {
         val claimed = state.claimed
         binding.llPoinHeader.isVisible = claimed != null
         if (claimed != null) {
-            val points = if (claimed.pointsAdded > 0) {
-                getString(R.string.sampah_poin_diterima, claimed.pointsAdded)
-            } else {
-                getString(R.string.sampah_tanpa_poin)
+            val points = when {
+                claimed.pointsAdded <= 0 -> getString(R.string.sampah_tanpa_poin)
+                claimed.reducedPoints -> getString(R.string.sampah_poin_dikurangi, claimed.pointsAdded)
+                else -> getString(R.string.sampah_poin_diterima, claimed.pointsAdded)
             }
-            binding.tvPoin.text = getString(
-                R.string.sampah_poin_ringkasan,
-                points,
+            val quota = if (claimed.reducedPoints) {
+                getString(R.string.sampah_lewat_batas)
+            } else {
                 getString(R.string.sampah_sisa_klaim, claimed.remainingDailyScans)
-            )
+            }
+            binding.tvPoin.text = getString(R.string.sampah_poin_ringkasan, points, quota)
         }
 
         val label = when {
