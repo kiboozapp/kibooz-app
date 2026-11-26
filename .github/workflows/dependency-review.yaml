@@ -15,7 +15,8 @@ jobs:
   dependency-review:
     name: Dependency review
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    # The wait below takes up to twenty minutes, and the retry of the review action up to ten more
+    timeout-minutes: 40
     permissions:
       actions: read
       contents: read
@@ -53,31 +54,37 @@ jobs:
             exit 1
           }
 
-          for _ in $(seq 1 60); do
+          for _ in $(seq 1 40); do
             # An API error is treated like a list that has not arrived, and the loop tries again
-            submissions="$(gh api "repos/$REPOSITORY/actions/workflows/dependency-submit.yaml/runs?per_page=100" \
-              --jq ".workflow_runs[] | select(.display_title == \"Dependency submission of $HEAD_SHA\") | .conclusion // .status" || true)"
-            if grep -qx success <<<"$submissions"; then
-              echo "The dependency list of $HEAD_SHA was submitted."
-              exit 0
-            fi
-            if grep -qxE 'failure|cancelled|timed_out' <<<"$submissions"; then
-              fail "The submission of $HEAD_SHA did not succeed. Rerun it, then rerun this job."
-            fi
             graph="$(gh api "repos/$REPOSITORY/actions/workflows/dependency-graph.yaml/runs?head_sha=$HEAD_SHA&event=pull_request&per_page=1" \
-              --jq '.workflow_runs[0].conclusion // empty' || true)"
-            case "$graph" in
-              failure | cancelled | timed_out)
-                fail "Dependency graph of $HEAD_SHA did not succeed. Rerun it, then rerun this job."
-                ;;
-            esac
-            sleep 20
+              --jq '.workflow_runs[0] // empty | "\(.created_at) \(.conclusion // .status)"' || true)"
+            if [ -n "$graph" ]; then
+              read -r since result <<<"$graph"
+              # Only a submission that is newer than the graph run can belong to it. The runs come newest first.
+              submissions="$(gh api --paginate "repos/$REPOSITORY/actions/workflows/dependency-submit.yaml/runs?per_page=100&created=%3E%3D$since" \
+                --jq ".workflow_runs[] | select(.display_title == \"Dependency submission of $HEAD_SHA\") | .conclusion // .status" || true)"
+              if grep -qx success <<<"$submissions"; then
+                echo "The dependency list of $HEAD_SHA was submitted."
+                exit 0
+              fi
+              latest="$(grep -vx skipped <<<"$submissions" | head -n 1 || true)"
+              case "$latest" in
+                failure | cancelled | timed_out)
+                  fail "The submission of $HEAD_SHA did not succeed. Rerun it, then rerun this job."
+                  ;;
+              esac
+              case "$result" in
+                failure | cancelled | timed_out)
+                  fail "Dependency graph of $HEAD_SHA did not succeed. Rerun it, then rerun this job."
+                  ;;
+              esac
+            fi
+            sleep 30
           done
           fail "The dependency list of $HEAD_SHA did not arrive in time. Rerun this job after the submission finished."
 
-      # Looks at the dependencies that the pull request adds or changes. The Gradle ones are known only after the list of the Dependency
-      # graph workflow was submitted, so the action waits up to ten minutes for it. The project is under GPL-3.0, so GPL dependencies
-      # fit, and SSPL does not.
+      # Looks at the dependencies that the pull request adds or changes. The retry gives GitHub time to process a list that was just
+      # submitted. The project is under GPL-3.0, so GPL dependencies fit, and SSPL does not.
       - name: Dependency review
         uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
         with:
