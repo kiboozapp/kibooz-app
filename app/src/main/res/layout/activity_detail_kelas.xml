@@ -168,10 +168,12 @@
 
                     <!-- Kode Kelas Row with Copy Button -->
                     <LinearLayout
+                        android:id="@+id/rowKodeKelas"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:visibility="gone">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -190,7 +192,6 @@
                             android:fontFamily="@font/baloo2"
                             android:paddingHorizontal="10dp"
                             android:paddingVertical="3dp"
-                            android:text="SENI-A1"
                             android:textColor="@color/kibooz_primary_purple"
                             android:textSize="14sp"
                             android:textStyle="bold" />

@@ -72,12 +72,11 @@ class DetailKelasActivity : AppCompatActivity() {
         isTeacherRole = sessionUser?.role == Role.GURU
         binding.fabTambahModul.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
         binding.btnSalinKode.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
-        binding.ivShareKelas.visibility = if (isTeacherRole) View.VISIBLE else View.GONE
 
         val kodeKelas = if (rawKodeKelas.isNotBlank() && (ClassCode.normalize(rawKodeKelas) != null || !rawKodeKelas.contains("-"))) {
             rawKodeKelas.trim()
         } else {
-            ClassCode.preferJoinCode(null, activeClassId)
+            ""
         }
 
         val initialCount = if (intent.hasExtra("TOTAL_STUDENTS")) {
@@ -120,8 +119,7 @@ class DetailKelasActivity : AppCompatActivity() {
                     if (match != null) {
                         if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = match.name
                         if (match.joinCode.isNotBlank()) {
-                            currentKodeKelas = match.joinCode
-                            binding.tvKodeKelas.text = match.joinCode
+                            showClassCode(match.joinCode)
                         }
                         count = match.totalStudents
                     }
@@ -133,8 +131,7 @@ class DetailKelasActivity : AppCompatActivity() {
                         if (activeClassId.isNullOrBlank()) activeClassId = st.classId
                         if (resolvedRombelName.isNullOrBlank()) resolvedRombelName = st.className
                         st.joinCode?.takeIf { it.isNotBlank() }?.let { liveCode ->
-                            currentKodeKelas = liveCode
-                            binding.tvKodeKelas.text = liveCode
+                            showClassCode(liveCode)
                         }
                     }
                     else -> {}
@@ -243,12 +240,20 @@ class DetailKelasActivity : AppCompatActivity() {
         }
     }
 
+    /** Baris kode dan tombol bagikan hanya tampil jika server memberi kode. */
+    private fun showClassCode(code: String) {
+        currentKodeKelas = code
+        binding.tvKodeKelas.text = code
+        binding.rowKodeKelas.visibility = if (code.isNotBlank()) View.VISIBLE else View.GONE
+        binding.ivShareKelas.visibility = if (isTeacherRole && code.isNotBlank()) View.VISIBLE else View.GONE
+    }
+
     private fun setupViews(kodeKelas: String, namaKelas: String, initialCount: Int) {
         val rombelName = resolvedRombelName
         binding.tvTitleBar.text = rombelName ?: "Detail $namaKelas"
         binding.tvTitleForumDiskusi.text = rombelName?.let { "Ruang Diskusi $it" } ?: "Ruang Diskusi Kelas Aktif"
         binding.tvNamaKelas.text = namaKelas
-        binding.tvKodeKelas.text = kodeKelas
+        showClassCode(kodeKelas)
         binding.tabModul.text = "Modul (4)"
         val sessionUser = appContainer.authRepository.session.value?.user
         if (isTeacherRole && !sessionUser?.fullName.isNullOrBlank()) {

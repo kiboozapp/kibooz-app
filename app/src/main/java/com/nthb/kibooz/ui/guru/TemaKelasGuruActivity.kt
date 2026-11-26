@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.isVisible
 import androidx.core.widget.doAfterTextChanged
 import com.nthb.kibooz.databinding.ActivityTemaKelasGuruBinding
 import com.nthb.kibooz.util.ClassCode
@@ -39,7 +40,7 @@ class TemaKelasGuruActivity : AppCompatActivity() {
 
         classId = intent.getStringExtra("CLASS_ID")
         val rawCode = intent.getStringExtra("KODE_KELAS").orEmpty()
-        joinCode = if (rawCode.isNotBlank()) rawCode else ClassCode.resolveJoinCode(classId)
+        joinCode = ClassCode.fromServer(rawCode)
         className = intent.getStringExtra("NAMA_KELAS") ?: "Kelas"
         gradeLevel = intent.getStringExtra("GRADE_LEVEL") ?: "TK-A"
         totalStudents = intent.getIntExtra("TOTAL_STUDENTS", 0)
@@ -51,6 +52,7 @@ class TemaKelasGuruActivity : AppCompatActivity() {
     private fun setupHeader() {
         binding.tvHeaderTitle.text = className
         binding.tvKodeKelasBadge.text = joinCode
+        binding.btnKodeKelasPill.isVisible = joinCode.isNotBlank()
         binding.tvSubtitleTema.text = "$gradeLevel • $totalStudents Siswa Terdaftar • 6 Tema Pembelajaran"
     }
 

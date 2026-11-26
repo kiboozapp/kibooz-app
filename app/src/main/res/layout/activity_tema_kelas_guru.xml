@@ -67,7 +67,6 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/baloo2"
-                android:text="WGYN5JYL"
                 android:textColor="@color/kibooz_primary_purple"
                 android:textSize="13sp"
                 android:textStyle="bold" />
