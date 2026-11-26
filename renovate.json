@@ -1,0 +1,71 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "helpers:pinGitHubActionDigestsToSemver"],
+  "timezone": "Asia/Jakarta",
+  "schedule": ["before 7am on monday"],
+  "minimumReleaseAge": "7 days",
+  "internalChecksFilter": "strict",
+  "rebaseWhen": "conflicted",
+  "platformCommit": "enabled",
+  "semanticCommits": "enabled",
+  "semanticCommitType": "chore",
+  "semanticCommitScope": "deps",
+  "assignees": ["SyafaHadyan"],
+  "vulnerabilityAlerts": {
+    "semanticCommitType": "fix"
+  },
+  "packageRules": [
+    {
+      "matchManagers": ["gradle", "gradle-wrapper"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "only patches are grouped, because a minor release of an Android library can need a newer compileSdk and would hold back the safe updates of the same group",
+      "matchManagers": ["gradle"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "gradle-patch"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "semanticCommitType": "ci"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "actions"
+    },
+    {
+      "description": "the tools that a workflow starts by version take the commit type of the workflows",
+      "matchManagers": ["custom.regex"],
+      "semanticCommitType": "ci"
+    },
+    {
+      "description": "ghcr.io gives no release time, so the age wait cannot be checked and would hold the update for ever",
+      "matchPackageNames": ["ghcr.io/zizmorcore/zizmor"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "a major release of the Android Gradle plugin, Kotlin, Gradle or the JDK has to move with the others, so it waits for a tick in the dependency dashboard",
+      "matchDepNames": ["com.android.application", "org.jetbrains.kotlin.android", "gradle", "java-jdk"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "android-toolchain",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Kotlin 2.2 and newer rejects the kotlinOptions block of app/build.gradle.kts, so a new minor waits until the build script is migrated",
+      "matchDepNames": ["org.jetbrains.kotlin.android"],
+      "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "A version in a workflow that the line above names with a renovate comment, which the bot cannot find in a run step otherwise",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "# renovate: datasource=(?<datasource>\\S+) depName=(?<depName>\\S+)\\n\\s*[A-Z][A-Z0-9_]*_VERSION: [\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ]
+    }
+  ]
+}
