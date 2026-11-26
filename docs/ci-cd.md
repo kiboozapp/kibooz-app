@@ -9,7 +9,7 @@ Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
 - Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
-- Delapan pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks) dan Trivy filesystem scan.
+- Sepuluh pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint dan Zizmor.
 - Branch pull request harus mutakhir terhadap `main` sebelum digabung.
 - Persetujuan review yang sudah ada dibatalkan oleh push baru.
 - Commit tidak wajib ditandatangani.
@@ -18,7 +18,9 @@ Mengubah branch tujuan sebuah pull request menjadi `main` hanya menjalankan Conv
 
 Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan perubahan, buat branch `revert/deskripsi-singkat` sendiri dengan judul pull request `revert: deskripsi singkat`.
 
-Pengecekan lain, termasuk Actionlint dan Zizmor, hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
+Zizmor memakai data terbaru dari GitHub, jadi temuan baru pada action yang sudah dipakai bisa membuat semua pull request gagal. Jalan keluarnya adalah pull request yang memperbarui action itu, atau yang menambahkan pengecualian beserta alasannya di `.github/zizmor.yml`.
+
+Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
 ## Daftar workflow
 
@@ -32,7 +34,7 @@ Pengecekan lain, termasuk Actionlint dan Zizmor, hanya melaporkan hasil. Reposit
 | `file-names.yaml` | File names | pull request ke `main`, push ke `main`, manual | Penamaan berkas menurut `.ls-lint.yml` |
 | `gitleaks.yaml` | Secret scan (gitleaks) | pull request ke `main`, push ke `main`, manual | Seluruh riwayat git dicek untuk rahasia yang tidak sengaja ikut |
 | `trivy.yaml` | Trivy filesystem scan | pull request ke `main`, push ke `main`, setiap Senin, manual | Kerentanan, rahasia, dan salah konfigurasi di berkas repositori. Hanya temuan CRITICAL dan HIGH yang sudah punya perbaikan yang dilaporkan |
-| `workflow-lint.yaml` | Actionlint | pull request atau push ke `main` yang mengubah `.github/workflows`, `.github/actions` atau `.github/zizmor.yml`, manual | Sintaks berkas workflow |
+| `workflow-lint.yaml` | Actionlint | pull request ke `main`, push ke `main`, manual | Sintaks berkas workflow |
 | `workflow-lint.yaml` | Zizmor | sama | Keamanan berkas workflow |
 
 Beberapa catatan tentang isi pengecekan.
