@@ -93,6 +93,9 @@ class DevBypassInterceptor(
                 }
             """.trimIndent()
 
+            path.contains("/guru/classes/") && (path.contains("/teachers") || path.endsWith("/owner")) ->
+                mockClassTeachers(path, method)
+
             path.endsWith("/guru/classes") || (path.endsWith("/classes") && !path.contains("students")) -> """
                 {
                     "success": true,
@@ -618,6 +621,20 @@ class DevBypassInterceptor(
             }
 
             else -> null
+        }
+    }
+
+    /** Daftar, tambah, keluarkan dan pindah pemilik guru kelas untuk mode bypass. */
+    private fun mockClassTeachers(path: String, method: String): String {
+        val teacher = """{
+            "id": "teacher-demo-1", "userId": "user-demo-1", "isSelf": true, "fullName": "Tika Sartika, S.Pd",
+            "nip": "198705122010012003", "avatarUrl": null, "isOwner": true, "joinedAt": "2026-07-01T00:00:00Z"
+        }"""
+        return when {
+            method == "DELETE" -> """{"success": true, "message": "Teacher removed"}"""
+            method == "GET" && path.endsWith("/teachers") ->
+                """{"success": true, "data": {"teachers": [$teacher]}}"""
+            else -> """{"success": true, "data": $teacher}"""
         }
     }
 }

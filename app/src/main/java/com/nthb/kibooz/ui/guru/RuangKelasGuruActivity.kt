@@ -37,8 +37,9 @@ import kotlinx.coroutines.launch
 
 /**
  * Ruang kelas Guru. Daftar kelas dan jumlah anaknya dari server, kode kelas dengan tombol salin, dan aksi kelas
- * (kode baru, buka atau tutup pendaftaran, arsip, pulihkan). Kelas yang diarsipkan tampil terpisah dan hanya
- * punya aksi pulihkan, karena server menolak perubahan lain dengan `CLASS_ARCHIVED`.
+ * (kode baru, buka atau tutup pendaftaran, arsip, pulihkan) serta pintu ke [PengajarKelasActivity]. Kelas yang
+ * diarsipkan tampil terpisah dan hanya punya aksi pulihkan, karena server menolak perubahan lain dengan
+ * `CLASS_ARCHIVED`. Daftar gurunya tetap bisa dibaca.
  */
 class RuangKelasGuruActivity : AppCompatActivity() {
 
@@ -237,6 +238,11 @@ class RuangKelasGuruActivity : AppCompatActivity() {
         card.llAksi.isVisible = !archived
         card.btnPermintaanPindah.isVisible = !archived
         card.btnPulihkan.isVisible = archived
+
+        card.btnGuru.contentDescription = getString(R.string.pengajar_tombol_kartu_cd, item.name)
+        card.btnGuru.setOnClickListener {
+            startActivity(PengajarKelasActivity.intent(this, item.id, item.name, archived))
+        }
 
         if (archived) {
             card.cardKelas.isClickable = false

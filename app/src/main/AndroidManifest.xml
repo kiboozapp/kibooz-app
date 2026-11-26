@@ -105,6 +105,11 @@
             android:name=".ui.guru.PermintaanPindahKelasActivity"
             android:exported="false" />
 
+        <!-- 8e. Guru Flow: Guru di sebuah kelas -->
+        <activity
+            android:name=".ui.guru.PengajarKelasActivity"
+            android:exported="false" />
+
         <!-- 9. Guru Flow: Forum Diskusi Kelas -->
         <activity
             android:name=".ui.guru.ForumDiskusiActivity"

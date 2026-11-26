@@ -132,6 +132,23 @@
             app:cornerRadius="20dp"
             app:strokeColor="@color/kibooz_primary_purple" />
 
+        <!-- Guru kelas, juga untuk kelas arsip karena daftarnya tetap bisa dibaca -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnGuru"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="@font/baloo2"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="48dp"
+            android:text="@string/pengajar_tombol_kartu"
+            android:textAllCaps="false"
+            android:textColor="@color/kibooz_primary_purple"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
         <!-- Aksi kelas aktif -->
         <LinearLayout
             android:id="@+id/llAksi"

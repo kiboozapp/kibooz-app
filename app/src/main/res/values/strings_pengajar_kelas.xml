@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Guru di sebuah kelas, dibuka dari kartu kelas -->
+    <string name="pengajar_tombol_kartu">Guru kelas</string>
+    <string name="pengajar_tombol_kartu_cd">Lihat guru kelas %1$s</string>
+    <string name="pengajar_judul">Guru Kelas</string>
+    <string name="pengajar_memuat">Memuat daftar guru</string>
+    <string name="pengajar_kosong">Belum ada guru di kelas ini</string>
+    <string name="pengajar_tambah">+ Tambah Guru</string>
+    <string name="pengajar_anda">%1$s (Anda)</string>
+    <string name="pengajar_pemilik">Pemilik</string>
+    <string name="pengajar_nip">NIP %1$s</string>
+    <string name="pengajar_bergabung">Bergabung %1$s</string>
+
+    <!-- Penjelasan aturan sesuai posisi akun yang masuk -->
+    <string name="pengajar_info_arsip">Kelas ini diarsipkan, jadi daftar guru hanya bisa dibaca.</string>
+    <string name="pengajar_info_sendiri">Anda satu-satunya guru di kelas ini. Tambahkan guru lain supaya Anda bisa keluar.</string>
+    <string name="pengajar_info_pemilik">Anda pemilik kelas ini. Hanya pemilik yang bisa mengeluarkan guru lain atau memindahkan kepemilikan.</string>
+    <string name="pengajar_info_bukan_pemilik">Hanya pemilik kelas yang bisa mengeluarkan guru lain atau memindahkan kepemilikan.</string>
+    <string name="pengajar_tunggu">Tunggu %1$s sebelum mencoba lagi</string>
+
+    <!-- Aksi per guru -->
+    <string name="pengajar_aksi_pemilik">Jadikan pemilik</string>
+    <string name="pengajar_aksi_keluarkan">Keluarkan</string>
+    <string name="pengajar_aksi_keluar">Keluar dari kelas</string>
+    <string name="pengajar_aksi_pemilik_cd">Jadikan %1$s pemilik kelas</string>
+    <string name="pengajar_aksi_keluarkan_cd">Keluarkan %1$s dari kelas</string>
+
+    <!-- Konfirmasi -->
+    <string name="pengajar_konfirmasi_keluarkan_judul">Keluarkan %1$s?</string>
+    <string name="pengajar_konfirmasi_keluarkan_isi">%1$s tidak bisa lagi melihat kelas %2$s beserta anak, mood dan forumnya. Tulisan yang sudah dibuat tetap ada. Kode kelas diganti, jadi bagikan kode baru ke wali murid yang belum mendaftar.</string>
+    <string name="pengajar_konfirmasi_keluar_judul">Keluar dari kelas %1$s?</string>
+    <string name="pengajar_konfirmasi_keluar_isi">%1$s (Anda) tidak bisa lagi melihat kelas %2$s beserta anak, mood dan forumnya. Tulisan yang sudah dibuat tetap ada. Kode kelas diganti.</string>
+    <string name="pengajar_konfirmasi_keluar_penerus">Anda pemilik kelas, jadi kepemilikan berpindah ke guru yang bergabung berikutnya, saat ini %1$s.</string>
+    <string name="pengajar_konfirmasi_pemilik_judul">Jadikan %1$s pemilik?</string>
+    <string name="pengajar_konfirmasi_pemilik_isi">%1$s akan menjadi pemilik kelas %2$s dan bisa mengeluarkan guru, mengarsipkan kelas serta memindahkan kepemilikan lagi. Anda tetap menjadi guru, tetapi hanya pemilik baru yang bisa mengembalikannya.</string>
+
+    <!-- Hasil aksi -->
+    <string name="pengajar_hasil_ditambahkan">%1$s ditambahkan sebagai guru kelas</string>
+    <string name="pengajar_hasil_dikeluarkan">%1$s dikeluarkan dari kelas. Kode kelas sudah diganti.</string>
+    <string name="pengajar_hasil_pemilik">%1$s sekarang pemilik kelas</string>
+    <string name="pengajar_hasil_keluar">Anda sudah keluar dari kelas %1$s</string>
+
+    <!-- Dialog tambah guru -->
+    <string name="pengajar_dialog_judul">Tambah Guru</string>
+    <string name="pengajar_dialog_email">Email akun guru</string>
+    <string name="pengajar_dialog_info">Guru yang ditambahkan bisa melihat seluruh isi kelas, yaitu anak, mood dan forum. Setelah itu hanya pemilik kelas yang bisa mengeluarkannya.</string>
+    <string name="pengajar_dialog_tambah">Tambah</string>
+    <string name="pengajar_dialog_menambah">Menambahkan</string>
+    <string name="pengajar_dialog_menunggu">Server sedang membatasi permintaan, dikirim ulang dalam %1$s</string>
+
+    <!-- Galat khusus layar ini -->
+    <string name="pengajar_tidak_ditemukan">Tidak ada akun guru aktif dengan email itu</string>
+    <string name="pengajar_batas_kelas">Guru ini sudah mengajar di 20 kelas aktif, jadi belum bisa ditambahkan</string>
+    <string name="pengajar_batas_percobaan">Terlalu banyak percobaan, coba lagi dalam %1$s</string>
+    <string name="pengajar_akun_sudah_tidak_ada">Akun ini sudah tidak ada, Anda dikeluarkan dari aplikasi</string>
+</resources>
