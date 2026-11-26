@@ -1,0 +1,43 @@
+name: Scorecard
+
+# Scorecard only accepts runs on the default branch, so it never runs on a pull request and is never a required check.
+on:
+  push:
+    branches: [main]
+  schedule:
+    # Monday 21:00 UTC (Tuesday 04:00 WIB)
+    - cron: "0 21 * * 1"
+
+concurrency:
+  group: scorecard-${{ github.run_id }}
+  cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+  scorecard:
+    name: OSSF Scorecard
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@23f22cd43608bae7a1f1fa2603d7314dee9538a5 # v2.6.0
+        with:
+          results_file: scorecard-results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload Scorecard results to code scanning
+        uses: github/codeql-action/upload-sarif@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4
+        with:
+          sarif_file: scorecard-results.sarif
+          category: scorecard

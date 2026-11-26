@@ -9,7 +9,7 @@ Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
 - Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
-- Sepuluh pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint dan Zizmor.
+- Sebelas pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint, Zizmor dan CodeQL analysis.
 - Branch pull request harus mutakhir terhadap `main` sebelum digabung.
 - Persetujuan review yang sudah ada dibatalkan oleh push baru.
 - Commit tidak wajib ditandatangani.
@@ -19,6 +19,8 @@ Mengubah branch tujuan sebuah pull request menjadi `main` hanya menjalankan Conv
 Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan perubahan, buat branch `revert/deskripsi-singkat` sendiri dengan judul pull request `revert: deskripsi singkat`.
 
 Zizmor memakai data terbaru dari GitHub, jadi temuan baru pada action yang sudah dipakai bisa membuat semua pull request gagal. Jalan keluarnya adalah pull request yang memperbarui action itu, atau yang menambahkan pengecualian beserta alasannya di `.github/zizmor.yml`.
+
+CodeQL analysis juga bisa gagal bukan karena isi pull request, misalnya saat unduhan atau code scanning GitHub bermasalah, atau saat CodeQL default setup diaktifkan di pengaturan repositori. Jalankan ulang pengecekannya setelah penyebabnya hilang. Yang dianalisis hanya kode utama varian debug. Pengecekan ini gagal kalau analisisnya tidak selesai, bukan karena ada temuan.
 
 Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
@@ -36,6 +38,8 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 | `trivy.yaml` | Trivy filesystem scan | pull request ke `main`, push ke `main`, setiap Senin, manual | Kerentanan, rahasia, dan salah konfigurasi di berkas repositori. Hanya temuan CRITICAL dan HIGH yang sudah punya perbaikan yang dilaporkan |
 | `workflow-lint.yaml` | Actionlint | pull request ke `main`, push ke `main`, manual | Sintaks berkas workflow |
 | `workflow-lint.yaml` | Zizmor | sama | Keamanan berkas workflow |
+| `codeql.yaml` | CodeQL analysis | pull request ke `main`, push ke `main`, setiap Selasa dini hari WIB | Analisis keamanan statis kode Kotlin dan Java. Temuannya masuk ke code scanning GitHub |
+| `scorecard.yaml` | OSSF Scorecard | push ke `main`, setiap Selasa dini hari WIB | Praktik keamanan repositori menurut OpenSSF Scorecard. Tidak pernah wajib |
 
 Beberapa catatan tentang isi pengecekan.
 
