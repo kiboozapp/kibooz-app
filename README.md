@@ -9,7 +9,7 @@
 
 Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubungkan guru dengan wali murid. Fitur intinya mencakup pemantauan kondisi emosional anak dan pembiasaan pilah sampah berhadiah poin reward.
 
-> **Status saat ini:** sebagian besar layar masih purwarupa dengan data contoh dan belum terhubung ke server. Lapisan jaringan (`data/remote`) sudah ada, tetapi login, penyimpanan sesi, dan pemanggilan API belum dipasang. Pemindai mood hanya aktif pada build debug dan memakai pengklasifikasi contoh, sedangkan pemindai sampah masih berupa tampilan contoh. Kontrak server ada di repositori [kibooz-backend](https://github.com/SyafaHadyan/kibooz-backend) (`openapi.yaml` dan `docs/client-guide.md`), dan rencana kerjanya ada di `docs/prd_and_roadmap`.
+> **Status saat ini:** sebagian besar layar masih purwarupa dengan data contoh dan belum terhubung ke server. Lapisan jaringan (`data/remote`) sudah ada, tetapi login, penyimpanan sesi, dan pemanggilan API belum dipasang. Pemindai mood hanya aktif pada build debug dan memakai pengklasifikasi contoh, sedangkan pemindai sampah masih berupa tampilan contoh. Kontrak server ada di repositori [kibooz-backend](https://github.com/kiboozapp/kibooz-backend) (`openapi.yaml` dan `docs/client-guide.md`), dan rencana kerjanya ada di `docs/prd_and_roadmap`.
 
 ---
 
@@ -168,7 +168,7 @@ KiboozApp/
 ### Langkah Setup
 1. Clone repositori ini:
    ```bash
-   git clone https://github.com/ValentinusMarvel/kibooz-app.git
+   git clone https://github.com/kiboozapp/kibooz-app.git
    cd kibooz-app
    ```
 2. Buka Android Studio.

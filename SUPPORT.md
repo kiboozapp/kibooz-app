@@ -9,7 +9,7 @@ Kibooz App dikerjakan oleh tim kecil. Tidak ada dukungan berbayar dan tidak ada 
 | Fitur yang ada dan cara membuka proyek | [README.md](README.md) |
 | Rencana kerja dan kebutuhan produk | Folder `docs/prd_and_roadmap`, mulai dari `00_INDEX.md` |
 | Cara mengirim perubahan | [CONTRIBUTING.md](CONTRIBUTING.md) |
-| Kontrak server yang dipakai aplikasi | Repositori [kibooz-backend](https://github.com/SyafaHadyan/kibooz-backend) |
+| Kontrak server yang dipakai aplikasi | Repositori [kibooz-backend](https://github.com/kiboozapp/kibooz-backend) |
 
 ## Ke mana setiap pertanyaan dikirim
 
