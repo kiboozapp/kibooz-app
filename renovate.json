@@ -11,7 +11,6 @@
   "semanticCommitType": "chore",
   "semanticCommitScope": "deps",
   "assignees": ["SyafaHadyan"],
-  "dependencyDashboard": true,
   "vulnerabilityAlerts": {
     "semanticCommitType": "fix"
   },
@@ -21,9 +20,10 @@
       "semanticCommitType": "chore"
     },
     {
+      "description": "only patches are grouped, because a minor release of an Android library can need a newer compileSdk and would hold back the safe updates of the same group",
       "matchManagers": ["gradle"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "gradle-minor-patch"
+      "matchUpdateTypes": ["patch"],
+      "groupName": "gradle-patch"
     },
     {
       "matchManagers": ["github-actions"],
@@ -40,9 +40,21 @@
       "semanticCommitType": "ci"
     },
     {
-      "description": "a major release of the Android Gradle plugin, Kotlin or Gradle has to move with the others, so it waits for a tick in the dependency dashboard",
-      "matchDepNames": ["com.android.application", "org.jetbrains.kotlin.android", "gradle"],
+      "description": "ghcr.io gives no release time, so the age wait cannot be checked and would hold the update for ever",
+      "matchPackageNames": ["ghcr.io/zizmorcore/zizmor"],
+      "minimumReleaseAgeBehaviour": "timestamp-optional"
+    },
+    {
+      "description": "a major release of the Android Gradle plugin, Kotlin, Gradle or the JDK has to move with the others, so it waits for a tick in the dependency dashboard",
+      "matchDepNames": ["com.android.application", "org.jetbrains.kotlin.android", "gradle", "java-jdk"],
       "matchUpdateTypes": ["major"],
+      "groupName": "android-toolchain",
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "Kotlin 2.2 and newer rejects the kotlinOptions block of app/build.gradle.kts, so a new minor waits until the build script is migrated",
+      "matchDepNames": ["org.jetbrains.kotlin.android"],
+      "matchUpdateTypes": ["minor"],
       "dependencyDashboardApproval": true
     }
   ],
