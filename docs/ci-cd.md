@@ -41,6 +41,7 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 | Berkas | Fungsi |
 | :--- | :--- |
 | `commitlint.config.mjs` | Aturan pesan commit untuk job Conventional commits |
+| `renovate.json` | Pengaturan Renovate. Pull request pembaruan dependensi dibuat pada Senin pagi, setelah rilisnya berumur 7 hari |
 | `.ls-lint.yml` | Aturan penamaan berkas untuk job File names |
 | `.github/zizmor.yml` | Pengaturan audit Zizmor, semua action wajib dipin ke SHA commit |
 | `.gitleaksignore` | Sidik jari temuan gitleaks yang sudah diperiksa dan bukan rahasia |
