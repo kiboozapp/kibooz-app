@@ -11,3 +11,7 @@ rules:
   dangerous-triggers:
     ignore:
       - dependency-submit.yaml
+  # actionlint 1.7.12 does not know the $/ form that this audit asks for and rejects it. Remove this entry when actionlint accepts it.
+  self-repository:
+    ignore:
+      - release-please.yaml

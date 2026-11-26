@@ -35,7 +35,9 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 | `android-ci.yaml` | Android lint | sama | `./gradlew lintDebug` |
 | `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul, isi atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
 | `prformat.yaml` | PR format | pull request ke `main` (termasuk saat isi diubah) | Nama branch, label, assignee, dan isi pull request berupa daftar bullet |
-| `release-please.yaml` | Release PR and tag | push ke `main`, manual | Membuat pull request rilis berisi changelog dan versi baru. Setelah digabung, membuat tag `v*` dan GitHub release |
+| `release-please.yaml` | Release PR and tag | push ke `main`, manual | Membuat pull request rilis berisi changelog dan versi baru. Setelah digabung, membuat tag `v*` dan draft release |
+| `release-please.yaml` | Sign and publish the release | setelah rilis dibuat | Menandatangani APK rilis, melampirkannya ke draft release, lalu menerbitkan rilisnya |
+| `release-build.yaml` | Release build | pull request ke `main`, dipanggil oleh `release-please.yaml` | Membangun APK rilis yang belum ditandatangani. Tidak wajib |
 | `file-names.yaml` | File names | pull request ke `main`, push ke `main`, manual | Penamaan berkas menurut `.ls-lint.yml` |
 | `gitleaks.yaml` | Secret scan (gitleaks) | pull request ke `main`, push ke `main`, manual | Seluruh riwayat git dicek untuk rahasia yang tidak sengaja ikut |
 | `trivy.yaml` | Trivy filesystem scan | pull request ke `main`, push ke `main`, setiap Senin, manual | Kerentanan, rahasia, dan salah konfigurasi di berkas repositori. Hanya temuan CRITICAL dan HIGH yang sudah punya perbaikan yang dilaporkan |
@@ -49,7 +51,7 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 
 Beberapa catatan tentang isi pengecekan.
 
-- Job Android memakai JDK 17 dan Gradle wrapper repositori. Laporan pengujian dan lint diunggah sebagai artifact hanya saat job gagal.
+- Job Android memakai JDK 17 dan Gradle wrapper repositori. Laporan pengujian dan lint diunggah sebagai artifact hanya saat job gagal. Job Debug build menyimpan APK debug sebagai artifact `kibooz-debug-apk` selama 7 hari. APK ini ditandatangani dengan kunci sementara runner, sehingga versi lama harus dihapus dari ponsel sebelum memasang yang baru. Pasang hanya APK dari run di `main` atau dari pull request anggota tim.
 - Job Trivy tidak menemukan apa pun di dependensi Gradle, karena repositori tidak memiliki lock file. Hasilnya ditulis ke log dan ke ringkasan job, tidak ke code scanning GitHub.
 - Gitleaks memakai `.gitleaksignore` untuk empat contoh token atau UUID yang terpotong di riwayat awal PRD. Isinya bukan rahasia sungguhan.
 - PR format melewati pull request milik bot di cabang `renovate/*`, `dependabot/*` atau `release-please--*`. Conventional commits tetap memeriksa semua pull request.
@@ -81,6 +83,8 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 - Release Please membuka dan memperbarui satu pull request rilis. Rilis dibuat saat pull request itu digabung.
 - Tag `v*` hanya bisa dibuat oleh GitHub App rilis, dan tidak bisa diubah atau dihapus oleh siapa pun.
 - Release immutability aktif, sehingga tag dan berkas rilis yang sudah terbit tidak bisa diganti.
+- Rilis berisi `kibooz-app-<tag>.apk` dan berkas `.sha256`. APK ditandatangani dengan kunci rilis, dan job tersebut memeriksa sidik jari sertifikatnya. Kalau job pembangunan atau penandatanganan gagal, rilis tetap berupa draft. Jalankan ulang job yang gagal. Kalau itu tidak bisa, misalnya karena APK sementara sudah lewat 7 hari atau workflow-nya yang salah, jalankan `release-please.yaml` secara manual dari `main` dengan masukan `tag` berisi tag draft tersebut.
+- APK rilis belum memiliki Google Sign-In. Layar pemindai terbuka dengan model pengganti, karena APK rilis dibangun dengan `-Pkibooz.allowPlaceholderModels=true`.
 - `versionCode` di `app/build.gradle.kts` tidak diperbarui otomatis. Naikkan angkanya secara manual sebelum mengunggah build ke Play Store.
 
 ## Aturan semua workflow
@@ -88,4 +92,4 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 - Setiap action dipin ke SHA commit lengkap dengan versi di komentar.
 - Setiap workflow memakai `permissions: {}` di atas dan izin minimum untuk setiap job.
 - Checkout memakai `persist-credentials: false`, dan setiap job memiliki `timeout-minutes`.
-- Hanya `release-please.yaml` yang memakai secret, yaitu kunci GitHub App di environment `release` yang hanya bisa dipakai dari `main`. Workflow yang berjalan di pull request tidak memerlukan secret, jadi semuanya juga berjalan di pull request dari fork.
+- Hanya `release-please.yaml` yang memakai secret, yaitu kunci GitHub App, berkas kunci penandatanganan APK dan kata sandinya di environment `release` yang hanya bisa dipakai dari `main`. Workflow yang berjalan di pull request tidak memerlukan secret, jadi semuanya juga berjalan di pull request dari fork.
