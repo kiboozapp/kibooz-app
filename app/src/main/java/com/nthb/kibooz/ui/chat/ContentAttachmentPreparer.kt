@@ -56,6 +56,9 @@ class ContentAttachmentPreparer(context: Context) : AttachmentPreparer {
             // Penyedia berkas bisa melempar apa saja, dari berkas hilang sampai izin dicabut
             temporary?.delete()
             unreadable()
+        } catch (_: OutOfMemoryError) {
+            temporary?.delete()
+            unreadable()
         }
     }
 

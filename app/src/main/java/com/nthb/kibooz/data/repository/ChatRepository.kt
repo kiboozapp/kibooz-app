@@ -50,7 +50,7 @@ class PendingMessage(
     fun withMediaKey(key: String?) = PendingMessage(body, idempotencyKey, key)
 }
 
-/** Chat guru dan wali lewat REST: kontak, percakapan, pesan, lampiran, hapus pesan sendiri dan tanda baca. */
+/** Chat guru dan wali lewat REST, yaitu kontak, percakapan, pesan, lampiran, hapus pesan sendiri dan tanda baca. */
 class ChatRepository(
     private val api: ChatApi,
     private val moshi: Moshi,

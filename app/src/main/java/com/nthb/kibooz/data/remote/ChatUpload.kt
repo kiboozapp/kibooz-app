@@ -65,25 +65,11 @@ class ExactLengthRequestBody(
     private val onProgress: (sentBytes: Long) -> Unit = {}
 ) : RequestBody() {
 
-    private var sourceBroken = false
-
     override fun contentType(): MediaType? = mediaType
 
     override fun contentLength(): Long = source.sizeBytes
 
-    // Sumber yang rusak tidak dicoba lagi lewat rute lain, supaya galatnya tidak tertutup galat koneksi
-    override fun isOneShot(): Boolean = sourceBroken
-
     override fun writeTo(sink: BufferedSink) {
-        try {
-            stream(sink)
-        } catch (e: ChatUploadSourceException) {
-            sourceBroken = true
-            throw e
-        }
-    }
-
-    private fun stream(sink: BufferedSink) {
         val expected = source.sizeBytes
         val input = reading { source.open() } ?: throw ChatUploadSourceException("Sumber tidak bisa dibuka")
 

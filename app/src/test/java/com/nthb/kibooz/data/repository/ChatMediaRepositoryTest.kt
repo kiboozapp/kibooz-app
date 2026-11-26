@@ -262,7 +262,6 @@ class ChatMediaRepositoryTest {
 
         assertTrue(sink.size <= 10_000)
         assertTrue(consumed <= 10_000 + 8 * 1024)
-        assertTrue(body.isOneShot())
     }
 
     @Test
