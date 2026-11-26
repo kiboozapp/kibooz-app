@@ -4,7 +4,7 @@ Berkas ini mendaftar siapa yang menjaga Kibooz App. [GOVERNANCE.md](GOVERNANCE.m
 
 | Akun GitHub | Peran |
 | :--- | :--- |
-| [@ValentinusMarvel](https://github.com/ValentinusMarvel) | Pemilik repositori dan reviewer |
+| [@ValentinusMarvel](https://github.com/ValentinusMarvel) | Kontak proyek dan reviewer |
 | [@ArmJour](https://github.com/ArmJour) | Reviewer |
 | [@SyafaHadyan](https://github.com/SyafaHadyan) | Reviewer |
 | [@FhmiSddq](https://github.com/FhmiSddq) | Reviewer |
@@ -12,4 +12,4 @@ Berkas ini mendaftar siapa yang menjaga Kibooz App. [GOVERNANCE.md](GOVERNANCE.m
 
 ## Menghubungi maintainer
 
-Gunakan issue untuk bug dan usulan. Laporan keamanan dan laporan perilaku ditulis secara pribadi kepada pemilik repositori, seperti dijelaskan di [SECURITY.md](SECURITY.md) dan [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Gunakan issue untuk bug dan usulan. Laporan keamanan dikirim secara pribadi seperti dijelaskan di [SECURITY.md](SECURITY.md). Laporan perilaku ditulis secara pribadi kepada kontak proyek, seperti dijelaskan di [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
