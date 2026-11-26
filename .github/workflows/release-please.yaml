@@ -19,6 +19,8 @@ permissions: {}
 jobs:
   release-please:
     name: Release PR and tag
+    # A run by hand with a tag only repairs that draft, so it must not make another release
+    if: ${{ inputs.tag == '' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # The private key of the release GitHub App is a secret of the release environment, which only main can use, so a workflow on
@@ -130,7 +132,11 @@ jobs:
           fi
 
           # A rerun of an older release must not take the Latest label from a newer one. The first release has none yet.
-          if ! latest="$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name 2>/dev/null)"; then
+          if ! latest="$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name 2>"$RUNNER_TEMP/latest.err")"; then
+            if ! grep -q 'HTTP 404' "$RUNNER_TEMP/latest.err"; then
+              echo "::error title=Latest release unknown::The lookup failed, so nothing was published. Rerun this job."
+              exit 1
+            fi
             latest=""
           fi
           label="--latest=false"
