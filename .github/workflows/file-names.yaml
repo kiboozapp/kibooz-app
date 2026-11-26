@@ -13,8 +13,7 @@ concurrency:
 
 permissions: {}
 
-# This check reports only. It is not a required check and a red run does not block a merge. It needs no secret, so it also
-# runs on pull requests from forks.
+# The job name is a required check of the main ruleset. It needs no secret, so it also runs on pull requests from forks.
 jobs:
   file-names:
     name: File names

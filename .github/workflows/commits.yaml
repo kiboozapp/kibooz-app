@@ -5,12 +5,11 @@ on:
     branches: [main]
     types: [opened, synchronize, reopened, edited]
 
-# This check reports only. It is not a required check and a red run does not block a merge.
+# The job name is a required check of the main ruleset.
 #
 # A run is never cancelled and every run has a group of its own. Editing the body of a pull request right after a push would start
-# a run in the same group, which would cancel the run of the push. An edit that changes neither the title nor the base branch skips
-# the job, because commitlint reads the commits and the commits did not change. The title is read from the pull request when the run
-# starts and not from the event, so a rerun checks the title as it is now.
+# a run in the same group, which would cancel the run of the push. The job runs on every edit, so each run reports a real result.
+# The title is read from the pull request when the run starts and not from the event, so a rerun checks the title as it is now.
 concurrency:
   group: commits-${{ github.run_id }}
   cancel-in-progress: false
@@ -20,7 +19,6 @@ permissions: {}
 jobs:
   conventional-commits:
     name: Conventional commits
-    if: github.event.action != 'edited' || github.event.changes.title || github.event.changes.base
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -40,7 +38,7 @@ jobs:
           configFile: ./commitlint.config.mjs
           helpURL: https://github.com/kiboozapp/kibooz-app/blob/main/CONTRIBUTING.md
 
-      # With merge commits the title never reaches main, so commitlint does not see it, and CONTRIBUTING.md asks for the same format
+      # The title becomes the subject of the merge commit on main. commitlint reads the commits only, so the title is checked here
       - name: Pull request title
         env:
           GH_TOKEN: ${{ github.token }}

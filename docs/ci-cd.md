@@ -2,9 +2,23 @@
 
 Halaman ini mendaftar semua workflow di `.github/workflows` dan menjelaskan apa yang dicek oleh masing-masing. Daftar ini sebaiknya diperbarui di pull request yang sama dengan perubahan workflow.
 
-## Tidak ada pengecekan wajib
+## Aturan branch main
 
-Repositori ini tidak memiliki ruleset dan tidak memiliki proteksi branch. Karena itu tidak ada pengecekan yang wajib hijau sebelum merge. Semua workflow di bawah ini hanya melaporkan hasil. Pengecekan yang gagal tidak menghalangi merge, tetapi sebaiknya diperbaiki dulu. Mengubah pengecekan menjadi wajib adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin ke repositori.
+Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
+
+- Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
+- Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
+- `main` tidak bisa dihapus dan tidak bisa di-force push.
+- Delapan pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks) dan Trivy filesystem scan.
+- Branch pull request harus mutakhir terhadap `main` sebelum digabung.
+- Persetujuan review yang sudah ada dibatalkan oleh push baru.
+- Commit tidak wajib ditandatangani.
+
+Mengubah branch tujuan sebuah pull request menjadi `main` hanya menjalankan Conventional commits dan PR format. Pengecekan lain berjalan setelah ada push baru, misalnya saat branch dimutakhirkan.
+
+Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan perubahan, buat branch `revert/deskripsi-singkat` sendiri dengan judul pull request `revert: deskripsi singkat`.
+
+Pengecekan lain, termasuk Actionlint dan Zizmor, hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
 ## Daftar workflow
 
@@ -13,7 +27,7 @@ Repositori ini tidak memiliki ruleset dan tidak memiliki proteksi branch. Karena
 | `android-ci.yaml` | Unit tests | pull request ke `main`, push ke `main`, manual | `./gradlew testDebugUnitTest` |
 | `android-ci.yaml` | Debug build | sama | `./gradlew assembleDebug` |
 | `android-ci.yaml` | Android lint | sama | `./gradlew lintDebug` |
-| `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
+| `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul, isi atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
 | `prformat.yaml` | PR format | pull request ke `main` (termasuk saat isi diubah) | Nama branch, label, assignee, dan isi pull request berupa daftar bullet |
 | `file-names.yaml` | File names | pull request ke `main`, push ke `main`, manual | Penamaan berkas menurut `.ls-lint.yml` |
 | `gitleaks.yaml` | Secret scan (gitleaks) | pull request ke `main`, push ke `main`, manual | Seluruh riwayat git dicek untuk rahasia yang tidak sengaja ikut |

@@ -153,7 +153,7 @@ Gunakan format terstruktur: `<tipe>(<lingkup>): <deskripsi singkat>`
 
 ### 4.3 Kriteria Wajib Merge (Definition of Done / DoD)
 Sebuah pull request baru dapat digabungkan (*merged*) ke branch `main` jika memenuhi:
-1. Telah disetujui (*Approved*) minimal oleh satu rekan tim pemrogram.
+1. Disarankan sudah disetujui (*Approved*) oleh minimal satu rekan tim pemrogram. Ruleset `main` tidak mewajibkannya.
 2. Seluruh tes otomatis pada pipeline GitHub Actions berstatus hijau (*Pass*).
 3. Tidak ada penambahan nilai string atau warna *hardcoded* (wajib menggunakan `strings.xml` dan `colors.xml`).
 4. Menggunakan `InsetsUtil` untuk penanganan bilah sistem *edge-to-edge*.

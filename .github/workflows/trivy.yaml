@@ -15,7 +15,7 @@ concurrency:
 
 permissions: {}
 
-# This scan reports only. It is not a required check and a red run does not block a merge. The findings go to the job log and to
+# The job name is a required check of the main ruleset. The findings go to the job log and to
 # the job summary, and nothing is uploaded to GitHub code scanning. It needs no secret, so it also runs on pull requests from forks.
 jobs:
   trivy-fs:
