@@ -87,7 +87,9 @@ class ChatViewModel(
     private val info: ChatInfo,
     private val ownUserId: String,
     private val pause: suspend (millis: Long) -> Unit = { delay(it) },
-    private val jitter: () -> Long = { Random.nextLong(OUTAGE_JITTER_SECONDS) }
+    private val jitter: () -> Long = { Random.nextLong(OUTAGE_JITTER_SECONDS) },
+    /** Jam milidetik monoton, untuk menghitung jeda `Retry-After`. */
+    private val now: () -> Long = { System.nanoTime() / 1_000_000L }
 ) : ViewModel() {
 
     private val conversationId = info.conversationId
@@ -102,7 +104,9 @@ class ChatViewModel(
 
     private var outageAttempts = 0
     private var pollTicks = 0
-    private var pollSkips = 0
+
+    /** Waktu menurut [now] sebelum polling tidak boleh meminta apa pun, atau null jika tidak sedang dibatasi. */
+    private var pollBlockedUntil: Long? = null
 
     /**
      * Kursor `after` untuk polling. Hanya maju dari jawaban daftar server, tidak pernah dari pesan yang baru dikirim
@@ -193,61 +197,75 @@ class ChatViewModel(
     // Polling
 
     /**
-     * Satu tick polling, dipanggil oleh [ChatPoller] selagi layar terlihat. Mengambil pesan setelah `id` terbesar
-     * dan menggabungkannya. Setiap [SLOW_EVERY] tick juga memuat ulang pesan terbaru, karena `after` tidak membawa
-     * pesan lama yang dihapus lawan bicara, dan menyegarkan `canSend` serta tanda baca lawan bicara.
+     * Satu tick, dipanggil oleh [ChatTicker] selagi layar terlihat, entah dari polling atau dari frame socket.
+     * Layar tidak tahu bedanya. Mengambil pesan setelah `id` terbesar dari kursor dan menggabungkannya. Setiap
+     * [SLOW_EVERY] tick, dan pada tick dengan [reload] true, juga memuat ulang pesan terbaru, karena `after` tidak
+     * membawa pesan lama yang dihapus lawan bicara, dan menyegarkan `canSend` serta tanda baca lawan bicara.
+     *
+     * Mengembalikan false jika tick ini belum selesai dan perlu diulang, misalnya selagi muat awal atau kirim masih
+     * jalan, selagi menunggu `Retry-After`, atau jika permintaannya gagal.
      */
-    suspend fun poll() {
+    suspend fun poll(reload: Boolean = false): Boolean {
         val start = _state.value
-        if (!start.loaded || start.gone || start.local?.status is LocalStatus.Sending) return
-        if (pollSkips > 0) {
-            pollSkips--
-            return
-        }
+        if (start.gone) return true
+        if (!start.loaded || start.local?.status is LocalStatus.Sending) return false
+        pollBlockedUntil?.let { if (now() - it < 0) return false }
+        pollBlockedUntil = null
         pollTicks++
 
         var cursor = pollCursor
         val fetched = mutableListOf<ChatMessage>()
+        var more = false
 
         for (page in 1..MAX_POLL_PAGES) {
             when (val result = repository.newerMessages(conversationId, cursor)) {
                 is ApiResult.Success -> {
                     fetched += result.data.messages
-                    cursor = result.data.messages.lastOrNull()?.id ?: break
-                    if (!result.data.hasMore) break
+                    val last = result.data.messages.lastOrNull()?.id
+                    more = result.data.hasMore && last != null
+                    if (last == null || !more) break
+                    cursor = last
                 }
                 is ApiResult.Failure -> {
                     onPollFailure(result)
-                    return
+                    return _state.value.gone
                 }
                 is ApiResult.NetworkError -> {
                     _state.update { it.copy(offline = true) }
-                    return
+                    return false
                 }
             }
         }
 
         // Pesan sendiri sedang dikirim, jadi hasilnya dibuang dan tick berikutnya mengambilnya lagi tanpa pesan ganda
-        if (_state.value.local?.status is LocalStatus.Sending) return
+        if (_state.value.local?.status is LocalStatus.Sending) return false
 
         advancePollCursor(fetched)
         _state.update { it.copy(offline = false, timeline = it.timeline.merge(fetched)) }
         if (fetched.isNotEmpty()) markReadIfSeen()
-        if (pollTicks % SLOW_EVERY == 0) refreshSlowly()
+        val refreshed = if (reload || pollTicks % SLOW_EVERY == 0) refreshSlowly() else true
+        return !more && (refreshed || !reload)
     }
 
     private fun onPollFailure(failure: ApiResult.Failure) {
         when {
-            failure.status == 429 -> pollSkips = ((failure.retryAfterSeconds ?: DEFAULT_POLL_WAIT_SECONDS) / POLL_SECONDS).toInt() + 1
+            failure.status == 429 ->
+                pollBlockedUntil = now() + (failure.retryAfterSeconds ?: DEFAULT_POLL_WAIT_SECONDS) * 1_000L
             failure.errorCode == CONVERSATION_NOT_FOUND ->
                 _state.update { it.copy(gone = true, loadError = failure.messageRes()) }
             failure.outageKind() != null -> _state.update { it.copy(offline = true) }
         }
     }
 
-    private suspend fun refreshSlowly() {
+    /** True jika pesan terbaru dan data percakapan sama-sama berhasil disegarkan. */
+    private suspend fun refreshSlowly(): Boolean {
         val latest = repository.latestMessages(conversationId)
-        if (latest is ApiResult.Success && _state.value.local?.status !is LocalStatus.Sending) {
+        if (latest is ApiResult.Failure) {
+            onPollFailure(latest)
+            if (latest.status == 429) return false
+        }
+        val merged = latest is ApiResult.Success && _state.value.local?.status !is LocalStatus.Sending
+        if (latest is ApiResult.Success && merged) {
             advancePollCursor(latest.data.messages)
             _state.update { it.copy(timeline = it.timeline.merge(latest.data.messages)) }
         }
@@ -257,7 +275,10 @@ class ChatViewModel(
             found.data?.let { conversation ->
                 _state.update { it.copy(canSend = conversation.canSend, peerLastReadMessageId = conversation.peerLastReadMessageId) }
             }
+        } else if (found is ApiResult.Failure) {
+            onPollFailure(found)
         }
+        return merged && found is ApiResult.Success
     }
 
     // Kirim
@@ -441,7 +462,6 @@ class ChatViewModel(
         /** Jeda acak 0 sampai 5 detik di atas `Retry-After` supaya semua aplikasi tidak mencoba di detik yang sama. */
         const val OUTAGE_JITTER_SECONDS = 6L
 
-        const val POLL_SECONDS = CHAT_POLL_INTERVAL_MILLIS / 1_000
         const val DEFAULT_POLL_WAIT_SECONDS = 30L
 
         /** Pengaman: satu tick mengambil paling banyak 5 halaman pesan baru, sisanya diambil tick berikutnya. */

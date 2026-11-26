@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 /**
  * Daftar pesan untuk Guru dan Wali. Tab pertama berisi percakapan yang sudah punya pesan, yang terbaru dulu, dengan
  * jumlah belum dibaca. Tab "Mulai baru" berisi ruang kelas dan kontak untuk memulai percakapan. Daftar dimuat ulang
- * saat layar tampil lagi dan lewat tombol muat ulang di atas.
+ * saat layar tampil lagi, saat socket memberi tahu ada yang berubah, dan lewat tombol muat ulang di atas.
  */
 class ChatListActivity : AppCompatActivity() {
 
@@ -68,6 +68,13 @@ class ChatListActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch { viewModel.state.collect(::render) }
                 launch { viewModel.state.map { activeOutage(it) }.distinctUntilChanged().collectLatest(::runOutageCountdown) }
+                launch {
+                    // onResume sudah memuat ulang saat layar tampil, jadi tidak ada tick awal
+                    ChatTicker(appContainer.chatSocket, pollMillis = CHAT_LIST_POLL_INTERVAL_MILLIS, catchUpOnStart = false).run(
+                        tickFor = { it.tickForList(session?.user?.id.orEmpty()) },
+                        onTick = { viewModel.refreshOnTick() }
+                    )
+                }
             }
         }
     }

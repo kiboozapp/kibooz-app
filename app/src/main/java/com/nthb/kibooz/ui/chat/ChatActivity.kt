@@ -29,7 +29,8 @@ import kotlinx.coroutines.launch
 
 /**
  * Satu percakapan, langsung atau ruang kelas. Riwayat dimuat dari yang terbaru dan yang lebih lama dimuat saat
- * digulir ke atas. Pesan baru diambil tiap 5 detik lewat [ChatPoller], hanya selagi layar terlihat. Mengetuk pesan
+ * digulir ke atas. Pesan baru diambil saat [ChatTicker] memberi tick, hanya selagi layar terlihat. Tick datang dari
+ * frame socket selagi tersambung, dan dari polling 5 detik selagi putus. Mengetuk pesan
  * sendiri menawarkan hapus. Jika percakapan tertutup, kotak tulis diganti keterangan alasannya.
  */
 class ChatActivity : AppCompatActivity() {
@@ -87,10 +88,13 @@ class ChatActivity : AppCompatActivity() {
                 launch { viewModel.state.collect(::render) }
                 launch { viewModel.state.map { it.outage }.distinctUntilChanged().collectLatest(::runOutageCountdown) }
                 launch {
-                    // Polling hanya jalan selagi layar terlihat, dan tanda baca hanya dikirim selagi terlihat
+                    // Tick dan tanda baca hanya jalan selagi layar terlihat
                     viewModel.setVisible(true)
                     try {
-                        ChatPoller().run { viewModel.poll() }
+                        ChatTicker(appContainer.chatSocket).run(
+                            tickFor = { it.tickForConversation(conversationId, ownUserId) },
+                            onTick = { viewModel.poll(reload = it == ChatTick.RELOAD) }
+                        )
                     } finally {
                         viewModel.setVisible(false)
                     }

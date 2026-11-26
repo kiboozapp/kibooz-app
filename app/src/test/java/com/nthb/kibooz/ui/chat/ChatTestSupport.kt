@@ -19,7 +19,13 @@ import com.nthb.kibooz.data.remote.ClassStudentList
 import com.nthb.kibooz.data.remote.MarkChatReadRequest
 import com.nthb.kibooz.data.remote.SendChatMessageRequest
 import com.nthb.kibooz.data.remote.StartChatRequest
+import com.nthb.kibooz.data.remote.ChatFrame
+import com.nthb.kibooz.data.remote.ChatLink
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Protocol
 import okhttp3.Request
@@ -198,4 +204,53 @@ class FakeClassesApi : ClassApi {
         error("not used")
 
     override suspend fun listChildren(): Response<ApiEnvelope<ChildList>> = childrenReply()
+}
+
+/**
+ * Jeda yang ditahan sampai tes melepasnya, supaya tes tidak menunggu waktu nyata. Setiap jeda yang diminta
+ * dicatat di [waits] dengan lamanya, urut sesuai permintaan.
+ */
+class ManualPause {
+    val waits: MutableList<Long> = CopyOnWriteArrayList()
+    private val gates = CopyOnWriteArrayList<Pair<Long, CompletableDeferred<Unit>>>()
+
+    suspend fun pause(millis: Long) {
+        val gate = CompletableDeferred<Unit>()
+        waits += millis
+        gates += millis to gate
+        gate.await()
+    }
+
+    /** Melepas semua jeda yang masih menunggu. */
+    fun releaseAll() {
+        gates.forEach { it.second.complete(Unit) }
+    }
+
+    /** Melepas jeda yang lamanya [millis]. */
+    fun release(millis: Long) {
+        gates.filter { it.first == millis }.forEach { it.second.complete(Unit) }
+    }
+}
+
+/** Socket palsu. Tes mengubah [connected], mengirim frame lewat [emit], dan membaca berapa kali dipegang dan dilepas. */
+class FakeChatLink : ChatLink {
+    override val connected: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    private val source = MutableSharedFlow<ChatFrame>(extraBufferCapacity = 64)
+    override val frames: SharedFlow<ChatFrame> = source
+
+    var acquired = 0
+    var released = 0
+
+    override fun acquire() {
+        acquired++
+    }
+
+    override fun release() {
+        released++
+    }
+
+    fun emit(frame: ChatFrame) {
+        check(source.tryEmit(frame)) { "buffer frame penuh" }
+    }
 }
