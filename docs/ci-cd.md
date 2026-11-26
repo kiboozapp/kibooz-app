@@ -84,7 +84,7 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 - Tag `v*` hanya bisa dibuat oleh GitHub App rilis, dan tidak bisa diubah atau dihapus oleh siapa pun.
 - Release immutability aktif, sehingga tag dan berkas rilis yang sudah terbit tidak bisa diganti.
 - Rilis berisi `kibooz-app-<tag>.apk` dan berkas `.sha256`. APK ditandatangani dengan kunci rilis, dan job tersebut memeriksa sidik jari sertifikatnya. Kalau job pembangunan atau penandatanganan gagal, rilis tetap berupa draft. Jalankan ulang job yang gagal. Kalau itu tidak bisa, misalnya karena APK sementara sudah lewat 7 hari atau workflow-nya yang salah, jalankan `release-please.yaml` secara manual dari `main` dengan masukan `tag` berisi tag draft tersebut.
-- APK rilis belum memiliki Google Sign-In, dan layar pemindai tertutup selama modelnya masih model pengganti.
+- APK rilis belum memiliki Google Sign-In. Layar pemindai terbuka dengan model pengganti, karena APK rilis dibangun dengan `-Pkibooz.allowPlaceholderModels=true`.
 - `versionCode` di `app/build.gradle.kts` tidak diperbarui otomatis. Naikkan angkanya secara manual sebelum mengunggah build ke Play Store.
 
 ## Aturan semua workflow

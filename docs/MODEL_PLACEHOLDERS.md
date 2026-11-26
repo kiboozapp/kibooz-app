@@ -69,6 +69,8 @@ Layar kamera mood dan sampah hanya terbuka jika modelnya bukan pengganti, atau b
 
 Tanpa itu build rilis menampilkan "belum tersedia" dan menutup layarnya. Build rilis biasa tidak membuka model pengganti.
 
+APK yang dilampirkan pada rilis GitHub dibangun oleh `release-build.yaml` dengan flag tersebut, sehingga pemindainya terbuka dengan model pengganti. Hapus flag itu dari workflow kalau pemindai harus ditutup, atau setelah model sungguhan terpasang.
+
 ## Mengganti dengan model Kibooz sungguhan
 
 1. Taruh berkas `.tflite` baru di `app/src/main/assets/` dengan nama yang sama (`kibooz_emotion_v1.tflite` atau `kibooz_trash_classifier_v1.tflite`).
