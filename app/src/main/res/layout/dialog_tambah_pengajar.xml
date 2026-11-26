@@ -34,7 +34,7 @@
             android:layout_marginTop="8dp"
             android:fontFamily="@font/baloo2"
             android:text="@string/pengajar_dialog_info"
-            android:textColor="@color/kibooz_text_secondary"
+            android:textColor="@color/kibooz_text_primary"
             android:textSize="13sp" />
 
         <TextView
@@ -44,7 +44,7 @@
             android:layout_marginTop="8dp"
             android:accessibilityLiveRegion="polite"
             android:fontFamily="@font/baloo2"
-            android:textColor="@color/kibooz_red_danger"
+            android:textColor="@color/pengajar_dialog_galat"
             android:textSize="13sp"
             android:visibility="gone" />
 
