@@ -6,7 +6,7 @@ Kibooz App dikerjakan oleh tim kecil. Halaman ini menjelaskan bagaimana perubaha
 
 Perubahan masuk ke `main` lewat pull request dari sebuah branch. Langkahnya ada di [CONTRIBUTING.md](CONTRIBUTING.md).
 
-- Pull request boleh meminta `ArmJour` atau `ValentinusMarvel` sebagai reviewer.
+- Pull request boleh meminta `ArmJour`, `ValentinusMarvel` atau `SyafaHadyan` sebagai reviewer.
 - Pull request digabung oleh pemilik repositori atau anggota tim yang punya izin menulis di repositori.
 - Kebiasaan tim adalah merge commit, sehingga setiap commit tetap ada di riwayat `main`.
 
