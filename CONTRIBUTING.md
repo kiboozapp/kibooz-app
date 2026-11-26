@@ -36,7 +36,7 @@ Perubahan perilaku sebaiknya disertai test. Perbaikan bug sebaiknya disertai tes
 
 ## Pengecekan otomatis
 
-Pull request memicu dua pengecekan untuk format. Pengecekan "Conventional commits" memeriksa pesan commit dan judul pull request. Pengecekan "PR format" memeriksa nama branch, label, assignee dan isi pull request. Pull request yang dibuka bot dari branch `renovate/` atau `dependabot/` tidak diperiksa oleh "PR format".
+Pull request memicu dua pengecekan untuk format. Pengecekan "Conventional commits" memeriksa pesan commit dan judul pull request. Pengecekan "PR format" memeriksa nama branch, label, assignee dan isi pull request. Pull request yang dibuka bot dari branch `renovate/`, `dependabot/` atau `release-please--` tidak diperiksa oleh "PR format".
 
 Kedua pengecekan ini termasuk pengecekan wajib di ruleset `main`, sehingga pull request tidak bisa digabung selama salah satunya gagal. Daftar lengkap pengecekan wajib dan aturan branch ada di [docs/ci-cd.md](docs/ci-cd.md).
 
