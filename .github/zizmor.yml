@@ -1,5 +1,5 @@
 # The settings of the zizmor audit of the workflows, run by .github/workflows/workflow-lint.yaml.
-# The run reports only and is not a required check.
+# The job is a required check of the main ruleset.
 rules:
   unpinned-uses:
     config:
