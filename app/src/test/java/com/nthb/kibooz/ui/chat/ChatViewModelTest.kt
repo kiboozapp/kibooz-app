@@ -2,6 +2,7 @@ package com.nthb.kibooz.ui.chat
 
 import com.nthb.kibooz.R
 import com.nthb.kibooz.data.remote.ChatConversationList
+import com.nthb.kibooz.data.remote.ChatFrame
 import com.nthb.kibooz.data.remote.ChatReadState
 import com.nthb.kibooz.data.remote.OutageKind
 import com.nthb.kibooz.data.repository.ChatRepository
@@ -14,8 +15,11 @@ import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import java.io.IOException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -453,6 +457,59 @@ class ChatViewModelTest {
         assertEquals(2L, viewModel.state.value.peerLastReadMessageId)
         assertEquals(listOf(1), api.conversationPages)
         assertFalse(viewModel.state.value.canCompose)
+    }
+
+    @Test
+    fun `a reload tick reloads the latest messages and the state of the conversation on the first tick`() = runBlocking {
+        var changed = false
+        api.messagesReply = { after, before ->
+            when {
+                after == null && before == null && changed -> messages(message(1, deleted = true), message(2, senderId = "me"))
+                after == null && before == null -> messages(message(1), message(2, senderId = "me"))
+                else -> messages()
+            }
+        }
+        api.conversationsReply = { page ->
+            ok(ChatConversationList(page, 50, 1, listOf(direct("cv1", canSend = false, peerRead = 2))))
+        }
+        val viewModel = viewModel()
+        changed = true
+
+        viewModel.poll(reload = true)
+
+        assertTrue(viewModel.state.value.timeline.messages[0].deleted)
+        assertFalse(viewModel.state.value.canSend)
+        assertEquals(2L, viewModel.state.value.peerLastReadMessageId)
+        assertEquals(listOf(1), api.conversationPages)
+        assertEquals(listOf<Pair<Long?, Long?>>(null to null, 2L to null, null to null), api.messageCalls)
+    }
+
+    @Test
+    fun `a frame only tells the screen to fetch and the cursor stays on what the server list gave`() = runBlocking {
+        // Lawan bicara menulis id 3, lalu kita mengirim dan mendapat id 4. Frame pesan kita sendiri datang lewat socket
+        api.sendReply = { body -> ok(message(4, senderId = "me", body = body)) }
+        api.messagesReply = { after, _ ->
+            if (after == 2L) messages(message(3, senderId = "u2"), message(4, senderId = "me")) else messages(message(1), message(2, senderId = "me"))
+        }
+        val viewModel = viewModel()
+        val link = FakeChatLink().also { it.connected.value = true }
+        val pause = ManualPause()
+        val scope = CoroutineScope(Dispatchers.Unconfined)
+        val job = scope.launch {
+            ChatTicker(link, catchUpOnStart = false, pause = { pause.pause(it) }).run(
+                tickFor = { it.tickForConversation("cv1", "me") },
+                onTick = { viewModel.poll(reload = it == ChatTick.RELOAD) }
+            )
+        }
+
+        viewModel.send("halo")
+        assertEquals(listOf(1L, 2L, 4L), ids(viewModel))
+
+        link.emit(ChatFrame.NewMessage("cv1"))
+
+        assertEquals(listOf(1L, 2L, 3L, 4L), ids(viewModel))
+        assertEquals(2L to null, api.messageCalls.last())
+        job.cancelAndJoin()
     }
 
     @Test

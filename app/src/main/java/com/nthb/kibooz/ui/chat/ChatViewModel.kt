@@ -193,11 +193,12 @@ class ChatViewModel(
     // Polling
 
     /**
-     * Satu tick polling, dipanggil oleh [ChatPoller] selagi layar terlihat. Mengambil pesan setelah `id` terbesar
-     * dan menggabungkannya. Setiap [SLOW_EVERY] tick juga memuat ulang pesan terbaru, karena `after` tidak membawa
-     * pesan lama yang dihapus lawan bicara, dan menyegarkan `canSend` serta tanda baca lawan bicara.
+     * Satu tick, dipanggil oleh [ChatTicker] selagi layar terlihat, entah dari polling atau dari frame socket.
+     * Layar tidak tahu bedanya. Mengambil pesan setelah `id` terbesar dari kursor dan menggabungkannya. Setiap
+     * [SLOW_EVERY] tick, dan pada tick dengan [reload] true, juga memuat ulang pesan terbaru, karena `after` tidak
+     * membawa pesan lama yang dihapus lawan bicara, dan menyegarkan `canSend` serta tanda baca lawan bicara.
      */
-    suspend fun poll() {
+    suspend fun poll(reload: Boolean = false) {
         val start = _state.value
         if (!start.loaded || start.gone || start.local?.status is LocalStatus.Sending) return
         if (pollSkips > 0) {
@@ -233,7 +234,7 @@ class ChatViewModel(
         advancePollCursor(fetched)
         _state.update { it.copy(offline = false, timeline = it.timeline.merge(fetched)) }
         if (fetched.isNotEmpty()) markReadIfSeen()
-        if (pollTicks % SLOW_EVERY == 0) refreshSlowly()
+        if (reload || pollTicks % SLOW_EVERY == 0) refreshSlowly()
     }
 
     private fun onPollFailure(failure: ApiResult.Failure) {
