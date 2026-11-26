@@ -160,14 +160,14 @@ class WaliRepositoryTest {
         }"""
         server.enqueue(jsonResponse(json, 201))
 
-        val result = repository.requestMove("s1", "P3TFA84K") as ApiResult.Success
+        val result = repository.requestMove("s1", "ABC23456") as ApiResult.Success
 
         val request = server.takeRequest()
         assertEquals("POST", request.method)
         assertEquals("/api/v1/wali/children/s1/move-requests", request.path)
         assertEquals("Bearer jwt", request.getHeader("Authorization"))
         assertTrue(!request.getHeader("Idempotency-Key").isNullOrBlank())
-        assertEquals("""{"classCode":"P3TFA84K"}""", request.body.readUtf8())
+        assertEquals("""{"classCode":"ABC23456"}""", request.body.readUtf8())
         assertEquals("req-1", result.data.id)
         assertEquals("Kelas Bintang", result.data.className)
         assertEquals("pending", result.data.status)
@@ -182,7 +182,7 @@ class WaliRepositoryTest {
         }"""
         server.enqueue(jsonResponse(errorJson, 409))
 
-        val result = repository.requestMove("s1", "P3TFA84K") as ApiResult.Failure
+        val result = repository.requestMove("s1", "ABC23456") as ApiResult.Failure
         assertEquals(409, result.status)
         assertEquals("MOVE_REQUEST_PENDING", result.errorCode)
     }

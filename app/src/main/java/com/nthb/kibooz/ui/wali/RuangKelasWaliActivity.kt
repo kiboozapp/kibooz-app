@@ -267,9 +267,8 @@ class RuangKelasWaliActivity : AppCompatActivity() {
     }
 
     private fun openDetailKelas(kode: String, nama: String) {
-        val joinCode = ClassCode.preferJoinCode(childJoinCode, childClassId)
         val intent = Intent(this, DetailKelasActivity::class.java).apply {
-            putExtra("KODE_KELAS", joinCode)
+            putExtra("KODE_KELAS", ClassCode.fromServer(childJoinCode))
             putExtra("MAPEL_CODE", kode)
             putExtra("NAMA_KELAS", nama)
             putExtra("CLASS_ID", childClassId)

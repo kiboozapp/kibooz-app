@@ -1,9 +1,11 @@
 # The reviewers that are asked for every pull request. This file only decides who is asked for a review.
 * @ArmJour @ValentinusMarvel @SyafaHadyan @FhmiSddq @RozdanHanyv
 
-# Files that Renovate and the Gradle wrapper task rewrite on their own have no owner, so a Renovate pull request
+# Files that Release Please, Renovate and the Gradle wrapper task rewrite on their own have no owner, so a Renovate pull request
 # does not ask for a review of a file that nobody writes by hand. The last matching line wins.
 /gradle/wrapper/gradle-wrapper.properties
 /gradle/wrapper/gradle-wrapper.jar
 /gradlew
 /gradlew.bat
+/CHANGELOG.md
+/.release-please-manifest.json
