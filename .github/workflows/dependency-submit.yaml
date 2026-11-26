@@ -1,5 +1,8 @@
 name: Dependency submission
 
+# Dependency review finds the run of a commit by this name, so change both files together
+run-name: Dependency submission of ${{ github.event.workflow_run.head_sha }}
+
 # Sends the dependency list of a finished Dependency graph run to GitHub. It runs the file of main with a write token, so it checks
 # out nothing and runs no code of the pull request. It only reads the artifact of that run and hands it to GitHub. Only runs of
 # branches of this repository are sent, so the content of the list never comes from outside.

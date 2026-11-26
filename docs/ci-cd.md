@@ -20,7 +20,7 @@ Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan p
 
 Zizmor memakai data terbaru dari GitHub, jadi temuan baru pada action yang sudah dipakai bisa membuat semua pull request gagal. Jalan keluarnya adalah pull request yang memperbarui action itu, atau yang menambahkan pengecualian beserta alasannya di `.github/zizmor.yml`.
 
-Dependency review memeriksa dependensi Gradle sebatas daftar yang sudah terkirim. Pengecekan ini menunggu daftar itu paling lama sepuluh menit, lalu tetap berjalan dengan data yang ada. Pull request dari fork tidak mengirim daftar, sehingga dependensi Gradle di sana tidak diperiksa. Kalau Dependency graph atau pengirimannya gagal di `main`, jalankan ulang workflow itu.
+Dependency review menunggu daftar dependensi Gradle dari commit pull request itu, paling lama sekitar dua puluh menit. Kalau Dependency graph atau pengirimannya gagal, atau daftarnya tidak datang, pengecekan ini gagal. Jalankan ulang workflow yang gagal, lalu jalankan ulang Dependency review. Pull request dari fork tidak mengirim daftar, sehingga pengecekan ini hanya memberi peringatan dan dependensi Gradle di sana tidak diperiksa. Kalau Dependency graph atau pengirimannya gagal di `main`, jalankan ulang workflow itu.
 
 CodeQL analysis juga bisa gagal bukan karena isi pull request, misalnya saat unduhan atau code scanning GitHub bermasalah, atau saat CodeQL default setup diaktifkan di pengaturan repositori. Jalankan ulang pengecekannya setelah penyebabnya hilang. Yang dianalisis hanya kode utama varian debug. Pengecekan ini gagal kalau analisisnya tidak selesai, bukan karena ada temuan.
 
