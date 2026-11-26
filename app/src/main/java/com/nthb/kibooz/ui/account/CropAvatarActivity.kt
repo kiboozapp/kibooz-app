@@ -3,10 +3,6 @@ package com.nthb.kibooz.ui.account
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Matrix
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
@@ -14,8 +10,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.databinding.ActivityCropAvatarBinding
-import com.nthb.kibooz.util.AvatarCropMath
 import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.util.decodeOrientedBitmap
 import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -65,7 +61,7 @@ class CropAvatarActivity : AppCompatActivity() {
 
     private fun loadSourceImage(uri: Uri) {
         lifecycleScope.launch {
-            val bitmap = withContext(Dispatchers.IO) { decodeOrientedBitmap(uri) }
+            val bitmap = withContext(Dispatchers.IO) { decodeOrientedBitmap { contentResolver.openInputStream(uri) } }
             if (bitmap == null) {
                 Toast.makeText(this@CropAvatarActivity, R.string.avatar_gagal_baca, Toast.LENGTH_SHORT).show()
                 finish()
@@ -87,43 +83,6 @@ class CropAvatarActivity : AppCompatActivity() {
                 binding.btnSimpanFoto.isEnabled = true
                 Toast.makeText(this@CropAvatarActivity, R.string.avatar_gagal_baca, Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-    private fun decodeOrientedBitmap(uri: Uri): Bitmap? {
-        return try {
-            val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-            if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
-
-            val sampleSize = AvatarCropMath.computeSampleSize(bounds.outWidth, bounds.outHeight)
-            val decodeOpts = BitmapFactory.Options().apply { inSampleSize = sampleSize }
-            val decoded = contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, decodeOpts) }
-                ?: return null
-
-            val orientation = contentResolver.openInputStream(uri)?.use { stream ->
-                ExifInterface(stream).getAttributeInt(
-                    ExifInterface.TAG_ORIENTATION,
-                    ExifInterface.ORIENTATION_NORMAL
-                )
-            } ?: ExifInterface.ORIENTATION_NORMAL
-
-            val degrees = when (orientation) {
-                ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                else -> 0f
-            }
-            if (degrees == 0f) {
-                decoded
-            } else {
-                val matrix = Matrix().apply { postRotate(degrees) }
-                Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, matrix, true).also {
-                    if (it !== decoded) decoded.recycle()
-                }
-            }
-        } catch (_: Exception) {
-            null
         }
     }
 
