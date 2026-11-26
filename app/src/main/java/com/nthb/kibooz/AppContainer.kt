@@ -6,6 +6,7 @@ import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.ChatApi
 import com.nthb.kibooz.data.remote.ChatSocket
+import com.nthb.kibooz.data.remote.ChatStorage
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.ForumApi
 import com.nthb.kibooz.data.remote.GuruApi
@@ -18,6 +19,7 @@ import com.nthb.kibooz.data.remote.MoodApi
 import com.nthb.kibooz.data.remote.MoveRequestApi
 import com.nthb.kibooz.data.remote.NotificationApi
 import com.nthb.kibooz.data.remote.OkHttpChatSocketTransport
+import com.nthb.kibooz.data.remote.OkHttpChatStorage
 import com.nthb.kibooz.data.remote.TokenAuthenticator
 import com.nthb.kibooz.data.remote.TrashApi
 import com.nthb.kibooz.data.remote.VideoApi
@@ -44,6 +46,9 @@ import com.nthb.kibooz.data.repository.WaliProfileRepository
 import com.nthb.kibooz.data.repository.WaliRepository
 import com.nthb.kibooz.data.session.DataStoreSessionStore
 import com.nthb.kibooz.data.session.SessionStore
+import com.nthb.kibooz.ui.chat.AttachmentPreparer
+import com.nthb.kibooz.ui.chat.ChatMediaLoader
+import com.nthb.kibooz.ui.chat.ContentAttachmentPreparer
 import com.nthb.kibooz.util.AvatarLoader
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -137,8 +142,21 @@ class AppContainer(context: Context) {
         HistoryRepository(apiClient.create(HistoryApi::class.java), apiClient.moshi)
     }
 
+    /** Unggah dan unduh lampiran chat ke storage. Sengaja tidak memakai klien API, supaya token tidak ikut terkirim. */
+    private val chatStorage: ChatStorage by lazy {
+        OkHttpChatStorage()
+    }
+
     val chatRepository: ChatRepository by lazy {
-        ChatRepository(apiClient.create(ChatApi::class.java), apiClient.moshi)
+        ChatRepository(apiClient.create(ChatApi::class.java), apiClient.moshi, chatStorage)
+    }
+
+    val chatMediaLoader: ChatMediaLoader by lazy {
+        ChatMediaLoader(chatStorage)
+    }
+
+    val chatAttachmentPreparer: AttachmentPreparer by lazy {
+        ContentAttachmentPreparer(appContext)
     }
 
     /**

@@ -1,8 +1,11 @@
 package com.nthb.kibooz.ui.chat
 
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -17,6 +20,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.CHAT_MEDIA_PHOTO
 import com.nthb.kibooz.data.remote.ChatConversation
 import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.databinding.ActivityChatBinding
@@ -31,7 +35,8 @@ import kotlinx.coroutines.launch
  * Satu percakapan, langsung atau ruang kelas. Riwayat dimuat dari yang terbaru dan yang lebih lama dimuat saat
  * digulir ke atas. Pesan baru diambil saat [ChatTicker] memberi tick, hanya selagi layar terlihat. Tick datang dari
  * frame socket selagi tersambung, dan dari polling 5 detik selagi putus. Mengetuk pesan
- * sendiri menawarkan hapus. Jika percakapan tertutup, kotak tulis diganti keterangan alasannya.
+ * sendiri menawarkan hapus. Satu foto atau video bisa dilampirkan lewat pemilih foto sistem, yang tidak butuh
+ * izin penyimpanan. Jika percakapan tertutup, kotak tulis diganti keterangan alasannya.
  */
 class ChatActivity : AppCompatActivity() {
 
@@ -53,8 +58,13 @@ class ChatActivity : AppCompatActivity() {
                 canSend = intent.getBooleanExtra(EXTRA_CAN_SEND, true),
                 peerLastReadMessageId = intent.getLongExtra(EXTRA_PEER_READ, 0L)
             ),
-            ownUserId
+            ownUserId,
+            appContainer.chatAttachmentPreparer
         )
+    }
+
+    private val pickMedia = registerForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
+        uri?.let { viewModel.attach(it.toString()) }
     }
 
     private var deleteDialog: AlertDialog? = null
@@ -137,10 +147,13 @@ class ChatActivity : AppCompatActivity() {
 
     private fun setupList() {
         adapter = ChatAdapter(
+            mediaLoader = appContainer.chatMediaLoader,
             onDelete = ::confirmDelete,
             onRetry = viewModel::retry,
             onDiscard = viewModel::discardFailed,
-            onOlder = { viewModel.loadOlder(retry = true) }
+            onOlder = { viewModel.loadOlder(retry = true) },
+            onOpenMedia = viewModel::openMedia,
+            onMediaFailed = viewModel::refreshMedia
         )
         layoutManager = LinearLayoutManager(this).apply { stackFromEnd = true }
         binding.rvMessages.layoutManager = layoutManager
@@ -162,6 +175,18 @@ class ChatActivity : AppCompatActivity() {
             if (viewModel.send(text)) binding.etMessage.text?.clear()
         }
         binding.etMessage.doAfterTextChanged { updateSendButton(viewModel.state.value) }
+        binding.btnAttach.setOnClickListener { openPicker() }
+        binding.btnRemoveAttachment.setOnClickListener { viewModel.removeAttachment() }
+    }
+
+    private fun openPicker() {
+        try {
+            pickMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo))
+        } catch (_: ActivityNotFoundException) {
+            Snackbar.make(binding.root, R.string.chat_error_tidak_ada_pemilih, Snackbar.LENGTH_LONG)
+                .setAnchorView(binding.clInputBar)
+                .show()
+        }
     }
 
     private fun isAtBottom(): Boolean =
@@ -221,6 +246,11 @@ class ChatActivity : AppCompatActivity() {
             Snackbar.make(binding.root, it.res, Snackbar.LENGTH_LONG).setAnchorView(binding.clInputBar).show()
             viewModel.noticeShown()
         }
+
+        state.openMedia?.let {
+            startActivity(ChatMediaActivity.intent(this, it))
+            viewModel.mediaOpened()
+        }
     }
 
     /** Kotak tulis hanya aktif saat percakapan terbuka. Selain itu diganti keterangan alasannya. */
@@ -228,12 +258,40 @@ class ChatActivity : AppCompatActivity() {
         binding.llComposer.isVisible = state.canSend
         binding.tvClosed.isVisible = !state.canSend
         if (!state.canSend) binding.tvClosed.setText(closedReasonRes(isRoom, peerDeleted))
+        renderAttachment(state)
         updateSendButton(state)
+    }
+
+    private fun renderAttachment(state: ChatState) {
+        binding.btnAttach.isVisible = !state.attachmentsOff
+        binding.btnAttach.isEnabled = state.canAttach
+        binding.btnAttach.alpha = if (state.canAttach) 1f else DISABLED_ALPHA
+
+        val attachment = state.attachment
+        binding.llAttachment.isVisible = state.preparing || attachment != null
+        binding.progressAttachment.isVisible = state.preparing
+        bindAttachmentThumbnail(binding.ivAttachment, attachment, appContainer.chatMediaLoader)
+
+        val label = when {
+            state.preparing -> getString(R.string.chat_lampiran_menyiapkan)
+            attachment != null -> getString(
+                if (attachment.kind == CHAT_MEDIA_PHOTO) {
+                    R.string.chat_lampiran_label_foto
+                } else {
+                    R.string.chat_lampiran_label_video
+                },
+                fileSizeLabel(attachment.sizeBytes)
+            )
+            else -> ""
+        }
+        // Diisi hanya saat berubah, supaya pembaca layar tidak mengumumkannya di setiap gambar ulang
+        if (binding.tvAttachment.text.toString() != label) binding.tvAttachment.text = label
     }
 
     // Kotak tulis tetap bisa diketik selagi pesan terkirim. Hanya tombol kirim yang menunggu
     private fun updateSendButton(state: ChatState) {
-        val enabled = state.canCompose && !binding.etMessage.text.isNullOrBlank()
+        val hasContent = !binding.etMessage.text.isNullOrBlank() || state.attachment != null
+        val enabled = state.canCompose && !state.preparing && hasContent
         binding.btnSend.isEnabled = enabled
         binding.btnSend.alpha = if (enabled) 1f else DISABLED_ALPHA
     }
@@ -245,12 +303,14 @@ class ChatActivity : AppCompatActivity() {
         val anchorKey = old.getOrNull(firstPosition)?.key
         val anchorTop = layoutManager.findViewByPosition(firstPosition)?.top ?: 0
         val addedLocal = rows.lastOrNull() is LocalRow && old.lastOrNull() !is LocalRow
+        // Alamat lampiran dan kemajuan unggah mengganti isi baris saja, dan posisi baca tidak perlu dipasang ulang
+        val sameKeys = old.size == rows.size && old.indices.all { old[it].key == rows[it].key }
 
         adapter.submitList(rows) {
             if (rows.isNotEmpty()) {
                 if (wasAtBottom || addedLocal) {
                     binding.rvMessages.scrollToPosition(rows.lastIndex)
-                } else if (anchorKey != null) {
+                } else if (!sameKeys && anchorKey != null) {
                     // Pesan lama yang dimuat di atas tidak boleh menggeser pesan yang sedang dibaca
                     val index = rows.indexOfFirst { it.key == anchorKey }
                     if (index >= 0) layoutManager.scrollToPositionWithOffset(index, anchorTop)

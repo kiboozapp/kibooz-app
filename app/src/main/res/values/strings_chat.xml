@@ -63,8 +63,6 @@
     <string name="chat_pesan_dihapus">Pesan ini dihapus</string>
     <string name="chat_meta_dibaca">%1$s, dibaca</string>
     <string name="chat_menghapus">Menghapus...</string>
-    <string name="chat_lampiran_foto">Foto, belum bisa dibuka di aplikasi ini</string>
-    <string name="chat_lampiran_video">Video, belum bisa dibuka di aplikasi ini</string>
     <string name="chat_lampiran_lain">Lampiran, belum bisa dibuka di aplikasi ini</string>
     <string name="chat_riwayat_memuat">Memuat pesan lama...</string>
     <string name="chat_riwayat_gagal">Pesan lama gagal dimuat. Ketuk untuk mencoba lagi</string>
@@ -75,6 +73,22 @@
     <string name="chat_belum_terkirim">Belum terkirim</string>
     <string name="chat_kirim_ulang">Kirim ulang</string>
     <string name="chat_buang">Buang</string>
+
+    <!-- Lampiran foto dan video -->
+    <string name="chat_lampirkan_cd">Lampirkan foto atau video</string>
+    <string name="chat_lampiran_menyiapkan">Menyiapkan lampiran...</string>
+    <string name="chat_lampiran_label_foto">Foto, %1$s</string>
+    <string name="chat_lampiran_label_video">Video, %1$s</string>
+    <string name="chat_media_memuat">Memuat foto...</string>
+    <string name="chat_media_gagal">Foto gagal dimuat. Ketuk untuk membuka</string>
+    <string name="chat_media_buka_foto_cd">Buka foto</string>
+    <string name="chat_media_putar_cd">Putar video, %1$s</string>
+    <string name="chat_media_membuka">Membuka lampiran</string>
+    <string name="chat_foto_gagal_dibuka">Foto gagal dimuat. Tutup lalu buka lagi</string>
+    <string name="chat_video_gagal">Video tidak bisa diputar. Tutup lalu buka lagi</string>
+    <string name="chat_mengunggah">Mengunggah lampiran...</string>
+    <string name="chat_unggah_cd">Kemajuan unggah</string>
+    <string name="chat_error_tidak_ada_pemilih">Perangkat ini tidak punya aplikasi untuk memilih foto atau video</string>
 
     <!-- Galat lampiran foto dan video -->
     <string name="chat_error_jenis_lampiran">Hanya foto atau video yang bisa dilampirkan</string>

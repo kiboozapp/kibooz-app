@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kotak foto atau video di dalam gelembung. Ukurannya tetap supaya daftar tidak bergeser saat foto selesai dimuat -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="220dp"
+    android:layout_height="165dp"
+    android:background="@drawable/bg_chat_media"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground">
+
+    <ImageView
+        android:id="@+id/ivMedia"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop" />
+
+    <ImageView
+        android:id="@+id/ivPlay"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:src="@drawable/ic_play"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tvMediaLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@color/kibooz_lavender"
+        android:fontFamily="@font/baloo2"
+        android:gravity="center"
+        android:padding="8dp"
+        android:textColor="@color/kibooz_purple_dark"
+        android:textSize="12sp"
+        android:visibility="gone" />
+
+</FrameLayout>

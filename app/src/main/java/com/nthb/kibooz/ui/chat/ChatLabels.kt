@@ -2,7 +2,10 @@ package com.nthb.kibooz.ui.chat
 
 import androidx.annotation.StringRes
 import com.nthb.kibooz.R
+import com.nthb.kibooz.data.remote.CHAT_MEDIA_PHOTO
+import com.nthb.kibooz.data.remote.CHAT_MEDIA_VIDEO
 import com.nthb.kibooz.data.remote.ChatContact
+import com.nthb.kibooz.data.remote.ChatMedia
 import com.nthb.kibooz.data.remote.ChatMessage
 import com.nthb.kibooz.data.remote.ChatPerson
 import com.nthb.kibooz.util.TimeFormat
@@ -11,7 +14,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
-/** Cara menampilkan isi sebuah pesan di daftar percakapan. Lampiran belum bisa dibuka, jadi hanya jenisnya yang disebut. */
+/** Cara menampilkan isi sebuah pesan. Di daftar percakapan lampiran tanpa teks hanya disebut jenisnya. */
 enum class PreviewKind { TEXT, DELETED, PHOTO, VIDEO, ATTACHMENT, EMPTY }
 
 fun ChatMessage.previewKind(): PreviewKind = when {
@@ -22,6 +25,19 @@ fun ChatMessage.previewKind(): PreviewKind = when {
     media != null -> PreviewKind.ATTACHMENT
     else -> PreviewKind.EMPTY
 }
+
+/** Lampiran yang tampil di gelembung. Null untuk pesan yang dihapus dan untuk jenis yang tidak dikenal. */
+fun ChatMessage.shownMedia(): ChatMedia? =
+    media?.takeIf { !deleted && (it.kind == CHAT_MEDIA_PHOTO || it.kind == CHAT_MEDIA_VIDEO) }
+
+/** Ukuran berkas untuk dibaca orang, misalnya "320 KB" atau "3,2 MB". */
+fun fileSizeLabel(bytes: Long): String {
+    if (bytes < BYTES_PER_MB) return "${((bytes + 1023) / 1024).coerceAtLeast(1)} KB"
+
+    return String.format(Locale("id", "ID"), "%.1f MB", bytes.toDouble() / BYTES_PER_MB)
+}
+
+private const val BYTES_PER_MB = 1024L * 1024
 
 /** Nama yang tampil untuk [person]. Server mengirim nama bahasa Inggris untuk akun yang dihapus, jadi diganti. */
 fun ChatPerson.displayName(deletedLabel: String): String = if (deleted) deletedLabel else fullName

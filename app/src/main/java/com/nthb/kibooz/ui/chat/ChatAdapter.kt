@@ -19,18 +19,22 @@ import com.nthb.kibooz.databinding.ItemChatLocalBinding
 import com.nthb.kibooz.databinding.ItemChatMessageOtherBinding
 import com.nthb.kibooz.databinding.ItemChatMessageOwnBinding
 import com.nthb.kibooz.databinding.ItemChatOlderBinding
+import com.nthb.kibooz.databinding.ViewChatMediaBinding
 import com.nthb.kibooz.util.formatWaitSeconds
 
 /**
  * Daftar pesan satu percakapan. Pesan sendiri di kanan, pesan lawan bicara di kiri dengan nama pengirim, dan
- * penanda tanggal di antaranya. Mengetuk pesan sendiri meminta menghapusnya, dan pesan yang belum terkirim
- * punya aksi kirim ulang dan buang.
+ * penanda tanggal di antaranya. Mengetuk pesan sendiri meminta menghapusnya, mengetuk foto atau video
+ * membukanya, dan pesan yang belum terkirim punya aksi kirim ulang dan buang.
  */
 class ChatAdapter(
+    private val mediaLoader: ChatMediaLoader,
     private val onDelete: (messageId: Long) -> Unit,
     private val onRetry: () -> Unit,
     private val onDiscard: () -> Unit,
-    private val onOlder: () -> Unit
+    private val onOlder: () -> Unit,
+    private val onOpenMedia: (messageId: Long) -> Unit,
+    private val onMediaFailed: (messageId: Long) -> Unit
 ) : ListAdapter<ChatRow, RecyclerView.ViewHolder>(Diff) {
 
     override fun getItemViewType(position: Int): Int = when (val row = getItem(position)) {
@@ -77,18 +81,34 @@ class ChatAdapter(
         }
     }
 
-    private class OtherHolder(private val binding: ItemChatMessageOtherBinding) : RecyclerView.ViewHolder(binding.root) {
+    private inner class OtherHolder(private val binding: ItemChatMessageOtherBinding) :
+        RecyclerView.ViewHolder(binding.root) {
         fun bind(row: MessageRow) {
             val context = binding.root.context
             binding.tvSender.text = row.message.sender.displayName(context.getString(R.string.chat_akun_dihapus))
+            bindMedia(binding.media, row.message)
             bindBody(binding.tvBody, row.message, own = false)
             binding.tvTime.text = row.time
         }
     }
 
+    private fun bindMedia(view: ViewChatMediaBinding, message: ChatMessage, onLongPress: (() -> Unit)? = null) {
+        bindMessageMedia(
+            view = view,
+            message = message,
+            loader = mediaLoader,
+            onOpen = { onOpenMedia(message.id) },
+            onFailed = { onMediaFailed(message.id) },
+            onLongPress = onLongPress
+        )
+    }
+
     private inner class OwnHolder(private val binding: ItemChatMessageOwnBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(row: MessageRow) {
             val context = binding.root.context
+            // Kotak lampiran menangkap ketukannya sendiri, jadi hapus tetap bisa lewat tekan lama di atasnya
+            val longPress: (() -> Unit)? = if (row.deletable) ({ onDelete(row.message.id) }) else null
+            bindMedia(binding.media, row.message, longPress)
             bindBody(binding.tvBody, row.message, own = true)
 
             binding.tvMeta.text = when {
@@ -119,20 +139,28 @@ class ChatAdapter(
     private inner class LocalHolder(private val binding: ItemChatLocalBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(row: LocalRow) {
             val context = binding.root.context
+            bindLocalMedia(binding.media, row.local.attachment, mediaLoader)
             binding.tvBody.text = row.local.pending.body
+            binding.tvBody.isVisible = row.local.pending.body.isNotEmpty()
 
             when (val status = row.local.status) {
                 is LocalStatus.Sending -> {
-                    binding.tvStatus.text = if (status.waitSeconds > 0) {
-                        context.getString(R.string.chat_mengirim_menunggu, formatWaitSeconds(status.waitSeconds))
-                    } else {
-                        context.getString(R.string.chat_mengirim)
+                    val percent = status.uploadPercent
+                    // Teksnya tidak memuat persen, supaya pembaca layar tidak mengumumkannya berulang kali
+                    binding.tvStatus.text = when {
+                        status.waitSeconds > 0 ->
+                            context.getString(R.string.chat_mengirim_menunggu, formatWaitSeconds(status.waitSeconds))
+                        percent != null -> context.getString(R.string.chat_mengunggah)
+                        else -> context.getString(R.string.chat_mengirim)
                     }
+                    binding.progressUpload.isVisible = percent != null
+                    if (percent != null) binding.progressUpload.setProgressCompat(percent, false)
                     binding.tvError.isVisible = false
                     binding.llActions.isVisible = false
                 }
                 is LocalStatus.Failed -> {
                     binding.tvStatus.setText(R.string.chat_belum_terkirim)
+                    binding.progressUpload.isVisible = false
                     binding.tvError.setText(status.error)
                     binding.tvError.isVisible = true
                     binding.llActions.isVisible = true
@@ -152,13 +180,15 @@ class ChatAdapter(
         const val TYPE_LOCAL = 4
 
         /**
-         * Isi pesan, keterangan pesan yang dihapus, atau keterangan lampiran yang belum bisa dibuka. Keterangan
-         * memakai warna yang lebih pudar, dan tetap terbaca karena rasio kontrasnya di atas 4,5:1.
+         * Isi pesan, keterangan pesan yang dihapus, atau keterangan lampiran yang tidak dikenal. Keterangan
+         * memakai warna yang lebih pudar, dan tetap terbaca karena rasio kontrasnya di atas 4,5:1. Disembunyikan
+         * untuk foto atau video tanpa teks.
          */
         fun bindBody(view: TextView, message: ChatMessage, own: Boolean) {
             val context = view.context
             val normal = if (own) R.color.kibooz_white else R.color.kibooz_text_primary
             val faded = if (own) R.color.chat_own_meta_text else R.color.kibooz_text_secondary
+            view.isVisible = message.shownMedia() == null || message.body.isNotBlank()
 
             when (message.previewKind()) {
                 PreviewKind.TEXT -> {
@@ -169,10 +199,8 @@ class ChatAdapter(
                     view.setText(R.string.chat_pesan_dihapus)
                     view.setTextColor(ContextCompat.getColor(context, faded))
                 }
-                PreviewKind.PHOTO -> showNote(view, context.getString(R.string.chat_lampiran_foto), faded)
-                PreviewKind.VIDEO -> showNote(view, context.getString(R.string.chat_lampiran_video), faded)
                 PreviewKind.ATTACHMENT -> showNote(view, context.getString(R.string.chat_lampiran_lain), faded)
-                PreviewKind.EMPTY -> view.text = ""
+                PreviewKind.PHOTO, PreviewKind.VIDEO, PreviewKind.EMPTY -> view.text = ""
             }
         }
 
