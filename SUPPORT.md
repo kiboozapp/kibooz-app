@@ -18,7 +18,7 @@ Kibooz App dikerjakan oleh tim kecil. Tidak ada dukungan berbayar dan tidak ada 
 - Masalah keamanan. Jangan membuka issue publik. Ikuti [SECURITY.md](SECURITY.md).
 - Hambatan aksesibilitas. Ikuti [ACCESSIBILITY.md](ACCESSIBILITY.md).
 - Perubahan yang ingin Anda kerjakan sendiri. Baca [CONTRIBUTING.md](CONTRIBUTING.md) lebih dulu.
-- Pertanyaan lain tentang proyek. Tanyakan kepada pemilik repositori `ValentinusMarvel` atau reviewer `ArmJour`, `SyafaHadyan`, `FhmiSddq` atau `RozdanHanyv` di GitHub.
+- Pertanyaan lain tentang proyek. Tanyakan kepada kontak proyek `ValentinusMarvel` atau reviewer `ArmJour`, `SyafaHadyan`, `FhmiSddq` atau `RozdanHanyv` di GitHub.
 
 ## Yang tidak didukung
 

@@ -23,6 +23,6 @@ Jika Anda menemui layar atau kontrol yang sulit dipakai, misalnya tombol yang ti
 
 1. Buka issue dengan template Laporan bug.
 2. Tulis kata "aksesibilitas" di judul, lalu sebut layar, perangkat, versi Android dan alat bantu yang Anda pakai.
-3. Pemilik repositori atau reviewer akan memasang label `accessibility`.
+3. Reviewer akan memasang label `accessibility`.
 
 Perbaikan aksesibilitas disambut lewat pull request. Ikuti [CONTRIBUTING.md](CONTRIBUTING.md).

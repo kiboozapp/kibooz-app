@@ -46,4 +46,4 @@ Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahk
 
 ## Melaporkan masalah
 
-Gunakan template issue untuk bug dan permintaan fitur. Masalah keamanan jangan dilaporkan sebagai issue publik. Tulis secara pribadi kepada pemilik repositori, `ValentinusMarvel`, di GitHub.
+Gunakan template issue untuk bug dan permintaan fitur. Masalah keamanan jangan dilaporkan sebagai issue publik. Kirim secara pribadi lewat [Report a vulnerability](https://github.com/kiboozapp/kibooz-app/security/advisories/new), seperti dijelaskan di [SECURITY.md](SECURITY.md).
