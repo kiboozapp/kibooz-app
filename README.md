@@ -214,4 +214,10 @@ Gunakan alur berikut untuk kolaborasi:
 
 Proyek ini dikembangkan untuk keperluan akademik mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain antarmuka, aset visual, dan maskot sepenuhnya dimiliki oleh Tim Nexus (Nexus Project).
 
-Seluruh isi repositori ini, termasuk kode, dokumentasi, desain antarmuka, aset visual, dan maskot, dilisensikan di bawah [GNU General Public License versi 3](LICENSE). Berkas pihak ketiga, misalnya model yang lisensinya ada di `app/src/main/assets/licenses`, tetap mengikuti lisensi pemiliknya.
+Seluruh isi repositori ini, termasuk kode, dokumentasi, desain antarmuka, aset visual, dan maskot, dilisensikan di bawah [GNU General Public License versi 3](LICENSE). Berkas pihak ketiga tetap mengikuti lisensi pemiliknya, yaitu
+
+- model yang lisensinya ada di `app/src/main/assets/licenses`
+- font Baloo 2 di `app/src/main/res/font`, berlisensi [SIL Open Font License 1.1](app/src/main/assets/licenses/baloo2-OFL-1.1.txt)
+- sebagian ikon di `app/src/main/res/drawable` yang berasal dari Material Icons milik Google, berlisensi [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0)
+- logo Google di `app/src/main/res/drawable/ic_google.xml`, yang merupakan merek dagang Google
+- teks Code of Conduct yang diadaptasi dari Contributor Covenant, berlisensi [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)
