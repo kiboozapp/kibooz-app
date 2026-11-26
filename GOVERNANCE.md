@@ -12,7 +12,7 @@ Perubahan masuk ke `main` lewat pull request dari sebuah branch. Langkahnya ada 
 
 ## Pengecekan otomatis
 
-Branch `main` dilindungi ruleset. Perubahan masuk lewat pull request, semua thread review harus diselesaikan, dan sebelas pengecekan wajib harus berhasil. Persetujuan review tidak wajib. Daftar lengkapnya ada di [docs/ci-cd.md](docs/ci-cd.md).
+Branch `main` dilindungi ruleset. Perubahan masuk lewat pull request, semua thread review harus diselesaikan, dan dua belas pengecekan wajib harus berhasil. Persetujuan review tidak wajib. Daftar lengkapnya ada di [docs/ci-cd.md](docs/ci-cd.md).
 
 ## Rencana kerja
 

@@ -1,0 +1,44 @@
+name: Dependency graph
+
+# Builds the list of the Gradle dependencies, which GitHub cannot read from the build scripts on its own. This workflow only reads.
+# The list is saved as an artifact, and dependency-submit.yaml sends it to GitHub, so no build script ever runs with a write token.
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: dependency-graph-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+jobs:
+  generate:
+    name: Dependency graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # The wrapper script of the repository has no executable bit, and the action starts it directly
+      - name: Make the Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Generate the dependency graph
+        uses: gradle/actions/dependency-submission@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
+        with:
+          dependency-graph: generate-and-upload
+          cache-provider: basic

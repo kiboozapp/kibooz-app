@@ -1,0 +1,37 @@
+name: Dependency review
+
+# The job name is meant to be a required check, so the workflow only runs on pull requests and has no job condition.
+on:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: dependency-review-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  dependency-review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Looks at the dependencies that the pull request adds or changes. The Gradle ones are known only after the list of the Dependency
+      # graph workflow was submitted, so the action waits up to ten minutes for it. The project is under GPL-3.0, so GPL dependencies
+      # fit, and SSPL does not.
+      - name: Dependency review
+        uses: actions/dependency-review-action@bbc44d14a204704ccc493733616cd1e93a0321ec # v5.0.1
+        with:
+          fail-on-severity: high
+          deny-licenses: SSPL-1.0
+          comment-summary-in-pr: never
+          retry-on-snapshot-warnings: true
+          retry-on-snapshot-warnings-timeout: 600

@@ -6,3 +6,8 @@ rules:
       policies:
         # Every action, including the ones of GitHub itself, is pinned to a full commit SHA with the version in a comment
         "*": hash-pin
+  # dependency-submit.yaml needs a write token for a pull request of a fork or a bot, which only a workflow_run trigger gives. It
+  # checks out nothing and runs no code of the pull request, as the dependency submission guide of Gradle describes.
+  dangerous-triggers:
+    ignore:
+      - dependency-submit.yaml
