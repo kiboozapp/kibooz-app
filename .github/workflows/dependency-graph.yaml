@@ -42,3 +42,5 @@ jobs:
         with:
           dependency-graph: generate-and-upload
           cache-provider: basic
+          # Android CI writes the cache that the workflows share
+          cache-read-only: true
