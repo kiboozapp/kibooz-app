@@ -147,12 +147,13 @@ class ChatAdapter(
                 is LocalStatus.Sending -> {
                     val percent = status.uploadPercent
                     // Teksnya tidak memuat persen, supaya pembaca layar tidak mengumumkannya berulang kali
-                    binding.tvStatus.text = when {
+                    val statusText = when {
                         status.waitSeconds > 0 ->
                             context.getString(R.string.chat_mengirim_menunggu, formatWaitSeconds(status.waitSeconds))
                         percent != null -> context.getString(R.string.chat_mengunggah)
                         else -> context.getString(R.string.chat_mengirim)
                     }
+                    if (binding.tvStatus.text.toString() != statusText) binding.tvStatus.text = statusText
                     binding.progressUpload.isVisible = percent != null
                     if (percent != null) binding.progressUpload.setProgressCompat(percent, false)
                     binding.tvError.isVisible = false

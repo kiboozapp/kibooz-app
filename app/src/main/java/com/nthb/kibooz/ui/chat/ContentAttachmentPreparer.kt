@@ -65,8 +65,9 @@ class ContentAttachmentPreparer(context: Context) : AttachmentPreparer {
     private fun video(source: Uri, type: String): PreparedAttachment {
         if (type !in CHAT_VIDEO_TYPES) return PreparedAttachment.Rejected(R.string.chat_error_format_video)
 
-        // Ukuran dari penyedia dipakai dulu. Jika tidak ada, berkas dihitung tanpa disimpan di memori
-        val size = declaredSize(source) ?: readUpTo(source, CHAT_VIDEO_MAX_BYTES)
+        // Ukuran dihitung dari berkasnya, tanpa disimpan di memori, karena angka dari penyedia bisa salah dan
+        // unggahan menuntut jumlah byte yang tepat
+        val size = readUpTo(source, CHAT_VIDEO_MAX_BYTES)
         if (size > CHAT_VIDEO_MAX_BYTES) return PreparedAttachment.Rejected(R.string.chat_error_video_terlalu_besar)
         if (size <= 0) return unreadable()
 
@@ -96,7 +97,8 @@ class ContentAttachmentPreparer(context: Context) : AttachmentPreparer {
         val jpeg = File.createTempFile(PREFIX, ".jpg", directory).also(created)
 
         for ((side, quality) in ENCODE_STEPS) {
-            writeJpeg(bitmap, side, quality, jpeg)
+            // Penulisan yang gagal, misalnya penyimpanan penuh, bisa meninggalkan JPEG terpotong
+            if (!writeJpeg(bitmap, side, quality, jpeg)) break
             if (jpeg.length() in 1..CHAT_PHOTO_MAX_BYTES) {
                 bitmap.recycle()
                 return ready(jpeg, "image/jpeg")
@@ -113,15 +115,16 @@ class ContentAttachmentPreparer(context: Context) : AttachmentPreparer {
     )
 
     // JPEG tidak punya transparansi, jadi bagian transparan digambar di atas putih dan tidak menjadi hitam
-    private fun writeJpeg(source: Bitmap, maxSide: Int, quality: Int, target: File) {
+    private fun writeJpeg(source: Bitmap, maxSide: Int, quality: Int, target: File): Boolean {
         val (width, height) = ChatPhotoRules.fitWithin(source.width, source.height, maxSide)
         val flat = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         Canvas(flat).apply {
             drawColor(Color.WHITE)
             drawBitmap(source, null, Rect(0, 0, width, height), Paint(Paint.FILTER_BITMAP_FLAG))
         }
-        target.outputStream().use { flat.compress(Bitmap.CompressFormat.JPEG, quality, it) }
+        val written = target.outputStream().use { flat.compress(Bitmap.CompressFormat.JPEG, quality, it) }
         flat.recycle()
+        return written
     }
 
     private fun open(source: Uri): InputStream =

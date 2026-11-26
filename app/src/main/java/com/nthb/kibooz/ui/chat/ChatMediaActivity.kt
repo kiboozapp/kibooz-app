@@ -8,6 +8,7 @@ import android.widget.MediaController
 import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
+import com.nthb.kibooz.BuildConfig
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.CHAT_MEDIA_VIDEO
@@ -26,6 +27,9 @@ class ChatMediaActivity : AppCompatActivity() {
     /** Posisi putar video, dipertahankan saat layar diputar atau ditinggal sebentar. */
     private var positionMillis = 0
 
+    /** False setelah orang menjeda atau videonya selesai, supaya tidak berbunyi sendiri saat layar kembali. */
+    private var autoPlay = true
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,13 +45,20 @@ class ChatMediaActivity : AppCompatActivity() {
         InsetsUtil.applySystemBarInsets(root = binding.root, headerView = binding.llTopBar)
         binding.ivBack.setOnClickListener { finish() }
         positionMillis = savedInstanceState?.getInt(STATE_POSITION) ?: 0
+        autoPlay = savedInstanceState?.getBoolean(STATE_AUTO_PLAY, true) ?: true
 
         if (intent.getStringExtra(EXTRA_KIND) == CHAT_MEDIA_VIDEO) showVideo(url) else showPhoto(key, url)
     }
 
     override fun onPause() {
         if (::binding.isInitialized) {
-            binding.videoView.currentPosition.takeIf { it > 0 }?.let { positionMillis = it }
+            // Durasi negatif berarti video belum siap, jadi keadaan yang tersimpan tidak ditimpa
+            val duration = binding.videoView.duration
+            if (duration > 0) {
+                autoPlay = binding.videoView.isPlaying
+                val position = binding.videoView.currentPosition
+                positionMillis = if (position < duration - END_MARGIN_MILLIS) position else 0
+            }
         }
         super.onPause()
     }
@@ -55,6 +66,7 @@ class ChatMediaActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putInt(STATE_POSITION, positionMillis)
+        outState.putBoolean(STATE_AUTO_PLAY, autoPlay)
     }
 
     private fun showPhoto(key: String, url: String) {
@@ -69,6 +81,11 @@ class ChatMediaActivity : AppCompatActivity() {
 
     private fun showVideo(url: String) {
         binding.tvTitle.setText(R.string.chat_pratinjau_video)
+        // Alamat tanpa TLS ditolak selagi API memakai TLS, sama seperti pada unduhan foto
+        if (url.startsWith("http://", ignoreCase = true) && BuildConfig.API_BASE_URL.startsWith("https://")) {
+            showError(R.string.chat_video_gagal)
+            return
+        }
         binding.videoView.isVisible = true
 
         val controls = MediaController(this)
@@ -77,7 +94,7 @@ class ChatMediaActivity : AppCompatActivity() {
         binding.videoView.setOnPreparedListener {
             binding.progress.isVisible = false
             binding.videoView.seekTo(positionMillis)
-            binding.videoView.start()
+            if (autoPlay) binding.videoView.start()
             controls.show()
         }
         binding.videoView.setOnErrorListener { _, _, _ ->
@@ -98,6 +115,8 @@ class ChatMediaActivity : AppCompatActivity() {
         private const val EXTRA_URL = "URL"
         private const val EXTRA_KEY = "CACHE_KEY"
         private const val STATE_POSITION = "POSITION"
+        private const val STATE_AUTO_PLAY = "AUTO_PLAY"
+        private const val END_MARGIN_MILLIS = 500
 
         /** Membuka lampiran [message], yang harus punya lampiran. */
         fun intent(context: Context, message: ChatMessage): Intent =
