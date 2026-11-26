@@ -5,6 +5,7 @@ import com.nthb.kibooz.data.remote.AccountApi
 import com.nthb.kibooz.data.remote.ApiClient
 import com.nthb.kibooz.data.remote.AuthApi
 import com.nthb.kibooz.data.remote.ChatApi
+import com.nthb.kibooz.data.remote.ChatSocket
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.ForumApi
 import com.nthb.kibooz.data.remote.GuruApi
@@ -16,11 +17,13 @@ import com.nthb.kibooz.data.remote.ModuleApi
 import com.nthb.kibooz.data.remote.MoodApi
 import com.nthb.kibooz.data.remote.MoveRequestApi
 import com.nthb.kibooz.data.remote.NotificationApi
+import com.nthb.kibooz.data.remote.OkHttpChatSocketTransport
 import com.nthb.kibooz.data.remote.TokenAuthenticator
 import com.nthb.kibooz.data.remote.TrashApi
 import com.nthb.kibooz.data.remote.VideoApi
 import com.nthb.kibooz.data.remote.WaliApi
 import com.nthb.kibooz.data.remote.WaliProfileApi
+import com.nthb.kibooz.data.remote.chatSocketUrl
 import com.nthb.kibooz.data.repository.AccountRepository
 import com.nthb.kibooz.data.repository.AuthRepository
 import com.nthb.kibooz.data.repository.ChatRepository
@@ -42,6 +45,13 @@ import com.nthb.kibooz.data.repository.WaliRepository
 import com.nthb.kibooz.data.session.DataStoreSessionStore
 import com.nthb.kibooz.data.session.SessionStore
 import com.nthb.kibooz.util.AvatarLoader
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 /** Perakitan manual objek yang hidup selama proses. Dibuat sekali oleh [KiboozApp]. */
 class AppContainer(context: Context) {
@@ -129,6 +139,25 @@ class AppContainer(context: Context) {
 
     val chatRepository: ChatRepository by lazy {
         ChatRepository(apiClient.create(ChatApi::class.java), apiClient.moshi)
+    }
+
+    /**
+     * Satu socket chat untuk seluruh proses. Memakai klien API, jadi TLS, header token, dan refresh token
+     * saat 401 sama dengan REST. Socket ditutup saat akun yang masuk berganti.
+     */
+    val chatSocket: ChatSocket by lazy {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+        ChatSocket(
+            transport = OkHttpChatSocketTransport(apiClient.okHttpClient, chatSocketUrl(BuildConfig.API_BASE_URL)),
+            tokenProvider = { authRepository.accessToken() },
+            refresh = { failedToken -> authRepository.refresh(failedToken) },
+            moshi = apiClient.moshi,
+            scope = scope
+        ).also { socket ->
+            scope.launch {
+                authRepository.session.map { it?.user?.id }.distinctUntilChanged().drop(1).collect { socket.reset() }
+            }
+        }
     }
 
     val avatarLoader: AvatarLoader by lazy {
