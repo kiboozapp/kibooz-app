@@ -80,7 +80,9 @@
     <string name="sampah_poin_diterima">+%1$d Poin Diterima!</string>
     <string name="sampah_tanpa_poin">Tidak ada poin untuk sampah ini</string>
     <string name="sampah_poin_ringkasan">%1$s\n%2$s</string>
-    <string name="sampah_sisa_klaim">Sisa klaim hari ini: %1$d</string>
+    <string name="sampah_sisa_klaim">Sisa scan poin penuh hari ini: %1$d</string>
+    <string name="sampah_poin_dikurangi">+%1$d Poin (dikurangi)</string>
+    <string name="sampah_lewat_batas">Sudah lewat batas scan hari ini, poin penuh kembali besok</string>
     <string name="sampah_pilih_anak_judul">Siapa yang membuang sampah?</string>
     <string name="sampah_anak_belum_dipilih">Pilih dulu anak yang membuang sampah</string>
     <string name="sampah_belum_terdeteksi">Belum ada sampah yang terdeteksi, arahkan kamera dan tunggu sebentar</string>
@@ -294,7 +296,7 @@
     <string name="sampah_banner_isi">%1$s sudah memilah %2$d sampah, total %3$d poin dan peringkat #%4$d di kelas.</string>
     <string name="sampah_banner_isi_tanpa_peringkat">%1$s sudah memilah %2$d sampah, total %3$d poin.</string>
     <string name="sampah_sisa_scan_ajakan">Masih tersisa %1$d dari %2$d scan hari ini. Ayo scan sampah!</string>
-    <string name="sampah_sisa_scan_habis">Sisa %1$d dari %2$d scan hari ini, kuotanya sudah habis. Ayo scan lagi besok!</string>
+    <string name="sampah_sisa_scan_habis">Sisa %1$d dari %2$d scan poin penuh hari ini. Scan berikutnya tetap dapat poin, tapi dikurangi.</string>
     <string name="sampah_pilihan_b3">B3 (berbahaya, misalnya baterai)</string>
     <string name="review_tambah_memuat">Daftar siswa masih dimuat, coba lagi sebentar</string>
     <string name="review_tambah_semua_ada">Semua siswa kelas ini sudah ada di daftar</string>

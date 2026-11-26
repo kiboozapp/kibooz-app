@@ -82,6 +82,23 @@ class TrashRepositoryTest {
         val result = repository.claim(PendingTrashClaim("student-1", TrashCategory.B3, 0.8f)) as ApiResult.Success
 
         assertEquals(0, result.data.pointsAdded)
+        assertTrue("a server without the field means full points", !result.data.reducedPoints)
+    }
+
+    @Test
+    fun `a claim past the daily limit reads the reduced points flag`() = runBlocking {
+        server.enqueue(
+            jsonResponse(
+                """{"success":true,"data":{"pointsAdded":1,"totalPoints":121,"seasonPoints":41,"newRank":3,""" +
+                    """"remainingDailyScans":0,"reducedPoints":true}}"""
+            )
+        )
+
+        val result = repository.claim(PendingTrashClaim("student-1", TrashCategory.ANORGANIK, 0.9f)) as ApiResult.Success
+
+        assertEquals(1, result.data.pointsAdded)
+        assertEquals(0, result.data.remainingDailyScans)
+        assertTrue(result.data.reducedPoints)
     }
 
     @Test

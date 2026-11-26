@@ -373,6 +373,23 @@ class TrashScanViewModelTest {
     }
 
     @Test
+    fun `a claim past the daily limit is shown as claimed with reduced points and no error`() {
+        trashApi.replies += {
+            Response.success(ApiEnvelope(true, null, ScanClaimData(1, 121, 41, 3, 0, reducedPoints = true)))
+        }
+        readyToClaim()
+
+        viewModel.claim()
+
+        val state = viewModel.state.value
+        assertEquals(true, state.claimed?.reducedPoints)
+        assertEquals(1, state.claimed?.pointsAdded)
+        assertEquals(0, state.claimed?.remainingDailyScans)
+        assertNull(state.error)
+        assertFalse(state.claiming)
+    }
+
+    @Test
     fun `scanning again clears the card and the old detection`() {
         readyToClaim()
         viewModel.claim()

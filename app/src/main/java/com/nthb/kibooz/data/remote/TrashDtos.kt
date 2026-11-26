@@ -12,12 +12,17 @@ data class ScanClaimRequest(
     val confidenceScore: Float
 )
 
+/**
+ * Balasan klaim. [remainingDailyScans] adalah sisa klaim berpoin penuh hari ini. Setelah habis, klaim tetap
+ * diterima tetapi poinnya dikurangi dan [reducedPoints] bernilai true. Default false supaya server lama tetap terbaca.
+ */
 data class ScanClaimData(
     val pointsAdded: Int,
     val totalPoints: Int,
     val seasonPoints: Int,
     val newRank: Int,
-    val remainingDailyScans: Int
+    val remainingDailyScans: Int,
+    val reducedPoints: Boolean = false
 )
 
 /** `data` dari `GET /trash/stats`: pindaian dan poin seorang anak per kategori, plus sisa pindaian hari ini. */
