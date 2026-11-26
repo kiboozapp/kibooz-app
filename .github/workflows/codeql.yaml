@@ -26,6 +26,9 @@ jobs:
     permissions:
       contents: read
       security-events: write
+    env:
+      # The log of a pull request run then says how many Kotlin files were scanned, which shows that the extraction works
+      CODEQL_ACTION_FILE_COVERAGE_ON_PRS: "true"
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -49,9 +52,11 @@ jobs:
           languages: java-kotlin
           build-mode: manual
 
-      # CodeQL reads the code that the compiler compiles, so nothing may come from the build cache and no daemon may do the work
+      # CodeQL reads the code that the compiler compiles. So nothing comes from the build cache, and the Kotlin compiler runs inside
+      # the Gradle process of this step instead of a daemon of its own.
       - name: Build
-        run: sh ./gradlew :app:assembleDebug --no-daemon --no-build-cache --stacktrace
+        run: >-
+          sh ./gradlew :app:assembleDebug --no-daemon --no-build-cache -Pkotlin.compiler.execution.strategy=in-process --stacktrace
 
       - name: Perform CodeQL analysis
         uses: github/codeql-action/analyze@1bd86f2fdb4b86187fa4059f16f31a3202acc9ea # v4.39.4

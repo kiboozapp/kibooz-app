@@ -20,6 +20,8 @@ Branch buatan tombol Revert di GitHub tidak lolos PR format. Untuk membatalkan p
 
 Zizmor memakai data terbaru dari GitHub, jadi temuan baru pada action yang sudah dipakai bisa membuat semua pull request gagal. Jalan keluarnya adalah pull request yang memperbarui action itu, atau yang menambahkan pengecualian beserta alasannya di `.github/zizmor.yml`.
 
+CodeQL analysis juga bisa gagal bukan karena isi pull request, misalnya saat unduhan atau code scanning GitHub bermasalah, atau saat CodeQL default setup diaktifkan di pengaturan repositori. Jalankan ulang pengecekannya setelah penyebabnya hilang. Yang dianalisis hanya kode utama varian debug. Pengecekan ini gagal kalau analisisnya tidak selesai, bukan karena ada temuan.
+
 Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scanning dengan push protection, Dependabot alerts tanpa pull request otomatis, pelaporan kerentanan secara pribadi, dan kewajiban mem-pin action ke SHA commit lengkap. Branch pull request dihapus otomatis setelah digabung. Mengubah aturan ini adalah pengaturan repositori yang hanya bisa dilakukan oleh pengguna dengan akses admin.
 
 ## Daftar workflow
