@@ -2,14 +2,14 @@ package com.nthb.kibooz.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
-import android.view.View
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.BuildConfig
@@ -18,63 +18,44 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.Session
 import com.nthb.kibooz.data.session.SessionUser
-import com.nthb.kibooz.databinding.ActivityLoginBinding
 import com.nthb.kibooz.ui.guru.DashboardGuruActivity
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.ui.wali.DashboardWaliActivity
-import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityLoginBinding
-    private var isPasswordVisible: Boolean = false
     private var selectedRole: Role = Role.WALI
     private val viewModel: AuthViewModel by viewModels { AuthViewModel.Factory(appContainer.authRepository) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        InsetsUtil.applyRootBottomInsets(binding.root)
 
         // Hanya GURU dan WALI yang punya portal, nilai lain termasuk ADMIN jatuh ke WALI
         selectedRole = if (intent.getStringExtra(EXTRA_SELECTED_ROLE) == Role.GURU.name) Role.GURU else Role.WALI
 
-        // Password visibility toggle
-        binding.ivTogglePassword.setOnClickListener {
-            isPasswordVisible = !isPasswordVisible
-            if (isPasswordVisible) {
-                binding.etPassword.transformationMethod = HideReturnsTransformationMethod.getInstance()
-            } else {
-                binding.etPassword.transformationMethod = PasswordTransformationMethod.getInstance()
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                LoginScreen(
+                    state = state,
+                    onLogin = { email, password -> viewModel.login(email, password, selectedRole) },
+                    onGoogleLogin = ::launchGoogleSignIn,
+                    onRegister = ::openRegister,
+                    onDemoLogin = if (BuildConfig.DEBUG) ::enterDebugDemoSession else null
+                )
             }
-            binding.etPassword.setSelection(binding.etPassword.text.length)
-        }
-
-        // Login button
-        binding.btnLogin.setOnClickListener { submit() }
-        binding.connectionStatus.onRetry = ::submit
-
-        binding.btnGoogleLogin.setOnClickListener { launchGoogleSignIn() }
-        binding.tvDebugDemoLogin.visibility = if (BuildConfig.DEBUG) View.VISIBLE else View.GONE
-        if (BuildConfig.DEBUG) {
-            binding.tvDebugDemoLogin.setOnClickListener { enterDebugDemoSession() }
-            binding.btnGoogleLogin.setOnLongClickListener {
-                enterDebugDemoSession()
-                true
-            }
-        }
-
-        binding.tvToRegister.setOnClickListener {
-            startActivity(Intent(this, RegisterActivity::class.java).putExtra(EXTRA_SELECTED_ROLE, selectedRole.name))
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                viewModel.state.collect(::handleEvents)
             }
         }
+    }
+
+    private fun openRegister() {
+        startActivity(Intent(this, RegisterActivity::class.java).putExtra(EXTRA_SELECTED_ROLE, selectedRole.name))
     }
 
     private fun launchGoogleSignIn() {
@@ -127,22 +108,9 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun submit() {
-        viewModel.login(binding.etEmail.text.toString(), binding.etPassword.text.toString(), selectedRole)
-    }
-
-    private fun render(state: LoginUiState) {
-        val enabled = !state.loading
-        binding.btnLogin.isEnabled = enabled
-        binding.btnGoogleLogin.isEnabled = enabled
-        binding.btnGoogleLogin.alpha = if (enabled) 1f else 0.6f
-        binding.tvDebugDemoLogin.isEnabled = enabled
-        binding.etEmail.error = state.emailError?.let { getString(it) }
-        binding.etPassword.error = state.passwordError?.let { getString(it) }
-
+    /** Menjalankan kejadian sekali pakai. Isi layarnya digambar oleh [LoginScreen]. */
+    private fun handleEvents(state: LoginUiState) {
         // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
-        state.outage?.let { binding.connectionStatus.show(it) } ?: binding.connectionStatus.hide()
-
         state.error?.let {
             if (state.outage == null) Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             viewModel.errorShown()
