@@ -3,10 +3,12 @@ package com.nthb.kibooz.ui.profile
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,7 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -94,3 +99,32 @@ private fun MenuRow(item: ProfileMenuItem) {
     }
 }
 
+/** Kartu galat muat dengan tombol coba lagi, bentuknya sama dengan kartu gangguan server. */
+@Composable
+internal fun LoadErrorCard(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+    val shape = RoundedCornerShape(16.dp)
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(colorResource(R.color.kibooz_outage_surface), shape)
+            .border(1.dp, colorResource(R.color.kibooz_outage_border), shape)
+            .padding(16.dp)
+    ) {
+        Text(text = message, color = colorResource(R.color.kibooz_text_primary), fontSize = 14.sp)
+        Surface(
+            onClick = onRetry,
+            modifier = Modifier.padding(top = 10.dp).defaultMinSize(minHeight = 48.dp).semantics { role = Role.Button },
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.primary
+        ) {
+            Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
+                Text(
+                    text = stringResource(R.string.coba_lagi),
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}

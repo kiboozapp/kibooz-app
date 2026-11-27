@@ -15,6 +15,7 @@ import com.nthb.kibooz.data.remote.TrashStats
 import com.nthb.kibooz.databinding.ActivityStatistikSampahBinding
 import com.nthb.kibooz.ml.TrashCategory
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
+import com.nthb.kibooz.ui.profile.ProfilSiswaActivity
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 

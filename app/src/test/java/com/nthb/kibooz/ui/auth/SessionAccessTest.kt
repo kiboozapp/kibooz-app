@@ -24,6 +24,7 @@ class SessionAccessTest {
         assertEquals(Access.GURU, accessFor(ui("profile.EditProfilGuruActivity")))
         assertEquals(Access.WALI, accessFor(ui("wali.DashboardWaliActivity")))
         assertEquals(Access.WALI, accessFor(ui("profile.ProfilWaliActivity")))
+        assertEquals(Access.WALI, accessFor(ui("profile.ProfilSiswaActivity")))
     }
 
     @Test
