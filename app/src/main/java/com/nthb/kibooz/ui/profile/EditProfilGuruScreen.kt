@@ -33,6 +33,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -47,9 +48,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -86,8 +90,15 @@ internal fun EditProfilGuruScreen(
     var phone by rememberSaveable { mutableStateOf("") }
     var address by rememberSaveable { mutableStateOf("") }
     var filled by rememberSaveable { mutableStateOf(false) }
-    // Alamat dari peta membuat galat alamat lama tidak berlaku lagi, sampai simpan berikutnya
-    var addressErrorCleared by remember(state.fieldErrors) { mutableStateOf(false) }
+    // Galat sebuah isian disembunyikan begitu isinya diubah, dan muncul lagi bila simpan berikutnya masih gagal
+    var edited by remember { mutableStateOf(emptySet<GuruEditField>()) }
+    // Foto di URL yang sama bisa berganti isinya, jadi muat ulang gambar setiap unggahan selesai
+    var uploading by remember { mutableStateOf(false) }
+    var avatarVersion by remember { mutableIntStateOf(0) }
+    LaunchedEffect(state.uploadingAvatar) {
+        if (uploading && !state.uploadingAvatar) avatarVersion++
+        uploading = state.uploadingAvatar
+    }
 
     val profile = state.profile
     LaunchedEffect(profile != null) {
@@ -101,7 +112,7 @@ internal fun EditProfilGuruScreen(
     LaunchedEffect(pickedAddress) {
         if (pickedAddress != null) {
             address = pickedAddress
-            addressErrorCleared = true
+            edited = edited + GuruEditField.ADDRESS
             onAddressConsumed()
         }
     }
@@ -115,14 +126,17 @@ internal fun EditProfilGuruScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 40.dp)
         ) {
-            AvatarPicker(profile = profile, avatarLoader = avatarLoader, onPick = onPickAvatar)
+            AvatarPicker(profile = profile, avatarLoader = avatarLoader, version = avatarVersion, onPick = onPickAvatar)
             FormField(
                 label = stringResource(R.string.edit_profil_guru_nama),
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = {
+                    name = it
+                    edited = edited + GuruEditField.FULL_NAME
+                },
                 modifier = Modifier.padding(top = 20.dp),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-                errorText = state.fieldErrors[GuruEditField.FULL_NAME]?.let { stringResource(it) }
+                errorText = state.fieldErrors.visible(GuruEditField.FULL_NAME, edited)?.let { stringResource(it) }
             )
             FormField(
                 label = stringResource(R.string.edit_profil_guru_nip),
@@ -147,30 +161,43 @@ internal fun EditProfilGuruScreen(
             FormField(
                 label = stringResource(R.string.edit_profil_guru_telepon),
                 value = phone,
-                onValueChange = { phone = it },
+                onValueChange = {
+                    phone = it
+                    edited = edited + GuruEditField.PHONE
+                },
                 modifier = Modifier.padding(top = 14.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
-                errorText = state.fieldErrors[GuruEditField.PHONE]?.let { stringResource(it) }
+                errorText = state.fieldErrors.visible(GuruEditField.PHONE, edited)?.let { stringResource(it) }
             )
             FormField(
                 label = stringResource(R.string.edit_profil_guru_alamat),
                 value = address,
-                onValueChange = { address = it },
+                onValueChange = {
+                    address = it
+                    edited = edited + GuruEditField.ADDRESS
+                },
                 modifier = Modifier.padding(top = 14.dp),
                 minHeight = 80.dp,
                 singleLine = false,
                 placeholder = stringResource(R.string.edit_profil_guru_alamat_hint),
-                errorText = if (addressErrorCleared) null else state.fieldErrors[GuruEditField.ADDRESS]?.let { stringResource(it) }
+                errorText = state.fieldErrors.visible(GuruEditField.ADDRESS, edited)?.let { stringResource(it) },
+                maxLines = 3
             )
             MapButton(enabled = !state.busy, onClick = { onPickMap(address) })
             Button(
-                onClick = { onSave(name, phone, address) },
+                onClick = {
+                    edited = emptySet()
+                    onSave(name, phone, address)
+                },
                 modifier = Modifier.padding(top = 28.dp).fillMaxWidth().heightIn(min = 52.dp),
                 enabled = !state.busy && profile != null,
                 shape = RoundedCornerShape(26.dp),
+                // Seperti tombol di layar XML, tampilannya sama saat nonaktif
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colorResource(R.color.kibooz_primary_purple),
-                    contentColor = Color.White
+                    contentColor = Color.White,
+                    disabledContainerColor = colorResource(R.color.kibooz_primary_purple),
+                    disabledContentColor = Color.White
                 )
             ) {
                 Text(
@@ -185,7 +212,7 @@ internal fun EditProfilGuruScreen(
 
 /** Foto bulat 96dp dengan lencana kamera, dan teks petunjuk di bawahnya. Keduanya membuka pemilih foto. */
 @Composable
-private fun AvatarPicker(profile: GuruProfileDetail?, avatarLoader: AvatarLoader, onPick: () -> Unit) {
+private fun AvatarPicker(profile: GuruProfileDetail?, avatarLoader: AvatarLoader, version: Int, onPick: () -> Unit) {
     val purple = colorResource(R.color.kibooz_primary_purple)
     val badge = Brush.horizontalGradient(listOf(purple, colorResource(R.color.kibooz_purple_gradient_end)))
     Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -206,7 +233,8 @@ private fun AvatarPicker(profile: GuruProfileDetail?, avatarLoader: AvatarLoader
                     url = profile?.avatarUrl,
                     placeholder = R.drawable.img_avatar_guru,
                     loader = avatarLoader,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
+                    version = version
                 )
             }
             Icon(
@@ -226,7 +254,9 @@ private fun AvatarPicker(profile: GuruProfileDetail?, avatarLoader: AvatarLoader
             modifier = Modifier
                 .padding(top = 8.dp)
                 .clickable(role = Role.Button, onClick = onPick)
-                .padding(horizontal = 12.dp, vertical = 4.dp),
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                // Foto di atasnya sudah menjadi tombol yang sama, jadi teks ini hanya petunjuk bagi mata
+                .clearAndSetSemantics {},
             color = colorResource(R.color.kibooz_primary_purple),
             fontSize = 13.sp,
             fontWeight = FontWeight.Bold
@@ -244,9 +274,11 @@ private fun MapButton(enabled: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(16.dp),
         colors = ButtonDefaults.outlinedButtonColors(
             containerColor = colorResource(R.color.kibooz_lavender_light),
-            contentColor = purple
+            contentColor = purple,
+            disabledContainerColor = colorResource(R.color.kibooz_lavender_light),
+            disabledContentColor = purple
         ),
-        border = BorderStroke(1.dp, if (enabled) purple else purple.copy(alpha = 0.12f))
+        border = BorderStroke(1.dp, purple)
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Icon(painter = painterResource(R.drawable.ic_location), contentDescription = null, modifier = Modifier.size(24.dp))
@@ -272,6 +304,7 @@ private fun FormField(
     locked: Boolean = false,
     minHeight: Dp = 48.dp,
     singleLine: Boolean = true,
+    maxLines: Int = if (singleLine) 1 else Int.MAX_VALUE,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     placeholder: String? = null,
     errorText: String? = null
@@ -288,12 +321,10 @@ private fun FormField(
             modifier = Modifier
                 .padding(top = 6.dp)
                 .fillMaxWidth()
-                .semantics {
-                    contentDescription = label
-                    if (errorText != null) error(errorText)
-                },
+                .semantics { if (errorText != null) error(errorText) },
             enabled = !locked,
             singleLine = singleLine,
+            maxLines = maxLines,
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = if (locked) muted else dark, fontSize = 14.sp),
             keyboardOptions = keyboardOptions,
             cursorBrush = SolidColor(colorResource(R.color.kibooz_primary_purple)),
@@ -316,13 +347,18 @@ private fun FormField(
         if (errorText != null) {
             Text(
                 text = errorText,
-                modifier = Modifier.padding(start = 16.dp, top = 4.dp),
+                // Galat diumumkan pembaca layar begitu muncul, seperti pada KiboozOutlinedField
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp).semantics { liveRegion = LiveRegionMode.Polite },
                 color = MaterialTheme.colorScheme.error,
                 fontSize = 12.sp
             )
         }
     }
 }
+
+/** Galat sebuah isian, atau null bila isinya sudah diubah sejak simpan terakhir. */
+private fun Map<GuruEditField, Int>.visible(field: GuruEditField, edited: Set<GuruEditField>): Int? =
+    if (field in edited) null else this[field]
 
 @Preview(widthDp = 360, heightDp = 780)
 @Composable
