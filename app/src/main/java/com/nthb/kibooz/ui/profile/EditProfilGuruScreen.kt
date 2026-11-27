@@ -322,9 +322,11 @@ private fun FormField(
         Text(text = label, color = dark, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         BasicTextField(
             value = field,
-            onValueChange = {
-                field = it
-                onValueChange(it.text)
+            onValueChange = { next ->
+                // Pindah kursor atau seleksi juga sampai di sini, tetapi hanya perubahan teks yang diteruskan
+                val textChanged = next.text != field.text
+                field = next
+                if (textChanged) onValueChange(next.text)
             },
             modifier = Modifier
                 .padding(top = 6.dp)
