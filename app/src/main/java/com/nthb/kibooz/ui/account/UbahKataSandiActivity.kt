@@ -2,15 +2,17 @@ package com.nthb.kibooz.ui.account
 
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
-import com.nthb.kibooz.databinding.ActivityUbahKataSandiBinding
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -20,42 +22,27 @@ import kotlinx.coroutines.launch
  */
 class UbahKataSandiActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityUbahKataSandiBinding
     private val viewModel: ChangePasswordViewModel by viewModels { ChangePasswordViewModel.Factory(appContainer.authRepository) }
     private var changedShown = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityUbahKataSandiBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        InsetsUtil.applySystemBarInsets(
-            root = binding.root,
-            headerView = binding.clTopBar
-        )
-
-        binding.ivBack.setOnClickListener { finish() }
-        binding.btnSimpan.setOnClickListener {
-            viewModel.change(
-                current = binding.etCurrent.text.toString(),
-                new = binding.etNew.text.toString(),
-                confirm = binding.etConfirm.text.toString()
-            )
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                UbahKataSandiScreen(state = state, onBack = ::finish, onSave = viewModel::change)
+            }
         }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                viewModel.state.collect(::handleEvents)
             }
         }
     }
 
-    private fun render(state: ChangePasswordState) {
-        binding.btnSimpan.isEnabled = !state.loading
-        binding.tilCurrent.error = state.fieldErrors[PasswordField.CURRENT]?.let { getString(it) }
-        binding.tilNew.error = state.fieldErrors[PasswordField.NEW]?.let { getString(it) }
-        binding.tilConfirm.error = state.fieldErrors[PasswordField.CONFIRM]?.let { getString(it) }
-
+    /** Menampilkan pesan sekali pakai. Isi layarnya digambar oleh [UbahKataSandiScreen]. */
+    private fun handleEvents(state: ChangePasswordState) {
         state.error?.let {
             Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             viewModel.errorShown()
