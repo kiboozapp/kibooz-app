@@ -20,6 +20,8 @@ Setiap pull request menghasilkan APK debug dari job Debug build di workflow Andr
 
 Id run ada di tautan pengecekan "Android CI" pada pull request, atau dari `gh run list --repo kiboozapp/kibooz-app --workflow android-ci.yaml --branch <nama branch>`.
 
+Jika perubahannya memindahkan layar ke Compose, ambil dulu tangkapan layar versi lama dari ponsel yang sama, karena menghapus aplikasi menghilangkan versi itu. Daftar yang dibandingkan ada di bagian "Yang diperiksa".
+
 Setiap build CI memakai kunci penandatanganan baru. Karena itu versi yang sudah terpasang harus dihapus lebih dulu. Tanpa itu, `adb install` menolak pemasangan di atasnya. Menghapus aplikasi juga menghapus data lokalnya, termasuk sesi masuk, jadi masuk lagi setelah memasang. Lewati langkah hapus jika belum ada versi yang terpasang.
 
 ```bash
@@ -41,7 +43,7 @@ Karena yang diuji adalah server sungguhan, perhatikan hal berikut.
 
 ## Yang diperiksa
 
-Untuk layar yang dipindahkan ke Compose, ambil tangkapan layar versi XML lebih dulu dari ponsel yang sama, lalu bandingkan dengan versi baru. Periksa hal berikut.
+Untuk layar yang dipindahkan ke Compose, pakai tangkapan layar versi XML yang diambil sebelum aplikasi dihapus, lalu bandingkan dengan versi baru. Periksa hal berikut.
 
 1. Tata letak, jarak, warna dan teks sama dengan versi lama.
 2. Semua state tampilan muncul dengan benar, yaitu memuat, galat, kosong dan berhasil. Putuskan jaringan sebentar untuk melihat keadaan galat.
