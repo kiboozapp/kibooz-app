@@ -1,0 +1,56 @@
+name: Kotlin lint
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: kotlin-lint-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+# The job is not a required check. It needs no secret, so it also runs on pull requests from forks. The rules are in .editorconfig.
+jobs:
+  kotlin-lint:
+    name: Kotlin lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      # The hash belongs to the version above it, so change both together
+      - name: Download ktlint
+        env:
+          # renovate: datasource=github-releases depName=pinterest/ktlint
+          KTLINT_VERSION: 1.8.0
+          KTLINT_SHA256: a3fd620207d5c40da6ca789b95e7f823c54e854b7fade7f613e91096a3706d75
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 --output "$RUNNER_TEMP/ktlint" \
+            "https://github.com/pinterest/ktlint/releases/download/${KTLINT_VERSION}/ktlint"
+          echo "${KTLINT_SHA256}  $RUNNER_TEMP/ktlint" | sha256sum --check -
+
+      - name: Kotlin lint
+        run: |
+          set -euo pipefail
+          status=0
+          java -jar "$RUNNER_TEMP/ktlint" --relative "app/src/**/*.kt" "**/*.kts" >"$RUNNER_TEMP/ktlint.txt" || status=$?
+          cat "$RUNNER_TEMP/ktlint.txt"
+          # The number of findings of each rule, at the end of the log where it is easy to find
+          grep -oE '\((standard|experimental):[a-z0-9-]+\)' "$RUNNER_TEMP/ktlint.txt" | sort | uniq -c | sort -rn || true
+          exit "$status"

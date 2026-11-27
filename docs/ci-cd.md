@@ -39,6 +39,7 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 | `release-please.yaml` | Release PR and tag | push ke `main`, manual | Membuat pull request rilis berisi changelog dan versi baru. Setelah digabung, membuat tag `v*` dan draft release |
 | `release-please.yaml` | Sign and publish the release | setelah rilis dibuat | Menandatangani APK rilis, melampirkannya ke draft release, lalu menerbitkan rilisnya |
 | `release-build.yaml` | Release build | pull request ke `main`, dipanggil oleh `release-please.yaml` | Membangun APK rilis yang belum ditandatangani. Tidak wajib |
+| `kotlin-lint.yaml` | Kotlin lint | pull request ke `main`, push ke `main`, manual | Gaya dan penamaan kode Kotlin dengan ktlint menurut `.editorconfig`. Aturan tata letak yang belum dipenuhi kode lama dimatikan. Tidak wajib |
 | `file-names.yaml` | File names | pull request ke `main`, push ke `main`, manual | Penamaan berkas menurut `.ls-lint.yml` |
 | `gitleaks.yaml` | Secret scan (gitleaks) | pull request ke `main`, push ke `main`, manual | Seluruh riwayat git dicek untuk rahasia yang tidak sengaja ikut |
 | `trivy.yaml` | Trivy filesystem scan | pull request ke `main`, push ke `main`, setiap Senin, manual | Kerentanan, rahasia, dan salah konfigurasi di berkas repositori. Hanya temuan CRITICAL dan HIGH yang sudah punya perbaikan yang dilaporkan |
@@ -70,6 +71,7 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 | Berkas | Fungsi |
 | :--- | :--- |
 | `commitlint.config.mjs` | Aturan pesan commit untuk job Conventional commits |
+| `.editorconfig` | Aturan ktlint untuk job Kotlin lint, juga dibaca Android Studio |
 | `codecov.yml` | Pengaturan status Codecov. Statusnya hanya informasi |
 | `renovate.json` | Pengaturan Renovate. Pembaruan rutin dibuat pada Senin pagi setelah rilisnya berumur 7 hari. Pembaruan keamanan bisa dibuat kapan saja. Pembaruan besar alat build dan versi minor Kotlin menunggu centang di dependency dashboard |
 | `.ls-lint.yml` | Aturan penamaan berkas untuk job File names |

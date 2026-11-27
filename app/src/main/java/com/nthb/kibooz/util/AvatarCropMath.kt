@@ -37,7 +37,7 @@ object AvatarCropMath {
         return max(cropSizePx / bitmapW.toFloat(), cropSizePx / bitmapH.toFloat())
     }
 
-    /** Membatasi posisi [origin] (left atau top gambar terskala) agar sisi gambar tidak lepas dari [cropStart..cropEnd]. */
+    /** Membatasi posisi [origin] (left atau top gambar terskala) agar sisi gambar tidak lepas dari rentang `cropStart..cropEnd`. */
     fun clampAxisOrigin(origin: Float, scaledLength: Float, cropStart: Float, cropEnd: Float): Float {
         val minOrigin = cropEnd - scaledLength
         val maxOrigin = cropStart
