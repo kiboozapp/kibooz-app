@@ -101,3 +101,17 @@ data class ClassMoveRequest(
 )
 
 data class ClassMoveRequestList(val requests: List<ClassMoveRequest> = emptyList())
+
+/** Pengajar dalam satu kelas (`GET /guru/classes/{classId}/teachers`). */
+data class ClassTeacher(
+    val id: String,
+    val userId: String = "",
+    val isSelf: Boolean = false,
+    val fullName: String,
+    val nip: String? = null,
+    val avatarUrl: String? = null,
+    val isOwner: Boolean = false,
+    val joinedAt: String = ""
+)
+
+data class ClassTeacherList(val teachers: List<ClassTeacher> = emptyList())

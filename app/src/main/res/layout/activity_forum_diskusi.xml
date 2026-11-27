@@ -70,6 +70,28 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Subject Filter Strip -->
+    <HorizontalScrollView
+        android:id="@+id/hsvSubjectFilters"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/kibooz_white"
+        android:clipToPadding="false"
+        android:elevation="2dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@+id/clTopBar">
+
+        <LinearLayout
+            android:id="@+id/llSubjectChips"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal" />
+
+    </HorizontalScrollView>
+
     <!-- Scrollable Chat List -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nsvChat"
@@ -77,7 +99,7 @@
         android:layout_height="0dp"
         android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/clInputBar"
-        app:layout_constraintTop_toBottomOf="@+id/clTopBar">
+        app:layout_constraintTop_toBottomOf="@+id/hsvSubjectFilters">
 
         <LinearLayout
             android:id="@+id/llChatMessages"

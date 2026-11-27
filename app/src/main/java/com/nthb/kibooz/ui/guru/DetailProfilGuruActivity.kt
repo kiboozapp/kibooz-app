@@ -13,6 +13,7 @@ import com.nthb.kibooz.data.remote.DailyMoodDistribution
 import com.nthb.kibooz.databinding.ActivityDetailProfilGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlin.math.roundToInt
@@ -137,8 +138,10 @@ class DetailProfilGuruActivity : AppCompatActivity() {
                 }
                 binding.tvPerformanceClassNote.isVisible = distribution.total == 0
                 if (distribution.total == 0) {
-                    binding.tvPerformanceClassNote.text =
-                        getString(R.string.detail_profil_belum_ada_mood, overview.className)
+                    binding.tvPerformanceClassNote.text = getString(
+                        R.string.detail_profil_belum_ada_mood,
+                        ClassNames.stemOrFallback(overview.className, "ini")
+                    )
                 }
                 bindDistribution(distribution)
                 hasRenderedStats = true

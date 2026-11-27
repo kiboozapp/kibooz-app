@@ -156,7 +156,7 @@
                             android:ellipsize="end"
                             android:fontFamily="@font/baloo2"
                             android:maxLines="2"
-                            android:text="Amelia Siti Zahra"
+                            android:text="Siswa"
                             android:textColor="@color/kibooz_white"
                             android:textSize="20sp"
                             android:textStyle="bold" />
@@ -352,11 +352,24 @@
                         android:orientation="horizontal"
                         android:padding="16dp">
 
-                        <ImageView
-                            android:layout_width="64dp"
-                            android:layout_height="64dp"
-                            android:scaleType="fitCenter"
-                            android:src="@drawable/img_banner_ranking" />
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="58dp"
+                            android:layout_height="58dp"
+                            app:cardBackgroundColor="#FFF8E7"
+                            app:cardCornerRadius="14dp"
+                            app:cardElevation="0dp"
+                            app:strokeColor="#FFE0B2"
+                            app:strokeWidth="1dp">
+
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:contentDescription="@null"
+                                android:importantForAccessibility="no"
+                                android:scaleType="centerCrop"
+                                android:src="@drawable/img_icon_ranking" />
+
+                        </com.google.android.material.card.MaterialCardView>
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -484,7 +497,7 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:fontFamily="@font/baloo2"
-                                    android:text="Mood Pulang (11:30)"
+                                    android:text="Mood hari ini"
                                     android:textColor="@color/kibooz_text_muted"
                                     android:textSize="12sp" />
 
@@ -496,7 +509,7 @@
                                     android:fontFamily="@font/baloo2"
                                     android:paddingHorizontal="14dp"
                                     android:paddingVertical="4dp"
-                                    android:text="😊 Happy!"
+                                    android:text="…"
                                     android:textColor="#F57F17"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />

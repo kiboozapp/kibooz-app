@@ -17,6 +17,7 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ClassMoveRequest
 import com.nthb.kibooz.databinding.ActivityPermintaanPindahKelasBinding
 import com.nthb.kibooz.databinding.ItemPermintaanPindahBinding
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
@@ -48,7 +49,7 @@ class PermintaanPindahKelasActivity : AppCompatActivity() {
         )
 
         className = intent.getStringExtra(EXTRA_CLASS_NAME) ?: "Kelas"
-        binding.tvSubtitle.text = getString(R.string.guru_pindah_subjudul, className)
+        binding.tvSubtitle.text = getString(R.string.guru_pindah_subjudul, ClassNames.stemOrFallback(className, "ini"))
 
         binding.ivBack.setOnClickListener { finish() }
         binding.btnCobaLagi.setOnClickListener { viewModel.load() }
@@ -113,7 +114,13 @@ class PermintaanPindahKelasActivity : AppCompatActivity() {
     private fun confirmAccept(req: ClassMoveRequest) {
         MaterialAlertDialogBuilder(this)
             .setTitle(getString(R.string.guru_pindah_konfirmasi_terima_judul, req.studentName))
-            .setMessage(getString(R.string.guru_pindah_konfirmasi_terima_isi, req.studentName, className))
+            .setMessage(
+                getString(
+                    R.string.guru_pindah_konfirmasi_terima_isi,
+                    req.studentName,
+                    ClassNames.stemOrFallback(className, "ini")
+                )
+            )
             .setPositiveButton(R.string.guru_pindah_terima) { _, _ ->
                 viewModel.accept(req, getString(R.string.guru_pindah_diterima, req.studentName))
             }

@@ -12,6 +12,8 @@ interface ForumApi {
     @GET("classes/{classId}/forum")
     suspend fun listThreads(
         @Path("classId") classId: String,
+        @Query("subjectCode") subjectCode: String? = null,
+        @Query("generalOnly") generalOnly: Boolean? = null,
         @Query("page") page: Int = 1,
         @Query("limit") limit: Int = 20
     ): Response<ApiEnvelope<ForumThreadList>>
