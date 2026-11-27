@@ -3,105 +3,64 @@ package com.nthb.kibooz.ui.auth
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.textfield.TextInputLayout
-import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
-import com.nthb.kibooz.databinding.ActivityRegisterBinding
 import com.nthb.kibooz.ui.guru.DashboardGuruActivity
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.ui.wali.DashboardWaliActivity
-import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
 /** Pendaftaran Guru (dengan kelas pertamanya) atau Wali Murid (dengan kode kelas dan data anak). */
 class RegisterActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRegisterBinding
-    private var role: Role = Role.WALI
-    private var googleIdToken: String? = null
     private val viewModel: RegisterViewModel by viewModels { RegisterViewModel.Factory(appContainer.authRepository) }
+    private var role: Role = Role.WALI
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityRegisterBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        InsetsUtil.applyRootBottomInsets(binding.root)
 
         // Hanya GURU dan WALI yang bisa mendaftar, nilai lain jatuh ke WALI
         role = if (intent.getStringExtra(LoginActivity.EXTRA_SELECTED_ROLE) == Role.GURU.name) Role.GURU else Role.WALI
-        val isGuru = role == Role.GURU
-        binding.groupGuru.isVisible = isGuru
-        binding.groupWali.isVisible = !isGuru
-        binding.tvRegisterTitle.setText(if (isGuru) R.string.daftar_judul_guru else R.string.daftar_judul_wali)
-
-        googleIdToken = intent.getStringExtra(EXTRA_GOOGLE_ID_TOKEN)?.takeIf { it.isNotBlank() }
-        if (googleIdToken != null) {
-            val googleEmail = intent.getStringExtra(EXTRA_GOOGLE_EMAIL).orEmpty()
-            val googleName = intent.getStringExtra(EXTRA_GOOGLE_FULL_NAME).orEmpty()
-            binding.etFullName.setText(googleName)
-            binding.etEmail.setText(googleEmail)
-            binding.etEmail.isEnabled = false
-            binding.etEmail.alpha = 0.7f
-            binding.tilPassword.isVisible = false
-            binding.tvRegisterSubtitle.text = getString(R.string.daftar_subjudul_google, googleEmail)
-        } else {
-            binding.tvRegisterSubtitle.setText(if (isGuru) R.string.daftar_subjudul_guru else R.string.daftar_subjudul_wali)
+        val google = intent.getStringExtra(EXTRA_GOOGLE_ID_TOKEN)?.takeIf { it.isNotBlank() }?.let { idToken ->
+            GooglePrefill(
+                idToken = idToken,
+                email = intent.getStringExtra(EXTRA_GOOGLE_EMAIL).orEmpty(),
+                fullName = intent.getStringExtra(EXTRA_GOOGLE_FULL_NAME).orEmpty()
+            )
         }
 
-        binding.btnRegister.setOnClickListener { viewModel.register(readForm()) }
-        binding.connectionStatus.onRetry = { viewModel.register(readForm()) }
-        binding.tvToLogin.setOnClickListener { finish() }
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                RegisterScreen(
+                    role = role,
+                    state = state,
+                    google = google,
+                    onRegister = viewModel::register,
+                    onLogin = ::finish
+                )
+            }
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                viewModel.state.collect(::handleEvents)
             }
         }
     }
 
-    private fun readForm() = RegisterForm(
-        role = role,
-        fullName = binding.etFullName.text.toString(),
-        email = binding.etEmail.text.toString(),
-        password = binding.etPassword.text.toString(),
-        phone = binding.etPhone.text.toString(),
-        nip = binding.etNip.text.toString(),
-        schoolName = binding.etSchool.text.toString(),
-        className = binding.etClassName.text.toString(),
-        gradeLevel = binding.etGradeLevel.text.toString(),
-        academicYear = binding.etAcademicYear.text.toString(),
-        classCode = binding.etClassCode.text.toString(),
-        childName = binding.etChildName.text.toString(),
-        nisn = binding.etNisn.text.toString(),
-        googleIdToken = googleIdToken
-    )
-
-    private fun render(state: RegisterUiState) {
-        binding.btnRegister.isEnabled = !state.loading
-
-        val fields: Map<RegisterField, TextInputLayout> = mapOf(
-            RegisterField.FULL_NAME to binding.tilFullName,
-            RegisterField.EMAIL to binding.tilEmail,
-            RegisterField.PASSWORD to binding.tilPassword,
-            RegisterField.PHONE to binding.tilPhone,
-            RegisterField.CLASS_NAME to binding.tilClassName,
-            RegisterField.CLASS_CODE to binding.tilClassCode,
-            RegisterField.CHILD_NAME to binding.tilChildName,
-            RegisterField.NISN to binding.tilNisn
-        )
-        fields.forEach { (field, layout) -> layout.error = state.fieldErrors[field]?.let { getString(it) } }
-
+    /** Menjalankan kejadian sekali pakai. Isi layarnya digambar oleh [RegisterScreen]. */
+    private fun handleEvents(state: RegisterUiState) {
         // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
-        state.outage?.let { binding.connectionStatus.show(it) } ?: binding.connectionStatus.hide()
-
         state.error?.let {
             if (state.outage == null) Toast.makeText(this, it, Toast.LENGTH_SHORT).show()
             viewModel.errorShown()

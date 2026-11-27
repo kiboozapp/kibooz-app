@@ -94,24 +94,6 @@ object InsetsUtil {
     }
 
     /**
-     * Menerapkan insets navigasi bawah pada root view untuk layar Onboarding, Login, dan Detail
-     */
-    fun applyRootBottomInsets(rootView: View) {
-        ensureNavigationBarColor(rootView)
-        val basePaddingBottom = rootView.paddingBottom
-
-        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
-            val navBars = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            val imeInsets = insets.getInsets(WindowInsetsCompat.Type.ime())
-            val bottomInset = maxOf(navBars.bottom, imeInsets.bottom)
-
-            v.updatePadding(bottom = basePaddingBottom + bottomInset)
-            insets
-        }
-        rootView.requestApplyInsets()
-    }
-
-    /**
      * Menerapkan insets lengkap:
      * - Status Bar (top) pada headerView agar bebas tumpukan jam/kamera
      * - Navigation Bar (bottom) pada bottomBar & FAB (atau root) agar tidak tertutup tombol sistem HP
