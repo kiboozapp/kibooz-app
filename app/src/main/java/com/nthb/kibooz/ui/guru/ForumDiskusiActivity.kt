@@ -102,11 +102,11 @@ class ForumDiskusiActivity : AppCompatActivity() {
     }
 
     private fun selectFilter(option: ForumFilter) {
-        if (option == activeFilter) return
         activeFilter = option
         updateFilterChipStyles()
         applyFilterPresentation()
         scrollToActiveChip()
+        showForumPlaceholder(LOADING_FORUM_TEXT)
         loadFilteredThreads()
     }
 
@@ -164,9 +164,17 @@ class ForumDiskusiActivity : AppCompatActivity() {
             if (result is ApiResult.Success) {
                 renderThreads(result.data.threads, cachedCurrentUser)
             } else {
+                showForumPlaceholder(FAILED_FORUM_TEXT)
                 Toast.makeText(this@ForumDiskusiActivity, "Gagal memuat forum diskusi", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun showForumPlaceholder(message: String) {
+        binding.llChatMessages.removeAllViews()
+        binding.llChatMessages.addView(binding.tvEmptyForum)
+        binding.tvEmptyForum.text = message
+        binding.tvEmptyForum.visibility = View.VISIBLE
     }
 
     private suspend fun ensureActiveClassMetadata(hasNoSession: Boolean, isWali: Boolean) {
@@ -240,9 +248,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
         binding.llChatMessages.removeAllViews()
 
         if (threads.isEmpty()) {
-            binding.llChatMessages.addView(binding.tvEmptyForum)
-            binding.tvEmptyForum.text = ForumSubjects.emptyMessage(activeFilter)
-            binding.tvEmptyForum.visibility = View.VISIBLE
+            showForumPlaceholder(ForumSubjects.emptyMessage(activeFilter))
             return
         }
 
@@ -380,6 +386,58 @@ class ForumDiskusiActivity : AppCompatActivity() {
             }
         }
 
+    private fun createBubbleContainer(isSelf: Boolean, topMarginPx: Int): LinearLayout {
+        val row = LinearLayout(this)
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.MATCH_PARENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        params.topMargin = topMarginPx
+        row.layoutParams = params
+        row.gravity = if (isSelf) Gravity.END else Gravity.START
+        row.orientation = LinearLayout.VERTICAL
+        return row
+    }
+
+    private fun createBubbleBox(isSelf: Boolean, backgroundRes: Int, density: Float): LinearLayout {
+        val box = LinearLayout(this)
+        val sideMargin = (64 * density).toInt()
+        val hPad = (16 * density).toInt()
+        val vPad = (12 * density).toInt()
+        val params = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        if (isSelf) {
+            params.marginStart = sideMargin
+        } else {
+            params.marginEnd = sideMargin
+        }
+        box.layoutParams = params
+        box.setBackgroundResource(backgroundRes)
+        box.orientation = LinearLayout.VERTICAL
+        box.setPadding(hPad, vPad, hPad, vPad)
+        return box
+    }
+
+    private fun createBubbleText(
+        content: String,
+        textColor: Int,
+        sizeSp: Float,
+        balooFont: Typeface?,
+        isBold: Boolean,
+        isEndAligned: Boolean
+    ): TextView {
+        val label = TextView(this)
+        label.text = content
+        label.setTextColor(textColor)
+        label.textSize = sizeSp
+        label.typeface = balooFont
+        if (isBold) label.paint.isFakeBoldText = true
+        if (isEndAligned) label.gravity = Gravity.END
+        return label
+    }
+
     private fun addMessageBubble(
         senderName: String,
         content: String,
@@ -390,67 +448,24 @@ class ForumDiskusiActivity : AppCompatActivity() {
         val density = resources.displayMetrics.density
         val style = bubbleStyle(isSelf)
         val balooFont = ResourcesCompat.getFont(this, R.font.baloo2)
-        val sideMargin = (64 * density).toInt()
-        val hPad = (16 * density).toInt()
-        val vPad = (12 * density).toInt()
+        val row = createBubbleContainer(isSelf, (12 * density).toInt())
+        val bubble = createBubbleBox(isSelf, style.backgroundRes, density)
 
-        val container = LinearLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                topMargin = vPad
-            }
-            gravity = if (isSelf) Gravity.END else Gravity.START
-            orientation = LinearLayout.VERTICAL
+        if (!subjectBadge.isNullOrBlank()) {
+            bubble.addView(createSubjectBadgeView(subjectBadge, balooFont, density))
         }
-
-        val bubble = LinearLayout(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                marginStart = if (isSelf) sideMargin else 0
-                marginEnd = if (isSelf) 0 else sideMargin
-            }
-            setBackgroundResource(style.backgroundRes)
-            orientation = LinearLayout.VERTICAL
-            setPadding(hPad, vPad, hPad, vPad)
-        }
-
-        subjectBadge?.takeIf { it.isNotBlank() }?.let { badge ->
-            bubble.addView(createSubjectBadgeView(badge, balooFont, density))
-        }
-
         bubble.addView(
-            TextView(this).apply {
-                text = senderName
-                setTextColor(style.senderColor)
-                textSize = 12f
-                typeface = balooFont
-                paint.isFakeBoldText = true
-            }
+            createBubbleText(senderName, style.senderColor, 12f, balooFont, isBold = true, isEndAligned = false)
         )
         bubble.addView(
-            TextView(this).apply {
-                text = content
-                setTextColor(style.bodyColor)
-                textSize = 14f
-                typeface = balooFont
-            }
+            createBubbleText(content, style.bodyColor, 14f, balooFont, isBold = false, isEndAligned = false)
         )
         bubble.addView(
-            TextView(this).apply {
-                text = time
-                setTextColor(style.timeColor)
-                textSize = 10f
-                gravity = Gravity.END
-                typeface = balooFont
-            }
+            createBubbleText(time, style.timeColor, 10f, balooFont, isBold = false, isEndAligned = true)
         )
-        container.addView(bubble)
 
-        binding.llChatMessages.addView(container)
+        row.addView(bubble)
+        binding.llChatMessages.addView(row)
         binding.nsvChat.post { binding.nsvChat.fullScroll(View.FOCUS_DOWN) }
     }
 
@@ -462,6 +477,8 @@ class ForumDiskusiActivity : AppCompatActivity() {
         const val ROLE_LABEL_GURU = "Guru"
         const val ROLE_LABEL_WALI = "Wali Murid"
         const val DEFAULT_TIME_LABEL = "09:00"
+        const val LOADING_FORUM_TEXT = "Memuat diskusi..."
+        const val FAILED_FORUM_TEXT = "Gagal memuat diskusi. Ketuk filter di atas untuk mencoba lagi."
     }
 }
 

@@ -42,6 +42,43 @@ class DevBypassInterceptor(
         MockStudent("std-demo-4", "Dimas Anggara", "0012345672", nisnVerified = false, nisnNeedsUpdate = false, currentPoints = 80, classRank = 4, todayMood = "SEDIH")
     )
 
+    private data class MockForumThread(
+        val id: String,
+        val title: String,
+        val body: String,
+        val subjectCode: String?,
+        val authorId: String,
+        val authorName: String,
+        val authorRole: String,
+        val replyCount: Int,
+        val createdAt: String
+    )
+
+    private val mockForumThreads = mutableListOf(
+        MockForumThread(
+            id = "th-1",
+            title = "Diskusi Tugas Seni Budaya Pekan Ini",
+            body = "Selamat pagi bapak ibu, mohon bimbingan untuk proyek kolase anorganik di rumah ya.",
+            subjectCode = "SENI-A1",
+            authorId = "guru-bypass-1",
+            authorName = "Tika Sartika, S.Pd",
+            authorRole = "GURU",
+            replyCount = 3,
+            createdAt = "2026-11-24T08:30:00Z"
+        ),
+        MockForumThread(
+            id = "th-2",
+            title = "Konfirmasi Jadwal Kelas",
+            body = "Apakah jadwal pertemuan besok tetap pukul 08.00 WIB?",
+            subjectCode = null,
+            authorId = "wali-bypass-1",
+            authorName = "Budi Santoso",
+            authorRole = "WALI",
+            replyCount = 1,
+            createdAt = "2026-11-24T09:15:00Z"
+        )
+    )
+
     private var mockGuruName = "Tika Sartika, S.Pd"
     private var mockGuruPhone = "081234567890"
     private var mockGuruAddress = "Jl. Melati No. 14, Lowokwaru, Kota Malang"
@@ -62,7 +99,10 @@ class DevBypassInterceptor(
 
         val path = request.url.encodedPath
         val bodyMap = readBodyMap(request)
-        val json = mockResponseFor(path, request.method, bodyMap) ?: return chain.proceed(request)
+        val subjectCode = request.url.queryParameter("subjectCode")?.trim()?.takeIf { it.isNotEmpty() }
+        val generalOnly = request.url.queryParameter("generalOnly").equals("true", ignoreCase = true)
+        val json = mockResponseFor(path, request.method, bodyMap, subjectCode, generalOnly)
+            ?: return chain.proceed(request)
 
         return Response.Builder()
             .request(request)
@@ -82,7 +122,13 @@ class DevBypassInterceptor(
         }.getOrDefault(emptyMap())
     }
 
-    private fun mockResponseFor(path: String, method: String, body: Map<String, Any?>): String? {
+    private fun mockResponseFor(
+        path: String,
+        method: String,
+        body: Map<String, Any?>,
+        subjectCode: String? = null,
+        generalOnly: Boolean = false
+    ): String? {
         return when {
             path.endsWith("/guru/profile") && method == "GET" -> """
                 {
@@ -492,72 +538,8 @@ class DevBypassInterceptor(
                 }
             """.trimIndent()
 
-            path.endsWith("/forum") || path.contains("/threads") -> if (method == "POST") {
-                val createdSubject = (body["subjectCode"] as? String)?.trim()?.takeIf { it.isNotEmpty() }
-                """
-                {
-                    "success": true,
-                    "data": {
-                        "id": "th-demo-new",
-                        "title": ${jsonString(body["title"] as? String ?: "Diskusi Kelas")},
-                        "body": ${jsonString((body["body"] as? String).orEmpty())},
-                        "subjectCode": ${if (createdSubject != null) jsonString(createdSubject) else "null"},
-                        "author": {
-                            "id": "guru-bypass-1",
-                            "fullName": ${jsonString(mockGuruName)},
-                            "role": "GURU",
-                            "avatarUrl": null
-                        },
-                        "replyCount": 0,
-                        "createdAt": "2026-11-27T10:00:00Z",
-                        "editedAt": null
-                    }
-                }
-                """.trimIndent()
-            } else {
-                """
-                {
-                    "success": true,
-                    "data": {
-                        "page": 1,
-                        "limit": 20,
-                        "total": 2,
-                        "threads": [
-                            {
-                                "id": "th-1",
-                                "title": "Diskusi Tugas Seni Budaya Pekan Ini",
-                                "body": "Selamat pagi bapak ibu, mohon bimbingan untuk proyek kolase anorganik di rumah ya.",
-                                "subjectCode": "SENI-A1",
-                                "author": {
-                                    "id": "guru-bypass-1",
-                                    "fullName": "Tika Sartika, S.Pd",
-                                    "role": "GURU",
-                                    "avatarUrl": null
-                                },
-                                "replyCount": 3,
-                                "createdAt": "2026-11-24T08:30:00Z",
-                                "editedAt": null
-                            },
-                            {
-                                "id": "th-2",
-                                "title": "Konfirmasi Jadwal Kelas",
-                                "body": "Apakah jadwal pertemuan besok tetap pukul 08.00 WIB?",
-                                "subjectCode": null,
-                                "author": {
-                                    "id": "wali-bypass-1",
-                                    "fullName": "Budi Santoso",
-                                    "role": "WALI",
-                                    "avatarUrl": null
-                                },
-                                "replyCount": 1,
-                                "createdAt": "2026-11-24T09:15:00Z",
-                                "editedAt": null
-                            }
-                        ]
-                    }
-                }
-                """.trimIndent()
-            }
+            path.endsWith("/forum") || path.contains("/threads") ->
+                handleMockForum(method, body, subjectCode, generalOnly)
 
             path.contains("/videos") -> when (method) {
                 "DELETE" -> """{"success": true, "message": "Learning video deleted", "data": null}"""
@@ -774,6 +756,45 @@ class DevBypassInterceptor(
         val studentId = if (studentsIdx >= 0 && studentsIdx + 1 < segments.size) segments[studentsIdx + 1] else ""
         mockStudents.removeAll { it.id == studentId }
         return """{"success":true,"message":"Student removed","data":null}"""
+    }
+
+    private fun handleMockForum(
+        method: String,
+        body: Map<String, Any?>,
+        subjectCode: String?,
+        generalOnly: Boolean
+    ): String {
+        if (method == "POST") {
+            val createdSubject = (body["subjectCode"] as? String)?.trim()?.takeIf { it.isNotEmpty() }
+            val created = MockForumThread(
+                id = "th-demo-${mockForumThreads.size + 1}",
+                title = (body["title"] as? String)?.takeIf { it.isNotBlank() } ?: "Diskusi Kelas",
+                body = (body["body"] as? String).orEmpty(),
+                subjectCode = createdSubject,
+                authorId = "guru-bypass-1",
+                authorName = mockGuruName,
+                authorRole = "GURU",
+                replyCount = 0,
+                createdAt = "2026-11-27T10:00:00Z"
+            )
+            mockForumThreads.add(created)
+            return """{"success":true,"data":${forumThreadJson(created)}}"""
+        }
+
+        val filtered = mockForumThreads.filter { thread ->
+            when {
+                subjectCode != null -> thread.subjectCode.equals(subjectCode, ignoreCase = true)
+                generalOnly -> thread.subjectCode == null
+                else -> true
+            }
+        }
+        val threadsArray = filtered.joinToString(",") { forumThreadJson(it) }
+        return """{"success":true,"data":{"page":1,"limit":20,"total":${filtered.size},"threads":[$threadsArray]}}"""
+    }
+
+    private fun forumThreadJson(thread: MockForumThread): String {
+        val subjectJson = thread.subjectCode?.let { jsonString(it) } ?: "null"
+        return """{"id":${jsonString(thread.id)},"title":${jsonString(thread.title)},"body":${jsonString(thread.body)},"subjectCode":$subjectJson,"author":{"id":${jsonString(thread.authorId)},"fullName":${jsonString(thread.authorName)},"role":${jsonString(thread.authorRole)},"avatarUrl":null},"replyCount":${thread.replyCount},"createdAt":${jsonString(thread.createdAt)},"editedAt":null}"""
     }
 
     private fun jsonString(value: String): String =
