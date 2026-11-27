@@ -30,15 +30,11 @@ import kotlinx.coroutines.launch
 
 class ProfilGuruActivity : AppCompatActivity() {
 
-    private lateinit var avatarPicker: AvatarPickerHelper
+    private val avatarPicker = AvatarPickerHelper(this, ::uploadAvatar)
     private var header by mutableStateOf(GuruProfileHeader(name = "", subtitle = "", avatarUrl = null))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        avatarPicker = AvatarPickerHelper(this) { croppedFile ->
-            uploadAvatar(croppedFile)
-        }
 
         setContent {
             KiboozTheme {
@@ -81,7 +77,7 @@ class ProfilGuruActivity : AppCompatActivity() {
                 is ApiResult.Success -> {
                     val d = res.data
                     val joined = TimeFormat.localDate(d.joinedAt)
-                    header = GuruProfileHeader(
+                    header = header.copy(
                         name = d.fullName,
                         subtitle = if (joined != null) "Bergabung sejak $joined" else d.schoolName,
                         avatarUrl = d.avatarUrl
@@ -101,7 +97,7 @@ class ProfilGuruActivity : AppCompatActivity() {
                 is ApiResult.Success -> {
                     appContainer.avatarLoader.evict(oldUrl)
                     appContainer.authRepository.updateSessionUser(avatarUrl = res.data)
-                    header = header.copy(avatarUrl = res.data)
+                    header = header.copy(avatarUrl = res.data, avatarVersion = header.avatarVersion + 1)
                     Toast.makeText(this@ProfilGuruActivity, R.string.avatar_sukses, Toast.LENGTH_SHORT).show()
                 }
                 else -> {

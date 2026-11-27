@@ -44,7 +44,12 @@ import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.util.AvatarLoader
 
 /** Yang tampil di profil Guru. [subtitle] adalah tanggal bergabung, atau nama sekolah bila tanggalnya tidak ada. */
-internal data class GuruProfileHeader(val name: String, val subtitle: String, val avatarUrl: String?)
+internal data class GuruProfileHeader(
+    val name: String,
+    val subtitle: String,
+    val avatarUrl: String?,
+    val avatarVersion: Int = 0
+)
 
 /** Layar profil Guru, yaitu kepala ungu dengan foto, tombol detail, kartu menu dan bilah bawah portal Guru. */
 @Composable
@@ -108,7 +113,12 @@ internal fun ProfilGuruScreen(
                             placeholder = R.drawable.img_avatar_guru,
                             loader = avatarLoader,
                             modifier = Modifier.fillMaxSize(),
-                            contentDescription = stringResource(R.string.profil_foto_guru, header.name)
+                            contentDescription = if (header.name.isBlank()) {
+                                stringResource(R.string.profil_foto_guru_umum)
+                            } else {
+                                stringResource(R.string.profil_foto_guru, header.name)
+                            },
+                            version = header.avatarVersion
                         )
                     }
                     Text(

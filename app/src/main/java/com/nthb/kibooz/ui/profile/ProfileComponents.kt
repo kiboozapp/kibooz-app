@@ -46,7 +46,7 @@ internal fun ProfileMenuCard(items: List<ProfileMenuItem>, modifier: Modifier = 
         shadowElevation = 2.dp,
         border = BorderStroke(1.dp, colorResource(R.color.kibooz_profile_card_border))
     ) {
-        Column {
+        Column(modifier = Modifier.padding(vertical = 6.dp)) {
             items.forEachIndexed { index, item ->
                 if (index > 0) {
                     Box(
