@@ -232,7 +232,7 @@
         <!-- 20. Guru Flow: Review Hasil Scan Mood Siswa -->
         <activity
             android:name=".ui.camera.ReviewScanMoodActivity"
-            android:exported="true"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
     </application>
