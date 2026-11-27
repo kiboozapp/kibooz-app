@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -50,8 +49,15 @@ internal fun LoginScreen(
 ) {
     var email by rememberSaveable { mutableStateOf("") }
     var password by rememberSaveable { mutableStateOf("") }
+    // Galat kolom disembunyikan begitu isinya diubah, sama seperti EditText.setError
+    var emailEdited by rememberSaveable { mutableStateOf(false) }
+    var passwordEdited by rememberSaveable { mutableStateOf(false) }
     val enabled = !state.loading
-    val submit = { onLogin(email, password) }
+    val submit = {
+        emailEdited = false
+        passwordEdited = false
+        onLogin(email, password)
+    }
     val muted = colorResource(R.color.kibooz_text_muted)
 
     AuthSheet {
@@ -69,24 +75,33 @@ internal fun LoginScreen(
         )
         KiboozTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = {
+                if (it != email) emailEdited = true
+                email = it
+            },
             placeholder = stringResource(R.string.hint_email),
             leadingIcon = R.drawable.ic_email,
             modifier = Modifier.padding(top = 28.dp),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Email,
+                imeAction = ImeAction.Next,
+                autoCorrectEnabled = false
+            ),
             contentType = ContentType.EmailAddress,
-            errorText = state.emailError?.let { stringResource(it) }
+            errorText = state.emailError?.takeUnless { emailEdited }?.let { stringResource(it) }
         )
         KiboozTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = {
+                if (it != password) passwordEdited = true
+                password = it
+            },
             placeholder = stringResource(R.string.hint_password),
             leadingIcon = R.drawable.ic_lock,
             modifier = Modifier.padding(top = 16.dp),
             isPassword = true,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { submit() }),
-            errorText = state.passwordError?.let { stringResource(it) }
+            errorText = state.passwordError?.takeUnless { passwordEdited }?.let { stringResource(it) }
         )
         // Belum ada alur lupa kata sandi, jadi teks ini belum bisa ditekan, sama seperti sebelumnya
         Text(

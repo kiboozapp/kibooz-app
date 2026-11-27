@@ -21,7 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,7 +62,8 @@ fun KiboozTextField(
     contentType: ContentType? = if (isPassword) ContentType.Password else null,
     errorText: String? = null
 ) {
-    var passwordVisible by rememberSaveable { mutableStateOf(false) }
+    // Sengaja tidak disimpan: kata sandi kembali tersembunyi setelah layar diputar atau dipulihkan
+    var passwordVisible by remember { mutableStateOf(false) }
     val primary = MaterialTheme.colorScheme.primary
     val borderColor = if (errorText != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.outline
     Column(modifier = modifier.fillMaxWidth()) {
