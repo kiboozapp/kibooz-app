@@ -3,24 +3,23 @@ package com.nthb.kibooz.ui.account
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.method.HideReturnsTransformationMethod
-import android.text.method.PasswordTransformationMethod
-import android.view.inputmethod.EditorInfo
-import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
-import com.nthb.kibooz.databinding.ActivityHapusAkunBinding
 import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.auth.RoleSelectionActivity
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import kotlinx.coroutines.launch
 
 /**
@@ -30,9 +29,10 @@ import kotlinx.coroutines.launch
  */
 class HapusAkunActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityHapusAkunBinding
     private var dialog: AlertDialog? = null
-    private var passwordVisible = false
+
+    /** Email guru pengganti. Disimpan di sini karena dialog konfirmasi menampilkannya. */
+    private var successor by mutableStateOf("")
 
     private val viewModel: DeleteAccountViewModel by viewModels {
         DeleteAccountViewModel.Factory(
@@ -44,37 +44,34 @@ class HapusAkunActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityHapusAkunBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        successor = savedInstanceState?.getString(STATE_SUCCESSOR).orEmpty()
 
-        InsetsUtil.applySystemBarInsets(root = binding.clRootHapusAkun, headerView = binding.clTopBar)
-
-        binding.ivBack.setOnClickListener { finish() }
-        binding.tvPeringatan.setText(
-            if (viewModel.isTeacher) R.string.hapus_akun_peringatan_guru else R.string.hapus_akun_peringatan_wali
-        )
-        binding.llSuccessor.isVisible = viewModel.isTeacher
-
-        binding.ivTogglePassword.setOnClickListener {
-            passwordVisible = !passwordVisible
-            binding.etPassword.transformationMethod =
-                if (passwordVisible) HideReturnsTransformationMethod.getInstance() else PasswordTransformationMethod.getInstance()
-            binding.etPassword.setSelection(binding.etPassword.text.length)
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                HapusAkunScreen(
+                    isTeacher = viewModel.isTeacher,
+                    state = state,
+                    successor = successor,
+                    onSuccessorChange = { successor = it },
+                    onBack = ::finish,
+                    onDelete = { password -> viewModel.requestDelete(password, successor) },
+                    // Kata sandi dan pengganti sudah diperiksa dan dikonfirmasi, jadi coba lagi langsung mengirim ulang
+                    onRetry = viewModel::confirm
+                )
+            }
         }
-
-        binding.btnHapus.setOnClickListener { submit() }
-        binding.etSuccessor.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == EditorInfo.IME_ACTION_DONE) submit()
-            actionId == EditorInfo.IME_ACTION_DONE
-        }
-        // Kata sandi dan pengganti sudah diperiksa dan dikonfirmasi, jadi coba lagi langsung mengirim ulang
-        binding.connectionStatus.onRetry = viewModel::confirm
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                viewModel.state.collect(::handleEvents)
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString(STATE_SUCCESSOR, successor)
     }
 
     override fun onDestroy() {
@@ -83,27 +80,9 @@ class HapusAkunActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun submit() {
-        viewModel.requestDelete(binding.etPassword.text.toString(), binding.etSuccessor.text.toString())
-    }
-
-    private fun render(state: DeleteAccountState) {
-        binding.btnHapus.isEnabled = !state.loading
-        binding.btnHapus.text = when {
-            state.retryInSeconds != null -> getString(R.string.hapus_akun_tombol_menunggu, state.retryInSeconds)
-            state.loading -> getString(R.string.hapus_akun_tombol_proses)
-            else -> getString(R.string.hapus_akun_tombol)
-        }
-
-        showError(binding.tvPasswordError, state.passwordError)
-        showError(binding.tvSuccessorError, state.successorError)
-        binding.tvLabelSuccessor.setText(
-            if (state.successorRequired) R.string.hapus_akun_label_pengganti_wajib else R.string.hapus_akun_label_pengganti_opsional
-        )
-
+    /** Menampilkan pesan, dialog dan perpindahan layar. Isi layarnya digambar oleh [HapusAkunScreen]. */
+    private fun handleEvents(state: DeleteAccountState) {
         // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
-        state.outage?.let { binding.connectionStatus.show(it) } ?: binding.connectionStatus.hide()
-
         state.error?.let {
             if (state.outage == null) Toast.makeText(this, it, Toast.LENGTH_LONG).show()
             viewModel.errorShown()
@@ -113,15 +92,10 @@ class HapusAkunActivity : AppCompatActivity() {
         state.finishedMessage?.let(::openRoleSelection)
     }
 
-    private fun showError(view: TextView, message: Int?) {
-        view.isVisible = message != null
-        message?.let(view::setText)
-    }
-
     private fun showConfirmation() {
         if (dialog?.isShowing == true) return
 
-        val successor = binding.etSuccessor.text.toString().trim()
+        val successor = successor.trim()
         val message = buildString {
             append(getString(if (viewModel.isTeacher) R.string.hapus_akun_dialog_pesan_guru else R.string.hapus_akun_dialog_pesan_wali))
             if (viewModel.isTeacher) {
@@ -160,6 +134,7 @@ class HapusAkunActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_IS_TEACHER = "IS_TEACHER"
+        private const val STATE_SUCCESSOR = "SUCCESSOR_EMAIL"
 
         /** [isTeacher] true untuk Guru, yang juga boleh mengisi email guru pengganti. */
         fun intent(context: Context, isTeacher: Boolean): Intent =

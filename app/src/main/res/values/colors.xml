@@ -55,6 +55,11 @@
     <color name="kibooz_field_border">#79747E</color>
     <color name="kibooz_field_label">#49454F</color>
 
+    <!-- Kartu peringatan hapus akun -->
+    <color name="kibooz_warning_surface">#FEF2F2</color>
+    <color name="kibooz_warning_border">#FECACA</color>
+    <color name="kibooz_warning_title">#7F1D1D</color>
+
     <!-- Layar pilih peran -->
     <color name="kibooz_role_bg_top">#FAF9FD</color>
     <color name="kibooz_role_bg_center">#CDBCEB</color>

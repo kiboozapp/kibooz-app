@@ -5,14 +5,12 @@
 
     <!-- Layar hapus akun -->
     <string name="hapus_akun_judul">Hapus Akun</string>
-    <string name="hapus_akun_kembali">Kembali</string>
     <string name="hapus_akun_peringatan_judul">Penghapusan akun tidak bisa dibatalkan</string>
     <string name="hapus_akun_peringatan_wali">Akun Anda dan semua anak yang terdaftar di akun ini ikut dihapus, termasuk foto profil dan foto hasil pindai sampah mereka. Anda keluar dari semua perangkat.</string>
     <string name="hapus_akun_peringatan_guru">Akun Anda dihapus dan Anda keluar dari semua perangkat. Foto profil Anda ikut dihapus.</string>
 
     <string name="hapus_akun_label_sandi">Kata sandi saat ini</string>
     <string name="hapus_akun_hint_sandi">Masukkan kata sandi untuk memastikan ini Anda</string>
-    <string name="hapus_akun_toggle_sandi">Tampilkan atau sembunyikan kata sandi</string>
 
     <string name="hapus_akun_label_pengganti_opsional">Email guru pengganti (opsional)</string>
     <string name="hapus_akun_label_pengganti_wajib">Email guru pengganti (wajib)</string>
