@@ -64,17 +64,33 @@ class PesertaKelasViewModel(
         val archived: Boolean
     )
 
-    fun loadPeserta(initialClassId: String? = null, defaultClassName: String = "") {
+    fun loadPeserta(
+        initialClassId: String? = null,
+        defaultClassName: String = "",
+        initialTeacherName: String? = null,
+        initialTeacherAvatarUrl: String? = null
+    ) {
         viewModelScope.launch {
-            loadPesertaContent(initialClassId, defaultClassName)
+            loadPesertaContent(
+                initialClassId = initialClassId,
+                defaultClassName = defaultClassName,
+                initialTeacherName = initialTeacherName,
+                initialTeacherAvatarUrl = initialTeacherAvatarUrl
+            )
         }
     }
 
-    private suspend fun loadPesertaContent(initialClassId: String?, defaultClassName: String) {
+    private suspend fun loadPesertaContent(
+        initialClassId: String?,
+        defaultClassName: String,
+        initialTeacherName: String?,
+        initialTeacherAvatarUrl: String?
+    ) {
         val user = currentSessionUser()
         val isWaliRole = user?.role == Role.WALI
         val teacherRole = isTeacherPortal(user, isWaliRole)
-        val initialTeachers = initialTeachersForLoad(initialClassId, user)
+        val seededTeachers = seededTeachersFor(user, initialTeacherName, initialTeacherAvatarUrl)
+        val initialTeachers = initialTeachersForLoad(initialClassId, seededTeachers)
 
         emitLoadingState(teacherRole, initialTeachers, defaultClassName)
 
@@ -86,7 +102,7 @@ class PesertaKelasViewModel(
             return
         }
 
-        val resolvedTeachers = resolveClassTeachers(resolved.classId, teacherRole)
+        val resolvedTeachers = resolveClassTeachers(resolved.classId, teacherRole, seededTeachers)
         val useLeaderboard = isWaliRole && leaderboardRepository != null
         val rosterResult = loadRosterStudents(resolved.classId, useLeaderboard)
         val effectiveIsTeacher = if (useLeaderboard) false else teacherRole
@@ -94,17 +110,33 @@ class PesertaKelasViewModel(
         emitLoadedState(resolved, effectiveIsTeacher, resolvedTeachers, rosterResult)
     }
 
+    private fun seededTeachersFor(
+        user: SessionUser?,
+        initialTeacherName: String?,
+        initialTeacherAvatarUrl: String?
+    ): List<ClassTeacherSummary> {
+        val explicitName = initialTeacherName?.trim()?.takeIf { it.isNotEmpty() }
+        if (explicitName != null) {
+            return listOf(
+                ClassTeacherSummary(
+                    fullName = explicitName,
+                    avatarUrl = initialTeacherAvatarUrl?.trim()?.takeIf { it.isNotEmpty() }
+                )
+            )
+        }
+        return ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+    }
+
     private fun initialTeachersForLoad(
         initialClassId: String?,
-        user: SessionUser?
+        seededTeachers: List<ClassTeacherSummary>
     ): List<ClassTeacherSummary> {
         val normalizedTarget = initialClassId?.takeIf { it.isNotBlank() }
         if (normalizedTarget != null && normalizedTarget != lastTeachersClassId) {
             clearRetainedTeachers()
         }
         val activeTarget = normalizedTarget ?: _uiState.value.classId
-        return retainedTeachersFor(activeTarget)
-            ?: ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+        return retainedTeachersFor(activeTarget) ?: seededTeachers
     }
 
     private fun retainedTeachersFor(classId: String?): List<ClassTeacherSummary>? =
@@ -259,7 +291,11 @@ class PesertaKelasViewModel(
         }
     }
 
-    private suspend fun resolveClassTeachers(classId: String, teacherRole: Boolean): List<ClassTeacherSummary> {
+    private suspend fun resolveClassTeachers(
+        classId: String,
+        teacherRole: Boolean,
+        seededTeachers: List<ClassTeacherSummary>
+    ): List<ClassTeacherSummary> {
         if (lastTeachersClassId != classId) {
             clearRetainedTeachers()
         }
@@ -271,8 +307,7 @@ class PesertaKelasViewModel(
             lastResolvedTeachers = merged
             return merged
         }
-        return retainedTeachersFor(classId)
-            ?: ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
+        return retainedTeachersFor(classId) ?: seededTeachers
     }
 
     private suspend fun fetchClassTeachers(classId: String, teacherRole: Boolean): List<ClassTeacherSummary>? = when {

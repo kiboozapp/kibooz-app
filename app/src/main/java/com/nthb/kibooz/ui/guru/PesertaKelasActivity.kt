@@ -65,26 +65,35 @@ class PesertaKelasActivity : AppCompatActivity() {
             ?: intent.getStringExtra("NAMA_KELAS")?.takeIf { it.isNotBlank() }
             ?: "Daftar Peserta"
         val classId = intent.getStringExtra("CLASS_ID")
+        val initialTeacherName = intent.getStringExtra("TEACHER_NAME")?.takeIf { it.isNotBlank() }
+        val initialTeacherAvatarUrl = intent.getStringExtra("TEACHER_AVATAR_URL")?.takeIf { it.isNotBlank() }
 
         val sessionUser = appContainer.authRepository.session.value?.user
         val isTeacher = sessionUser?.role == com.nthb.kibooz.data.session.Role.GURU
 
-        prefillInitialUi(headerTitle, namaKelas, sessionUser, isTeacher)
+        prefillInitialUi(
+            headerTitle = headerTitle,
+            namaKelas = namaKelas,
+            sessionUser = sessionUser,
+            isTeacher = isTeacher,
+            initialTeacherName = initialTeacherName,
+            initialTeacherAvatarUrl = initialTeacherAvatarUrl
+        )
         setupMoveRequestsSection(classId, namaKelas, isTeacher)
         setupListeners(headerTitle)
         observeViewModel()
 
-        viewModel.loadPeserta(classId, namaKelas)
+        viewModel.loadPeserta(classId, namaKelas, initialTeacherName, initialTeacherAvatarUrl)
     }
 
     private fun prefillInitialUi(
         headerTitle: String,
         namaKelas: String,
         sessionUser: com.nthb.kibooz.data.session.SessionUser?,
-        isTeacher: Boolean
+        isTeacher: Boolean,
+        initialTeacherName: String?,
+        initialTeacherAvatarUrl: String?
     ) {
-        val initialTeacherName = intent.getStringExtra("TEACHER_NAME")?.takeIf { it.isNotBlank() }
-        val initialTeacherAvatarUrl = intent.getStringExtra("TEACHER_AVATAR_URL")?.takeIf { it.isNotBlank() }
         binding.tvKelasTitle.text = headerTitle
 
         val prefilledAvatar = initialTeacherAvatarUrl ?: sessionUser?.avatarUrl?.takeIf { isTeacher }

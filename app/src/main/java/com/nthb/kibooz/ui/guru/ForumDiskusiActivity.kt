@@ -83,18 +83,26 @@ class ForumDiskusiActivity : AppCompatActivity() {
 
     private suspend fun resolveFromChildren(classRepo: com.nthb.kibooz.data.repository.ClassRepository) {
         val children = (classRepo.children() as? ApiResult.Success)?.data ?: return
-        val matched = children.firstOrNull { !activeClassId.isNullOrBlank() && it.classId == activeClassId }
-            ?: children.firstOrNull()
-        if (activeClassId.isNullOrBlank()) activeClassId = matched?.classId
-        matched?.className?.takeIf { it.isNotBlank() }?.let { activeClassName = it }
+        val requestedId = activeClassId?.takeIf { it.isNotBlank() }
+        val matched = if (requestedId != null) {
+            children.firstOrNull { it.classId == requestedId }
+        } else {
+            children.firstOrNull()
+        } ?: return
+        if (requestedId == null) activeClassId = matched.classId
+        matched.className.takeIf { it.isNotBlank() }?.let { activeClassName = it }
     }
 
     private suspend fun resolveFromTeacherClasses(classRepo: com.nthb.kibooz.data.repository.ClassRepository) {
         val classes = (classRepo.teacherClasses() as? ApiResult.Success)?.data ?: return
-        val matched = classes.firstOrNull { !activeClassId.isNullOrBlank() && it.id == activeClassId }
-            ?: classes.firstOrNull()
-        if (activeClassId.isNullOrBlank()) activeClassId = matched?.id
-        matched?.name?.takeIf { it.isNotBlank() }?.let { activeClassName = it }
+        val requestedId = activeClassId?.takeIf { it.isNotBlank() }
+        val matched = if (requestedId != null) {
+            classes.firstOrNull { it.id == requestedId }
+        } else {
+            classes.firstOrNull()
+        } ?: return
+        if (requestedId == null) activeClassId = matched.id
+        matched.name.takeIf { it.isNotBlank() }?.let { activeClassName = it }
     }
 
     private suspend fun fetchStudentCount(classId: String, isWali: Boolean): Int {

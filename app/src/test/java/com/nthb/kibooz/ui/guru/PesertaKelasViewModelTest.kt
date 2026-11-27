@@ -452,4 +452,47 @@ class PesertaKelasViewModelTest {
         assertEquals(DEFAULT_TEACHER, switchedClass.teacherName)
         assertNull(switchedClass.teacherAvatarUrl)
     }
+
+    @Test
+    fun `loadPeserta preserves seeded teacher metadata when initial contacts lookup fails`() {
+        val seededName = "Ibu Rina Puspita"
+        val childrenJson = """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"}]}}"""
+        val emptyContactsJson = """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
+        val leaderboardJson = """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
+
+        server.enqueue(jsonResponse(childrenJson))
+        server.enqueue(MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"offline"}"""))
+        server.enqueue(jsonResponse(leaderboardJson))
+        server.enqueue(jsonResponse(childrenJson))
+        server.enqueue(jsonResponse(emptyContactsJson))
+        server.enqueue(jsonResponse(leaderboardJson))
+
+        val client = testClient(server)
+        val viewModel = PesertaKelasViewModel(
+            classRepository = classRepository,
+            leaderboardRepository = LeaderboardRepository(client.create(LeaderboardApi::class.java), client.moshi),
+            authRepository = signedInAuth(Role.WALI, "Wali Pertama"),
+            chatRepository = ChatRepository(client.create(ChatApi::class.java), client.moshi)
+        )
+
+        viewModel.loadPeserta(
+            initialClassId = CLASS_MATAHARI_ID,
+            defaultClassName = CLASS_MATAHARI_NAME,
+            initialTeacherName = seededName,
+            initialTeacherAvatarUrl = URL_SITI
+        )
+        val failedInitial = settled(viewModel)
+        assertEquals(seededName, failedInitial.teacherName)
+        assertEquals(URL_SITI, failedInitial.teacherAvatarUrl)
+
+        viewModel.loadPeserta(
+            initialClassId = CLASS_MATAHARI_ID,
+            defaultClassName = CLASS_MATAHARI_NAME,
+            initialTeacherName = seededName,
+            initialTeacherAvatarUrl = URL_SITI
+        )
+        val refreshedEmpty = settled(viewModel)
+        assertEquals(DEFAULT_TEACHER, refreshedEmpty.teacherName)
+        assertNull(refreshedEmpty.teacherAvatarUrl)
+    }
 }
