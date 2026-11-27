@@ -30,6 +30,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -96,9 +97,15 @@ internal fun ProfilGuruScreen(
                     modifier = Modifier.fillMaxWidth().padding(top = 96.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    val photoDescription = if (header.name.isBlank()) {
+                        stringResource(R.string.profil_foto_guru_umum)
+                    } else {
+                        stringResource(R.string.profil_foto_guru, header.name)
+                    }
                     Surface(
                         modifier = Modifier
                             .size(96.dp)
+                            .semantics { contentDescription = photoDescription }
                             .clickable(
                                 onClickLabel = stringResource(R.string.profil_ganti_foto),
                                 role = Role.Button,
@@ -113,11 +120,6 @@ internal fun ProfilGuruScreen(
                             placeholder = R.drawable.img_avatar_guru,
                             loader = avatarLoader,
                             modifier = Modifier.fillMaxSize(),
-                            contentDescription = if (header.name.isBlank()) {
-                                stringResource(R.string.profil_foto_guru_umum)
-                            } else {
-                                stringResource(R.string.profil_foto_guru, header.name)
-                            },
                             version = header.avatarVersion
                         )
                     }
