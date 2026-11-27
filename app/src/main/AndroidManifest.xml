@@ -189,7 +189,7 @@
 
         <!-- 19. Wali Flow: Edit Profil Siswa & Wali -->
         <activity
-            android:name=".ui.wali.EditProfilSiswaActivity"
+            android:name=".ui.profile.EditProfilSiswaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 

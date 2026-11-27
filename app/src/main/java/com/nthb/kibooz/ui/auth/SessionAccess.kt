@@ -26,7 +26,8 @@ private val GURU_PROFILE_SCREENS = setOf(
 )
 private val WALI_PROFILE_SCREENS = setOf(
     "com.nthb.kibooz.ui.profile.ProfilWaliActivity",
-    "com.nthb.kibooz.ui.profile.ProfilSiswaActivity"
+    "com.nthb.kibooz.ui.profile.ProfilSiswaActivity",
+    "com.nthb.kibooz.ui.profile.EditProfilSiswaActivity"
 )
 
 /**
