@@ -116,7 +116,7 @@
 
         <!-- 10. Guru Flow: Profil & Kinerja Guru -->
         <activity
-            android:name=".ui.guru.ProfilGuruActivity"
+            android:name=".ui.profile.ProfilGuruActivity"
             android:exported="false" />
 
         <!-- 10b. Guru Flow: Detail Profil Guru -->

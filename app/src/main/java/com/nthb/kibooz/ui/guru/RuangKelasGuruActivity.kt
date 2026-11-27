@@ -28,6 +28,7 @@ import com.nthb.kibooz.databinding.ActivityRuangKelasGuruBinding
 import com.nthb.kibooz.databinding.DialogTambahKelasBinding
 import com.nthb.kibooz.databinding.ItemKelasGuruBinding
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
+import com.nthb.kibooz.ui.profile.ProfilGuruActivity
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
