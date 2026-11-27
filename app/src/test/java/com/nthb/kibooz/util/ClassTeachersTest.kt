@@ -12,20 +12,22 @@ import org.junit.Test
 class ClassTeachersTest {
 
     @Test
-    fun `fromClassTeachers sorts owner first and removes blanks and duplicates`() {
+    fun `fromClassTeachers sorts owner first, dedupes by id, and keeps distinct teachers with equal names`() {
         val raw = listOf(
             ClassTeacher(id = "t2", isSelf = false, fullName = "Pak Budi", isOwner = false),
             ClassTeacher(id = "t3", isSelf = false, fullName = "  ", isOwner = false),
             ClassTeacher(id = "t1", isSelf = true, fullName = " Ibu Siti Aminah, S.Pd ", avatarUrl = "https://cdn/siti.png", isOwner = true),
-            ClassTeacher(id = "t4", isSelf = false, fullName = "ibu siti aminah, s.pd", isOwner = false)
+            ClassTeacher(id = "t1", isSelf = false, fullName = "Ibu Siti Aminah, S.Pd", isOwner = false),
+            ClassTeacher(id = "t4", isSelf = false, fullName = "Ibu Siti Aminah, S.Pd", isOwner = false)
         )
 
         val result = ClassTeachers.fromClassTeachers(raw)
 
-        assertEquals(2, result.size)
+        assertEquals(3, result.size)
         assertEquals("Ibu Siti Aminah, S.Pd", result[0].fullName)
         assertEquals("https://cdn/siti.png", result[0].avatarUrl)
         assertEquals("Pak Budi", result[1].fullName)
+        assertEquals("Ibu Siti Aminah, S.Pd", result[2].fullName)
     }
 
     @Test
@@ -56,14 +58,27 @@ class ClassTeachersTest {
                 role = "GURU",
                 avatarUrl = "https://cdn/siti.jpg",
                 classes = listOf(ChatContactClass("c-matahari", "Kelas Matahari"))
+            ),
+            ChatContact(
+                id = "u-guru",
+                fullName = "Ibu Siti Aminah, S.Pd",
+                role = "GURU",
+                classes = listOf(ChatContactClass("c-matahari", "Kelas Matahari"))
+            ),
+            ChatContact(
+                id = "u-guru-2",
+                fullName = "Ibu Siti Aminah, S.Pd",
+                role = "GURU",
+                classes = listOf(ChatContactClass("c-matahari", "Kelas Matahari"))
             )
         )
 
         val result = ClassTeachers.fromChatContacts(contacts, "c-matahari")
 
-        assertEquals(1, result.size)
+        assertEquals(2, result.size)
         assertEquals("Ibu Siti Aminah, S.Pd", result[0].fullName)
         assertEquals("https://cdn/siti.jpg", result[0].avatarUrl)
+        assertEquals("Ibu Siti Aminah, S.Pd", result[1].fullName)
     }
 
     @Test

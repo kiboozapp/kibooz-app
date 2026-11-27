@@ -196,15 +196,19 @@ class DetailKelasActivity : AppCompatActivity() {
             val fetched = if (isTeacherRole) {
                 when (val res = appContainer.classManagementRepository.classTeachers(classId)) {
                     is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
-                    else -> emptyList()
+                    else -> null
                 }
             } else {
                 when (val res = appContainer.chatRepository.allContacts()) {
                     is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
-                    else -> emptyList()
+                    else -> null
                 }
             }
-            val finalTeachers = ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+            val finalTeachers = when {
+                fetched != null -> ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+                resolvedTeachers.isEmpty() -> ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
+                else -> return@launch
+            }
             if (finalTeachers.isNotEmpty()) {
                 resolvedTeachers = finalTeachers
                 binding.tvPengajar.text = ClassTeachers.formatPengajarLine(finalTeachers)

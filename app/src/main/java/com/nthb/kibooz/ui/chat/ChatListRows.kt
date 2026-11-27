@@ -17,6 +17,8 @@ data class SectionRow(
     val selectedClassId: String? = null
 ) : ChatListRow {
     override val key: String get() = "s:$title"
+
+    fun shouldShowFilter(): Boolean = filterClasses.size > 1 || selectedClassId != null
 }
 
 data class EmptyFilterRow(@StringRes val message: Int) : ChatListRow {

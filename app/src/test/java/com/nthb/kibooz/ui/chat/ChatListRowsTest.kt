@@ -114,5 +114,14 @@ class ChatListRowsTest {
         val emptyClass = buildChatListRows(allState.copy(selectedContactClassId = "c3"))
         assertTrue(emptyClass.any { it is EmptyFilterRow })
         assertTrue(emptyClass.any { it is SectionRow && it.title == R.string.chat_bagian_kontak })
+
+        val singleUnselected = SectionRow(
+            title = R.string.chat_bagian_kontak,
+            filterClasses = listOf(ChatClassOption("c1", "Kelas Matahari")),
+            selectedClassId = null
+        )
+        val singleSelected = singleUnselected.copy(selectedClassId = "c1")
+        assertTrue(!singleUnselected.shouldShowFilter())
+        assertTrue(singleSelected.shouldShowFilter())
     }
 }

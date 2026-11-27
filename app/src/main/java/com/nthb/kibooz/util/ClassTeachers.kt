@@ -27,6 +27,12 @@ object ClassTeachers {
             .asSequence()
             .filter { it.fullName.isNotBlank() }
             .sortedWith(compareByDescending<ClassTeacher> { it.isOwner }.thenByDescending { it.isSelf })
+            .filter { teacher ->
+                val identity = teacher.id.trim()
+                    .ifEmpty { teacher.userId.trim() }
+                    .ifEmpty { teacher.fullName.trim().lowercase() }
+                seen.add(identity)
+            }
             .map {
                 ClassTeacherSummary(
                     fullName = it.fullName.trim(),
@@ -34,7 +40,6 @@ object ClassTeachers {
                     isOwner = it.isOwner
                 )
             }
-            .filter { seen.add(it.fullName.lowercase()) }
             .toList()
     }
 
@@ -45,13 +50,16 @@ object ClassTeachers {
             .asSequence()
             .filter { !it.deleted && it.role.equals("GURU", ignoreCase = true) && it.fullName.isNotBlank() }
             .filter { contact -> targetClassId == null || contact.classes.any { it.id == targetClassId } }
+            .filter { contact ->
+                val identity = contact.id.trim().ifEmpty { contact.fullName.trim().lowercase() }
+                seen.add(identity)
+            }
             .map {
                 ClassTeacherSummary(
                     fullName = it.fullName.trim(),
                     avatarUrl = it.avatarUrl?.trim()?.takeIf(String::isNotEmpty)
                 )
             }
-            .filter { seen.add(it.fullName.lowercase()) }
             .toList()
     }
 

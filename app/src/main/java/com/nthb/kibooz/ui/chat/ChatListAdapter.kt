@@ -68,7 +68,7 @@ class ChatListAdapter(
             val context = binding.root.context
             binding.tvSection.setText(row.title)
 
-            val showFilter = row.filterClasses.size > 1
+            val showFilter = row.shouldShowFilter()
             binding.cardClassFilter.isVisible = showFilter
             if (!showFilter) {
                 binding.cardClassFilter.setOnClickListener(null)

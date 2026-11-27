@@ -14,6 +14,7 @@ import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.nthb.kibooz.data.session.Role
+import com.nthb.kibooz.data.session.SessionUser
 import com.nthb.kibooz.util.ClassTeacherSummary
 import com.nthb.kibooz.util.ClassTeachers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -62,88 +63,98 @@ class PesertaKelasViewModel(
 
     fun loadPeserta(initialClassId: String? = null, defaultClassName: String = "") {
         viewModelScope.launch {
-            val sessionUser = authRepository?.session?.value?.user
-            val isWaliRole = sessionUser?.role == Role.WALI
-            val teacherRole = sessionUser?.role == Role.GURU ||
-                (!isWaliRole && classManagementRepository != null)
+            loadPesertaContent(initialClassId, defaultClassName)
+        }
+    }
 
-            val initialTeachers = ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
-            _uiState.value = _uiState.value.copy(
-                isLoading = true,
-                isTeacher = teacherRole,
-                teacherName = ClassTeachers.formatHeadline(initialTeachers),
-                teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
-                teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
-                teacherCount = maxOf(1, initialTeachers.size),
-                errorMessage = null
-            )
+    private suspend fun loadPesertaContent(initialClassId: String?, defaultClassName: String) {
+        val user = currentSessionUser()
+        val isWaliRole = user?.role == Role.WALI
+        val teacherRole = isTeacherPortal(user, isWaliRole)
+        val initialTeachers = ClassTeachers.mergeWithSessionFallback(emptyList(), user)
 
-            val resolved = resolveClassContext(initialClassId, defaultClassName, teacherRole)
-            if (resolved == null) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    classId = null,
-                    className = defaultClassName,
-                    classArchived = false,
-                    isTeacher = teacherRole,
-                    teacherName = ClassTeachers.formatHeadline(initialTeachers),
-                    teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
-                    teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
-                    teacherCount = maxOf(1, initialTeachers.size),
-                    errorMessage = "Kelas tidak ditemukan"
-                )
-                return@launch
-            }
+        emitLoadingState(teacherRole, initialTeachers, defaultClassName)
 
-            val resolvedTeachers = resolveClassTeachers(resolved.classId, teacherRole)
-            val teacherName = ClassTeachers.formatHeadline(resolvedTeachers)
-            val teacherAvatarUrl = resolvedTeachers.firstOrNull()?.avatarUrl
-            val teacherSubtitle = ClassTeachers.formatSubtitle(resolvedTeachers, resolved.className)
-            val teacherCount = maxOf(1, resolvedTeachers.size)
+        val resolved = resolveClassContext(initialClassId, defaultClassName, teacherRole)
+        if (resolved == null) {
+            emitNotFoundState(teacherRole, initialTeachers, defaultClassName)
+            return
+        }
 
-            val useLeaderboard = isWaliRole && leaderboardRepository != null
-            val effectiveIsTeacher = if (useLeaderboard) false else teacherRole
-            val rosterResult = loadRosterStudents(resolved.classId, useLeaderboard)
+        val resolvedTeachers = resolveClassTeachers(resolved.classId, teacherRole)
+        val useLeaderboard = isWaliRole && leaderboardRepository != null
+        val rosterResult = loadRosterStudents(resolved.classId, useLeaderboard)
+        val effectiveIsTeacher = if (useLeaderboard) false else teacherRole
 
-            _uiState.value = when (rosterResult) {
-                is ApiResult.Success -> _uiState.value.copy(
-                    isLoading = false,
-                    classId = resolved.classId,
-                    className = resolved.className,
-                    classArchived = resolved.archived,
-                    isTeacher = effectiveIsTeacher,
-                    teacherName = teacherName,
-                    teacherAvatarUrl = teacherAvatarUrl,
-                    teacherRole = teacherSubtitle,
-                    teacherCount = teacherCount,
-                    students = rosterResult.data,
-                    errorMessage = null
-                )
-                is ApiResult.Failure -> _uiState.value.copy(
-                    isLoading = false,
-                    classId = resolved.classId,
-                    className = resolved.className,
-                    classArchived = resolved.archived,
-                    isTeacher = effectiveIsTeacher,
-                    teacherName = teacherName,
-                    teacherAvatarUrl = teacherAvatarUrl,
-                    teacherRole = teacherSubtitle,
-                    teacherCount = teacherCount,
-                    errorMessage = rosterResult.message
-                )
-                is ApiResult.NetworkError -> _uiState.value.copy(
-                    isLoading = false,
-                    classId = resolved.classId,
-                    className = resolved.className,
-                    classArchived = resolved.archived,
-                    isTeacher = effectiveIsTeacher,
-                    teacherName = teacherName,
-                    teacherAvatarUrl = teacherAvatarUrl,
-                    teacherRole = teacherSubtitle,
-                    teacherCount = teacherCount,
-                    errorMessage = "Koneksi internet bermasalah"
-                )
-            }
+        emitLoadedState(resolved, effectiveIsTeacher, resolvedTeachers, rosterResult)
+    }
+
+    private fun currentSessionUser(): SessionUser? = authRepository?.session?.value?.user
+
+    private fun isTeacherPortal(user: SessionUser?, isWaliRole: Boolean): Boolean =
+        user?.role == Role.GURU || (!isWaliRole && classManagementRepository != null)
+
+    private fun emitLoadingState(
+        teacherRole: Boolean,
+        initialTeachers: List<ClassTeacherSummary>,
+        defaultClassName: String
+    ) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            isTeacher = teacherRole,
+            teacherName = ClassTeachers.formatHeadline(initialTeachers),
+            teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
+            teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
+            teacherCount = maxOf(1, initialTeachers.size),
+            errorMessage = null
+        )
+    }
+
+    private fun emitNotFoundState(
+        teacherRole: Boolean,
+        initialTeachers: List<ClassTeacherSummary>,
+        defaultClassName: String
+    ) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            classId = null,
+            className = defaultClassName,
+            classArchived = false,
+            isTeacher = teacherRole,
+            teacherName = ClassTeachers.formatHeadline(initialTeachers),
+            teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
+            teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
+            teacherCount = maxOf(1, initialTeachers.size),
+            errorMessage = "Kelas tidak ditemukan"
+        )
+    }
+
+    private fun emitLoadedState(
+        resolved: ResolvedClassContext,
+        effectiveIsTeacher: Boolean,
+        resolvedTeachers: List<ClassTeacherSummary>,
+        rosterResult: ApiResult<List<ClassStudent>>
+    ) {
+        val teacherName = ClassTeachers.formatHeadline(resolvedTeachers)
+        val teacherAvatarUrl = resolvedTeachers.firstOrNull()?.avatarUrl
+        val teacherSubtitle = ClassTeachers.formatSubtitle(resolvedTeachers, resolved.className)
+        val teacherCount = maxOf(1, resolvedTeachers.size)
+
+        val base = _uiState.value.copy(
+            isLoading = false,
+            classId = resolved.classId,
+            className = resolved.className,
+            classArchived = resolved.archived,
+            isTeacher = effectiveIsTeacher,
+            teacherName = teacherName,
+            teacherAvatarUrl = teacherAvatarUrl,
+            teacherRole = teacherSubtitle,
+            teacherCount = teacherCount
+        )
+        _uiState.value = when (rosterResult) {
+            is ApiResult.Success -> base.copy(students = rosterResult.data, errorMessage = null)
+            is ApiResult.Failure -> base.copy(errorMessage = rosterResult.message)
+            is ApiResult.NetworkError -> base.copy(errorMessage = "Koneksi internet bermasalah")
         }
     }
 
