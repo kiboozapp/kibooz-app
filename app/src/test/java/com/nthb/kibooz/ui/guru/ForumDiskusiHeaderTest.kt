@@ -1,6 +1,5 @@
 package com.nthb.kibooz.ui.guru
 
-import com.nthb.kibooz.util.ForumFilter
 import com.nthb.kibooz.util.ForumSubject
 import com.nthb.kibooz.util.ForumSubjects
 import org.junit.Assert.assertEquals
@@ -21,18 +20,14 @@ class ForumDiskusiHeaderTest {
     }
 
     @Test
-    fun `forum subtitle describes active segment inside the class`() {
-        assertEquals(
-            "Semua Topik Kelas \u2022 12 Siswa \u2022 2 Guru Pengajar",
-            ForumSubjects.subtitle(ForumFilter.All, 12, 2)
-        )
-        assertEquals(
-            "Umum Kelas \u2022 12 Siswa \u2022 2 Guru Pengajar",
-            ForumSubjects.subtitle(ForumFilter.General, 12, 2)
-        )
+    fun `forum subtitle describes active curriculum subject inside the class`() {
         assertEquals(
             "Mapel ${ForumSubject.SENI.displayName} \u2022 12 Siswa \u2022 2 Guru Pengajar",
-            ForumSubjects.subtitle(ForumFilter.Subject(ForumSubject.SENI.code), 12, 2)
+            ForumSubjects.subtitle(ForumSubject.SENI, 12, 2)
+        )
+        assertEquals(
+            "Mapel ${ForumSubject.LOGIKA.displayName} \u2022 8 Siswa \u2022 1 Guru Pengajar",
+            ForumSubjects.subtitle(ForumSubject.LOGIKA, 8, 1)
         )
     }
 }

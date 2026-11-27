@@ -169,7 +169,11 @@ class DetailKelasActivity : AppCompatActivity() {
                 }
                 when (val forumRes = appContainer.forumRepository.threads(classId, subjectCode = activeSubjectCode)) {
                     is ApiResult.Success -> {
-                        val realThreads = maxOf(forumRes.data.total, forumRes.data.threads.size)
+                        val realThreads = ForumSubjects.resolveFilteredBannerCount(
+                            threads = forumRes.data.threads,
+                            serverTotal = forumRes.data.total,
+                            subjectCode = activeSubjectCode
+                        )
                         updateForumBanner(realThreads)
                     }
                     else -> updateForumBanner(0)

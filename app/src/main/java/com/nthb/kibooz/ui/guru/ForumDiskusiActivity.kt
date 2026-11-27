@@ -20,7 +20,7 @@ import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
 import com.nthb.kibooz.databinding.ActivityForumDiskusiBinding
 import com.nthb.kibooz.util.ClassTeachers
-import com.nthb.kibooz.util.ForumFilter
+import com.nthb.kibooz.util.ForumSubject
 import com.nthb.kibooz.util.ForumSubjects
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
@@ -35,12 +35,12 @@ class ForumDiskusiActivity : AppCompatActivity() {
     private lateinit var binding: ActivityForumDiskusiBinding
     private var activeClassId: String? = null
     private var activeClassName: String? = null
-    private var activeFilter: ForumFilter = ForumFilter.All
+    private var activeSubject: ForumSubject = ForumSubject.SENI
     private var cachedStudentCount: Int = 1
     private var cachedTeacherCount: Int = 1
     private var cachedCurrentUser: SessionUser? = null
     private var threadsLoadJob: Job? = null
-    private val chipViews = linkedMapOf<ForumFilter, TextView>()
+    private val chipViews = linkedMapOf<ForumSubject, TextView>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,14 +57,14 @@ class ForumDiskusiActivity : AppCompatActivity() {
         val rawNamaKelas = intent.getStringExtra(EXTRA_NAMA_KELAS)?.takeIf { it.isNotBlank() }
         activeClassName = rawRombelName ?: rawNamaKelas?.takeIf { ForumSubjects.fromName(it) == null }
         activeClassId = intent.getStringExtra(EXTRA_CLASS_ID)
-        activeFilter = ForumSubjects.initialFilter(
+        activeSubject = ForumSubjects.initialSubject(
             mapelCode = intent.getStringExtra(ForumSubjects.EXTRA_MAPEL_CODE),
             subjectName = intent.getStringExtra(ForumSubjects.EXTRA_MAPEL_NAME) ?: rawNamaKelas
         )
         binding.tvForumTitle.text = formatForumHeaderTitle(activeClassName)
 
         setupSubjectFilterChips()
-        applyFilterPresentation()
+        applySubjectPresentation()
         setupListeners()
         resolveClassAndLoadThreads()
     }
@@ -79,9 +79,9 @@ class ForumDiskusiActivity : AppCompatActivity() {
         binding.llSubjectChips.removeAllViews()
         chipViews.clear()
 
-        ForumSubjects.filterOptions.forEach { option ->
+        ForumSubjects.filterSubjects.forEach { subject ->
             val chip = TextView(this).apply {
-                text = option.chipLabel
+                text = subject.chipLabel
                 textSize = 13f
                 typeface = balooFont
                 paint.isFakeBoldText = true
@@ -92,19 +92,19 @@ class ForumDiskusiActivity : AppCompatActivity() {
                 ).apply {
                     marginEnd = endMargin
                 }
-                setOnClickListener { selectFilter(option) }
+                setOnClickListener { selectSubject(subject) }
             }
-            chipViews[option] = chip
+            chipViews[subject] = chip
             binding.llSubjectChips.addView(chip)
         }
         updateFilterChipStyles()
         scrollToActiveChip()
     }
 
-    private fun selectFilter(option: ForumFilter) {
-        activeFilter = option
+    private fun selectSubject(subject: ForumSubject) {
+        activeSubject = subject
         updateFilterChipStyles()
-        applyFilterPresentation()
+        applySubjectPresentation()
         scrollToActiveChip()
         showForumPlaceholder(LOADING_FORUM_TEXT)
         loadFilteredThreads()
@@ -113,25 +113,25 @@ class ForumDiskusiActivity : AppCompatActivity() {
     private fun updateFilterChipStyles() {
         val selectedText = ContextCompat.getColor(this, R.color.kibooz_white)
         val idleText = ContextCompat.getColor(this, R.color.kibooz_primary_purple)
-        chipViews.forEach { (option, view) ->
-            val isSelected = option == activeFilter
+        chipViews.forEach { (subject, view) ->
+            val isSelected = subject == activeSubject
             view.setBackgroundResource(if (isSelected) R.drawable.bg_pill_date_active else R.drawable.bg_tag_lavender)
             view.setTextColor(if (isSelected) selectedText else idleText)
         }
     }
 
     private fun scrollToActiveChip() {
-        val activeChip = chipViews[activeFilter] ?: return
+        val activeChip = chipViews[activeSubject] ?: return
         binding.hsvSubjectFilters.post {
             val targetX = (activeChip.left - binding.hsvSubjectFilters.paddingStart).coerceAtLeast(0)
             binding.hsvSubjectFilters.smoothScrollTo(targetX, 0)
         }
     }
 
-    private fun applyFilterPresentation() {
-        binding.tvSubtitleForum.text = ForumSubjects.subtitle(activeFilter, cachedStudentCount, cachedTeacherCount)
-        binding.etMessage.hint = ForumSubjects.inputHint(activeFilter)
-        binding.tvEmptyForum.text = ForumSubjects.emptyMessage(activeFilter)
+    private fun applySubjectPresentation() {
+        binding.tvSubtitleForum.text = ForumSubjects.subtitle(activeSubject, cachedStudentCount, cachedTeacherCount)
+        binding.etMessage.hint = ForumSubjects.inputHint(activeSubject)
+        binding.tvEmptyForum.text = ForumSubjects.emptyMessage(activeSubject)
     }
 
     private fun resolveClassAndLoadThreads() {
@@ -145,24 +145,23 @@ class ForumDiskusiActivity : AppCompatActivity() {
             val classId = activeClassId ?: return@launch
             cachedStudentCount = fetchStudentCount(classId, isWali)
             cachedTeacherCount = fetchTeacherCount(classId, isWali)
-            applyFilterPresentation()
+            applySubjectPresentation()
             loadFilteredThreads()
         }
     }
 
     private fun loadFilteredThreads() {
         val classId = activeClassId ?: return
-        val requestedFilter = activeFilter
+        val requestedSubject = activeSubject
         threadsLoadJob?.cancel()
         threadsLoadJob = lifecycleScope.launch {
             val result = appContainer.forumRepository.threads(
                 classId = classId,
-                subjectCode = requestedFilter.subjectCodeQuery,
-                generalOnly = requestedFilter.generalOnlyQuery
+                subjectCode = requestedSubject.code
             )
-            if (requestedFilter != activeFilter) return@launch
+            if (requestedSubject != activeSubject) return@launch
             if (result is ApiResult.Success) {
-                renderThreads(result.data.threads, cachedCurrentUser)
+                renderThreads(result.data.threads, cachedCurrentUser, requestedSubject)
             } else {
                 showForumPlaceholder(FAILED_FORUM_TEXT)
                 Toast.makeText(this@ForumDiskusiActivity, "Gagal memuat forum diskusi", Toast.LENGTH_SHORT).show()
@@ -244,11 +243,16 @@ class ForumDiskusiActivity : AppCompatActivity() {
         }
     }
 
-    private fun renderThreads(threads: List<ForumThreadItem>, currentUser: SessionUser?) {
+    private fun renderThreads(
+        threads: List<ForumThreadItem>,
+        currentUser: SessionUser?,
+        requestedSubject: ForumSubject
+    ) {
         binding.llChatMessages.removeAllViews()
+        val matchingThreads = ForumSubjects.filterThreadsBySubject(threads, requestedSubject.code)
 
-        if (threads.isEmpty()) {
-            showForumPlaceholder(ForumSubjects.emptyMessage(activeFilter))
+        if (matchingThreads.isEmpty()) {
+            showForumPlaceholder(ForumSubjects.emptyMessage(requestedSubject))
             return
         }
 
@@ -256,8 +260,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
 
         // Endpoint backend mengurutkan thread terbaru terlebih dahulu (DESC).
         // Tampilan chat menata kronologis dari terlama di atas ke terbaru di bawah.
-        val chronologicalThreads = threads.sortedBy { it.createdAt }
-        val showTopicBadge = activeFilter == ForumFilter.All
+        val chronologicalThreads = matchingThreads.sortedBy { it.createdAt }
 
         chronologicalThreads.forEach { thread ->
             val isSelf = currentUser != null && (
@@ -270,14 +273,12 @@ class ForumDiskusiActivity : AppCompatActivity() {
                 ROLE_LABEL_WALI
             }
             val senderLabel = if (isSelf) "Anda ($roleLabel)" else "${thread.author.fullName} ($roleLabel)"
-            val badgeLabel = if (showTopicBadge) ForumSubjects.threadBadge(thread.subjectCode) else null
 
             addMessageBubble(
                 senderName = senderLabel,
                 content = thread.body,
                 time = TimeFormat.localTime(thread.createdAt) ?: DEFAULT_TIME_LABEL,
-                isSelf = isSelf,
-                subjectBadge = badgeLabel
+                isSelf = isSelf
             )
         }
     }
@@ -301,50 +302,46 @@ class ForumDiskusiActivity : AppCompatActivity() {
     private fun postMessage(content: String) {
         val forumRepo = appContainer.forumRepository
         val classId = activeClassId
-        val targetFilter = activeFilter
+        val targetSubject = activeSubject
 
         lifecycleScope.launch {
             val session = appContainer.sessionStore.readSession()
             val userRole = if (session?.user?.role == Role.GURU) ROLE_LABEL_GURU else ROLE_LABEL_WALI
             val currentTime = SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date())
-            val badgeLabel = if (targetFilter == ForumFilter.All) {
-                ForumSubjects.threadBadge(targetFilter.postSubjectCode)
-            } else {
-                null
-            }
 
-            if (targetFilter == activeFilter) {
+            if (targetSubject == activeSubject) {
                 binding.tvEmptyForum.visibility = View.GONE
                 addMessageBubble(
                     senderName = "Anda ($userRole)",
                     content = content,
                     time = currentTime,
-                    isSelf = true,
-                    subjectBadge = badgeLabel
+                    isSelf = true
                 )
             }
 
             if (!classId.isNullOrBlank()) {
                 val result = forumRepo.createThread(
                     classId = classId,
-                    title = ForumSubjects.threadTitle(targetFilter),
+                    title = ForumSubjects.threadTitle(targetSubject),
                     body = content,
-                    subjectCode = targetFilter.postSubjectCode
+                    subjectCode = targetSubject.code
                 )
-                when (result) {
-                    is ApiResult.Success<*> -> loadFilteredThreads()
-                    is ApiResult.Failure -> Toast.makeText(
-                        this@ForumDiskusiActivity,
-                        result.message,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    is ApiResult.NetworkError -> Toast.makeText(
-                        this@ForumDiskusiActivity,
-                        R.string.error_network,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                handleCreateThreadResult(result)
+            }
+        }
+    }
+
+    private fun handleCreateThreadResult(result: ApiResult<ForumThreadItem>) {
+        when (result) {
+            is ApiResult.Success -> {
+                if (result.data.subjectCode.isNullOrBlank()) {
+                    Toast.makeText(this, SERVER_LEGACY_NOTICE, Toast.LENGTH_LONG).show()
+                } else {
+                    loadFilteredThreads()
                 }
             }
+            is ApiResult.Failure -> Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+            is ApiResult.NetworkError -> Toast.makeText(this, R.string.error_network, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -370,23 +367,6 @@ class ForumDiskusiActivity : AppCompatActivity() {
             timeColor = ContextCompat.getColor(this, R.color.kibooz_text_muted)
         )
     }
-
-    private fun createSubjectBadgeView(badgeText: String, balooFont: Typeface?, density: Float): TextView =
-        TextView(this).apply {
-            text = badgeText
-            textSize = 10f
-            typeface = balooFont
-            paint.isFakeBoldText = true
-            setBackgroundResource(R.drawable.bg_tag_lavender)
-            setTextColor(ContextCompat.getColor(context, R.color.kibooz_primary_purple))
-            setPadding((8 * density).toInt(), (2 * density).toInt(), (8 * density).toInt(), (2 * density).toInt())
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                bottomMargin = (4 * density).toInt()
-            }
-        }
 
     private fun createBubbleContainer(isSelf: Boolean, topMarginPx: Int): LinearLayout {
         val row = LinearLayout(this)
@@ -444,8 +424,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
         senderName: String,
         content: String,
         time: String,
-        isSelf: Boolean,
-        subjectBadge: String? = null
+        isSelf: Boolean
     ) {
         val density = resources.displayMetrics.density
         val style = bubbleStyle(isSelf)
@@ -453,9 +432,6 @@ class ForumDiskusiActivity : AppCompatActivity() {
         val row = createBubbleContainer(isSelf, (12 * density).toInt())
         val bubble = createBubbleBox(isSelf, style.backgroundRes, density)
 
-        if (!subjectBadge.isNullOrBlank()) {
-            bubble.addView(createSubjectBadgeView(subjectBadge, balooFont, density))
-        }
         bubble.addView(
             createBubbleText(senderName, style.senderColor, 12f, balooFont, isBold = true, isEndAligned = false)
         )
@@ -480,9 +456,10 @@ class ForumDiskusiActivity : AppCompatActivity() {
         const val ROLE_LABEL_WALI = "Wali Murid"
         const val DEFAULT_TIME_LABEL = "09:00"
         const val LOADING_FORUM_TEXT = "Memuat diskusi..."
-        const val FAILED_FORUM_TEXT = "Gagal memuat diskusi. Ketuk filter di atas untuk mencoba lagi."
+        const val FAILED_FORUM_TEXT = "Gagal memuat diskusi. Ketuk tab mapel di atas untuk mencoba lagi."
+        const val SERVER_LEGACY_NOTICE = "Backend live masih v0.25.0; pemisahan forum per mapel aktif setelah rilis v0.26.0."
     }
 }
 
-/** Menampilkan nama kelas aktif pada header forum karena topik umum & seluruh mapel berada dalam 1 kelas. */
+/** Menampilkan nama kelas aktif pada header forum karena topik diskusi berada di dalam 1 kelas. */
 fun formatForumHeaderTitle(className: String?): String = ForumSubjects.headerTitle(className)

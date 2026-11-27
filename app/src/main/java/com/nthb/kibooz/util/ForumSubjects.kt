@@ -1,6 +1,8 @@
 package com.nthb.kibooz.util
 
-/** Kode dan label mata pelajaran kurikulum Kibooz untuk segmentasi Forum Diskusi per kelas. */
+import com.nthb.kibooz.data.remote.ForumThreadItem
+
+/** Kode dan label mata pelajaran kurikulum Kibooz untuk segmentasi Forum Diskusi per kelas dan mapel. */
 enum class ForumSubject(
     val code: String,
     val displayName: String,
@@ -14,41 +16,9 @@ enum class ForumSubject(
     SOSIAL("SOS-A1", "Sosial & Emotional", "Sosial")
 }
 
-sealed interface ForumFilter {
-    val chipLabel: String
-    val subjectCodeQuery: String?
-    val generalOnlyQuery: Boolean?
-    val postSubjectCode: String?
-
-    data object All : ForumFilter {
-        override val chipLabel: String = ForumSubjects.ALL_LABEL
-        override val subjectCodeQuery: String? = null
-        override val generalOnlyQuery: Boolean? = null
-        override val postSubjectCode: String? = null
-    }
-
-    data object General : ForumFilter {
-        override val chipLabel: String = ForumSubjects.GENERAL_LABEL
-        override val subjectCodeQuery: String? = null
-        override val generalOnlyQuery: Boolean = true
-        override val postSubjectCode: String? = null
-    }
-
-    data class Subject(val code: String) : ForumFilter {
-        override val chipLabel: String
-            get() = ForumSubjects.fromCode(code)?.chipLabel ?: code
-        override val subjectCodeQuery: String = code
-        override val generalOnlyQuery: Boolean? = null
-        override val postSubjectCode: String = code
-    }
-}
-
 object ForumSubjects {
     const val EXTRA_MAPEL_CODE = "MAPEL_CODE"
     const val EXTRA_MAPEL_NAME = "MAPEL_NAME"
-    const val ALL_LABEL = "Semua"
-    const val GENERAL_LABEL = "Umum"
-    const val GENERAL_BADGE = "Umum Kelas"
 
     private const val DEFAULT_HEADER_TITLE = "Forum Diskusi Kelas"
     private const val EMPTY_SUFFIX = ".\nMulai percakapan bersama guru dan wali murid!"
@@ -62,8 +32,7 @@ object ForumSubjects {
         ForumSubject.SENI to listOf("seni", "kreativitas")
     )
 
-    val filterOptions: List<ForumFilter> = listOf(ForumFilter.All, ForumFilter.General) +
-        ForumSubject.entries.map { ForumFilter.Subject(it.code) }
+    val filterSubjects: List<ForumSubject> = ForumSubject.entries
 
     fun fromCode(code: String?): ForumSubject? {
         val trimmed = code?.trim()?.takeIf { it.isNotEmpty() } ?: return null
@@ -83,41 +52,23 @@ object ForumSubjects {
     fun resolveCode(mapelCode: String?, subjectName: String?): String? =
         resolve(mapelCode, subjectName)?.code
 
-    fun initialFilter(mapelCode: String?, subjectName: String?): ForumFilter =
-        resolveCode(mapelCode, subjectName)?.let { ForumFilter.Subject(it) } ?: ForumFilter.All
+    fun initialSubject(mapelCode: String?, subjectName: String?): ForumSubject =
+        resolve(mapelCode, subjectName) ?: ForumSubject.SENI
 
     fun headerTitle(className: String?): String =
         className?.trim()?.takeIf { it.isNotEmpty() } ?: DEFAULT_HEADER_TITLE
 
-    fun threadTitle(filter: ForumFilter): String = when (filter) {
-        is ForumFilter.Subject -> "Diskusi ${subjectDisplayName(filter.code)}"
-        ForumFilter.General -> "Diskusi Umum Kelas"
-        ForumFilter.All -> "Diskusi Kelas"
-    }
+    fun threadTitle(subject: ForumSubject): String =
+        "Diskusi ${subject.displayName}"
 
-    fun threadBadge(subjectCode: String?): String =
-        fromCode(subjectCode)?.displayName ?: GENERAL_BADGE
+    fun subtitle(subject: ForumSubject, studentCount: Int, teacherCount: Int): String =
+        "Mapel ${subject.displayName} \u2022 $studentCount Siswa \u2022 $teacherCount Guru Pengajar"
 
-    fun subtitle(filter: ForumFilter, studentCount: Int, teacherCount: Int): String {
-        val topic = when (filter) {
-            is ForumFilter.Subject -> "Mapel ${subjectDisplayName(filter.code)}"
-            ForumFilter.General -> GENERAL_BADGE
-            ForumFilter.All -> "Semua Topik Kelas"
-        }
-        return "$topic \u2022 $studentCount Siswa \u2022 $teacherCount Guru Pengajar"
-    }
+    fun inputHint(subject: ForumSubject): String =
+        "Tulis diskusi ${subject.displayName}..."
 
-    fun inputHint(filter: ForumFilter): String = when (filter) {
-        is ForumFilter.Subject -> "Tulis diskusi ${subjectDisplayName(filter.code)}..."
-        ForumFilter.General -> "Tulis diskusi umum kelas..."
-        ForumFilter.All -> "Tulis pesan diskusi kelas..."
-    }
-
-    fun emptyMessage(filter: ForumFilter): String = when (filter) {
-        is ForumFilter.Subject -> "Belum ada diskusi di ${subjectDisplayName(filter.code)}$EMPTY_SUFFIX"
-        ForumFilter.General -> "Belum ada diskusi umum di kelas ini$EMPTY_SUFFIX"
-        ForumFilter.All -> "Belum ada pesan di forum diskusi ini$EMPTY_SUFFIX"
-    }
+    fun emptyMessage(subject: ForumSubject): String =
+        "Belum ada diskusi di Mapel ${subject.displayName}$EMPTY_SUFFIX"
 
     fun bannerTitle(className: String?, subjectCode: String?): String {
         val cleanClass = className?.trim().orEmpty()
@@ -140,6 +91,17 @@ object ForumSubjects {
             ?: "$threadCount pesan diskusi wali murid & guru"
     }
 
-    private fun subjectDisplayName(code: String): String =
-        fromCode(code)?.displayName ?: code
+    fun filterThreadsBySubject(threads: List<ForumThreadItem>, subjectCode: String?): List<ForumThreadItem> {
+        val target = fromCode(subjectCode) ?: return threads
+        return threads.filter { it.subjectCode?.trim().equals(target.code, ignoreCase = true) }
+    }
+
+    fun resolveFilteredBannerCount(
+        threads: List<ForumThreadItem>,
+        serverTotal: Int,
+        subjectCode: String?
+    ): Int {
+        val matching = filterThreadsBySubject(threads, subjectCode)
+        return if (matching.size == threads.size) maxOf(serverTotal, matching.size) else matching.size
+    }
 }
