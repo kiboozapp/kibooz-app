@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -198,7 +199,7 @@ private fun StudentHeader(
             )
             Surface(
                 onClick = onEdit,
-                modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp),
+                modifier = Modifier.padding(top = 12.dp).heightIn(min = 48.dp).semantics { role = Role.Button },
                 shape = RoundedCornerShape(24.dp),
                 color = colorResource(R.color.kibooz_student_edit_button)
             ) {
