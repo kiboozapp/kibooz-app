@@ -33,6 +33,7 @@ import com.nthb.kibooz.util.ClassTeacherSummary
 import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -53,6 +54,7 @@ class DetailKelasActivity : AppCompatActivity() {
     private var hasInitialized: Boolean = false
     private var resolvedTeachers: List<ClassTeacherSummary> = emptyList()
     private var lastStudentCount: Int = 0
+    private var teachersJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -191,7 +193,9 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun loadClassTeachers(classId: String) {
-        lifecycleScope.launch {
+        // Dipanggil setiap onResume, jadi pemuatan yang masih berjalan dibatalkan agar hasil lama tidak menimpa yang baru
+        teachersJob?.cancel()
+        teachersJob = lifecycleScope.launch {
             val sessionUser = appContainer.authRepository.session.value?.user
             val fetched = if (isTeacherRole) {
                 when (val res = appContainer.classManagementRepository.classTeachers(classId)) {

@@ -82,6 +82,21 @@ class ClassTeachersTest {
     }
 
     @Test
+    fun `fromChatContacts returns no teachers without a target classId`() {
+        val contacts = listOf(
+            ChatContact(
+                id = "u-guru",
+                fullName = TEACHER_SITI,
+                role = ROLE_GURU,
+                classes = listOf(ChatContactClass(CLASS_MATAHARI_ID, CLASS_MATAHARI_NAME))
+            )
+        )
+
+        assertEquals(0, ClassTeachers.fromChatContacts(contacts, null).size)
+        assertEquals(0, ClassTeachers.fromChatContacts(contacts, "  ").size)
+    }
+
+    @Test
     fun `mergeWithSessionFallback uses Guru session user when roster unavailable`() {
         val guru = SessionUser("g1", "siti@kibooz.id", TEACHER_SITI, Role.GURU, "https://cdn/a.png")
         val wali = SessionUser("w1", "hendra@kibooz.id", "Bapak Hendra", Role.WALI, null)

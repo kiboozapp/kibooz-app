@@ -17,6 +17,7 @@ import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
 import com.nthb.kibooz.util.ClassTeacherSummary
 import com.nthb.kibooz.util.ClassTeachers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -57,7 +58,7 @@ class PesertaKelasViewModel(
 
     private var lastTeachersClassId: String? = null
     private var lastResolvedTeachers: List<ClassTeacherSummary>? = null
-    private var teachersRequestSeq = 0
+    private var loadJob: Job? = null
 
     private data class ResolvedClassContext(
         val classId: String,
@@ -71,7 +72,9 @@ class PesertaKelasViewModel(
         initialTeacherName: String? = null,
         initialTeacherAvatarUrl: String? = null
     ) {
-        viewModelScope.launch {
+        // Muat ulang membatalkan pemuatan sebelumnya, supaya hasil lama tidak menimpa yang baru dan tidak mengisi cache
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
             loadPesertaContent(
                 initialClassId = initialClassId,
                 defaultClassName = defaultClassName,
@@ -301,15 +304,11 @@ class PesertaKelasViewModel(
             clearRetainedTeachers()
         }
         val sessionUser = currentSessionUser()
-        // Dua pemuatan bisa tumpang tindih, jadi hanya permintaan terbaru yang boleh mengisi cache pengajar
-        val requestId = ++teachersRequestSeq
         val fetched = fetchClassTeachers(classId, teacherRole)
         if (fetched != null) {
             val merged = ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
-            if (requestId == teachersRequestSeq) {
-                lastTeachersClassId = classId
-                lastResolvedTeachers = merged
-            }
+            lastTeachersClassId = classId
+            lastResolvedTeachers = merged
             return merged
         }
         return retainedTeachersFor(classId) ?: seededTeachers
