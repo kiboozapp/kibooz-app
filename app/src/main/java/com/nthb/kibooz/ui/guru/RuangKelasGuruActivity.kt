@@ -168,7 +168,12 @@ class RuangKelasGuruActivity : AppCompatActivity() {
             } else {
                 notice.args
             }
-            Snackbar.make(binding.root, getString(notice.res, *args.toTypedArray()), Snackbar.LENGTH_LONG).show()
+            val message = when (args.size) {
+                0 -> getString(notice.res)
+                1 -> getString(notice.res, args[0])
+                else -> getString(notice.res, args[0], args[1])
+            }
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
             viewModel.noticeShown()
         }
 

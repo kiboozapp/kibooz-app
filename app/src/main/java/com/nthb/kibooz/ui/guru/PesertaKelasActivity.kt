@@ -77,11 +77,8 @@ class PesertaKelasActivity : AppCompatActivity() {
         appContainer.avatarLoader.load(binding.ivTeacherAvatar, prefilledAvatar, R.drawable.img_avatar_guru)
 
         binding.tvTeacherName.text = initialTeacherName
-            ?: if (isTeacher && !sessionUser?.fullName.isNullOrBlank()) {
-                sessionUser!!.fullName
-            } else {
-                ClassTeachers.DEFAULT_TEACHER_LABEL
-            }
+            ?: sessionUser?.fullName?.takeIf { isTeacher && it.isNotBlank() }
+            ?: ClassTeachers.DEFAULT_TEACHER_LABEL
         binding.tvTeacherRole.text = ClassTeachers.formatSubtitle(emptyList(), namaKelas)
 
         val refreshPendingMoveCard: (String) -> Unit = { targetClassId ->

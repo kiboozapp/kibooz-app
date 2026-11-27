@@ -92,7 +92,7 @@ object ClassTeachers {
             DEFAULT_ROLE_LABEL
         }
         val cleanClass = className?.trim()?.takeIf { it.isNotBlank() }?.let(ClassNames::withPrefix)
-        return if (cleanClass != null) "$rolePart • $cleanClass" else rolePart
+        return cleanClass?.let { "$rolePart • $it" } ?: rolePart
     }
 
     fun formatBannerCount(teacherCount: Int, studentCountText: String): String =

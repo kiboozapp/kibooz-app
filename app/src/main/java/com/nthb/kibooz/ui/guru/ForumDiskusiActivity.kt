@@ -14,7 +14,6 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ForumThreadItem
-import com.nthb.kibooz.data.remote.ForumThreadList
 import com.nthb.kibooz.databinding.ActivityForumDiskusiBinding
 import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
