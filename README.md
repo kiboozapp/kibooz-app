@@ -9,6 +9,7 @@
 [![Trivy](https://github.com/kiboozapp/kibooz-app/actions/workflows/trivy.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/trivy.yaml)
 [![Workflow lint](https://github.com/kiboozapp/kibooz-app/actions/workflows/workflow-lint.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/workflow-lint.yaml)
 [![Dependency graph](https://github.com/kiboozapp/kibooz-app/actions/workflows/dependency-graph.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/dependency-graph.yaml)
+[![Dependency submission](https://github.com/kiboozapp/kibooz-app/actions/workflows/dependency-submit.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/dependency-submit.yaml)
 [![Release Please](https://github.com/kiboozapp/kibooz-app/actions/workflows/release-please.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/release-please.yaml)
 
 [![Release](https://img.shields.io/github/v/release/kiboozapp/kibooz-app)](https://github.com/kiboozapp/kibooz-app/releases/latest)
@@ -19,6 +20,7 @@
 
 [![Codecov](https://codecov.io/gh/kiboozapp/kibooz-app/graph/badge.svg)](https://codecov.io/gh/kiboozapp/kibooz-app)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/kiboozapp/kibooz-app/badge)](https://scorecard.dev/viewer/?uri=github.com/kiboozapp/kibooz-app)
+[![DeepSource](https://app.deepsource.com/gh/kiboozapp/kibooz-app.svg/?label=active+issues&show_trend=true)](https://app.deepsource.com/gh/kiboozapp/kibooz-app/)
 
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
 [![Language](https://img.shields.io/badge/Language-Kotlin-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
