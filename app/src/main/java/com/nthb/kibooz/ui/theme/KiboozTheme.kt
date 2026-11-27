@@ -32,7 +32,7 @@ fun KiboozTheme(content: @Composable () -> Unit) {
         error = colorResource(R.color.kibooz_red_danger),
         onError = white
     )
-    MaterialTheme(colorScheme = colors, typography = rememberKiboozTypography()) {
+    MaterialTheme(colorScheme = colors, typography = kiboozTypography) {
         // Teks tanpa warna memakai warna teks utama, bukan hitam bawaan Compose
         CompositionLocalProvider(LocalContentColor provides textPrimary, content = content)
     }
