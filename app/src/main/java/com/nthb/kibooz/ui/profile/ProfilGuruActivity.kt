@@ -22,7 +22,6 @@ import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.components.GuruTab
 import com.nthb.kibooz.ui.guru.DashboardGuruActivity
-import com.nthb.kibooz.ui.guru.DetailProfilGuruActivity
 import com.nthb.kibooz.ui.guru.RuangKelasGuruActivity
 import com.nthb.kibooz.ui.guru.StatistikMoodActivity
 import com.nthb.kibooz.ui.theme.KiboozTheme
