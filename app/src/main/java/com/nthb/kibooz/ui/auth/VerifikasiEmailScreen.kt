@@ -2,10 +2,8 @@ package com.nthb.kibooz.ui.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -101,8 +99,11 @@ internal fun VerifikasiEmailScreen(
             KiboozOutlinedField(
                 value = code,
                 onValueChange = { typed ->
-                    val digits = typed.filter { it in '0'..'9' }.take(VerifyEmailViewModel.CODE_LENGTH)
-                    if (digits != code) {
+                    val allDigits = typed.filter { it in '0'..'9' }
+                    val digits = allDigits.take(VerifyEmailViewModel.CODE_LENGTH)
+                    // Kode yang sudah lengkap menolak sisipan, seperti android:maxLength
+                    val overflow = code.length == VerifyEmailViewModel.CODE_LENGTH && allDigits.length > code.length
+                    if (digits != code && !overflow) {
                         code = digits
                         onCodeEdited()
                     }
@@ -112,6 +113,11 @@ internal fun VerifikasiEmailScreen(
                 errorText = state.codeError?.let { stringResource(it) },
                 placeholder = stringResource(R.string.verifikasi_hint_kode),
                 counter = "${code.length}/${VerifyEmailViewModel.CODE_LENGTH}",
+                counterDescription = stringResource(
+                    R.string.verifikasi_kode_terisi,
+                    code.length,
+                    VerifyEmailViewModel.CODE_LENGTH
+                ),
                 textSize = 20.sp,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Next)
             )

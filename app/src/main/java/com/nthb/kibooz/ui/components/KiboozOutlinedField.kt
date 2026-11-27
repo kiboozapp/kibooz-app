@@ -22,6 +22,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.error
@@ -54,6 +55,7 @@ fun KiboozOutlinedField(
     trailingIcon: (@Composable () -> Unit)? = null,
     placeholder: String? = null,
     counter: String? = null,
+    counterDescription: String? = null,
     textSize: TextUnit = TextUnit.Unspecified
 ) {
     val supporting = errorText ?: helperText
@@ -93,7 +95,14 @@ fun KiboozOutlinedField(
                             }
                         )
                     )
-                    if (counter != null) Text(counter, modifier = Modifier.padding(start = 16.dp))
+                    if (counter != null) {
+                        Text(
+                            text = counter,
+                            modifier = Modifier.padding(start = 16.dp).semantics {
+                                if (counterDescription != null) contentDescription = counterDescription
+                            }
+                        )
+                    }
                 }
             }
         },
