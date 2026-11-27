@@ -62,6 +62,8 @@ class EditProfilSiswaActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Layar pangkas foto bisa membuat proses mati, jadi pilihan foto anak atau Wali ikut dipulihkan
+        pendingUploadForChild = savedInstanceState?.getBoolean(STATE_UPLOAD_FOR_CHILD, true) ?: true
         setContent {
             KiboozTheme {
                 val state by viewModel.state.collectAsStateWithLifecycle()
@@ -89,6 +91,11 @@ class EditProfilSiswaActivity : AppCompatActivity() {
                 viewModel.state.collect(::handleEvents)
             }
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_UPLOAD_FOR_CHILD, pendingUploadForChild)
     }
 
     /** Foto Wali dari server bila sudah ada, kalau belum dari sesi. */
@@ -136,5 +143,9 @@ class EditProfilSiswaActivity : AppCompatActivity() {
         // Anak yang sudah tidak ada juga membuat layar sebelumnya memuat ulang, karena dihapus dari perangkat lain
         if (state.changed || state.gone) setResult(Activity.RESULT_OK)
         if (closing) finish()
+    }
+
+    private companion object {
+        const val STATE_UPLOAD_FOR_CHILD = "upload_for_child"
     }
 }

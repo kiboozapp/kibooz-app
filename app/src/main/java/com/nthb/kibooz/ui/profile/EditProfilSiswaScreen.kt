@@ -72,6 +72,9 @@ import com.nthb.kibooz.util.AvatarLoader
 private const val NISN_MAX = 30
 private const val PHONE_MAX = 30
 
+/** Karakter yang boleh ada di nomor telepon, sama dengan pola di server. Isian yang ditempel ikut disaring. */
+private fun isPhoneChar(c: Char): Boolean = c.isDigit() || c in "+()- "
+
 /** Gambar foto di satu kartu, yaitu foto anak atau foto Wali. */
 internal class EditPhoto(val url: String?, val placeholder: Int, val description: String)
 
@@ -202,7 +205,7 @@ internal fun EditProfilSiswaScreen(
                     KiboozOutlinedField(
                         value = nisn,
                         onValueChange = {
-                            nisn = it.take(NISN_MAX)
+                            nisn = it.filter(Char::isDigit).take(NISN_MAX)
                             edited = edited + EditField.NISN
                         },
                         label = stringResource(R.string.anak_hint_nisn),
@@ -258,7 +261,7 @@ internal fun EditProfilSiswaScreen(
                     KiboozOutlinedField(
                         value = phone,
                         onValueChange = {
-                            phone = it.take(PHONE_MAX)
+                            phone = it.filter(::isPhoneChar).take(PHONE_MAX)
                             edited = edited + EditField.PHONE
                         },
                         label = stringResource(R.string.anak_hint_telepon),
@@ -271,7 +274,7 @@ internal fun EditProfilSiswaScreen(
                     KiboozOutlinedField(
                         value = whatsapp,
                         onValueChange = {
-                            whatsapp = it.take(PHONE_MAX)
+                            whatsapp = it.filter(::isPhoneChar).take(PHONE_MAX)
                             edited = edited + EditField.WHATSAPP
                         },
                         label = stringResource(R.string.anak_hint_whatsapp),
