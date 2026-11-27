@@ -4,4 +4,4 @@ Rencana kerja Kibooz App ada di folder [docs/prd_and_roadmap](docs/prd_and_roadm
 
 Berkas ini sengaja tidak menyalin isi dokumen itu, agar tidak ada dua daftar yang berbeda. Jika rencana berubah, ubah dokumen di folder tersebut.
 
-Untuk melihat apa yang sudah ada di aplikasi, baca bagian Fitur Utama di [README.md](README.md).
+Untuk melihat apa yang sudah ada di aplikasi, baca bagian [Fitur di README.md](README.md#fitur).
