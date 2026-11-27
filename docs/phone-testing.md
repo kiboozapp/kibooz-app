@@ -10,7 +10,7 @@ Halaman ini menjelaskan cara menguji perubahan layar di ponsel asli. Tes unit di
 
 ## Menyiapkan ponsel
 
-1. Pakai ponsel dengan Android 7.0 (API 24) atau lebih baru. Aplikasi ini menargetkan API 35, jadi satu ponsel dengan Android 14 atau lebih baru juga berguna untuk memeriksa tepi layar.
+1. Pakai ponsel dengan Android 7.0 (API 24) atau lebih baru. Aplikasi ini menargetkan API 35, jadi satu ponsel dengan Android 15 (API 35) atau lebih baru juga berguna untuk memeriksa tepi layar.
 2. Aktifkan opsi pengembang dan *USB debugging*. Sebagian ponsel, seperti Xiaomi, punya sakelar tambahan untuk memasang aplikasi lewat USB. Jika `adb install` ditolak dengan `INSTALL_FAILED_USER_RESTRICTED`, nyalakan sakelar itu lalu coba lagi.
 3. Hubungkan ponsel dan periksa dengan `adb devices`. Perangkat harus tampil sebagai `device`, bukan `unauthorized`.
 
@@ -18,12 +18,14 @@ Halaman ini menjelaskan cara menguji perubahan layar di ponsel asli. Tes unit di
 
 Setiap pull request menghasilkan APK debug dari job Debug build di workflow Android CI. Berkasnya tersimpan sebagai artifact `kibooz-debug-apk` selama 7 hari. Pasang hanya APK dari run di `main` atau dari pull request anggota tim, seperti dijelaskan di [docs/ci-cd.md](ci-cd.md).
 
+Id run ada di tautan pengecekan "Android CI" pada pull request, atau dari `gh run list --repo kiboozapp/kibooz-app --workflow android-ci.yaml --branch <nama branch>`.
+
 ```bash
 gh run download <id run> --repo kiboozapp/kibooz-app -n kibooz-debug-apk -D apk
 adb install apk/app-debug.apk
 ```
 
-Setiap build CI memakai kunci penandatanganan baru. Karena itu versi yang sudah terpasang harus dihapus lebih dulu, dan `adb install` menolak pemasangan di atasnya. Menghapus aplikasi juga menghapus data lokalnya, termasuk sesi masuk, jadi masuk lagi setelah memasang.
+Setiap build CI memakai kunci penandatanganan baru. Karena itu versi yang sudah terpasang harus dihapus lebih dulu. Tanpa itu, `adb install` menolak pemasangan di atasnya. Menghapus aplikasi juga menghapus data lokalnya, termasuk sesi masuk, jadi masuk lagi setelah memasang.
 
 ```bash
 adb uninstall com.nthb.kibooz
@@ -45,7 +47,7 @@ Karena yang diuji adalah server sungguhan, perhatikan hal berikut.
 Untuk layar yang dipindahkan ke Compose, ambil tangkapan layar versi XML lebih dulu dari ponsel yang sama, lalu bandingkan dengan versi baru. Periksa hal berikut.
 
 1. Tata letak, jarak, warna dan teks sama dengan versi lama.
-2. Semua keadaan layar tampil benar, yaitu memuat, galat, kosong dan berhasil. Putuskan jaringan sebentar untuk melihat keadaan galat.
+2. Semua state tampilan muncul dengan benar, yaitu memuat, galat, kosong dan berhasil. Putuskan jaringan sebentar untuk melihat keadaan galat.
 3. Isian yang salah menampilkan pesan galat, dan pesan itu hilang setelah isian diperbaiki.
 4. Putar layar pada layar yang boleh berputar. Isian yang sudah diketik tidak boleh hilang. Beberapa layar memang dikunci ke potret di `AndroidManifest.xml`.
 5. Keyboard tidak menutupi kolom isian atau tombol, dan bilah gestur tidak menutupi tombol bawah.
@@ -57,7 +59,13 @@ Layar yang hanya bisa dibuka oleh peran tertentu diuji dengan akun peran itu. Ak
 
 ## Membaca log
 
-Jika aplikasi berhenti sendiri atau layar tidak tampil, baca *logcat* untuk aplikasi ini.
+Jika aplikasi berhenti sendiri atau layar tidak tampil, baca *logcat*. Untuk aplikasi yang sudah berhenti, ambil buffer crash.
+
+```bash
+adb logcat -b crash -d
+```
+
+Untuk mengikuti log aplikasi yang masih berjalan, jalankan perintah berikut selagi aplikasi terbuka.
 
 ```bash
 adb logcat --pid=$(adb shell pidof -s com.nthb.kibooz)
