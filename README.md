@@ -82,7 +82,7 @@ Versi pustaka ada di [app/build.gradle.kts](app/build.gradle.kts), versi plugin 
 2. Cocokkan berkasnya dengan `sha256sum -c kibooz-app-<tag>.apk.sha256`.
 3. Pasang di perangkat dengan Android 7.0 atau lebih baru. Hapus dulu build debug yang pernah dipasang, karena kunci tanda tangannya berbeda.
 
-APK rilis ditandatangani dengan sertifikat yang sidik jari SHA-256-nya `9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb`. Sidik jari itu bisa diperiksa dengan `apksigner verify --print-certs`.
+APK rilis ditandatangani dengan sertifikat yang sidik jari SHA-256-nya `9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb`. Sidik jari itu bisa diperiksa dengan `apksigner verify --print-certs kibooz-app-<tag>.apk`. `apksigner` ada di folder `build-tools/<versi>` pada Android SDK.
 
 ### Menjalankan dari kode sumber
 
@@ -91,13 +91,18 @@ Prasyaratnya Android Studio Ladybug (2024.2.1) atau lebih baru, JDK 17, dan pera
 ```bash
 git clone https://github.com/kiboozapp/kibooz-app.git
 cd kibooz-app
+```
+
+Di Android Studio, pilih **Open**, tentukan folder hasil clone, tunggu sinkronisasi Gradle, lalu tekan **Run**. Android Studio membuat `local.properties` yang berisi lokasi Android SDK.
+
+Untuk memakai terminal, lokasi Android SDK harus diketahui lebih dulu, yaitu lewat variabel `ANDROID_HOME`, baris `sdk.dir` di `local.properties`, atau berkas buatan Android Studio tadi.
+
+```bash
 sh ./gradlew assembleDebug
 sh ./gradlew testDebugUnitTest
 ```
 
 Di Windows, pakai `gradlew.bat` sebagai ganti `sh ./gradlew`.
-
-Di Android Studio, pilih **Open**, tentukan folder hasil clone, tunggu sinkronisasi Gradle, lalu tekan **Run**. Android Studio membuat `local.properties` secara otomatis.
 
 ## Konfigurasi
 
