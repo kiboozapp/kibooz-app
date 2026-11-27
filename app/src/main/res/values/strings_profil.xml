@@ -20,6 +20,7 @@
     <string name="detail_profil_alamat">Alamat Lengkap</string>
     <string name="detail_profil_statistik">Statistik Kinerja</string>
     <string name="detail_profil_persentase">Persentase Rata-rata Mood</string>
+    <string name="detail_profil_ganti_kelas">Ganti kelas, %1$s</string>
     <string name="detail_profil_ubah">Ubah Data Profil Guru</string>
     <string name="detail_profil_legenda_happy">🟡 Happy %1$d%%</string>
     <string name="detail_profil_legenda_bingung">🟠 Bingung %1$d%%</string>

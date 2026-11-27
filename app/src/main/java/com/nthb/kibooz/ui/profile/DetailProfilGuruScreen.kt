@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,8 +35,10 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -193,7 +196,7 @@ private fun DetailIdentity(detail: GuruDetail, avatarLoader: AvatarLoader) {
 
 @Composable
 private fun InfoCard(@DrawableRes icon: Int, @StringRes label: Int, value: String, modifier: Modifier = Modifier) {
-    DetailCard(modifier = modifier, corner = 16.dp) {
+    DetailCard(modifier = modifier.semantics(mergeDescendants = true) {}, corner = 16.dp) {
         Row(modifier = Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             InfoIcon(icon)
             InfoLabel(label)
@@ -211,7 +214,7 @@ private fun InfoCard(@DrawableRes icon: Int, @StringRes label: Int, value: Strin
 
 @Composable
 private fun AddressCard(address: String, modifier: Modifier = Modifier) {
-    DetailCard(modifier = modifier, corner = 16.dp) {
+    DetailCard(modifier = modifier.semantics(mergeDescendants = true) {}, corner = 16.dp) {
         Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 InfoIcon(R.drawable.ic_location)
@@ -266,6 +269,7 @@ private fun PerformanceHeader(performance: GuruPerformance, onSwitchClass: () ->
     val active = resolveSelectedClass(performance.classes, performance.selectedClassId)
     val label = active?.name ?: performance.fallbackClassName?.takeIf { it.isNotBlank() }
     val canSwitch = performance.classes.size > 1
+    val switchDescription = label?.let { stringResource(R.string.detail_profil_ganti_kelas, it) }
     Row(modifier = Modifier.fillMaxWidth().padding(top = 22.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = stringResource(R.string.detail_profil_statistik),
@@ -278,7 +282,15 @@ private fun PerformanceHeader(performance: GuruPerformance, onSwitchClass: () ->
             Row(
                 modifier = Modifier
                     .background(colorResource(R.color.kibooz_lavender), RoundedCornerShape(14.dp))
-                    .then(if (canSwitch) Modifier.clickable(role = Role.Button, onClick = onSwitchClass) else Modifier)
+                    .then(
+                        if (canSwitch) {
+                            Modifier
+                                .clickable(role = Role.Button, onClick = onSwitchClass)
+                                .semantics { contentDescription = switchDescription.orEmpty() }
+                        } else {
+                            Modifier
+                        }
+                    )
                     .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -290,7 +302,7 @@ private fun PerformanceHeader(performance: GuruPerformance, onSwitchClass: () ->
                 )
                 Text(
                     text = label,
-                    modifier = Modifier.padding(start = 6.dp),
+                    modifier = Modifier.padding(start = 6.dp).widthIn(max = 150.dp),
                     color = MaterialTheme.colorScheme.primary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
@@ -300,7 +312,7 @@ private fun PerformanceHeader(performance: GuruPerformance, onSwitchClass: () ->
                 if (canSwitch) {
                     Text(
                         text = "▾",
-                        modifier = Modifier.padding(start = 4.dp),
+                        modifier = Modifier.padding(start = 4.dp).clearAndSetSemantics {},
                         color = MaterialTheme.colorScheme.primary,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold
@@ -357,7 +369,7 @@ private fun Legend(@StringRes format: Int, percent: Int, @ColorRes color: Int) {
 private fun EditButton(onClick: () -> Unit) {
     Surface(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(52.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 20.dp).height(52.dp).semantics { role = Role.Button },
         shape = RoundedCornerShape(26.dp),
         color = MaterialTheme.colorScheme.primary,
         shadowElevation = 4.dp
