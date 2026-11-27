@@ -15,6 +15,14 @@ Proyek ini memakai Gradle 8.14 dan JDK 17. Cara membuka dan menjalankan proyek a
 
 Merge commit dengan pesan `Merge branch 'main' into <branch>` dan merge commit buatan GitHub (`Merge pull request #N from ...`) tidak diperiksa.
 
+## Layar Jetpack Compose
+
+- Bungkus isi layar dengan `KiboozTheme` dari `ui/theme`.
+- Pakai komponen bersama di `ui/components` sebelum membuat yang baru. Komponen yang dipakai lebih dari satu fitur diletakkan di sana.
+- Layar yang dipindahkan ke Compose diletakkan di paket fiturnya di bawah `ui`, yaitu `onboarding`, `splash`, `auth`, `account`, `profile`, `dashboard`, `stats`, `classroom`, `chat`, `scan` atau `location`.
+- Aturan akses layar ditentukan oleh paket dan nama kelas di `SessionAccess.kt`. Perbarui aturan dan testnya pada pull request yang memindahkan layar.
+- Warna tetap berasal dari `colors.xml` dan teks dari `strings.xml`.
+
 ## Menjalankan unit test
 
 Jalankan unit test di komputer sendiri sebelum push.
