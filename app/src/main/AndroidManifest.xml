@@ -121,7 +121,7 @@
 
         <!-- 10b. Guru Flow: Detail Profil Guru -->
         <activity
-            android:name=".ui.guru.DetailProfilGuruActivity"
+            android:name=".ui.profile.DetailProfilGuruActivity"
             android:exported="false" />
 
         <!-- 11. Guru Flow: Edit Profil Guru -->
