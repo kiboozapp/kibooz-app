@@ -350,7 +350,7 @@ private fun ProfileContent(
         OutlinedButton(
             onClick = onDelete,
             modifier = Modifier.padding(top = 12.dp).fillMaxWidth().heightIn(min = 52.dp),
-            enabled = !state.deleting,
+            enabled = !state.deleting && !state.loading,
             shape = RoundedCornerShape(26.dp),
             // Seperti tombol di layar XML, warnanya sama saat nonaktif
             colors = ButtonDefaults.outlinedButtonColors(contentColor = deleteColor, disabledContentColor = deleteColor),
