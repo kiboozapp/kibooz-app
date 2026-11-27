@@ -46,15 +46,27 @@
     },
     {
       "description": "a major release of the Android Gradle plugin, Kotlin, Gradle or the JDK has to move with the others, so it waits for a tick in the dependency dashboard",
-      "matchDepNames": ["com.android.application", "org.jetbrains.kotlin.android", "gradle", "java-jdk"],
+      "matchDepNames": ["com.android.application", "org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin.compose", "gradle", "java-jdk"],
       "matchUpdateTypes": ["major"],
       "groupName": "android-toolchain",
       "dependencyDashboardApproval": true
     },
     {
       "description": "Kotlin 2.2 and newer rejects the kotlinOptions block of app/build.gradle.kts, so a new minor waits until the build script is migrated",
-      "matchDepNames": ["org.jetbrains.kotlin.android"],
+      "matchDepNames": ["org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin.compose"],
       "matchUpdateTypes": ["minor"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "description": "the Compose compiler plugin has the version of Kotlin, so the two move in one pull request",
+      "matchDepNames": ["org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin.compose"],
+      "matchUpdateTypes": ["patch"],
+      "groupName": "kotlin"
+    },
+    {
+      "description": "a newer Compose BOM can need a newer Kotlin or compileSdk, so it waits for a tick in the dependency dashboard",
+      "matchPackageNames": ["androidx.compose:compose-bom"],
+      "matchUpdateTypes": ["major", "minor"],
       "dependencyDashboardApproval": true
     }
   ],
