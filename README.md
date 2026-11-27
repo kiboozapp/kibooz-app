@@ -29,7 +29,7 @@
 
 Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubungkan guru dengan wali murid. Fitur intinya mencakup pemantauan kondisi emosional anak dan pembiasaan pilah sampah berhadiah poin.
 
-APK rilis terbaru ada di halaman [Releases](https://github.com/kiboozapp/kibooz-app/releases/latest). Servernya ada di repositori [kibooz-backend](https://github.com/kiboozapp/kibooz-backend).
+APK rilis terbaru ada di halaman [Releases](https://github.com/kiboozapp/kibooz-app/releases/latest). Servernya ada di repositori [kibooz-backend](https://github.com/kiboozapp/kibooz-backend), dengan kontrak di `openapi.yaml` dan `docs/client-guide.md`.
 
 ## Daftar Isi
 
@@ -47,16 +47,15 @@ APK rilis terbaru ada di halaman [Releases](https://github.com/kiboozapp/kibooz-
 
 | Peran | Layar utama |
 | :--- | :--- |
-| Semua | *Onboarding*, pilih peran, masuk, daftar, verifikasi email, ubah kata sandi, potong foto profil, hapus akun |
-| Guru | Dasbor, kelas dan peserta kelas, permintaan pindah kelas, video pembelajaran, forum diskusi, statistik mood, riwayat, profil |
-| Wali murid | Dasbor, tambah anak, ruang kelas, statistik pilah sampah, papan peringkat, riwayat aktivitas, panduan penanganan mood, profil wali dan siswa |
-| Guru dan wali murid | Chat teks, foto dan video |
-| Kamera | Pemindai mood dengan layar tinjau untuk guru, pemindai sampah dengan klaim poin |
+| Semua | *Onboarding*, pilih peran, masuk, daftar, verifikasi email, ubah kata sandi, potong foto profil, pilih lokasi lewat peta, hapus akun |
+| Guru dan wali murid | Detail kelas, peserta kelas, video pembelajaran (kelola oleh guru), forum diskusi, papan peringkat, chat teks, foto dan video |
+| Guru | Dasbor, ruang kelas, permintaan pindah kelas, statistik mood, pemindai mood dengan layar tinjau, riwayat, profil |
+| Wali murid | Dasbor, tambah anak, ruang kelas, pemindai sampah dengan klaim poin, statistik pilah sampah, riwayat aktivitas, panduan penanganan mood, profil wali dan siswa |
 
 ## Status
 
 - Aplikasi memakai server `https://kibooz-api.syafahadyan.com/api/v1/`. Beberapa bagian tampilan masih memakai isi contoh.
-- Model pemindai mood dan sampah masih model pengganti, sehingga hasilnya bisa salah. Lihat [docs/MODEL_PLACEHOLDERS.md](docs/MODEL_PLACEHOLDERS.md). Pemindai terbuka pada build debug dan pada APK rilis di GitHub. Build rilis lain menutupnya.
+- Model pemindai mood dan sampah masih model pengganti, sehingga hasilnya bisa salah. Lihat [docs/MODEL_PLACEHOLDERS.md](docs/MODEL_PLACEHOLDERS.md). Pemindai terbuka pada build debug dan pada APK rilis di GitHub. Build rilis tanpa properti `kibooz.allowPlaceholderModels=true` menutupnya.
 - AI pemindai berjalan di perangkat, bukan di server. Hasil pemindaian dikirim ke server tanpa foto.
 - APK rilis belum mendukung Google Sign-In. Gunakan masuk dengan email.
 
@@ -68,12 +67,12 @@ APK rilis terbaru ada di halaman [Releases](https://github.com/kiboozapp/kibooz-
 | Android | `minSdk` 24, `compileSdk` dan `targetSdk` 35 |
 | Tampilan | XML dengan ViewBinding, Material Components, ViewModel, *custom view* untuk grafik |
 | Jaringan | Retrofit, OkHttp, Moshi, WebSocket untuk chat |
-| Sesi | DataStore, dienkripsi dengan kunci Android Keystore |
+| Sesi | DataStore, token dienkripsi dengan kunci Android Keystore |
 | Kamera dan AI | CameraX, TensorFlow Lite, ML Kit Face Detection |
 | Lainnya | osmdroid (peta), WorkManager (pengingat), Credential Manager (Google Sign-In) |
 | Pengujian | JUnit 4, MockWebServer, Kover |
 
-Versi tiap pustaka ada di [app/build.gradle.kts](app/build.gradle.kts). Token warna ada di [colors.xml](app/src/main/res/values/colors.xml).
+Versi pustaka ada di [app/build.gradle.kts](app/build.gradle.kts), versi plugin di [build.gradle.kts](build.gradle.kts), dan versi Gradle di [gradle-wrapper.properties](gradle/wrapper/gradle-wrapper.properties). Token warna ada di [colors.xml](app/src/main/res/values/colors.xml).
 
 ## Mulai Cepat
 
@@ -96,6 +95,8 @@ sh ./gradlew assembleDebug
 sh ./gradlew testDebugUnitTest
 ```
 
+Di Windows, pakai `gradlew.bat` sebagai ganti `sh ./gradlew`.
+
 Di Android Studio, pilih **Open**, tentukan folder hasil clone, tunggu sinkronisasi Gradle, lalu tekan **Run**. Android Studio membuat `local.properties` secara otomatis.
 
 ## Konfigurasi
@@ -104,7 +105,7 @@ Pengaturan diberikan sebagai properti Gradle, misalnya `-Pkibooz.apiBaseUrl=http
 
 | Properti | Bawaan | Fungsi |
 | :--- | :--- | :--- |
-| `kibooz.apiBaseUrl` | `https://kibooz-api.syafahadyan.com/api/v1/` | Alamat API. Build selain debug wajib memakai `https://`. Build debug hanya boleh memakai `http://` ke `10.0.2.2`, yaitu mesin pengembang dilihat dari emulator |
+| `kibooz.apiBaseUrl` | `https://kibooz-api.syafahadyan.com/api/v1/` | Alamat API, harus diakhiri `/`. Build selain debug wajib memakai `https://`. Build debug hanya boleh memakai `http://` ke `10.0.2.2`, yaitu mesin pengembang dilihat dari emulator |
 | `kibooz.allowPlaceholderModels` | `false` | Membuka pemindai pada build rilis walaupun modelnya masih pengganti |
 | `kibooz.googleWebClientId` | kosong | Web Client ID OAuth untuk Google Sign-In. Tanpa nilai ini Google Sign-In tidak tersedia |
 

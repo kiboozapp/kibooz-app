@@ -4,7 +4,7 @@ Terima kasih sudah ikut mengerjakan Kibooz App. Panduan ini menjaga agar setiap 
 
 ## Persiapan
 
-Proyek ini memakai Gradle 8.14 dan JDK 17. Cara membuka dan menjalankan proyek ada di bagian Panduan Instalasi dan Menjalankan pada [README.md](README.md). Rencana kerja ada di folder `docs/prd_and_roadmap`.
+Proyek ini memakai Gradle 8.14 dan JDK 17. Cara membuka dan menjalankan proyek ada di bagian [Mulai Cepat pada README.md](README.md#mulai-cepat). Rencana kerja ada di folder `docs/prd_and_roadmap`.
 
 ## Membuat perubahan
 
