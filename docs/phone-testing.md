@@ -20,15 +20,12 @@ Setiap pull request menghasilkan APK debug dari job Debug build di workflow Andr
 
 Id run ada di tautan pengecekan "Android CI" pada pull request, atau dari `gh run list --repo kiboozapp/kibooz-app --workflow android-ci.yaml --branch <nama branch>`.
 
-```bash
-gh run download <id run> --repo kiboozapp/kibooz-app -n kibooz-debug-apk -D apk
-adb install apk/app-debug.apk
-```
-
-Setiap build CI memakai kunci penandatanganan baru. Karena itu versi yang sudah terpasang harus dihapus lebih dulu. Tanpa itu, `adb install` menolak pemasangan di atasnya. Menghapus aplikasi juga menghapus data lokalnya, termasuk sesi masuk, jadi masuk lagi setelah memasang.
+Setiap build CI memakai kunci penandatanganan baru. Karena itu versi yang sudah terpasang harus dihapus lebih dulu. Tanpa itu, `adb install` menolak pemasangan di atasnya. Menghapus aplikasi juga menghapus data lokalnya, termasuk sesi masuk, jadi masuk lagi setelah memasang. Lewati langkah hapus jika belum ada versi yang terpasang.
 
 ```bash
 adb uninstall com.nthb.kibooz
+gh run download <id run> --repo kiboozapp/kibooz-app -n kibooz-debug-apk -D apk
+adb install apk/app-debug.apk
 ```
 
 ## Server yang dipakai
