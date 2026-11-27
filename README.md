@@ -1,216 +1,158 @@
-# Kibooz App: Early Childhood Education and Eco-Gamification Platform
+# Kibooz App
 
-[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://developer.android.com)
-[![Language](https://img.shields.io/badge/Language-Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
-[![Min SDK](https://img.shields.io/badge/Min%20SDK-24%20(Nougat)-orange?style=for-the-badge)](https://developer.android.com/about/dashboards)
-[![Target SDK](https://img.shields.io/badge/Target%20SDK-35%20(VanillaIceCream)-blue?style=for-the-badge)](https://developer.android.com/about/versions/15)
-[![Build Tool](https://img.shields.io/badge/Gradle-8.14-02303A?style=for-the-badge&logo=gradle&logoColor=white)](https://gradle.org)
-[![JDK](https://img.shields.io/badge/Java-JDK%2017-ED8B00?style=for-the-badge&logo=java&logoColor=white)](https://www.oracle.com/java/)
+[![Android CI](https://github.com/kiboozapp/kibooz-app/actions/workflows/android-ci.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/android-ci.yaml)
+[![CodeQL](https://github.com/kiboozapp/kibooz-app/actions/workflows/codeql.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/codeql.yaml)
+[![Kotlin lint](https://github.com/kiboozapp/kibooz-app/actions/workflows/kotlin-lint.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/kotlin-lint.yaml)
+[![Docs](https://github.com/kiboozapp/kibooz-app/actions/workflows/docs.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/docs.yaml)
+[![File names](https://github.com/kiboozapp/kibooz-app/actions/workflows/file-names.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/file-names.yaml)
+[![Secret scan](https://github.com/kiboozapp/kibooz-app/actions/workflows/gitleaks.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/gitleaks.yaml)
+[![Trivy](https://github.com/kiboozapp/kibooz-app/actions/workflows/trivy.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/trivy.yaml)
+[![Workflow lint](https://github.com/kiboozapp/kibooz-app/actions/workflows/workflow-lint.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/workflow-lint.yaml)
+[![Dependency graph](https://github.com/kiboozapp/kibooz-app/actions/workflows/dependency-graph.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/dependency-graph.yaml)
+[![Release Please](https://github.com/kiboozapp/kibooz-app/actions/workflows/release-please.yaml/badge.svg?branch=main)](https://github.com/kiboozapp/kibooz-app/actions/workflows/release-please.yaml)
 
-Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubungkan guru dengan wali murid. Fitur intinya mencakup pemantauan kondisi emosional anak dan pembiasaan pilah sampah berhadiah poin reward.
+[![Release](https://img.shields.io/github/v/release/kiboozapp/kibooz-app)](https://github.com/kiboozapp/kibooz-app/releases/latest)
+[![License](https://img.shields.io/github/license/kiboozapp/kibooz-app)](LICENSE)
+[![Last commit](https://img.shields.io/github/last-commit/kiboozapp/kibooz-app)](https://github.com/kiboozapp/kibooz-app/commits/main)
+[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-fe5196)](https://www.conventionalcommits.org)
+[![Renovate](https://img.shields.io/badge/Renovate-enabled-1a1f6c?logo=renovatebot&logoColor=white)](https://github.com/kiboozapp/kibooz-app/issues/112)
 
-> **Status saat ini:** sebagian besar layar masih purwarupa dengan data contoh dan belum terhubung ke server. Lapisan jaringan (`data/remote`) sudah ada, tetapi login, penyimpanan sesi, dan pemanggilan API belum dipasang. Pemindai mood hanya aktif pada build debug dan memakai pengklasifikasi contoh, sedangkan pemindai sampah masih berupa tampilan contoh. Kontrak server ada di repositori [kibooz-backend](https://github.com/kiboozapp/kibooz-backend) (`openapi.yaml` dan `docs/client-guide.md`), dan rencana kerjanya ada di `docs/prd_and_roadmap`.
+[![Codecov](https://codecov.io/gh/kiboozapp/kibooz-app/graph/badge.svg)](https://codecov.io/gh/kiboozapp/kibooz-app)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/kiboozapp/kibooz-app/badge)](https://scorecard.dev/viewer/?uri=github.com/kiboozapp/kibooz-app)
 
----
+[![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![Language](https://img.shields.io/badge/Language-Kotlin-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Min SDK](https://img.shields.io/badge/Min%20SDK-24-orange)](https://developer.android.com/about/dashboards)
+[![Target SDK](https://img.shields.io/badge/Target%20SDK-35-blue)](https://developer.android.com/about/versions/15)
+[![Gradle](https://img.shields.io/badge/Gradle-8.14-02303A?logo=gradle&logoColor=white)](https://gradle.org)
+[![JDK](https://img.shields.io/badge/JDK-17-ED8B00?logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
+
+Kibooz adalah aplikasi Android untuk jenjang PAUD dan TK. Aplikasi ini menghubungkan guru dengan wali murid. Fitur intinya mencakup pemantauan kondisi emosional anak dan pembiasaan pilah sampah berhadiah poin.
+
+APK rilis terbaru ada di halaman [Releases](https://github.com/kiboozapp/kibooz-app/releases/latest). Servernya ada di repositori [kibooz-backend](https://github.com/kiboozapp/kibooz-backend).
 
 ## Daftar Isi
 
-- [Fitur Utama](#fitur-utama)
-  - [1. Autentikasi dan Onboarding](#1-autentikasi-dan-onboarding)
-  - [2. Portal Guru](#2-portal-guru)
-  - [3. Portal Wali Murid](#3-portal-wali-murid)
-  - [4. Pemindai Kamera](#4-pemindai-kamera)
-- [Arsitektur dan Teknologi](#arsitektur-dan-teknologi)
-- [Desain Sistem dan Visual](#desain-sistem-dan-visual)
-- [Struktur Direktori Proyek](#struktur-direktori-proyek)
-- [Panduan Instalasi dan Menjalankan](#panduan-instalasi-dan-menjalankan)
-- [Panduan Kolaborasi Git](#panduan-kolaborasi-git)
-  - [Aturan Berkas Gitignore](#aturan-berkas-gitignore)
-  - [Alur Kerja Branching dan Commit](#alur-kerja-branching-dan-commit)
-- [Lisensi dan Hak Cipta](#lisensi-dan-hak-cipta)
+- [Fitur](#fitur)
+- [Status](#status)
+- [Stack](#stack)
+- [Mulai Cepat](#mulai-cepat)
+- [Konfigurasi](#konfigurasi)
+- [Dokumentasi](#dokumentasi)
+- [Struktur Proyek](#struktur-proyek)
+- [Kontribusi dan Keamanan](#kontribusi-dan-keamanan)
+- [Lisensi](#lisensi)
 
----
+## Fitur
 
-## Fitur Utama
+| Peran | Layar utama |
+| :--- | :--- |
+| Semua | *Onboarding*, pilih peran, masuk, daftar, verifikasi email, ubah kata sandi, potong foto profil, hapus akun |
+| Guru | Dasbor, kelas dan peserta kelas, permintaan pindah kelas, video pembelajaran, forum diskusi, statistik mood, riwayat, profil |
+| Wali murid | Dasbor, tambah anak, ruang kelas, statistik pilah sampah, papan peringkat, riwayat aktivitas, panduan penanganan mood, profil wali dan siswa |
+| Guru dan wali murid | Chat teks, foto dan video |
+| Kamera | Pemindai mood dengan layar tinjau untuk guru, pemindai sampah dengan klaim poin |
 
-### 1. Autentikasi dan Onboarding
-- **Splash Screen:** Layar pembuka dengan maskot Kibooz.
-- **Carousel Onboarding:** Tiga slide pengenalan fitur utama dengan indikator titik dan tombol navigasi.
-- **Pemilihan Peran:** Pengguna memilih portal sebagai Guru atau Wali Murid sebelum masuk.
-- **Halaman Masuk:** Formulir login yang mengarahkan pengguna ke alur kerja masing-masing.
+## Status
 
----
+- Aplikasi memakai server `https://kibooz-api.syafahadyan.com/api/v1/`. Beberapa bagian tampilan masih memakai isi contoh.
+- Model pemindai mood dan sampah masih model pengganti, sehingga hasilnya bisa salah. Lihat [docs/MODEL_PLACEHOLDERS.md](docs/MODEL_PLACEHOLDERS.md). Pemindai terbuka pada build debug dan pada APK rilis di GitHub. Build rilis lain menutupnya.
+- AI pemindai berjalan di perangkat, bukan di server. Hasil pemindaian dikirim ke server tanpa foto.
+- APK rilis belum mendukung Google Sign-In. Gunakan masuk dengan email.
 
-### 2. Portal Guru
-- **Dashboard Guru:**
-  - Header profil ringkas dan menu drawer samping.
-  - Ringkasan mood harian siswa di kelas.
-  - Akses cepat daftar kelas, mata pelajaran, dan jadwal kegiatan.
-  - Bottom navigation bar terintegrasi.
-- **Ruang Kelas Guru:**
-  - Daftar kelas aktif beserta jumlah siswa.
-  - Kotak dialog tambah kelas baru.
-  - Pencarian dan filter kategori kelas.
-- **Detail dan Peserta Kelas:**
-  - Rincian mata pelajaran contoh (Seni, Bahasa, Sosial, Logika, Motorik, Agama).
-  - Daftar siswa lengkap dengan perolehan poin dan status emosional.
-- **Statistik Mood Siswa:**
-  - Grafik kustom dengan Android Canvas:
-    - Donut Mood Chart untuk proporsi emosi kelas.
-    - Weekly Line Chart untuk tren mingguan.
-    - Monthly Bar Chart untuk sebaran emosi bulanan.
-- **Fitur Pendukung:**
-  - Video pembelajaran untuk materi kelas.
-  - Forum diskusi antarpendidik.
-  - Pengaturan biodata dan profil guru.
+## Stack
 
----
+| Bagian | Pustaka atau alat |
+| :--- | :--- |
+| Bahasa dan build | Kotlin 2.0.21, Android Gradle Plugin 8.7.3, Gradle 8.14 (Kotlin DSL), JDK 17 |
+| Android | `minSdk` 24, `compileSdk` dan `targetSdk` 35 |
+| Tampilan | XML dengan ViewBinding, Material Components, ViewModel, *custom view* untuk grafik |
+| Jaringan | Retrofit, OkHttp, Moshi, WebSocket untuk chat |
+| Sesi | DataStore, dienkripsi dengan kunci Android Keystore |
+| Kamera dan AI | CameraX, TensorFlow Lite, ML Kit Face Detection |
+| Lainnya | osmdroid (peta), WorkManager (pengingat), Credential Manager (Google Sign-In) |
+| Pengujian | JUnit 4, MockWebServer, Kover |
 
-### 3. Portal Wali Murid
-- **Dashboard Wali:**
-  - Kartu pemantau mood anak hari ini.
-  - Informasi perolehan poin pilah sampah.
-  - Akses langsung menuju scanner kamera.
-- **Papan Peringkat:**
-  - Podium 3D juara 1, 2, dan 3 dengan avatar melingkar penuh.
-  - Lencana poin solid berkontras tinggi agar teks terbaca jelas.
-  - Daftar peringkat siswa lanjutan dalam kartu putih melengkung.
-- **Statistik Pilah Sampah:**
-  - Riwayat pemilahan kategori organik, anorganik, B3, dan daur ulang.
-  - Akumulasi poin reward anak.
-- **Panduan Mood:**
-  - Rekomendasi tindakan bagi orang tua saat anak mengalami emosi negatif.
-- **Manajemen Akun:**
-  - Halaman profil anak dan edit biodata siswa.
-  - Halaman profil wali murid.
+Versi tiap pustaka ada di [app/build.gradle.kts](app/build.gradle.kts). Token warna ada di [colors.xml](app/src/main/res/values/colors.xml).
 
----
+## Mulai Cepat
 
-### 4. Pemindai Kamera
-- **Scanner Mood Anak:** Viewfinder kamera dengan overlay pemandu deteksi ekspresi wajah.
-- **Scanner Pilah Sampah:** Viewfinder kamera dengan kotak deteksi objek dan kartu identifikasi jenis sampah.
+### Memasang APK
 
----
+1. Unduh `kibooz-app-<tag>.apk` dan berkas `.sha256` dari [Releases](https://github.com/kiboozapp/kibooz-app/releases/latest).
+2. Cocokkan berkasnya dengan `sha256sum -c kibooz-app-<tag>.apk.sha256`.
+3. Pasang di perangkat dengan Android 7.0 atau lebih baru. Hapus dulu build debug yang pernah dipasang, karena kunci tanda tangannya berbeda.
 
-## Arsitektur dan Teknologi
+APK rilis ditandatangani dengan sertifikat yang sidik jari SHA-256-nya `9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb`. Sidik jari itu bisa diperiksa dengan `apksigner verify --print-certs`.
 
-| Komponen | Spesifikasi / Pustaka | Keterangan |
-| :--- | :--- | :--- |
-| **Bahasa Pemrograman** | Kotlin 2.0 | Bahasa utama proyek |
-| **Arsitektur UI** | MVC dengan ViewBinding | Pengikatan tampilan tanpa `findViewById` |
-| **Komponen UI** | Material Design 3 (M3) | MaterialCardView, ShapeableImageView |
-| **Grafik Kustom** | Custom View 2D Canvas | DonutMoodChart, WeeklyLineChart, MonthlyBarChart |
-| **Navigasi** | Intent Stack dan Drawer | Navigasi antarlayar dan menu samping |
-| **Edge-to-Edge** | WindowInsetsCompat (`InsetsUtil`) | Penanganan area status bar dan navigation bar |
-| **Build Tool** | Gradle Kotlin DSL (`build.gradle.kts`) | Konfigurasi modular |
+### Menjalankan dari kode sumber
 
----
+Prasyaratnya Android Studio Ladybug (2024.2.1) atau lebih baru, JDK 17, dan perangkat atau emulator dengan API 24 ke atas.
 
-## Desain Sistem dan Visual
-
-Daftar token warna yang digunakan di seluruh aplikasi:
-
-| Token Warna | Nilai HEX | Penggunaan |
-| :--- | :---: | :--- |
-| **Primary Purple** | `#5D40B3` | Background utama, header, tombol aksi |
-| **Accent Orange** | `#FD9C27` | Lencana poin, aksen reward, highlight |
-| **Secondary Violet** | `#724AE2` | Gradasi kartu, balok juara 1 |
-| **Soft Lilac** | `#EFEBFF` | Latar kartu modul dan tag |
-| **Neutral White** | `#FFFFFF` | Latar bottom sheet dan teks kontras |
-| **Text Dark** | `#201A3F` | Teks judul pada latar terang |
-| **Text Subtitle** | `#756E8A` | Teks keterangan dan placeholder |
-
----
-
-## Struktur Direktori Proyek
-
-```text
-KiboozApp/
-├── gradle/                    # Wrapper binaries
-├── app/
-│   ├── build.gradle.kts       # Konfigurasi dependensi aplikasi
-│   ├── proguard-rules.pro     # Aturan R8 dan ProGuard
-│   └── src/
-│       ├── main/
-│       │   ├── AndroidManifest.xml
-│       │   ├── java/com/nthb/kibooz/
-│       │   │   ├── ui/
-│       │   │   │   ├── auth/          # Login dan RoleSelection
-│       │   │   │   ├── camera/        # CameraScanMood dan CameraScanSampah
-│       │   │   │   ├── common/        # Donut, Bar, dan Line Chart Views
-│       │   │   │   ├── guru/          # Ruang Kelas, Detail, Mood, Profil
-│       │   │   │   ├── onboarding/    # Carousel Onboarding dan Adapter
-│       │   │   │   ├── splash/        # Splash Screen
-│       │   │   │   └── wali/          # Dashboard Wali, Leaderboard, Sampah
-│       │   │   └── util/
-│       │   │       └── InsetsUtil.kt  # Helper Insets System Bar
-│       │   └── res/
-│       │       ├── drawable/          # Vektor ikon, shape, dan background
-│       │       ├── layout/            # Layout XML seluruh activity
-│       │       ├── values/            # colors.xml, strings.xml, themes.xml
-│       │       └── mipmap/            # Ikon launcher Kibooz
-├── .gitignore                 # Aturan pengabaian berkas bersama
-├── build.gradle.kts           # Root gradle script
-├── gradle.properties          # Pengaturan JVM gradle
-├── gradlew / gradlew.bat      # Script eksekusi wrapper
-└── settings.gradle.kts        # Pengaturan repositori dan modul
+```bash
+git clone https://github.com/kiboozapp/kibooz-app.git
+cd kibooz-app
+sh ./gradlew assembleDebug
+sh ./gradlew testDebugUnitTest
 ```
 
----
+Di Android Studio, pilih **Open**, tentukan folder hasil clone, tunggu sinkronisasi Gradle, lalu tekan **Run**. Android Studio membuat `local.properties` secara otomatis.
 
-## Panduan Instalasi dan Menjalankan
+## Konfigurasi
 
-### Prasyarat
-1. Android Studio Hedgehog (2023.1.1) atau versi lebih baru.
-2. JDK 17.
-3. Perangkat fisik atau emulator dengan Android 7.0 (API 24) ke atas.
+Pengaturan diberikan sebagai properti Gradle, misalnya `-Pkibooz.apiBaseUrl=http://10.0.2.2:8080/api/v1/`.
 
-### Langkah Setup
-1. Clone repositori ini:
-   ```bash
-   git clone https://github.com/kiboozapp/kibooz-app.git
-   cd kibooz-app
-   ```
-2. Buka Android Studio.
-3. Pilih menu **Open**, lalu tentukan direktori `KiboozApp`.
-4. Tunggu sinkronisasi Gradle selesai. Android Studio membuat file `local.properties` secara otomatis.
-5. Sambungkan perangkat Android atau aktifkan emulator.
-6. Tekan tombol **Run** (`Shift + F10`).
+| Properti | Bawaan | Fungsi |
+| :--- | :--- | :--- |
+| `kibooz.apiBaseUrl` | `https://kibooz-api.syafahadyan.com/api/v1/` | Alamat API. Build selain debug wajib memakai `https://`. Build debug hanya boleh memakai `http://` ke `10.0.2.2`, yaitu mesin pengembang dilihat dari emulator |
+| `kibooz.allowPlaceholderModels` | `false` | Membuka pemindai pada build rilis walaupun modelnya masih pengganti |
+| `kibooz.googleWebClientId` | kosong | Web Client ID OAuth untuk Google Sign-In. Tanpa nilai ini Google Sign-In tidak tersedia |
 
-Secara bawaan aplikasi memakai server `https://kibooz-api.syafahadyan.com/api/v1/`. Untuk memakai server lain, beri properti Gradle `-Pkibooz.apiBaseUrl=...`. Build selain debug wajib memakai alamat `https://`, dan build debug hanya boleh memakai `http://` ke `10.0.2.2` (alamat mesin pengembang dari emulator). Pengujian unit dijalankan dengan `./gradlew testDebugUnitTest`.
+## Dokumentasi
 
----
+| Dokumen | Isi |
+| :--- | :--- |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Cara mengirim perubahan, aturan branch, commit dan pull request |
+| [SECURITY.md](SECURITY.md) | Cara melaporkan kerentanan |
+| [SUPPORT.md](SUPPORT.md) | Tempat bertanya |
+| [GOVERNANCE.md](GOVERNANCE.md) | Cara keputusan diambil |
+| [MAINTAINERS.md](MAINTAINERS.md) | Pengelola repositori |
+| [ROADMAP.md](ROADMAP.md) | Rencana pengembangan |
+| [ACCESSIBILITY.md](ACCESSIBILITY.md) | Keadaan aksesibilitas aplikasi |
+| [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) | Aturan perilaku |
+| [CHANGELOG.md](CHANGELOG.md) | Perubahan tiap rilis |
+| [docs/ci-cd.md](docs/ci-cd.md) | Workflow, pengecekan wajib dan alur rilis |
+| [docs/MODEL_PLACEHOLDERS.md](docs/MODEL_PLACEHOLDERS.md) | Model pengganti, keterbatasannya dan cara menggantinya |
+| [docs/prd_and_roadmap](docs/prd_and_roadmap/00_INDEX.md) | Kebutuhan produk dan rencana kerja |
 
-## Panduan Kolaborasi Git
+## Struktur Proyek
 
-### Aturan Berkas Gitignore
+```text
+app/
+├── build.gradle.kts
+└── src/
+    ├── main/
+    │   ├── AndroidManifest.xml
+    │   ├── assets/                 # model TFLite, label dan lisensinya
+    │   ├── java/com/nthb/kibooz/
+    │   │   ├── data/               # remote, repository, session
+    │   │   ├── ml/                 # pengklasifikasi mood dan sampah
+    │   │   ├── model/
+    │   │   ├── notification/
+    │   │   ├── ui/                 # account, auth, camera, chat, common, guru,
+    │   │   │                       # location, onboarding, splash, wali
+    │   │   └── util/
+    │   └── res/
+    └── test/                       # unit test
+docs/                               # dokumentasi
+.github/workflows/                  # CI dan rilis
+```
 
-Berkas `.gitignore` memastikan repositori tetap bersih:
-- Berkas `local.properties` tidak di-commit karena berisi path lokal SDK setiap komputer.
-- Direktori `.gradle/`, `.kotlin/`, dan seluruh output `build/` diabaikan otomatis.
-- File konfigurasi workspace IDE dan file biner `.apk` tidak dimasukkan ke dalam commit.
+## Kontribusi dan Keamanan
 
-### Alur Kerja Branching dan Commit
+Baca [CONTRIBUTING.md](CONTRIBUTING.md) sebelum membuka pull request. Perubahan perilaku sebaiknya disertai test. Laporkan kerentanan lewat [pelaporan privat](https://github.com/kiboozapp/kibooz-app/security/advisories/new), bukan lewat issue publik.
 
-Gunakan alur berikut untuk kolaborasi:
-
-1. Buat branch baru dari `main`:
-   ```bash
-   git checkout -b feat/nama-fitur
-   ```
-2. Tulis pesan commit secara ringkas dan deskriptif:
-   - `feat: tambah filter pencarian ruang kelas`
-   - `fix: perbaiki batas avatar leaderboard`
-   - `docs: perbarui panduan instalasi`
-3. Unggah branch ke remote:
-   ```bash
-   git push origin feat/nama-fitur
-   ```
-4. Buka Pull Request di GitHub untuk ditinjau bersama sebelum digabung ke `main`.
-
----
-
-## Lisensi dan Hak Cipta
+## Lisensi
 
 Proyek ini dikembangkan untuk keperluan akademik mata kuliah Pengembangan Aplikasi Perangkat Bergerak (PAPB). Hak cipta desain antarmuka, aset visual, dan maskot sepenuhnya dimiliki oleh Tim Nexus (Nexus Project).
 
