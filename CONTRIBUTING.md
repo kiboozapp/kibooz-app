@@ -23,6 +23,7 @@ Merge commit dengan pesan `Merge branch 'main' into <branch>` dan merge commit b
 - Aturan akses layar ditentukan oleh paket dan nama kelas di `SessionAccess.kt`. Perbarui aturan dan testnya pada pull request yang memindahkan layar.
 - Warna tetap berasal dari `colors.xml` dan teks dari `strings.xml`.
 - Langkah memindahkan satu layar dan daftar komponen bersama ada di [docs/compose-guide.md](docs/compose-guide.md).
+- Perubahan layar diuji di ponsel asli sebelum digabung. Caranya ada di [docs/phone-testing.md](docs/phone-testing.md).
 
 ## Menjalankan unit test
 
