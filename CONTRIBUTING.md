@@ -22,6 +22,7 @@ Merge commit dengan pesan `Merge branch 'main' into <branch>` dan merge commit b
 - Layar yang dipindahkan ke Compose diletakkan di paket fiturnya di bawah `ui`, yaitu `onboarding`, `splash`, `auth`, `account`, `profile`, `dashboard`, `stats`, `classroom`, `chat`, `scan` atau `location`.
 - Aturan akses layar ditentukan oleh paket dan nama kelas di `SessionAccess.kt`. Perbarui aturan dan testnya pada pull request yang memindahkan layar.
 - Warna tetap berasal dari `colors.xml` dan teks dari `strings.xml`.
+- Langkah memindahkan satu layar dan daftar komponen bersama ada di [docs/compose-guide.md](docs/compose-guide.md).
 
 ## Menjalankan unit test
 
