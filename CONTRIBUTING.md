@@ -42,6 +42,7 @@ Perubahan perilaku sebaiknya disertai test. Perbaikan bug sebaiknya disertai tes
 - Pasang satu label dari yang sudah ada di repositori, misalnya `bug` untuk perbaikan, `enhancement` untuk fitur atau peningkatan, `documentation` untuk perubahan dokumentasi saja dan `accessibility` untuk aksesibilitas.
 - Jadikan diri sendiri sebagai assignee.
 - Pull request boleh meminta `ArmJour`, `ValentinusMarvel`, `SyafaHadyan`, `FhmiSddq` atau `RozdanHanyv` sebagai reviewer.
+- Persetujuan review tidak wajib. Pull request yang dibuka oleh code owner tidak perlu direview oleh code owner lain, dan code owner itu boleh menggabungkannya sendiri setelah semua syarat di bagian "Sebelum pull request digabung" terpenuhi. Penjelasan lengkapnya ada di [docs/review.md](docs/review.md).
 
 ## Pengecekan otomatis
 
@@ -63,6 +64,7 @@ Pull request digabung setelah semua pengecekan lulus, branch sudah mutakhir terh
 - Jika sebuah komentar menurutmu keliru, tidak berlaku, atau membahas kode yang tidak kamu ubah, tulis alasannya di thread itu dan sebut maintainer sebelum menutupnya. Jangan menutup thread tanpa perbaikan atau alasan.
 - Ruleset `main` hanya mengizinkan merge setelah semua thread review diselesaikan, tetapi tidak menilai apakah perbaikannya benar. Bagian itu menjadi tanggung jawab penulis dan reviewer.
 - Setelah setiap push, cek lagi daftar pengecekan dan komentar, karena bot bisa menambahkan komentar baru pada commit terbaru.
+- Cara membaca komentar CodeRabbit, DeepSource dan Codecov serta langkah menanganinya ada di [docs/review.md](docs/review.md).
 
 ## Melaporkan masalah
 
