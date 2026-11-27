@@ -52,6 +52,17 @@ Workflow di pull request dari fork menunggu persetujuan maintainer sebelum berja
 
 Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahkannya, jalankan ulang pengecekan "PR format" dari tab Checks. Menjalankan ulang memerlukan izin menulis di repositori. Tanpa izin itu, minta maintainer menjalankannya, atau ubah isi pull request agar pengecekan berjalan lagi.
 
+## Sebelum pull request digabung
+
+Pull request digabung setelah semua pengecekan lulus, branch sudah mutakhir terhadap `main` dan semua komentar review sudah ditangani.
+
+- Semua pengecekan harus lulus. Pengecekan wajib memblokir merge selama gagal atau belum selesai, seperti dijelaskan di atas. Pengecekan yang tidak wajib, seperti DeepSource, tidak memblokir merge, tetapi temuan yang berasal dari perubahanmu tetap diperbaiki.
+- Perbaiki pengecekan yang gagal dengan commit baru dan jangan dilewati. Baca log pengecekan itu dulu supaya penyebabnya jelas. Jalankan ulang hanya jika kegagalannya bukan berasal dari kode, misalnya runner GitHub yang mati atau pengecekan "PR format" setelah kamu memperbaiki label, assignee atau isi pull request. Kasus lain dijelaskan di [docs/ci-cd.md](docs/ci-cd.md).
+- Tangani semua komentar review, baik dari reviewer maupun dari bot seperti CodeRabbit dan DeepSource. Menangani berarti masalahnya diperbaiki di kode atau dokumen, lalu perbaikannya di-push. Tombol "Resolve conversation" hanya menutup thread dan tidak memperbaiki apa pun, jadi tekan setelah perbaikannya ada di branch.
+- Jika sebuah komentar menurutmu keliru, tidak berlaku, atau membahas kode yang tidak kamu ubah, tulis alasannya di thread itu dan sebut maintainer sebelum menutupnya. Jangan menutup thread tanpa perbaikan atau alasan.
+- Ruleset `main` hanya mengizinkan merge setelah semua thread review diselesaikan, tetapi tidak menilai apakah perbaikannya benar. Bagian itu menjadi tanggung jawab penulis dan reviewer.
+- Setelah setiap push, cek lagi daftar pengecekan dan komentar, karena bot bisa menambahkan komentar baru pada commit terbaru.
+
 ## Melaporkan masalah
 
 Gunakan template issue untuk bug dan permintaan fitur. Masalah keamanan jangan dilaporkan sebagai issue publik. Kirim secara pribadi lewat [Report a vulnerability](https://github.com/kiboozapp/kibooz-app/security/advisories/new), seperti dijelaskan di [SECURITY.md](SECURITY.md).
