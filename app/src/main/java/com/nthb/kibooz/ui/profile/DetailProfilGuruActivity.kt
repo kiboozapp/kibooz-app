@@ -27,6 +27,7 @@ class DetailProfilGuruActivity : AppCompatActivity() {
     private var detail by mutableStateOf(GuruDetail())
     private var performance by mutableStateOf(GuruPerformance())
     private var statsJob: Job? = null
+    private var profileJob: Job? = null
     private var cachedClasses: List<ClassSummary> = emptyList()
     private var hasRenderedStats = false
 
@@ -64,7 +65,8 @@ class DetailProfilGuruActivity : AppCompatActivity() {
             )
         }
 
-        lifecycleScope.launch {
+        profileJob?.cancel()
+        profileJob = lifecycleScope.launch {
             if (sessionUser == null) {
                 val stored = appContainer.sessionStore.readSession()?.user
                 if (stored != null) {
@@ -118,7 +120,13 @@ class DetailProfilGuruActivity : AppCompatActivity() {
             if (targetId != null && (explicitClassId != null || appContainer.guruClassSelection.current(userId) == null)) {
                 appContainer.guruClassSelection.select(userId, targetId)
             }
-            performance = performance.copy(classes = cachedClasses, selectedClassId = targetId)
+            // Grafik dan catatan milik kelas sebelumnya tidak boleh tampil di bawah label kelas yang baru
+            val changedClass = performance.selectedClassId != null && performance.selectedClassId != targetId
+            performance = if (changedClass) {
+                GuruPerformance(classes = cachedClasses, selectedClassId = targetId)
+            } else {
+                performance.copy(classes = cachedClasses, selectedClassId = targetId)
+            }
 
             val result = appContainer.guruRepository.dashboard(targetId)
             if (result is ApiResult.Success) {
