@@ -46,4 +46,8 @@
     <color name="kibooz_red_danger">#DC2626</color>
     <color name="kibooz_green_success">#16A34A</color>
     <color name="kibooz_nav_bar_gray">#E2E2E8</color>
+
+    <!-- Kartu gangguan server -->
+    <color name="kibooz_outage_surface">#FFF8E7</color>
+    <color name="kibooz_outage_border">#FFE0B2</color>
 </resources>

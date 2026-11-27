@@ -65,7 +65,7 @@ APK rilis terbaru ada di halaman [Releases](https://github.com/kiboozapp/kibooz-
 | :--- | :--- |
 | Bahasa dan build | Kotlin 2.0.21, Android Gradle Plugin 8.7.3, Gradle 8.14 (Kotlin DSL), JDK 17 |
 | Android | `minSdk` 24, `compileSdk` dan `targetSdk` 35 |
-| Tampilan | XML dengan ViewBinding, Material Components, ViewModel, *custom view* untuk grafik |
+| Tampilan | XML dengan ViewBinding, Material Components, ViewModel, *custom view* untuk grafik. Layar dipindahkan satu per satu ke Jetpack Compose |
 | Jaringan | Retrofit, OkHttp, Moshi, WebSocket untuk chat |
 | Sesi | DataStore, token dienkripsi dengan kunci Android Keystore |
 | Kamera dan AI | CameraX, TensorFlow Lite, ML Kit Face Detection |
@@ -149,8 +149,8 @@ app/
     │   │   ├── ml/                 # pengklasifikasi mood dan sampah
     │   │   ├── model/
     │   │   ├── notification/
-    │   │   ├── ui/                 # account, auth, camera, chat, common, guru,
-    │   │   │                       # location, onboarding, splash, wali
+    │   │   ├── ui/                 # account, auth, camera, chat, common, components,
+    │   │   │                       # guru, location, onboarding, splash, theme, wali
     │   │   └── util/
     │   └── res/
     └── test/                       # unit test
