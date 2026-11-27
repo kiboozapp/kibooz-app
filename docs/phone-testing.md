@@ -20,7 +20,7 @@ Setiap pull request menghasilkan APK debug dari job Debug build di workflow Andr
 
 Id run ada di tautan pengecekan "Android CI" pada pull request, atau dari `gh run list --repo kiboozapp/kibooz-app --workflow android-ci.yaml --branch <nama branch>`.
 
-Jika perubahannya memindahkan layar ke Compose, ambil dulu tangkapan layar versi lama dari ponsel yang sama, karena menghapus aplikasi menghilangkan versi itu. Daftar yang dibandingkan ada di bagian "Yang diperiksa".
+Jika perubahannya memindahkan layar ke Compose, ambil dulu tangkapan layar versi lama dari ponsel yang sama. Catat juga tujuan tiap tombol dan hasil tombol kembali, karena tangkapan layar tidak menunjukkan navigasi dan menghapus aplikasi menghilangkan versi lama. Daftar yang dibandingkan ada di bagian "Yang diperiksa".
 
 Setiap build CI memakai kunci penandatanganan baru. Karena itu versi yang sudah terpasang harus dihapus lebih dulu. Tanpa itu, `adb install` menolak pemasangan di atasnya. Menghapus aplikasi juga menghapus data lokalnya, termasuk sesi masuk, jadi masuk lagi setelah memasang. Lewati langkah hapus jika belum ada versi yang terpasang.
 
@@ -50,7 +50,7 @@ Untuk layar yang dipindahkan ke Compose, pakai tangkapan layar versi XML yang di
 3. Isian yang salah menampilkan pesan galat, dan pesan itu hilang setelah isian diperbaiki.
 4. Putar layar pada layar yang boleh berputar. Isian yang sudah diketik tidak boleh hilang. Beberapa layar memang dikunci ke potret di `AndroidManifest.xml`.
 5. Keyboard tidak menutupi kolom isian atau tombol, dan bilah gestur tidak menutupi tombol bawah.
-6. Tombol kembali dan tujuan navigasi sama dengan versi lama.
+6. Tombol kembali dan tujuan navigasi sama dengan catatan versi lama.
 7. Ukuran huruf besar dari pengaturan sistem tidak merusak tata letak.
 8. Pembaca layar membaca tombol dan foto yang bisa diketuk dengan deskripsi yang benar.
 
