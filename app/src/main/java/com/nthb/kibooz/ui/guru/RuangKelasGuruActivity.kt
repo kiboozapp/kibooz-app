@@ -142,13 +142,11 @@ class RuangKelasGuruActivity : AppCompatActivity() {
     }
 
     private fun render(state: KelolaKelasState) {
-        val classes = state.classes
-        val noData = classes == null
-
+        val noData = state.classes == null
         binding.tvDaftarJudul.text =
             if (noData) getString(R.string.kelola_judul_polos) else getString(R.string.kelola_judul_daftar, state.activeTotal)
         binding.btnTambahKelas.isEnabled = !noData && !state.creating
-        binding.llCari.isVisible = !classes.isNullOrEmpty()
+        binding.llCari.isVisible = !state.classes.isNullOrEmpty()
 
         binding.llMemuat.isVisible = noData && state.loading && state.outage == null
         val failed = noData && !state.loading && state.loadError != null && state.outage == null
@@ -159,34 +157,41 @@ class RuangKelasGuruActivity : AppCompatActivity() {
 
         showCards(state)
         renderAddDialog(state)
-
-        state.notice?.let { notice ->
-            val args = if (notice.args.isNotEmpty() && notice.res in classNameNoticeResources) {
-                notice.args.mapIndexed { index, value ->
-                    if (index == 0) ClassNames.stemOrFallback(value, "ini") else value
-                }
-            } else {
-                notice.args
-            }
-            val message = when (args.size) {
-                0 -> getString(notice.res)
-                1 -> getString(notice.res, args[0])
-                else -> getString(notice.res, args[0], args[1])
-            }
-            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
-            viewModel.noticeShown()
-        }
+        renderNotice(state.notice)
 
         if (state.createDone) {
             addDialog?.dismiss()
             viewModel.createHandled()
         }
 
-        // Muat ulang yang gagal saat daftar lama masih tampil dijelaskan lewat pesan singkat, bukan layar penuh
+        renderReloadError(noData, state)
+    }
+
+    private fun renderNotice(notice: KelolaNotice?) {
+        if (notice == null) return
+        val args = if (notice.args.isNotEmpty() && notice.res in classNameNoticeResources) {
+            notice.args.mapIndexed { index, value ->
+                if (index == 0) ClassNames.stemOrFallback(value, "ini") else value
+            }
+        } else {
+            notice.args
+        }
+        val message = when (args.size) {
+            0 -> getString(notice.res)
+            1 -> getString(notice.res, args[0])
+            else -> getString(notice.res, args[0], args[1])
+        }
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        viewModel.noticeShown()
+    }
+
+    private fun renderReloadError(noData: Boolean, state: KelolaKelasState) {
         val loadError = state.loadError
         if (loadError == null) {
             announcedLoadError = null
-        } else if (!noData && state.outage == null && loadError != announcedLoadError) {
+            return
+        }
+        if (!noData && state.outage == null && loadError != announcedLoadError) {
             announcedLoadError = loadError
             Snackbar.make(binding.root, loadError, Snackbar.LENGTH_LONG)
                 .setAnchorView(binding.clBottomNavigation)

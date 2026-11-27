@@ -184,21 +184,30 @@ class PesertaKelasViewModel(
             }
         }
         val finalId = resolvedId?.takeIf { it.isNotBlank() } ?: return null
-        if (resolvedName.isBlank() && authRepository != null) {
-            return lookupMissingClassMeta(finalId, teacherRole)
+        if (authRepository != null) {
+            return lookupClassMeta(finalId, teacherRole, resolvedName, resolvedArchived)
         }
         return ResolvedClassContext(finalId, resolvedName, resolvedArchived)
     }
 
-    private suspend fun lookupMissingClassMeta(classId: String, teacherRole: Boolean): ResolvedClassContext {
+    private suspend fun lookupClassMeta(
+        classId: String,
+        teacherRole: Boolean,
+        fallbackName: String,
+        fallbackArchived: Boolean
+    ): ResolvedClassContext {
         if (teacherRole) {
             val match = (classRepository.teacherClasses() as? ApiResult.Success)?.data?.firstOrNull { it.id == classId }
-            if (match != null) return ResolvedClassContext(classId, match.name, match.archived)
+            if (match != null) {
+                return ResolvedClassContext(classId, fallbackName.ifBlank { match.name }, match.archived)
+            }
         } else {
             val match = (classRepository.children() as? ApiResult.Success)?.data?.firstOrNull { it.classId == classId }
-            if (match != null) return ResolvedClassContext(classId, match.className, match.classArchivedAt != null)
+            if (match != null) {
+                return ResolvedClassContext(classId, fallbackName.ifBlank { match.className }, match.classArchivedAt != null)
+            }
         }
-        return ResolvedClassContext(classId, "", false)
+        return ResolvedClassContext(classId, fallbackName, fallbackArchived)
     }
 
     private suspend fun loadRosterStudents(classId: String, useLeaderboard: Boolean): ApiResult<List<ClassStudent>> {

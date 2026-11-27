@@ -71,40 +71,47 @@ class PesertaKelasViewModelTest {
         viewModel.uiState.first { it.busyStudentId == null && it.actionMessage != null }
     }
 
+    private fun rosterEnvelope(vararg items: String): String =
+        """{"success":true,"data":{"page":1,"limit":50,"total":${items.size},"students":[${items.joinToString(",")}]}}"""
+
+    private fun studentItem(
+        id: String,
+        fullName: String,
+        nisn: String,
+        nisnVerified: Boolean = false,
+        nisnNeedsUpdate: Boolean = false,
+        points: Int = 100,
+        rank: Int = 1,
+        mood: String? = null
+    ): String {
+        val moodJson = mood?.let { "\"$it\"" } ?: "null"
+        return """{"id":"$id","fullName":"$fullName","nisn":"$nisn","nisnVerified":$nisnVerified,"nisnNeedsUpdate":$nisnNeedsUpdate,"avatarUrl":null,"currentPoints":$points,"seasonPoints":$points,"classRank":$rank,"todayMood":$moodJson}"""
+    }
+
+    private fun classesEnvelope(): String =
+        """{"success":true,"data":{"page":1,"limit":50,"total":1,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME","gradeLevel":"TK B","schoolName":"TK Kibooz","academicYear":"2026/2027","joinCode":"MTH123","joinOpen":true,"totalStudents":1,"createdAt":"2026-08-01T00:00:00Z"}]}}"""
+
+    private companion object {
+        const val CLASS_1 = "class-1"
+        const val CLASS_MATAHARI_ID = "c-matahari"
+        const val CLASS_MATAHARI_NAME = "Kelas Matahari"
+        const val TEACHER_SITI = "Ibu Siti Aminah, S.Pd"
+        const val CHILD_ADIT = "Adit Pratama"
+        const val URL_SITI = "https://cdn/siti.png"
+        const val URL_SELF = "https://cdn/self.png"
+        const val NISN_ADIT = "0012345671"
+        const val NISN_BELLA = "0012345672"
+        const val ID_S1 = "s1"
+        const val ID_S2 = "s2"
+        const val MOOD_SENANG = "SENANG"
+    }
+
     @Test
     fun `loadPeserta successfully populates students from class repository`() {
-        val json = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 2,
-                "students": [
-                  {
-                    "id": "6f1c2a52-0d4b-4a7e-9c11-3b8e5d2f0a01",
-                    "fullName": "Amelia Siti Zahra",
-                    "nisn": "3124567890",
-                    "avatarUrl": null,
-                    "currentPoints": 150,
-                    "seasonPoints": 150,
-                    "classRank": 1,
-                    "todayMood": "SENANG"
-                  },
-                  {
-                    "id": "6f1c2a52-0d4b-4a7e-9c11-3b8e5d2f0a02",
-                    "fullName": "Farhan Al-Fatih",
-                    "nisn": "3124567891",
-                    "avatarUrl": null,
-                    "currentPoints": 120,
-                    "seasonPoints": 120,
-                    "classRank": 2,
-                    "todayMood": "SEDIH"
-                  }
-                ]
-              }
-            }
-        """.trimIndent()
+        val json = rosterEnvelope(
+            studentItem("6f1c2a52-0d4b-4a7e-9c11-3b8e5d2f0a01", "Amelia Siti Zahra", "3124567890", points = 150, rank = 1, mood = MOOD_SENANG),
+            studentItem("6f1c2a52-0d4b-4a7e-9c11-3b8e5d2f0a02", "Farhan Al-Fatih", "3124567891", points = 120, rank = 2, mood = "SEDIH")
+        )
         server.enqueue(jsonResponse(json))
 
         val viewModel = PesertaKelasViewModel(classRepository)
@@ -137,41 +144,21 @@ class PesertaKelasViewModelTest {
 
     @Test
     fun `verifyStudentNisn updates student, reloads displaced peers, and emits displaced message`() {
-        val initialRoster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 2,
-                "students": [
-                  {"id":"s1","fullName":"Bella Saphira","nisn":"0012345672","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":10,"seasonPoints":10,"classRank":1,"todayMood":"SENANG"},
-                  {"id":"s2","fullName":"Dimas Anggara","nisn":"0012345672","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":5,"seasonPoints":5,"classRank":2,"todayMood":null}
-                ]
-              }
-            }
-        """.trimIndent()
-        val refreshedRoster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 2,
-                "students": [
-                  {"id":"s1","fullName":"Bella Saphira","nisn":"0012345672","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":10,"seasonPoints":10,"classRank":1,"todayMood":"SENANG"},
-                  {"id":"s2","fullName":"Dimas Anggara","nisn":"","nisnVerified":false,"nisnNeedsUpdate":true,"avatarUrl":null,"currentPoints":5,"seasonPoints":5,"classRank":2,"todayMood":null}
-                ]
-              }
-            }
-        """.trimIndent()
+        val initialRoster = rosterEnvelope(
+            studentItem(ID_S1, "Bella Saphira", NISN_BELLA, points = 10, rank = 1, mood = MOOD_SENANG),
+            studentItem(ID_S2, "Dimas Anggara", NISN_BELLA, points = 5, rank = 2)
+        )
+        val refreshedRoster = rosterEnvelope(
+            studentItem(ID_S1, "Bella Saphira", NISN_BELLA, nisnVerified = true, points = 10, rank = 1, mood = MOOD_SENANG),
+            studentItem(ID_S2, "Dimas Anggara", "", nisnNeedsUpdate = true, points = 5, rank = 2)
+        )
 
         server.enqueue(jsonResponse(initialRoster))
         server.enqueue(jsonResponse("""{"success":true,"data":{"nisnVerified":true,"displaced":1}}"""))
         server.enqueue(jsonResponse(refreshedRoster))
 
         val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
-        viewModel.loadPeserta(initialClassId = "class-1", defaultClassName = "Kelas A")
+        viewModel.loadPeserta(initialClassId = CLASS_1, defaultClassName = "Kelas A")
 
         val initialState = settled(viewModel)
         assertTrue(initialState.isTeacher)
@@ -190,25 +177,15 @@ class PesertaKelasViewModelTest {
 
     @Test
     fun `unverifyStudentNisn clears verified flag and shows confirmation message`() {
-        val roster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 1,
-                "students": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"}
-                ]
-              }
-            }
-        """.trimIndent()
+        val roster = rosterEnvelope(
+            studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true, mood = MOOD_SENANG)
+        )
 
         server.enqueue(jsonResponse(roster))
         server.enqueue(jsonResponse("""{"success":true,"data":{"nisnVerified":false,"displaced":0}}"""))
 
         val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
-        viewModel.loadPeserta(initialClassId = "class-1")
+        viewModel.loadPeserta(initialClassId = CLASS_1)
         val loaded = settled(viewModel)
 
         viewModel.unverifyStudentNisn(loaded.students[0])
@@ -216,32 +193,22 @@ class PesertaKelasViewModelTest {
         val updated = actionSettled(viewModel)
         assertFalse(updated.students[0].nisnVerified)
         assertEquals(R.string.peserta_nisn_sukses_batal, updated.actionMessage?.resId)
-        assertEquals("Adit Pratama", updated.actionMessage?.studentName)
+        assertEquals(CHILD_ADIT, updated.actionMessage?.studentName)
     }
 
     @Test
     fun `verifyStudentNisn handles NISN_ALREADY_REGISTERED, CLASS_ARCHIVED, and blank NISN guard`() {
-        val roster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 2,
-                "students": [
-                  {"id":"s1","fullName":"Bella","nisn":"0012345672","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":10,"seasonPoints":10,"classRank":1,"todayMood":null},
-                  {"id":"s2","fullName":"Dimas","nisn":"","nisnVerified":false,"nisnNeedsUpdate":true,"avatarUrl":null,"currentPoints":0,"seasonPoints":0,"classRank":2,"todayMood":null}
-                ]
-              }
-            }
-        """.trimIndent()
+        val roster = rosterEnvelope(
+            studentItem(ID_S1, "Bella", NISN_BELLA, points = 10, rank = 1),
+            studentItem(ID_S2, "Dimas", "", nisnNeedsUpdate = true, points = 0, rank = 2)
+        )
 
         server.enqueue(jsonResponse(roster))
         server.enqueue(jsonResponse(failureJson("NISN_ALREADY_REGISTERED"), 409))
         server.enqueue(jsonResponse(failureJson("CLASS_ARCHIVED"), 409))
 
         val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
-        viewModel.loadPeserta(initialClassId = "class-1")
+        viewModel.loadPeserta(initialClassId = CLASS_1)
         val loaded = settled(viewModel)
 
         // Siswa dengan NISN kosong langsung ditahan tanpa request ke server
@@ -263,26 +230,16 @@ class PesertaKelasViewModelTest {
 
     @Test
     fun `removeStudent deletes student from list and emits confirmation message`() {
-        val roster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 2,
-                "students": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"},
-                  {"id":"s2","fullName":"Cahya Putra","nisn":"0012345673","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":80,"seasonPoints":80,"classRank":2,"todayMood":null}
-                ]
-              }
-            }
-        """.trimIndent()
+        val roster = rosterEnvelope(
+            studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true, mood = MOOD_SENANG),
+            studentItem(ID_S2, "Cahya Putra", "0012345673", points = 80, rank = 2)
+        )
 
         server.enqueue(jsonResponse(roster))
         server.enqueue(jsonResponse("""{"success":true,"message":"Student removed","data":null}"""))
 
         val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
-        viewModel.loadPeserta(initialClassId = "class-1")
+        viewModel.loadPeserta(initialClassId = CLASS_1)
         val loaded = settled(viewModel)
         assertEquals(2, loaded.students.size)
 
@@ -290,40 +247,20 @@ class PesertaKelasViewModelTest {
 
         val afterRemove = actionSettled(viewModel)
         assertEquals(1, afterRemove.students.size)
-        assertEquals("s1", afterRemove.students.first().id)
+        assertEquals(ID_S1, afterRemove.students.first().id)
         assertEquals(R.string.peserta_keluarkan_sukses, afterRemove.actionMessage?.resId)
         assertEquals("Cahya Putra", afterRemove.actionMessage?.studentName)
     }
 
     @Test
     fun `removeStudent refreshes roster on STUDENT_NOT_FOUND and locks on CLASS_ARCHIVED`() {
-        val initialRoster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 2,
-                "students": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":null},
-                  {"id":"s2","fullName":"Bella","nisn":"0012345672","nisnVerified":false,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":80,"seasonPoints":80,"classRank":2,"todayMood":null}
-                ]
-              }
-            }
-        """.trimIndent()
-        val updatedRoster = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 1,
-                "students": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":null}
-                ]
-              }
-            }
-        """.trimIndent()
+        val initialRoster = rosterEnvelope(
+            studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true),
+            studentItem(ID_S2, "Bella", NISN_BELLA, points = 80, rank = 2)
+        )
+        val updatedRoster = rosterEnvelope(
+            studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true)
+        )
 
         server.enqueue(jsonResponse(initialRoster))
         server.enqueue(jsonResponse(failureJson("STUDENT_NOT_FOUND"), 404))
@@ -331,7 +268,7 @@ class PesertaKelasViewModelTest {
         server.enqueue(jsonResponse(failureJson("CLASS_ARCHIVED"), 409))
 
         val viewModel = PesertaKelasViewModel(classRepository, classManagementRepository = managementRepository)
-        viewModel.loadPeserta(initialClassId = "class-1")
+        viewModel.loadPeserta(initialClassId = CLASS_1)
         val loaded = settled(viewModel)
 
         viewModel.removeStudent(loaded.students[1])
@@ -363,134 +300,79 @@ class PesertaKelasViewModelTest {
 
     @Test
     fun `loadPeserta resolves real rombel name and class teachers for Guru`() {
-        val classesJson = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 1,
-                "classes": [
-                  {"id":"c-matahari","name":"Kelas Matahari","gradeLevel":"TK B","schoolName":"TK Kibooz","academicYear":"2026/2027","joinCode":"MTH123","joinOpen":true,"totalStudents":1,"createdAt":"2026-08-01T00:00:00Z"}
-                ]
-              }
-            }
-        """.trimIndent()
-        val teachersJson = """
-            {
-              "success": true,
-              "data": {
-                "teachers": [
-                  {"id":"t2","userId":"u2","isSelf":false,"fullName":"Pak Budi","nip":null,"avatarUrl":null,"isOwner":false,"joinedAt":"2026-08-02T00:00:00Z"},
-                  {"id":"t1","userId":"u1","isSelf":true,"fullName":"Ibu Siti Aminah, S.Pd","nip":"123","avatarUrl":"https://cdn/siti.png","isOwner":true,"joinedAt":"2026-08-01T00:00:00Z"}
-                ]
-              }
-            }
-        """.trimIndent()
-        val rosterJson = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 1,
-                "students": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"}
-                ]
-              }
-            }
-        """.trimIndent()
+        val teachersJson = """{"success":true,"data":{"teachers":[{"id":"t2","userId":"u2","isSelf":false,"fullName":"Pak Budi","nip":null,"avatarUrl":null,"isOwner":false,"joinedAt":"2026-08-02T00:00:00Z"},{"id":"t1","userId":"u1","isSelf":true,"fullName":"$TEACHER_SITI","nip":"123","avatarUrl":"$URL_SITI","isOwner":true,"joinedAt":"2026-08-01T00:00:00Z"}]}}"""
+        val rosterJson = rosterEnvelope(studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true, mood = MOOD_SENANG))
 
-        server.enqueue(jsonResponse(classesJson))
+        server.enqueue(jsonResponse(classesEnvelope()))
         server.enqueue(jsonResponse(teachersJson))
         server.enqueue(jsonResponse(rosterJson))
 
-        val authRepo = signedInAuth(Role.GURU, "Ibu Siti Aminah, S.Pd", "https://cdn/self.png")
+        val authRepo = signedInAuth(Role.GURU, TEACHER_SITI, URL_SELF)
         val viewModel = PesertaKelasViewModel(
             classRepository = classRepository,
             authRepository = authRepo,
             classManagementRepository = managementRepository
         )
-        viewModel.loadPeserta(initialClassId = "c-matahari", defaultClassName = "")
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
 
         val state = settled(viewModel)
         assertTrue(state.isTeacher)
-        assertEquals("Kelas Matahari", state.className)
-        assertEquals("Ibu Siti Aminah, S.Pd, Pak Budi", state.teacherName)
-        assertEquals("https://cdn/siti.png", state.teacherAvatarUrl)
-        assertEquals("2 Guru Pengajar • Kelas Matahari", state.teacherRole)
+        assertEquals(CLASS_MATAHARI_NAME, state.className)
+        assertEquals("$TEACHER_SITI, Pak Budi", state.teacherName)
+        assertEquals(URL_SITI, state.teacherAvatarUrl)
+        assertEquals("2 Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
         assertEquals(2, state.teacherCount)
     }
 
     @Test
     fun `loadPeserta Guru falls back to session user name when teachers endpoint fails`() {
-        val rosterJson = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 1,
-                "students": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"}
-                ]
-              }
-            }
-        """.trimIndent()
+        val rosterJson = rosterEnvelope(studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true, mood = MOOD_SENANG))
 
+        server.enqueue(jsonResponse(classesEnvelope()))
         server.enqueue(MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"error"}"""))
         server.enqueue(jsonResponse(rosterJson))
 
-        val authRepo = signedInAuth(Role.GURU, "Ibu Siti Aminah, S.Pd", "https://cdn/self.png")
+        val authRepo = signedInAuth(Role.GURU, TEACHER_SITI, URL_SELF)
         val viewModel = PesertaKelasViewModel(
             classRepository = classRepository,
             authRepository = authRepo,
             classManagementRepository = managementRepository
         )
-        viewModel.loadPeserta(initialClassId = "c-matahari", defaultClassName = "Kelas Matahari")
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = CLASS_MATAHARI_NAME)
 
         val state = settled(viewModel)
-        assertEquals("Ibu Siti Aminah, S.Pd", state.teacherName)
-        assertEquals("https://cdn/self.png", state.teacherAvatarUrl)
-        assertEquals("Guru Pengajar • Kelas Matahari", state.teacherRole)
+        assertEquals(TEACHER_SITI, state.teacherName)
+        assertEquals(URL_SELF, state.teacherAvatarUrl)
+        assertEquals("Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
+    }
+
+    @Test
+    fun `loadPeserta resolves archived status even when display name was pre-supplied`() {
+        val archivedClassJson = """{"success":true,"data":{"page":1,"limit":50,"total":1,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME","gradeLevel":"TK B","schoolName":"TK Kibooz","academicYear":"2026/2027","joinCode":"MTH123","joinOpen":false,"totalStudents":1,"createdAt":"2026-08-01T00:00:00Z","archivedAt":"2026-10-01T00:00:00Z"}]}}"""
+        val rosterJson = rosterEnvelope(studentItem(ID_S1, CHILD_ADIT, NISN_ADIT, nisnVerified = true))
+
+        server.enqueue(jsonResponse(archivedClassJson))
+        server.enqueue(MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"err"}"""))
+        server.enqueue(jsonResponse(rosterJson))
+
+        val authRepo = signedInAuth(Role.GURU, TEACHER_SITI, URL_SELF)
+        val viewModel = PesertaKelasViewModel(
+            classRepository = classRepository,
+            authRepository = authRepo,
+            classManagementRepository = managementRepository
+        )
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = CLASS_MATAHARI_NAME)
+
+        val state = settled(viewModel)
+        assertTrue(state.classArchived)
+        assertEquals(CLASS_MATAHARI_NAME, state.className)
     }
 
     @Test
     fun `loadPeserta Wali resolves class teacher from chat contacts`() {
-        val childrenJson = """
-            {
-              "success": true,
-              "data": {
-                "children": [
-                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","avatarUrl":null,"classId":"c-matahari","className":"Kelas Matahari"}
-                ]
-              }
-            }
-        """.trimIndent()
-        val contactsJson = """
-            {
-              "success": true,
-              "data": {
-                "page": 1,
-                "limit": 50,
-                "total": 3,
-                "contacts": [
-                  {"id":"g-other","fullName":"Guru Kelas Lain","role":"GURU","avatarUrl":null,"deleted":false,"classes":[{"id":"c-bulan","name":"Kelas Bulan"}]},
-                  {"id":"w-self","fullName":"Bapak Hendra","role":"WALI","avatarUrl":null,"deleted":false,"classes":[{"id":"c-matahari","name":"Kelas Matahari"}]},
-                  {"id":"g-matahari","fullName":"Ibu Siti Aminah, S.Pd","role":"GURU","avatarUrl":"https://cdn/siti.png","deleted":false,"classes":[{"id":"c-matahari","name":"Kelas Matahari"}]}
-                ]
-              }
-            }
-        """.trimIndent()
-        val leaderboardJson = """
-            {
-              "success": true,
-              "data": {
-                "podium": [{"rank":1,"studentName":"Adit Pratama","points":120,"avatarUrl":null}],
-                "rankings": []
-              }
-            }
-        """.trimIndent()
+        val childrenJson = """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"}]}}"""
+        val contactsJson = """{"success":true,"data":{"page":1,"limit":50,"total":3,"contacts":[{"id":"g-other","fullName":"Guru Kelas Lain","role":"GURU","avatarUrl":null,"deleted":false,"classes":[{"id":"c-bulan","name":"Kelas Bulan"}]},{"id":"w-self","fullName":"Bapak Hendra","role":"WALI","avatarUrl":null,"deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]},{"id":"g-matahari","fullName":"$TEACHER_SITI","role":"GURU","avatarUrl":"$URL_SITI","deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]}]}}"""
+        val leaderboardJson = """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
 
         server.enqueue(jsonResponse(childrenJson))
         server.enqueue(jsonResponse(contactsJson))
@@ -504,14 +386,14 @@ class PesertaKelasViewModelTest {
             authRepository = authRepo,
             chatRepository = ChatRepository(client.create(ChatApi::class.java), client.moshi)
         )
-        viewModel.loadPeserta(initialClassId = "c-matahari", defaultClassName = "")
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
 
         val state = settled(viewModel)
         assertFalse(state.isTeacher)
-        assertEquals("Kelas Matahari", state.className)
-        assertEquals("Ibu Siti Aminah, S.Pd", state.teacherName)
-        assertEquals("https://cdn/siti.png", state.teacherAvatarUrl)
-        assertEquals("Guru Pengajar • Kelas Matahari", state.teacherRole)
+        assertEquals(CLASS_MATAHARI_NAME, state.className)
+        assertEquals(TEACHER_SITI, state.teacherName)
+        assertEquals(URL_SITI, state.teacherAvatarUrl)
+        assertEquals("Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
         assertEquals(1, state.students.size)
     }
 }

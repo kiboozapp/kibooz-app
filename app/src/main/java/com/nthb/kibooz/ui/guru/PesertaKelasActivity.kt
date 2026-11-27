@@ -65,13 +65,29 @@ class PesertaKelasActivity : AppCompatActivity() {
             ?: intent.getStringExtra("NAMA_KELAS")?.takeIf { it.isNotBlank() }
             ?: "Daftar Peserta"
         val classId = intent.getStringExtra("CLASS_ID")
+
+        val sessionUser = appContainer.authRepository.session.value?.user
+        val isTeacher = sessionUser?.role == com.nthb.kibooz.data.session.Role.GURU
+
+        prefillInitialUi(headerTitle, namaKelas, sessionUser, isTeacher)
+        setupMoveRequestsSection(classId, namaKelas, isTeacher)
+        setupListeners(headerTitle)
+        observeViewModel()
+
+        viewModel.loadPeserta(classId, namaKelas)
+    }
+
+    private fun prefillInitialUi(
+        headerTitle: String,
+        namaKelas: String,
+        sessionUser: com.nthb.kibooz.data.session.SessionUser?,
+        isTeacher: Boolean
+    ) {
         val initialTeacherName = intent.getStringExtra("TEACHER_NAME")?.takeIf { it.isNotBlank() }
         val initialTeacherAvatarUrl = intent.getStringExtra("TEACHER_AVATAR_URL")?.takeIf { it.isNotBlank() }
         binding.tvKelasTitle.text = headerTitle
 
-        val sessionUser = appContainer.authRepository.session.value?.user
-        val isTeacher = sessionUser?.role == com.nthb.kibooz.data.session.Role.GURU
-        val prefilledAvatar = initialTeacherAvatarUrl ?: if (isTeacher) sessionUser?.avatarUrl else null
+        val prefilledAvatar = initialTeacherAvatarUrl ?: sessionUser?.avatarUrl?.takeIf { isTeacher }
         loadedTeacherAvatarUrl = prefilledAvatar
         hasLoadedTeacherAvatar = true
         appContainer.avatarLoader.load(binding.ivTeacherAvatar, prefilledAvatar, R.drawable.img_avatar_guru)
@@ -80,17 +96,19 @@ class PesertaKelasActivity : AppCompatActivity() {
             ?: sessionUser?.fullName?.takeIf { isTeacher && it.isNotBlank() }
             ?: ClassTeachers.DEFAULT_TEACHER_LABEL
         binding.tvTeacherRole.text = ClassTeachers.formatSubtitle(emptyList(), namaKelas)
+    }
 
+    private fun setupMoveRequestsSection(classId: String?, namaKelas: String, isTeacher: Boolean) {
         val refreshPendingMoveCard: (String) -> Unit = { targetClassId ->
             lifecycleScope.launch {
                 val res = appContainer.moveRequestRepository.classMoveRequests(targetClassId)
                 if (res is com.nthb.kibooz.data.remote.ApiResult.Success) {
                     val count = res.data.size
                     if (count > 0) {
-                        binding.tvTitlePermintaanPindah.text = getString(com.nthb.kibooz.R.string.guru_pindah_cek_jumlah, count)
+                        binding.tvTitlePermintaanPindah.text = getString(R.string.guru_pindah_cek_jumlah, count)
                         binding.tvSubPermintaanPindah.text = "$count pengajuan pindah kelas menunggu persetujuan Anda"
                     } else {
-                        binding.tvTitlePermintaanPindah.text = getString(com.nthb.kibooz.R.string.guru_pindah_cek)
+                        binding.tvTitlePermintaanPindah.text = getString(R.string.guru_pindah_cek)
                         binding.tvSubPermintaanPindah.text = "Belum ada pengajuan pindah masuk yang menunggu"
                     }
                 }
@@ -114,11 +132,6 @@ class PesertaKelasActivity : AppCompatActivity() {
             }
             refreshPendingMoveCard(classId)
         }
-
-        setupListeners(headerTitle)
-        observeViewModel()
-
-        viewModel.loadPeserta(classId, namaKelas)
     }
 
     private fun observeViewModel() {
