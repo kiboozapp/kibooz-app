@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tampilkan_kata_sandi">Tampilkan kata sandi</string>
+    <string name="sembunyikan_kata_sandi">Sembunyikan kata sandi</string>
+</resources>
