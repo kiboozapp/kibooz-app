@@ -29,6 +29,7 @@ import com.nthb.kibooz.ui.wali.LeaderboardActivity
 import com.nthb.kibooz.ui.wali.ProfilSiswaActivity
 import com.nthb.kibooz.ui.wali.StatistikSampahActivity
 import com.nthb.kibooz.ui.wali.TambahAnakActivity
+import com.nthb.kibooz.ui.wali.WaliProfileState
 import com.nthb.kibooz.ui.wali.WaliProfileViewModel
 import kotlinx.coroutines.launch
 
@@ -188,8 +189,8 @@ class ProfilWaliActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun openDetail() {
-        val state = viewModel.state.value
+    // Memakai state yang sedang tampil, supaya tombol membuka anak yang sama dengan yang tertulis di subjudul
+    private fun openDetail(state: WaliProfileState) {
         val target = if (state.noChild) TambahAnakActivity::class.java else ProfilSiswaActivity::class.java
         startActivity(Intent(this, target).putExtra(ProfilSiswaActivity.EXTRA_STUDENT_ID, state.profile?.id))
     }

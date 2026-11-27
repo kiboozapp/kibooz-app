@@ -47,7 +47,7 @@ internal fun ProfilWaliScreen(
     avatarVersion: Int,
     avatarLoader: AvatarLoader,
     onAvatar: () -> Unit,
-    onDetail: () -> Unit,
+    onDetail: (WaliProfileState) -> Unit,
     onRetry: () -> Unit,
     menu: List<ProfileMenuItem>,
     onTab: (WaliTab) -> Unit,
@@ -100,7 +100,7 @@ internal fun ProfilWaliScreen(
                     )
                     ProfileDetailButton(
                         label = stringResource(if (state.noChild) R.string.anak_tambah_anak else R.string.anak_lihat_detail),
-                        onClick = onDetail,
+                        onClick = { onDetail(state) },
                         modifier = Modifier.padding(horizontal = 24.dp).padding(top = 14.dp)
                     )
                 }
