@@ -55,6 +55,9 @@ class PesertaKelasViewModel(
     private val _uiState = MutableStateFlow(PesertaUiState(isLoading = true))
     val uiState: StateFlow<PesertaUiState> = _uiState.asStateFlow()
 
+    private var lastTeachersClassId: String? = null
+    private var lastResolvedTeachers: List<ClassTeacherSummary>? = null
+
     private data class ResolvedClassContext(
         val classId: String,
         val className: String,
@@ -71,13 +74,15 @@ class PesertaKelasViewModel(
         val user = currentSessionUser()
         val isWaliRole = user?.role == Role.WALI
         val teacherRole = isTeacherPortal(user, isWaliRole)
-        val initialTeachers = ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+        val initialTeachers = initialTeachersForLoad(initialClassId, user)
 
         emitLoadingState(teacherRole, initialTeachers, defaultClassName)
 
         val resolved = resolveClassContext(initialClassId, defaultClassName, teacherRole)
         if (resolved == null) {
-            emitNotFoundState(teacherRole, initialTeachers, defaultClassName)
+            clearRetainedTeachers()
+            val fallbackTeachers = ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+            emitNotFoundState(teacherRole, fallbackTeachers, defaultClassName)
             return
         }
 
@@ -87,6 +92,27 @@ class PesertaKelasViewModel(
         val effectiveIsTeacher = if (useLeaderboard) false else teacherRole
 
         emitLoadedState(resolved, effectiveIsTeacher, resolvedTeachers, rosterResult)
+    }
+
+    private fun initialTeachersForLoad(
+        initialClassId: String?,
+        user: SessionUser?
+    ): List<ClassTeacherSummary> {
+        val normalizedTarget = initialClassId?.takeIf { it.isNotBlank() }
+        if (normalizedTarget != null && normalizedTarget != lastTeachersClassId) {
+            clearRetainedTeachers()
+        }
+        val activeTarget = normalizedTarget ?: _uiState.value.classId
+        return retainedTeachersFor(activeTarget)
+            ?: ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+    }
+
+    private fun retainedTeachersFor(classId: String?): List<ClassTeacherSummary>? =
+        if (classId != null && classId == lastTeachersClassId) lastResolvedTeachers else null
+
+    private fun clearRetainedTeachers() {
+        lastTeachersClassId = null
+        lastResolvedTeachers = null
     }
 
     private fun currentSessionUser(): SessionUser? = authRepository?.session?.value?.user
@@ -234,23 +260,35 @@ class PesertaKelasViewModel(
     }
 
     private suspend fun resolveClassTeachers(classId: String, teacherRole: Boolean): List<ClassTeacherSummary> {
-        val sessionUser = authRepository?.session?.value?.user
-        val fetched = when {
-            teacherRole && authRepository != null && classManagementRepository != null -> {
-                when (val res = classManagementRepository.classTeachers(classId)) {
-                    is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
-                    else -> emptyList()
-                }
-            }
-            !teacherRole && chatRepository != null -> {
-                when (val res = chatRepository.allContacts()) {
-                    is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
-                    else -> emptyList()
-                }
-            }
-            else -> emptyList()
+        if (lastTeachersClassId != classId) {
+            clearRetainedTeachers()
         }
-        return ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+        val sessionUser = currentSessionUser()
+        val fetched = fetchClassTeachers(classId, teacherRole)
+        if (fetched != null) {
+            val merged = ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+            lastTeachersClassId = classId
+            lastResolvedTeachers = merged
+            return merged
+        }
+        return retainedTeachersFor(classId)
+            ?: ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
+    }
+
+    private suspend fun fetchClassTeachers(classId: String, teacherRole: Boolean): List<ClassTeacherSummary>? = when {
+        teacherRole && authRepository != null && classManagementRepository != null -> {
+            when (val res = classManagementRepository.classTeachers(classId)) {
+                is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
+                else -> null
+            }
+        }
+        !teacherRole && chatRepository != null -> {
+            when (val res = chatRepository.allContacts()) {
+                is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
+                else -> null
+            }
+        }
+        else -> emptyList()
     }
 
     fun verifyStudentNisn(student: ClassStudent) {

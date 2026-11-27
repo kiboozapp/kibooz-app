@@ -157,7 +157,7 @@ class RuangKelasGuruActivity : AppCompatActivity() {
 
         showCards(state)
         renderAddDialog(state)
-        renderNotice(state.notice)
+        state.notice?.let(::renderNotice)
 
         if (state.createDone) {
             addDialog?.dismiss()
@@ -167,8 +167,7 @@ class RuangKelasGuruActivity : AppCompatActivity() {
         renderReloadError(noData, state)
     }
 
-    private fun renderNotice(notice: KelolaNotice?) {
-        if (notice == null) return
+    private fun renderNotice(notice: KelolaNotice) {
         val args = if (notice.args.isNotEmpty() && notice.res in classNameNoticeResources) {
             notice.args.mapIndexed { index, value ->
                 if (index == 0) ClassNames.stemOrFallback(value, "ini") else value

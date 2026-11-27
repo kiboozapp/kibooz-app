@@ -45,7 +45,7 @@ class ChatListRowsTest {
         assertEquals(
             listOf(
                 "s:${R.string.chat_bagian_ruang_kelas}",
-                "c:$CLASS_1",
+                KEY_CLASS_1,
                 "c:$CLASS_2",
                 "s:${R.string.chat_bagian_kontak}",
                 KEY_USER_1,
@@ -67,7 +67,7 @@ class ChatListRowsTest {
         )
 
         assertEquals(listOf("s:${R.string.chat_bagian_kontak}", KEY_USER_1), buildChatListRows(onlyContacts).map { it.key })
-        assertEquals(listOf("s:${R.string.chat_bagian_ruang_kelas}", "c:$CLASS_1"), buildChatListRows(onlyRooms).map { it.key })
+        assertEquals(listOf("s:${R.string.chat_bagian_ruang_kelas}", KEY_CLASS_1), buildChatListRows(onlyRooms).map { it.key })
     }
 
     @Test
@@ -82,7 +82,7 @@ class ChatListRowsTest {
 
         assertFalse((rows.first { it.key == KEY_USER_1 } as ContactRow).opening)
         assertTrue((rows.first { it.key == KEY_USER_2 } as ContactRow).opening)
-        assertFalse((rows.first { it.key == "c:$CLASS_1" } as ClassRow).opening)
+        assertFalse((rows.first { it.key == KEY_CLASS_1 } as ClassRow).opening)
     }
 
     @Test
@@ -141,6 +141,7 @@ class ChatListRowsTest {
 
     private companion object {
         const val CLASS_1 = "c1"
+        const val KEY_CLASS_1 = "c:$CLASS_1"
         const val CLASS_2 = "c2"
         const val USER_1 = "u1"
         const val USER_2 = "u2"

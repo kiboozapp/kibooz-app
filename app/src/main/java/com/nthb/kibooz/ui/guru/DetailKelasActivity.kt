@@ -68,7 +68,7 @@ class DetailKelasActivity : AppCompatActivity() {
         val rawKodeKelas = intent.getStringExtra("KODE_KELAS").orEmpty()
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
         activeClassId = intent.getStringExtra("CLASS_ID")
-        resolvedRombelName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
+        resolvedRombelName = intent.getStringExtra(EXTRA_ROMBEL_NAME)?.takeIf { it.isNotBlank() }
             ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
 
         // Role-Gating: Wali murid hanya memantau modul dan aktivitas, Guru dapat mengelola modul dan menyalin kode
@@ -209,11 +209,9 @@ class DetailKelasActivity : AppCompatActivity() {
                 resolvedTeachers.isEmpty() -> ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
                 else -> return@launch
             }
-            if (finalTeachers.isNotEmpty()) {
-                resolvedTeachers = finalTeachers
-                binding.tvPengajar.text = ClassTeachers.formatPengajarLine(finalTeachers)
-                updatePesertaBanner(lastStudentCount)
-            }
+            resolvedTeachers = finalTeachers
+            binding.tvPengajar.text = ClassTeachers.formatPengajarLine(finalTeachers)
+            updatePesertaBanner(lastStudentCount)
         }
     }
 
@@ -461,7 +459,7 @@ class DetailKelasActivity : AppCompatActivity() {
     private fun openPesertaKelas(namaKelas: String, kodeKelas: String? = null) {
         val intent = Intent(this, PesertaKelasActivity::class.java).apply {
             putExtra("NAMA_KELAS", namaKelas)
-            resolvedRombelName?.takeIf { it.isNotBlank() }?.let { putExtra("ROMBEL_NAME", it) }
+            resolvedRombelName?.takeIf { it.isNotBlank() }?.let { putExtra(EXTRA_ROMBEL_NAME, it) }
             ClassTeachers.formatHeadlineOrNull(resolvedTeachers)?.let { putExtra("TEACHER_NAME", it) }
             resolvedTeachers.firstOrNull()?.avatarUrl?.let { putExtra("TEACHER_AVATAR_URL", it) }
             putExtra("CLASS_ID", activeClassId)
@@ -474,7 +472,7 @@ class DetailKelasActivity : AppCompatActivity() {
         val classTitle = resolvedRombelName?.takeIf { it.isNotBlank() }
         val intent = Intent(this, ForumDiskusiActivity::class.java).apply {
             if (classTitle != null) {
-                putExtra("ROMBEL_NAME", classTitle)
+                putExtra(EXTRA_ROMBEL_NAME, classTitle)
                 putExtra("NAMA_KELAS", classTitle)
             }
             putExtra("CLASS_ID", activeClassId)
@@ -846,5 +844,9 @@ class DetailKelasActivity : AppCompatActivity() {
                 }
             }
             .show()
+    }
+
+    private companion object {
+        const val EXTRA_ROMBEL_NAME = "ROMBEL_NAME"
     }
 }

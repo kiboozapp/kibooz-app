@@ -32,6 +32,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -96,6 +97,8 @@ class PesertaKelasViewModelTest {
         const val CLASS_MATAHARI_ID = "c-matahari"
         const val CLASS_MATAHARI_NAME = "Kelas Matahari"
         const val TEACHER_SITI = "Ibu Siti Aminah, S.Pd"
+        const val TEACHER_BUDI = "Pak Budi"
+        const val DEFAULT_TEACHER = "Guru Kelas"
         const val CHILD_ADIT = "Adit Pratama"
         const val URL_SITI = "https://cdn/siti.png"
         const val URL_SELF = "https://cdn/self.png"
@@ -395,5 +398,58 @@ class PesertaKelasViewModelTest {
         assertEquals(URL_SITI, state.teacherAvatarUrl)
         assertEquals("Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
         assertEquals(1, state.students.size)
+    }
+
+    @Test
+    fun `loadPeserta retains teachers during same-class failure, applies empty success, and resets on class change`() {
+        val secondClassId = "c-bulan"
+        val childrenJson = """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"},{"id":"$ID_S2","fullName":"Bima","nisn":"$NISN_BELLA","avatarUrl":null,"classId":"$secondClassId","className":"Kelas Bulan"}]}}"""
+        val twoTeachersJson = """{"success":true,"data":{"page":1,"limit":50,"total":2,"contacts":[{"id":"g1","fullName":"$TEACHER_SITI","role":"GURU","avatarUrl":"$URL_SITI","deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]},{"id":"g2","fullName":"$TEACHER_BUDI","role":"GURU","avatarUrl":null,"deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]}]}}"""
+        val emptyContactsJson = """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
+        val leaderboardJson = """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
+        fun serverError() = MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"server err"}""")
+        fun enqueueWaliLoad(contactsResponse: MockResponse) {
+            server.enqueue(jsonResponse(childrenJson))
+            server.enqueue(contactsResponse)
+            server.enqueue(jsonResponse(leaderboardJson))
+        }
+
+        val client = testClient(server)
+        val viewModel = PesertaKelasViewModel(
+            classRepository = classRepository,
+            leaderboardRepository = LeaderboardRepository(client.create(LeaderboardApi::class.java), client.moshi),
+            authRepository = signedInAuth(Role.WALI, "Wali Anak"),
+            chatRepository = ChatRepository(client.create(ChatApi::class.java), client.moshi)
+        )
+
+        enqueueWaliLoad(jsonResponse(twoTeachersJson))
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
+        val initial = settled(viewModel)
+        assertEquals(2, initial.teacherCount)
+
+        enqueueWaliLoad(serverError())
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
+        val afterFailure = settled(viewModel)
+        assertEquals(2, afterFailure.teacherCount)
+        assertEquals("$TEACHER_SITI, $TEACHER_BUDI", afterFailure.teacherName)
+        assertEquals(URL_SITI, afterFailure.teacherAvatarUrl)
+
+        enqueueWaliLoad(jsonResponse(emptyContactsJson))
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
+        val afterEmptySuccess = settled(viewModel)
+        assertEquals(1, afterEmptySuccess.teacherCount)
+        assertEquals(DEFAULT_TEACHER, afterEmptySuccess.teacherName)
+        assertNull(afterEmptySuccess.teacherAvatarUrl)
+
+        enqueueWaliLoad(jsonResponse(twoTeachersJson))
+        viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
+        assertEquals(2, settled(viewModel).teacherCount)
+
+        enqueueWaliLoad(serverError())
+        viewModel.loadPeserta(initialClassId = secondClassId, defaultClassName = "")
+        val switchedClass = settled(viewModel)
+        assertEquals(1, switchedClass.teacherCount)
+        assertEquals(DEFAULT_TEACHER, switchedClass.teacherName)
+        assertNull(switchedClass.teacherAvatarUrl)
     }
 }
