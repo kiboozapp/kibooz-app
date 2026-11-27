@@ -1,21 +1,15 @@
 package com.nthb.kibooz.ui.profile
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -128,36 +122,6 @@ internal fun ProfilWaliScreen(
                 }
             }
             ProfileMenuCard(items = menu, modifier = Modifier.padding(horizontal = 20.dp).padding(top = 16.dp))
-        }
-    }
-}
-
-/** Kartu galat muat dengan tombol coba lagi, bentuknya sama dengan kartu gangguan server. */
-@Composable
-private fun LoadErrorCard(message: String, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    val shape = RoundedCornerShape(16.dp)
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(colorResource(R.color.kibooz_outage_surface), shape)
-            .border(1.dp, colorResource(R.color.kibooz_outage_border), shape)
-            .padding(16.dp)
-    ) {
-        Text(text = message, color = colorResource(R.color.kibooz_text_primary), fontSize = 14.sp)
-        Surface(
-            onClick = onRetry,
-            modifier = Modifier.padding(top = 10.dp).defaultMinSize(minHeight = 48.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.primary
-        ) {
-            Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.coba_lagi),
-                    color = MaterialTheme.colorScheme.onPrimary,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
         }
     }
 }

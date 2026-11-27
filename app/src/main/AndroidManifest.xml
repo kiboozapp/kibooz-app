@@ -184,7 +184,7 @@
 
         <!-- 18. Wali Flow: Profil Siswa & NISN -->
         <activity
-            android:name=".ui.wali.ProfilSiswaActivity"
+            android:name=".ui.profile.ProfilSiswaActivity"
             android:exported="false" />
 
         <!-- 19. Wali Flow: Edit Profil Siswa & Wali -->
