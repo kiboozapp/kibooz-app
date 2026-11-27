@@ -16,6 +16,7 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.databinding.ActivityRuangKelasWaliBinding
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.guru.DetailKelasActivity
+import com.nthb.kibooz.ui.profile.ProfilWaliActivity
 import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
