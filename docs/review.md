@@ -11,7 +11,7 @@ Halaman ini menjelaskan siapa yang mereview pull request, apa yang dikerjakan bo
 
 ## Bot yang berkomentar
 
-Tiga bot bisa menulis di pull request. Ketiganya tidak termasuk dua belas pengecekan wajib, jadi hasilnya tidak memblokir merge sendiri. Pengaturan ketiganya ada di akun GitHub dan di layanan masing-masing, tidak di repositori ini.
+Tiga bot memberi review atau laporan di pull request. Ketiganya tidak termasuk dua belas pengecekan wajib, jadi hasilnya tidak memblokir merge sendiri. Pengaturan CodeRabbit dan DeepSource ada di layanan masing-masing. Pengaturan Codecov ada di `codecov.yml`, yang membuat status cakupannya bersifat informasi saja.
 
 | Bot | Yang ditulis | Cara menanganinya |
 | --- | --- | --- |
