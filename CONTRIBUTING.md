@@ -24,6 +24,7 @@ Merge commit dengan pesan `Merge branch 'main' into <branch>` dan merge commit b
 - Warna tetap berasal dari `colors.xml` dan teks dari `strings.xml`.
 - Langkah memindahkan satu layar dan daftar komponen bersama ada di [docs/compose-guide.md](docs/compose-guide.md).
 - Perubahan layar diuji di ponsel asli sebelum digabung. Caranya ada di [docs/phone-testing.md](docs/phone-testing.md).
+- Aturan produk yang tidak boleh dilanggar, seperti AI yang hanya berjalan di perangkat, ada di [docs/product-rules.md](docs/product-rules.md).
 
 ## Menjalankan unit test
 
