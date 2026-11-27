@@ -1,10 +1,12 @@
 package com.nthb.kibooz.ui.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -44,6 +47,8 @@ fun KiboozPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = 
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 54.dp)
+            // Bayangan tipis seperti AppCompatButton di layar XML
+            .shadow(2.dp, buttonShape)
             .clip(buttonShape)
             .background(gradient)
             .clickable(
@@ -68,13 +73,15 @@ fun KiboozPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = 
 }
 
 /** Tombol putih bergaris tepi, sama dengan `bg_button_google`. [icon] hanya hiasan, teksnya yang dibaca. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun KiboozOutlinedButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onLongClick: (() -> Unit)? = null
 ) {
     Row(
         modifier = modifier
@@ -83,7 +90,7 @@ fun KiboozOutlinedButton(
             .clip(buttonShape)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.5.dp, MaterialTheme.colorScheme.outline, buttonShape)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .combinedClickable(enabled = enabled, role = Role.Button, onLongClick = onLongClick, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
