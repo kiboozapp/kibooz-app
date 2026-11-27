@@ -72,6 +72,7 @@
     <string name="review_batas_siswa">Batas 20 catatan mood hari ini tercapai untuk: %1$s. Hapus mereka dari daftar lalu simpan lagi.</string>
     <string name="batas_laju_menunggu">Terlalu banyak permintaan, mencoba lagi dalam %1$d detik</string>
     <string name="sampah_klaim_belum_tersedia">Pemindaian sampah dan klaim poin belum tersedia di versi ini</string>
+    <string name="sampah_pemindai_judul">AI Pemindai Sampah</string>
     <string name="sampah_mencari">Arahkan kamera ke sampah</string>
     <string name="sampah_kategori_organik">Sampah Organik</string>
     <string name="sampah_kategori_anorganik">Sampah Anorganik</string>

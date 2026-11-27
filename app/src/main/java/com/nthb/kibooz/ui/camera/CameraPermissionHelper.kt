@@ -7,45 +7,49 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
-import com.nthb.kibooz.R
-import com.nthb.kibooz.databinding.ViewCameraPermissionDeniedBinding
+
+/** Keadaan izin kamera yang menentukan apa yang tampil di panel izin. */
+enum class CameraPermissionState {
+    GRANTED,
+
+    /** Ditolak, tetapi sistem masih mau menampilkan dialog izin lagi. */
+    DENIED,
+
+    /** Ditolak dan sistem tidak akan bertanya lagi, jadi pengguna harus membuka Pengaturan. */
+    BLOCKED
+}
 
 /**
- * Meminta izin kamera dan menampilkan panel penolakan selama izin belum diberikan.
+ * Meminta izin kamera dan melaporkan keadaannya lewat [onStateChanged]. Layar yang memakai helper ini yang menggambar
+ * panel penolakan, dan tombol di panel itu memanggil [requestOrOpenSettings].
  *
- * Buat instance di onCreate setelah setContentView, lalu panggil [start]. Panggil [onResume] dari
- * onResume Activity agar panel hilang saat pengguna kembali dari Pengaturan dengan izin aktif.
+ * Buat instance di onCreate, lalu panggil [start]. Panggil [onResume] dari onResume Activity agar panel hilang saat
+ * pengguna kembali dari Pengaturan dengan izin aktif.
  */
 class CameraPermissionHelper(
     private val activity: ComponentActivity,
-    private val panel: ViewCameraPermissionDeniedBinding,
-    @StringRes private val reason: Int,
-    private val onGrantedChanged: (Boolean) -> Unit
+    private val onStateChanged: (CameraPermissionState) -> Unit
 ) {
 
-    private enum class State { GRANTED, DENIED, BLOCKED }
-
-    private var state = State.DENIED
+    var state = CameraPermissionState.DENIED
+        private set
 
     private val launcher = activity.registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { render(currentState()) }
-
-    init {
-        panel.btnIzinAksi.setOnClickListener {
-            if (state == State.BLOCKED) openSettings() else launcher.launch(Manifest.permission.CAMERA)
-        }
-    }
+    ) { report(currentState()) }
 
     fun start() {
-        if (isGranted()) render(State.GRANTED) else launcher.launch(Manifest.permission.CAMERA)
+        if (isGranted()) report(CameraPermissionState.GRANTED) else launcher.launch(Manifest.permission.CAMERA)
     }
 
     fun onResume() {
-        if (isGranted() && state != State.GRANTED) render(State.GRANTED)
+        if (isGranted() && state != CameraPermissionState.GRANTED) report(CameraPermissionState.GRANTED)
+    }
+
+    /** Aksi tombol panel: meminta izin lagi, atau membuka Pengaturan jika sistem tidak akan bertanya lagi. */
+    fun requestOrOpenSettings() {
+        if (state == CameraPermissionState.BLOCKED) openSettings() else launcher.launch(Manifest.permission.CAMERA)
     }
 
     private fun isGranted() = ContextCompat.checkSelfPermission(
@@ -55,19 +59,14 @@ class CameraPermissionHelper(
 
     // Setelah permintaan ditolak, tidak ada dialog rasional berarti sistem tidak akan bertanya lagi
     private fun currentState() = when {
-        isGranted() -> State.GRANTED
-        activity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> State.DENIED
-        else -> State.BLOCKED
+        isGranted() -> CameraPermissionState.GRANTED
+        activity.shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> CameraPermissionState.DENIED
+        else -> CameraPermissionState.BLOCKED
     }
 
-    private fun render(newState: State) {
+    private fun report(newState: CameraPermissionState) {
         state = newState
-        panel.root.isVisible = newState != State.GRANTED
-        panel.tvIzinPesan.setText(if (newState == State.BLOCKED) R.string.izin_kamera_ditolak else reason)
-        panel.btnIzinAksi.setText(
-            if (newState == State.BLOCKED) R.string.izin_kamera_pengaturan else R.string.izin_kamera_beri
-        )
-        onGrantedChanged(newState == State.GRANTED)
+        onStateChanged(newState)
     }
 
     private fun openSettings() {
