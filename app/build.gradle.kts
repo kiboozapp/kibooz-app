@@ -87,7 +87,7 @@ android {
 }
 
 dependencies {
-    // Compose BOM yang lebih baru memerlukan Kotlin atau compileSdk yang lebih baru, jadi dinaikkan bersama keduanya
+    // Compose BOM yang lebih baru bisa memerlukan Kotlin atau compileSdk yang lebih baru, jadi diperiksa dulu sebelum dinaikkan
     implementation(platform("androidx.compose:compose-bom:2025.06.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.material3:material3")

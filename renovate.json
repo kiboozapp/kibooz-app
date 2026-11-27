@@ -60,7 +60,7 @@
     {
       "description": "the Compose compiler plugin has the version of Kotlin, so the two move in one pull request",
       "matchDepNames": ["org.jetbrains.kotlin.android", "org.jetbrains.kotlin.plugin.compose"],
-      "matchUpdateTypes": ["patch"],
+      "matchUpdateTypes": ["minor", "patch"],
       "groupName": "kotlin"
     },
     {
