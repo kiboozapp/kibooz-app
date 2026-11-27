@@ -9,7 +9,7 @@ Semua AI di aplikasi berjalan di perangkat pengguna. Tidak ada AI yang berjalan 
 - Model emosi wajah dan model jenis sampah berbentuk berkas TFLite yang dibawa di dalam aplikasi. Deteksi wajah memakai ML Kit di perangkat. Bingkai kamera diproses di perangkat dan tidak dikirim ke server.
 - Server hanya menerima hasilnya. Catatan mood berisi id siswa, nilai emosi, asal catatan (`AI_CAMERA` atau `MANUAL_INPUT`), skor keyakinan dan catatan guru. Klaim sampah berisi id siswa, jenis sampah dan skor keyakinan. Tidak ada foto di dalamnya.
 - Jangan menambah fitur yang mengirim gambar atau data lain ke server agar dianalisis oleh model, dan jangan memanggil model yang dihosting pihak lain. Kalau sebuah fitur butuh model baru, model itu dibawa di dalam aplikasi.
-- Foto yang dikirim untuk disimpan sebagai data, seperti foto profil dan media di chat, bukan inferensi. Foto itu dikirim sebagai berkas lewat endpoint unggah masing-masing, dan server tidak menganalisisnya dengan AI.
+- Foto yang dikirim untuk disimpan sebagai data, seperti foto profil dan media di chat, bukan inferensi. Foto itu dikirim lewat endpoint unggah, dan video chat lewat alamat unggah bertanda tangan. Aplikasi tidak meminta server menganalisis berkas itu dengan AI.
 - Saat mengubah model, layar pemindai atau layar kamera, sebutkan aturan ini di deskripsi pull request dan jelaskan data apa yang dikirim ke server.
 
 ## Model pengganti
@@ -24,8 +24,8 @@ Catatan mood memakai empat nilai, yaitu `SENANG`, `SEDIH`, `MARAH` dan `BINGUNG`
 
 ## Peran dan akses
 
-- Layar pilih peran menawarkan dua peran, yaitu Guru dan Wali murid. Siswa bukan peran yang masuk sendiri. Wali murid menambahkan dan mengelola profil anaknya.
-- Layar untuk satu peran tidak boleh bisa dibuka oleh peran lain. Aturannya ada di `ui/auth/SessionAccess.kt` dan diuji di `SessionAccessTest`. Layar baru atau layar yang dipindahkan harus ditambahkan ke sana.
+- Layar pilih peran menawarkan dua peran, yaitu Guru dan Wali murid. Siswa bukan peran yang masuk sendiri. Peran Admin ada di kode tetapi belum punya layar di aplikasi. Wali murid menambahkan dan mengelola profil anaknya.
+- Layar untuk satu peran tidak boleh bisa dibuka oleh peran lain. Aturannya ada di `ui/auth/SessionAccess.kt` dan diuji di `SessionAccessTest`. Layar kelas yang dipakai bersama boleh dibuka kedua peran. Layar lain yang tidak terdaftar terbuka untuk kedua peran, jadi layar baru atau layar yang dipindahkan harus ditambahkan ke sana.
 - Pemindai mood adalah fitur Guru. Pemindai sampah dan klaim poin adalah fitur Wali murid.
 
 ## Poin sampah
@@ -34,7 +34,7 @@ Klaim poin sampah dibatasi per hari. Setelah sisa klaim berpoin penuh hari itu h
 
 ## Privasi pesan
 
-Notifikasi dorong tidak membawa teks pesan. Isinya hanya id percakapan dan id pesan. Aplikasi mengambil pesannya dari API dan menampilkannya sebagai notifikasi di perangkat. Jangan menambahkan teks pesan ke muatan notifikasi dorong.
+Aplikasi belum punya notifikasi dorong. Aturannya sudah ditetapkan di PRD (FR-9.8) untuk saat fitur itu dibangun. Notifikasi dorong hanya membawa id percakapan dan id pesan, tanpa teks pesan. Aplikasi mengambil pesannya dari API lalu menampilkannya sebagai notifikasi di perangkat. Jangan menambahkan teks pesan ke muatan notifikasi dorong.
 
 ## Tampilan
 
