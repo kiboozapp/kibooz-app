@@ -92,6 +92,15 @@ class PesertaKelasViewModelTest {
     private fun classesEnvelope(): String =
         """{"success":true,"data":{"page":1,"limit":50,"total":1,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME","gradeLevel":"TK B","schoolName":"TK Kibooz","academicYear":"2026/2027","joinCode":"MTH123","joinOpen":true,"totalStudents":1,"createdAt":"2026-08-01T00:00:00Z"}]}}"""
 
+    private fun singleChildEnvelope(): String =
+        """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"}]}}"""
+
+    private fun emptyContactsEnvelope(): String =
+        """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
+
+    private fun leaderboardEnvelope(): String =
+        """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
+
     private companion object {
         const val CLASS_1 = "class-1"
         const val CLASS_MATAHARI_ID = "c-matahari"
@@ -373,13 +382,11 @@ class PesertaKelasViewModelTest {
 
     @Test
     fun `loadPeserta Wali resolves class teacher from chat contacts`() {
-        val childrenJson = """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"}]}}"""
         val contactsJson = """{"success":true,"data":{"page":1,"limit":50,"total":3,"contacts":[{"id":"g-other","fullName":"Guru Kelas Lain","role":"GURU","avatarUrl":null,"deleted":false,"classes":[{"id":"c-bulan","name":"Kelas Bulan"}]},{"id":"w-self","fullName":"Bapak Hendra","role":"WALI","avatarUrl":null,"deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]},{"id":"g-matahari","fullName":"$TEACHER_SITI","role":"GURU","avatarUrl":"$URL_SITI","deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]}]}}"""
-        val leaderboardJson = """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
 
-        server.enqueue(jsonResponse(childrenJson))
+        server.enqueue(jsonResponse(singleChildEnvelope()))
         server.enqueue(jsonResponse(contactsJson))
-        server.enqueue(jsonResponse(leaderboardJson))
+        server.enqueue(jsonResponse(leaderboardEnvelope()))
 
         val client = testClient(server)
         val authRepo = signedInAuth(Role.WALI, "Bapak Hendra Gunawan")
@@ -405,13 +412,11 @@ class PesertaKelasViewModelTest {
         val secondClassId = "c-bulan"
         val childrenJson = """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"},{"id":"$ID_S2","fullName":"Bima","nisn":"$NISN_BELLA","avatarUrl":null,"classId":"$secondClassId","className":"Kelas Bulan"}]}}"""
         val twoTeachersJson = """{"success":true,"data":{"page":1,"limit":50,"total":2,"contacts":[{"id":"g1","fullName":"$TEACHER_SITI","role":"GURU","avatarUrl":"$URL_SITI","deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]},{"id":"g2","fullName":"$TEACHER_BUDI","role":"GURU","avatarUrl":null,"deleted":false,"classes":[{"id":"$CLASS_MATAHARI_ID","name":"$CLASS_MATAHARI_NAME"}]}]}}"""
-        val emptyContactsJson = """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
-        val leaderboardJson = """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
         fun serverError() = MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"server err"}""")
         fun enqueueWaliLoad(contactsResponse: MockResponse) {
             server.enqueue(jsonResponse(childrenJson))
             server.enqueue(contactsResponse)
-            server.enqueue(jsonResponse(leaderboardJson))
+            server.enqueue(jsonResponse(leaderboardEnvelope()))
         }
 
         val client = testClient(server)
@@ -434,7 +439,7 @@ class PesertaKelasViewModelTest {
         assertEquals("$TEACHER_SITI, $TEACHER_BUDI", afterFailure.teacherName)
         assertEquals(URL_SITI, afterFailure.teacherAvatarUrl)
 
-        enqueueWaliLoad(jsonResponse(emptyContactsJson))
+        enqueueWaliLoad(jsonResponse(emptyContactsEnvelope()))
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
         val afterEmptySuccess = settled(viewModel)
         assertEquals(1, afterEmptySuccess.teacherCount)
@@ -456,16 +461,13 @@ class PesertaKelasViewModelTest {
     @Test
     fun `loadPeserta preserves seeded teacher metadata when initial contacts lookup fails`() {
         val seededName = "Ibu Rina Puspita"
-        val childrenJson = """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"}]}}"""
-        val emptyContactsJson = """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
-        val leaderboardJson = """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
 
-        server.enqueue(jsonResponse(childrenJson))
+        server.enqueue(jsonResponse(singleChildEnvelope()))
         server.enqueue(MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"offline"}"""))
-        server.enqueue(jsonResponse(leaderboardJson))
-        server.enqueue(jsonResponse(childrenJson))
-        server.enqueue(jsonResponse(emptyContactsJson))
-        server.enqueue(jsonResponse(leaderboardJson))
+        server.enqueue(jsonResponse(leaderboardEnvelope()))
+        server.enqueue(jsonResponse(singleChildEnvelope()))
+        server.enqueue(jsonResponse(emptyContactsEnvelope()))
+        server.enqueue(jsonResponse(leaderboardEnvelope()))
 
         val client = testClient(server)
         val viewModel = PesertaKelasViewModel(
