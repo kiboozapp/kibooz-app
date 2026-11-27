@@ -21,7 +21,8 @@ private val SHARED_CLASS_SCREENS = setOf(
 // satu per satu, dan layar profil yang belum tertulis di sini wajib punya sesi tetapi terbuka bagi kedua peran
 private val GURU_PROFILE_SCREENS = setOf(
     "com.nthb.kibooz.ui.profile.ProfilGuruActivity",
-    "com.nthb.kibooz.ui.profile.DetailProfilGuruActivity"
+    "com.nthb.kibooz.ui.profile.DetailProfilGuruActivity",
+    "com.nthb.kibooz.ui.profile.EditProfilGuruActivity"
 )
 private val WALI_PROFILE_SCREENS = setOf(
     "com.nthb.kibooz.ui.profile.ProfilWaliActivity"

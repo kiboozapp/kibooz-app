@@ -28,4 +28,14 @@
     <string name="detail_profil_legenda_marah">🔴 Marah %1$d%%</string>
     <string name="profil_wali_menu_panduan">Panduan Aplikasi</string>
     <string name="profil_wali_menu_keluar">Keluar Akun Wali</string>
+    <string name="edit_profil_guru_judul">Edit Profil Guru</string>
+    <string name="edit_profil_guru_ganti_foto">Ganti Foto</string>
+    <string name="edit_profil_guru_ketuk_foto">Ketuk untuk ubah foto profil</string>
+    <string name="edit_profil_guru_nama">Nama Lengkap &amp; Gelar</string>
+    <string name="edit_profil_guru_nip">NIP (Nomor Induk Pegawai)</string>
+    <string name="edit_profil_guru_email">Email Dinas</string>
+    <string name="edit_profil_guru_telepon">Nomor WhatsApp</string>
+    <string name="edit_profil_guru_alamat">Alamat Sekolah / Domisili</string>
+    <string name="edit_profil_guru_alamat_hint">Ketik alamat manual atau pilih di peta</string>
+    <string name="edit_profil_guru_simpan">Simpan Perubahan</string>
 </resources>

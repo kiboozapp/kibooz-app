@@ -13,7 +13,6 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ClassSummary
 import com.nthb.kibooz.data.remote.DailyMoodDistribution
-import com.nthb.kibooz.ui.guru.EditProfilGuruActivity
 import com.nthb.kibooz.ui.guru.loadActiveTeacherClasses
 import com.nthb.kibooz.ui.guru.resolveSelectedClass
 import com.nthb.kibooz.ui.guru.showGuruClassPickerDialog

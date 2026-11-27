@@ -126,7 +126,7 @@
 
         <!-- 11. Guru Flow: Edit Profil Guru -->
         <activity
-            android:name=".ui.guru.EditProfilGuruActivity"
+            android:name=".ui.profile.EditProfilGuruActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
