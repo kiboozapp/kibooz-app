@@ -24,14 +24,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.nthb.kibooz.R
 
 private val sheetShape = RoundedCornerShape(topStart = 36.dp, topEnd = 36.dp)
 
-/** Layar masuk: latar ungu dengan logo di atas dan lembar putih setinggi 78 persen yang bisa digulir. */
+/** Layar masuk dan daftar: latar ungu dengan logo di atas dan lembar putih yang bisa digulir. */
 @Composable
-internal fun AuthSheet(content: @Composable ColumnScope.() -> Unit) {
+internal fun AuthSheet(
+    sheetFraction: Float = 0.78f,
+    logoSize: DpSize = DpSize(110.dp, 88.dp),
+    contentTopPadding: Dp = 32.dp,
+    content: @Composable ColumnScope.() -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,21 +46,21 @@ internal fun AuthSheet(content: @Composable ColumnScope.() -> Unit) {
             // Lembar tetap di atas bilah navigasi dan papan ketik
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
     ) {
-        Box(modifier = Modifier.weight(0.22f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Box(modifier = Modifier.weight(1f - sheetFraction).fillMaxWidth(), contentAlignment = Alignment.Center) {
             Image(
                 painter = painterResource(R.drawable.ic_kibooz_bear),
                 contentDescription = stringResource(R.string.logo_kibooz),
-                modifier = Modifier.size(width = 110.dp, height = 88.dp)
+                modifier = Modifier.size(logoSize)
             )
         }
         Column(
             modifier = Modifier
-                .weight(0.78f)
+                .weight(sheetFraction)
                 .fillMaxWidth()
                 .shadow(24.dp, sheetShape)
                 .background(MaterialTheme.colorScheme.surface, sheetShape)
                 .verticalScroll(rememberScrollState())
-                .padding(start = 24.dp, top = 32.dp, end = 24.dp, bottom = 24.dp),
+                .padding(start = 24.dp, top = contentTopPadding, end = 24.dp, bottom = 24.dp),
             content = content
         )
     }

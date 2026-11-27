@@ -37,6 +37,7 @@ fun KiboozOutlinedField(
     onValueChange: (String) -> Unit,
     label: String,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     errorText: String? = null,
     helperText: String? = null,
     contentType: ContentType? = null,
@@ -55,6 +56,7 @@ fun KiboozOutlinedField(
             if (contentType != null) this.contentType = contentType
             if (errorText != null) error(errorText)
         },
+        enabled = enabled,
         textStyle = MaterialTheme.typography.bodyLarge,
         label = { Text(label) },
         supportingText = supporting?.let { { Text(it) } },
@@ -70,7 +72,11 @@ fun KiboozOutlinedField(
             unfocusedSupportingTextColor = labelColor,
             focusedTrailingIconColor = labelColor,
             unfocusedTrailingIconColor = labelColor,
-            errorTrailingIconColor = labelColor
+            errorTrailingIconColor = labelColor,
+            // Kolom yang dikunci tetap terbaca, layar yang meredupkannya bila perlu
+            disabledTextColor = MaterialTheme.colorScheme.onSurface,
+            disabledBorderColor = border,
+            disabledLabelColor = labelColor
         )
     )
 }
