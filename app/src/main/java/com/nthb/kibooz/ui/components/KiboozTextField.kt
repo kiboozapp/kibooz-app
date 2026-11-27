@@ -24,14 +24,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.autofill.ContentType
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentType
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nthb.kibooz.R
 
@@ -50,20 +54,28 @@ fun KiboozTextField(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isPassword: Boolean = false,
-    keyboardOptions: KeyboardOptions =
-        if (isPassword) KeyboardOptions(keyboardType = KeyboardType.Password) else KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    contentType: ContentType? = if (isPassword) ContentType.Password else null
 ) {
     var passwordVisible by rememberSaveable { mutableStateOf(false) }
     val primary = MaterialTheme.colorScheme.primary
     BasicTextField(
         value = value,
         onValueChange = onValueChange,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .semantics { if (contentType != null) this.contentType = contentType },
         enabled = enabled,
         singleLine = true,
         textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
-        keyboardOptions = keyboardOptions,
+        // Kata sandi selalu memakai keyboard kata sandi, agar tidak disarankan atau dipelajari keyboard
+        keyboardOptions =
+            if (isPassword) {
+                keyboardOptions.copy(keyboardType = KeyboardType.Password, autoCorrectEnabled = false)
+            } else {
+                keyboardOptions
+            },
         keyboardActions = keyboardActions,
         visualTransformation =
             if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
@@ -72,7 +84,6 @@ fun KiboozTextField(
             Row(
                 modifier = Modifier
                     .heightIn(min = 54.dp)
-                    .alpha(if (enabled) 1f else 0.5f)
                     .background(MaterialTheme.colorScheme.surface, fieldShape)
                     .border(1.5.dp, MaterialTheme.colorScheme.outline, fieldShape)
                     .padding(start = 16.dp, end = if (isPassword) 4.dp else 16.dp),
@@ -80,9 +91,13 @@ fun KiboozTextField(
             ) {
                 Icon(painterResource(leadingIcon), contentDescription = null, modifier = Modifier.size(22.dp), tint = primary)
                 Box(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-                    if (value.isEmpty()) {
-                        Text(placeholder, color = colorResource(R.color.kibooz_text_muted))
-                    }
+                    // Tetap disusun saat kolom terisi, karena teks ini juga nama kolom bagi pembaca layar
+                    Text(
+                        text = placeholder,
+                        color = if (value.isEmpty()) colorResource(R.color.kibooz_text_muted) else Color.Transparent,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                     innerTextField()
                 }
                 if (isPassword) {

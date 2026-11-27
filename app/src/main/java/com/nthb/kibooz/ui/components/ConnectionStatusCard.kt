@@ -15,6 +15,7 @@ import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
@@ -62,7 +63,8 @@ fun ConnectionStatusCard(kind: OutageKind, onRetry: () -> Unit, modifier: Modifi
             .fillMaxWidth()
             .background(colorResource(R.color.kibooz_outage_surface), cardShape)
             .border(1.dp, colorResource(R.color.kibooz_outage_border), cardShape)
-            .padding(16.dp)
+            // Bawah lebih kecil karena area sentuh 48dp di baris tombol sudah menambah ruang
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp)
     ) {
         // Hanya judul yang diumumkan, agar hitung mundur tidak dibacakan setiap detik
         Text(
@@ -78,16 +80,18 @@ fun ConnectionStatusCard(kind: OutageKind, onRetry: () -> Unit, modifier: Modifi
             fontSize = 13.sp
         )
         Row(
-            modifier = Modifier.padding(top = 2.dp),
+            modifier = Modifier.padding(top = 4.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = stringResource(R.string.coba_lagi),
+                // Ripple dipotong mengikuti pil, Compose tetap memperluas area sentuhnya
                 modifier = Modifier
-                    .clickable(role = Role.Button, onClick = onRetry)
                     .minimumInteractiveComponentSize()
-                    .background(colorResource(R.color.kibooz_lavender), RoundedCornerShape(14.dp))
+                    .clip(RoundedCornerShape(14.dp))
+                    .clickable(role = Role.Button, onClick = onRetry)
+                    .background(colorResource(R.color.kibooz_lavender))
                     .padding(horizontal = 14.dp, vertical = 6.dp),
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 12.sp,

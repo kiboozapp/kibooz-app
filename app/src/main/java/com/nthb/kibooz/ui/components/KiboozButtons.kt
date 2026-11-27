@@ -20,7 +20,6 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -35,7 +34,7 @@ import com.nthb.kibooz.R
 
 private val buttonShape = RoundedCornerShape(28.dp)
 
-/** Tombol utama bergradasi ungu, sama dengan `bg_button_purple`. */
+/** Tombol utama bergradasi ungu, sama dengan `bg_button_purple`. Seperti layar XML, tampilannya sama saat nonaktif. */
 @Composable
 fun KiboozPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     val gradient = Brush.horizontalGradient(
@@ -45,7 +44,6 @@ fun KiboozPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = 
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 54.dp)
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .clip(buttonShape)
             .background(gradient)
             .clickable(
@@ -82,7 +80,6 @@ fun KiboozOutlinedButton(
         modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 54.dp)
-            .alpha(if (enabled) 1f else DISABLED_ALPHA)
             .clip(buttonShape)
             .background(MaterialTheme.colorScheme.surface)
             .border(1.5.dp, MaterialTheme.colorScheme.outline, buttonShape)
@@ -104,5 +101,3 @@ fun KiboozOutlinedButton(
         )
     }
 }
-
-private const val DISABLED_ALPHA = 0.5f
