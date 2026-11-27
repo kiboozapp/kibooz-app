@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pilih_peran_judul">Selamat datang di Kibooz!</string>
+    <string name="pilih_peran_subjudul">Pilih peran Anda</string>
+    <string name="pilih_peran_wali">Orang Tua</string>
+    <string name="pilih_peran_wali_deskripsi">Pantau emosi anak\nsehari-hari</string>
+    <string name="pilih_peran_guru">Guru</string>
+    <string name="pilih_peran_guru_deskripsi">Lihat laporan emosi\nseluruh kelas</string>
+</resources>

@@ -2,34 +2,19 @@ package com.nthb.kibooz.ui.auth
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import com.nthb.kibooz.data.session.Role
-import com.nthb.kibooz.databinding.ActivityRoleSelectionBinding
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
 
 class RoleSelectionActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRoleSelectionBinding
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityRoleSelectionBinding.inflate(layoutInflater)
-        setContentView(binding.root)
+        setContent { KiboozTheme { RoleSelectionScreen(onRoleSelected = ::openLogin) } }
+    }
 
-        InsetsUtil.applySystemBarInsets(binding.root, headerView = binding.llHeader)
-
-        binding.cardOrangTua.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java).apply {
-                putExtra(LoginActivity.EXTRA_SELECTED_ROLE, Role.WALI.name)
-            }
-            startActivity(intent)
-        }
-
-        binding.cardGuru.setOnClickListener {
-            val intent = Intent(this, LoginActivity::class.java).apply {
-                putExtra(LoginActivity.EXTRA_SELECTED_ROLE, Role.GURU.name)
-            }
-            startActivity(intent)
-        }
+    private fun openLogin(role: Role) {
+        startActivity(Intent(this, LoginActivity::class.java).putExtra(LoginActivity.EXTRA_SELECTED_ROLE, role.name))
     }
 }
