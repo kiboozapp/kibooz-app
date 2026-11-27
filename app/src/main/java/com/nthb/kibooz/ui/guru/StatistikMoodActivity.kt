@@ -24,6 +24,7 @@ import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
+import com.nthb.kibooz.ui.profile.ProfilGuruActivity
 import com.nthb.kibooz.util.InsetsUtil
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
