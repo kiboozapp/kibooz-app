@@ -72,6 +72,37 @@ fun KiboozPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = 
     }
 }
 
+/** Tombol merah untuk aksi yang menghapus data, sama dengan `bg_button_danger`. Saat nonaktif warnanya abu-abu. */
+@Composable
+fun KiboozDangerButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .heightIn(min = 54.dp)
+            .shadow(2.dp, buttonShape)
+            .clip(buttonShape)
+            .background(colorResource(if (enabled) R.color.kibooz_red_danger else R.color.kibooz_text_muted))
+            .clickable(
+                interactionSource = null,
+                indication = ripple(color = Color.White),
+                enabled = enabled,
+                role = Role.Button,
+                onClick = onClick
+            )
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = text,
+            color = MaterialTheme.colorScheme.onPrimary,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 /** Tombol putih bergaris tepi, sama dengan `bg_button_google`. [icon] hanya hiasan, teksnya yang dibaca. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable

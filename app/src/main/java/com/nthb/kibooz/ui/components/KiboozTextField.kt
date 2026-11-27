@@ -53,14 +53,15 @@ fun KiboozTextField(
     value: String,
     onValueChange: (String) -> Unit,
     placeholder: String,
-    @DrawableRes leadingIcon: Int,
+    @DrawableRes leadingIcon: Int?,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     isPassword: Boolean = false,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     contentType: ContentType? = if (isPassword) ContentType.Password else null,
-    errorText: String? = null
+    errorText: String? = null,
+    placeholderColor: Color = Color.Unspecified
 ) {
     // Sengaja tidak disimpan: kata sandi kembali tersembunyi setelah layar diputar atau dipulihkan
     var passwordVisible by remember { mutableStateOf(false) }
@@ -99,12 +100,18 @@ fun KiboozTextField(
                         .padding(start = 16.dp, end = if (isPassword) 4.dp else 16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(painterResource(leadingIcon), contentDescription = null, modifier = Modifier.size(22.dp), tint = primary)
-                    Box(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                    if (leadingIcon != null) {
+                        Icon(painterResource(leadingIcon), contentDescription = null, modifier = Modifier.size(22.dp), tint = primary)
+                    }
+                    Box(modifier = Modifier.weight(1f).padding(start = if (leadingIcon != null) 12.dp else 0.dp)) {
                         // Tetap disusun saat kolom terisi, karena teks ini juga nama kolom bagi pembaca layar
                         Text(
                             text = placeholder,
-                            color = if (value.isEmpty()) colorResource(R.color.kibooz_text_muted) else Color.Transparent,
+                            color = when {
+                                value.isNotEmpty() -> Color.Transparent
+                                placeholderColor != Color.Unspecified -> placeholderColor
+                                else -> colorResource(R.color.kibooz_text_muted)
+                            },
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
