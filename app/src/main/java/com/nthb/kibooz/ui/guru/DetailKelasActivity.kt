@@ -31,6 +31,7 @@ import com.nthb.kibooz.databinding.ActivityDetailKelasBinding
 import com.nthb.kibooz.util.ClassCode
 import com.nthb.kibooz.util.ClassTeacherSummary
 import com.nthb.kibooz.util.ClassTeachers
+import com.nthb.kibooz.util.ForumSubjects
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
@@ -53,6 +54,7 @@ class DetailKelasActivity : AppCompatActivity() {
     private var hasInitialized: Boolean = false
     private var resolvedTeachers: List<ClassTeacherSummary> = emptyList()
     private var lastStudentCount: Int = 0
+    private var activeSubjectCode: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +69,10 @@ class DetailKelasActivity : AppCompatActivity() {
 
         val rawKodeKelas = intent.getStringExtra("KODE_KELAS").orEmpty()
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
+        activeSubjectCode = ForumSubjects.resolveCode(
+            mapelCode = intent.getStringExtra(ForumSubjects.EXTRA_MAPEL_CODE),
+            subjectName = namaKelas
+        )
         activeClassId = intent.getStringExtra("CLASS_ID")
         resolvedRombelName = intent.getStringExtra(EXTRA_ROMBEL_NAME)?.takeIf { it.isNotBlank() }
             ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
@@ -140,7 +146,7 @@ class DetailKelasActivity : AppCompatActivity() {
 
             resolvedRombelName?.let { className ->
                 binding.tvTitleBar.text = className
-                binding.tvTitleForumDiskusi.text = "Ruang Diskusi $className"
+                binding.tvTitleForumDiskusi.text = ForumSubjects.bannerTitle(className, activeSubjectCode)
             }
 
             val classId = activeClassId
@@ -159,7 +165,7 @@ class DetailKelasActivity : AppCompatActivity() {
                         else -> {}
                     }
                 }
-                when (val forumRes = appContainer.forumRepository.threads(classId)) {
+                when (val forumRes = appContainer.forumRepository.threads(classId, subjectCode = activeSubjectCode)) {
                     is ApiResult.Success -> {
                         val realThreads = maxOf(forumRes.data.total, forumRes.data.threads.size)
                         updateForumBanner(realThreads)
@@ -175,11 +181,7 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun updateForumBanner(threadCount: Int) {
-        binding.tvSubForumDiskusi.text = if (threadCount <= 0) {
-            "Belum ada pesan di forum kelas"
-        } else {
-            "$threadCount pesan diskusi wali murid & guru"
-        }
+        binding.tvSubForumDiskusi.text = ForumSubjects.bannerSubtitle(threadCount, activeSubjectCode)
     }
 
     private fun updatePesertaBanner(studentCount: Int) {
@@ -475,6 +477,8 @@ class DetailKelasActivity : AppCompatActivity() {
                 putExtra(EXTRA_ROMBEL_NAME, classTitle)
                 putExtra("NAMA_KELAS", classTitle)
             }
+            activeSubjectCode?.let { putExtra(ForumSubjects.EXTRA_MAPEL_CODE, it) }
+            putExtra(ForumSubjects.EXTRA_MAPEL_NAME, currentNamaKelas)
             putExtra("CLASS_ID", activeClassId)
             if (kodeKelas != null) putExtra("KODE_KELAS", kodeKelas)
         }

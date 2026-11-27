@@ -11,6 +11,7 @@ data class ForumThreadItem(
     val id: String,
     val title: String,
     val body: String,
+    val subjectCode: String? = null,
     val author: ForumAuthor,
     val replyCount: Int = 0,
     val createdAt: String,
@@ -26,7 +27,8 @@ data class ForumThreadList(
 
 data class CreateForumThreadRequest(
     val title: String,
-    val body: String
+    val body: String,
+    val subjectCode: String? = null
 )
 
 data class ForumReplyItem(

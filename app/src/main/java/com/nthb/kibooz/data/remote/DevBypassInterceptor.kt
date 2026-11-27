@@ -492,7 +492,30 @@ class DevBypassInterceptor(
                 }
             """.trimIndent()
 
-            path.contains("/threads") -> """
+            path.endsWith("/forum") || path.contains("/threads") -> if (method == "POST") {
+                val createdSubject = (body["subjectCode"] as? String)?.trim()?.takeIf { it.isNotEmpty() }
+                """
+                {
+                    "success": true,
+                    "data": {
+                        "id": "th-demo-new",
+                        "title": ${jsonString(body["title"] as? String ?: "Diskusi Kelas")},
+                        "body": ${jsonString(body["body"] as? String ?: "")},
+                        "subjectCode": ${if (createdSubject != null) jsonString(createdSubject) else "null"},
+                        "author": {
+                            "id": "guru-bypass-1",
+                            "fullName": ${jsonString(mockGuruName)},
+                            "role": "GURU",
+                            "avatarUrl": null
+                        },
+                        "replyCount": 0,
+                        "createdAt": "2026-11-27T10:00:00Z",
+                        "editedAt": null
+                    }
+                }
+                """.trimIndent()
+            } else {
+                """
                 {
                     "success": true,
                     "data": {
@@ -504,6 +527,7 @@ class DevBypassInterceptor(
                                 "id": "th-1",
                                 "title": "Diskusi Tugas Seni Budaya Pekan Ini",
                                 "body": "Selamat pagi bapak ibu, mohon bimbingan untuk proyek kolase anorganik di rumah ya.",
+                                "subjectCode": "SENI-A1",
                                 "author": {
                                     "id": "guru-bypass-1",
                                     "fullName": "Tika Sartika, S.Pd",
@@ -518,6 +542,7 @@ class DevBypassInterceptor(
                                 "id": "th-2",
                                 "title": "Konfirmasi Jadwal Kelas",
                                 "body": "Apakah jadwal pertemuan besok tetap pukul 08.00 WIB?",
+                                "subjectCode": null,
                                 "author": {
                                     "id": "wali-bypass-1",
                                     "fullName": "Budi Santoso",
@@ -531,7 +556,8 @@ class DevBypassInterceptor(
                         ]
                     }
                 }
-            """.trimIndent()
+                """.trimIndent()
+            }
 
             path.contains("/videos") -> when (method) {
                 "DELETE" -> """{"success": true, "message": "Learning video deleted", "data": null}"""
