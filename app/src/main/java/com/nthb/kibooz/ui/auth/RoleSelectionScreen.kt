@@ -56,7 +56,7 @@ private val cardShape = RoundedCornerShape(44.dp)
 @Composable
 internal fun RoleSelectionScreen(onRoleSelected: (Role) -> Unit) {
     val background = gradient(R.color.kibooz_role_bg_top, R.color.kibooz_role_bg_center, R.color.kibooz_role_bg_bottom)
-    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(background)) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenHeight = maxHeight
         // Bisa digulir agar kartu tetap terjangkau di layar pendek atau saat huruf diperbesar
         Column(
@@ -64,6 +64,8 @@ internal fun RoleSelectionScreen(onRoleSelected: (Role) -> Unit) {
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
                 .heightIn(min = screenHeight)
+                // Latar ikut digulir, agar teks putih di bawah tetap berada di bagian gradasi yang gelap
+                .background(background)
                 .systemBarsPadding()
                 .padding(start = 20.dp, top = 36.dp, end = 20.dp, bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
