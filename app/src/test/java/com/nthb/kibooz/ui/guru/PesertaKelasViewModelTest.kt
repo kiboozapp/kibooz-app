@@ -95,9 +95,6 @@ class PesertaKelasViewModelTest {
     private fun singleChildEnvelope(): String =
         """{"success":true,"data":{"children":[{"id":"$ID_S1","fullName":"$CHILD_ADIT","nisn":"$NISN_ADIT","avatarUrl":null,"classId":"$CLASS_MATAHARI_ID","className":"$CLASS_MATAHARI_NAME"}]}}"""
 
-    private fun emptyContactsEnvelope(): String =
-        """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
-
     private fun leaderboardEnvelope(): String =
         """{"success":true,"data":{"podium":[{"rank":1,"studentName":"$CHILD_ADIT","points":120,"avatarUrl":null}],"rankings":[]}}"""
 
@@ -113,6 +110,7 @@ class PesertaKelasViewModelTest {
         const val URL_SELF = "https://cdn/self.png"
         const val NISN_ADIT = "0012345671"
         const val NISN_BELLA = "0012345672"
+        const val EMPTY_CONTACTS_JSON = """{"success":true,"data":{"page":1,"limit":50,"total":0,"contacts":[]}}"""
         const val ID_S1 = "s1"
         const val ID_S2 = "s2"
         const val MOOD_SENANG = "SENANG"
@@ -439,7 +437,7 @@ class PesertaKelasViewModelTest {
         assertEquals("$TEACHER_SITI, $TEACHER_BUDI", afterFailure.teacherName)
         assertEquals(URL_SITI, afterFailure.teacherAvatarUrl)
 
-        enqueueWaliLoad(jsonResponse(emptyContactsEnvelope()))
+        enqueueWaliLoad(jsonResponse(EMPTY_CONTACTS_JSON))
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
         val afterEmptySuccess = settled(viewModel)
         assertEquals(1, afterEmptySuccess.teacherCount)
@@ -466,7 +464,7 @@ class PesertaKelasViewModelTest {
         server.enqueue(MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"offline"}"""))
         server.enqueue(jsonResponse(leaderboardEnvelope()))
         server.enqueue(jsonResponse(singleChildEnvelope()))
-        server.enqueue(jsonResponse(emptyContactsEnvelope()))
+        server.enqueue(jsonResponse(EMPTY_CONTACTS_JSON))
         server.enqueue(jsonResponse(leaderboardEnvelope()))
 
         val client = testClient(server)
