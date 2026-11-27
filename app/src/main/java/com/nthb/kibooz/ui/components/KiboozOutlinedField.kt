@@ -1,6 +1,9 @@
 package com.nthb.kibooz.ui.components
 
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -19,6 +22,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.error
@@ -27,6 +31,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import com.nthb.kibooz.R
 
 /**
@@ -44,8 +50,13 @@ fun KiboozOutlinedField(
     helperText: String? = null,
     contentType: ContentType? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    trailingIcon: (@Composable () -> Unit)? = null
+    trailingIcon: (@Composable () -> Unit)? = null,
+    placeholder: String? = null,
+    counter: String? = null,
+    counterDescription: String? = null,
+    textSize: TextUnit = TextUnit.Unspecified
 ) {
     val supporting = errorText ?: helperText
     // Warna bawaan TextInputLayout Material 3, agar layar Compose sama dengan layar XML
@@ -63,25 +74,43 @@ fun KiboozOutlinedField(
             if (errorText != null) error(errorText)
         },
         enabled = enabled,
-        textStyle = MaterialTheme.typography.bodyLarge,
+        textStyle = MaterialTheme.typography.bodyLarge.let {
+            if (textSize == TextUnit.Unspecified) it else it.copy(fontSize = textSize)
+        },
         label = { Text(label) },
-        supportingText = supporting?.let {
+        placeholder = placeholder?.let { { Text(it) } },
+        supportingText = if (supporting == null && counter == null) {
+            null
+        } else {
             {
-                // Galat diumumkan pembaca layar begitu muncul, seperti TextInputLayout
-                Text(
-                    text = it,
-                    modifier = if (errorText != null) {
-                        Modifier.semantics { liveRegion = LiveRegionMode.Polite }
-                    } else {
-                        Modifier
+                Row {
+                    // Galat diumumkan pembaca layar begitu muncul, seperti TextInputLayout
+                    Text(
+                        text = supporting.orEmpty(),
+                        modifier = Modifier.weight(1f).then(
+                            if (errorText != null) {
+                                Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                            } else {
+                                Modifier
+                            }
+                        )
+                    )
+                    if (counter != null) {
+                        Text(
+                            text = counter,
+                            modifier = Modifier.padding(start = 16.dp).semantics {
+                                if (counterDescription != null) contentDescription = counterDescription
+                            }
+                        )
                     }
-                )
+                }
             }
         },
         trailingIcon = trailingIcon,
         isError = errorText != null,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
+        keyboardActions = keyboardActions,
         singleLine = true,
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = border,
@@ -110,7 +139,8 @@ fun KiboozOutlinedPasswordField(
     errorText: String? = null,
     helperText: String? = null,
     contentType: ContentType = ContentType.Password,
-    imeAction: ImeAction = ImeAction.Next
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
     // Sengaja tidak disimpan: kata sandi kembali tersembunyi setelah layar diputar
     var visible by remember { mutableStateOf(false) }
@@ -127,6 +157,7 @@ fun KiboozOutlinedPasswordField(
             imeAction = imeAction,
             autoCorrectEnabled = false
         ),
+        keyboardActions = keyboardActions,
         visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
         trailingIcon = {
             IconButton(onClick = { visible = !visible }) {
