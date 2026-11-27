@@ -31,9 +31,12 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.text
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
@@ -61,7 +64,8 @@ fun KiboozTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     contentType: ContentType? = if (isPassword) ContentType.Password else null,
     errorText: String? = null,
-    placeholderColor: Color = Color.Unspecified
+    placeholderColor: Color = Color.Unspecified,
+    accessibilityLabel: String? = null
 ) {
     // Sengaja tidak disimpan: kata sandi kembali tersembunyi setelah layar diputar atau dipulihkan
     var passwordVisible by remember { mutableStateOf(false) }
@@ -111,6 +115,12 @@ fun KiboozTextField(
                                 value.isNotEmpty() -> Color.Transparent
                                 placeholderColor != Color.Unspecified -> placeholderColor
                                 else -> colorResource(R.color.kibooz_text_muted)
+                            },
+                            modifier = if (accessibilityLabel != null) {
+                                // Label di luar kolom ikut dibaca sebagai nama kolom, seperti android:labelFor
+                                Modifier.clearAndSetSemantics { text = AnnotatedString("$accessibilityLabel, $placeholder") }
+                            } else {
+                                Modifier
                             },
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis

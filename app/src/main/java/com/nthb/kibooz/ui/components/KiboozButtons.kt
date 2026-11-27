@@ -72,7 +72,7 @@ fun KiboozPrimaryButton(text: String, onClick: () -> Unit, modifier: Modifier = 
     }
 }
 
-/** Tombol merah untuk aksi yang menghapus data, sama dengan `bg_button_danger`. Saat nonaktif warnanya abu-abu. */
+/** Tombol merah untuk aksi yang menghapus data. Saat nonaktif warnanya abu-abu. */
 @Composable
 fun KiboozDangerButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true) {
     Row(

@@ -97,28 +97,27 @@ internal fun HapusAkunScreen(
             FieldLabel(R.string.hapus_akun_label_sandi, Modifier.padding(top = 24.dp))
             KiboozTextField(
                 value = password,
-                onValueChange = { password = it.take(PASSWORD_MAX_LENGTH) },
+                onValueChange = { password = limited(password, it, PASSWORD_MAX_LENGTH) },
                 placeholder = stringResource(R.string.hapus_akun_hint_sandi),
                 leadingIcon = R.drawable.ic_lock,
                 modifier = Modifier.padding(top = 6.dp),
                 isPassword = true,
                 keyboardOptions = KeyboardOptions(imeAction = if (isTeacher) ImeAction.Next else ImeAction.Done),
-                placeholderColor = secondary
+                placeholderColor = secondary,
+                accessibilityLabel = stringResource(R.string.hapus_akun_label_sandi)
             )
             FieldError(state.passwordError)
 
             if (isTeacher) {
-                FieldLabel(
-                    if (state.successorRequired) {
-                        R.string.hapus_akun_label_pengganti_wajib
-                    } else {
-                        R.string.hapus_akun_label_pengganti_opsional
-                    },
-                    Modifier.padding(top = 20.dp)
-                )
+                val successorLabel = if (state.successorRequired) {
+                    R.string.hapus_akun_label_pengganti_wajib
+                } else {
+                    R.string.hapus_akun_label_pengganti_opsional
+                }
+                FieldLabel(successorLabel, Modifier.padding(top = 20.dp))
                 KiboozTextField(
                     value = successor,
-                    onValueChange = { onSuccessorChange(it.take(EMAIL_MAX_LENGTH)) },
+                    onValueChange = { onSuccessorChange(limited(successor, it, EMAIL_MAX_LENGTH)) },
                     placeholder = stringResource(R.string.hapus_akun_hint_pengganti),
                     leadingIcon = null,
                     modifier = Modifier.padding(top = 6.dp),
@@ -129,7 +128,8 @@ internal fun HapusAkunScreen(
                     ),
                     keyboardActions = KeyboardActions(onDone = { submit() }),
                     contentType = ContentType.EmailAddress,
-                    placeholderColor = secondary
+                    placeholderColor = secondary,
+                    accessibilityLabel = stringResource(successorLabel)
                 )
                 FieldError(state.successorError)
                 Text(
@@ -156,6 +156,13 @@ internal fun HapusAkunScreen(
             )
         }
     }
+}
+
+/** Batas panjang seperti `android:maxLength`. Sisipan di tengah ditolak, agar akhir isian tidak terpotong diam-diam. */
+private fun limited(current: String, typed: String, max: Int): String = when {
+    typed.length <= max -> typed
+    typed.startsWith(current) -> typed.take(max)
+    else -> current
 }
 
 @Composable
