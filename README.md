@@ -20,7 +20,7 @@
 
 [![Codecov](https://codecov.io/gh/kiboozapp/kibooz-app/graph/badge.svg)](https://codecov.io/gh/kiboozapp/kibooz-app)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/kiboozapp/kibooz-app/badge)](https://scorecard.dev/viewer/?uri=github.com/kiboozapp/kibooz-app)
-[![DeepSource](https://app.deepsource.com/gh/kiboozapp/kibooz-app.svg/?label=active+issues&show_trend=true&token=NHbenZh_aJe5H-MxL2iAkDXu)](https://app.deepsource.com/gh/kiboozapp/kibooz-app/)
+[![DeepSource](https://app.deepsource.com/gh/kiboozapp/kibooz-app.svg/?label=active+issues&show_trend=true)](https://app.deepsource.com/gh/kiboozapp/kibooz-app/)
 
 [![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
 [![Language](https://img.shields.io/badge/Language-Kotlin-7F52FF?logo=kotlin&logoColor=white)](https://kotlinlang.org)
