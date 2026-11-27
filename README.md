@@ -135,6 +135,7 @@ Pengaturan diberikan sebagai properti Gradle, misalnya `-Pkibooz.apiBaseUrl=http
 | [CHANGELOG.md](CHANGELOG.md) | Perubahan tiap rilis |
 | [docs/ci-cd.md](docs/ci-cd.md) | Workflow, pengecekan wajib dan alur rilis |
 | [docs/compose-guide.md](docs/compose-guide.md) | Langkah memindahkan layar XML ke Compose dan komponen bersamanya |
+| [docs/review.md](docs/review.md) | Siapa yang mereview, komentar bot dan cara menangani thread review |
 | [docs/MODEL_PLACEHOLDERS.md](docs/MODEL_PLACEHOLDERS.md) | Model pengganti, keterbatasannya dan cara menggantinya |
 | [docs/prd_and_roadmap](docs/prd_and_roadmap/00_INDEX.md) | Kebutuhan produk dan rencana kerja |
 

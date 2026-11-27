@@ -7,7 +7,7 @@ Halaman ini mendaftar semua workflow di `.github/workflows` dan menjelaskan apa 
 Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
-- Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
+- Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib, seperti dijelaskan di [review.md](review.md).
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
 - Dua belas pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint, Zizmor, CodeQL analysis dan Dependency review.
 - Branch pull request harus mutakhir terhadap `main` sebelum digabung.
