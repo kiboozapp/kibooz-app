@@ -1,0 +1,5 @@
+# The settings of ktlint, run by .github/workflows/kotlin-lint.yaml. Android Studio reads this file too.
+root = true
+
+[*.{kt,kts}]
+ktlint_code_style = android_studio
