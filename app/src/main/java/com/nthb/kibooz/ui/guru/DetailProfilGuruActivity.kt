@@ -13,6 +13,7 @@ import com.nthb.kibooz.data.remote.DailyMoodDistribution
 import com.nthb.kibooz.databinding.ActivityDetailProfilGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.common.MoodChartMath
+import com.nthb.kibooz.ui.profile.EditProfilGuruActivity
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlin.math.roundToInt
