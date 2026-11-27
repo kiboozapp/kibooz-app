@@ -65,5 +65,8 @@ class DevBypassInterceptorForumTest {
         assertTrue(created is ApiResult.Success)
         val logikaAfter = repo.threads(classId, subjectCode = logikaCode)
         assertEquals(1, (logikaAfter as ApiResult.Success).data.total)
+
+        val otherClassLogika = repo.threads("cls-2", subjectCode = logikaCode)
+        assertEquals(0, (otherClassLogika as ApiResult.Success).data.total)
     }
 }

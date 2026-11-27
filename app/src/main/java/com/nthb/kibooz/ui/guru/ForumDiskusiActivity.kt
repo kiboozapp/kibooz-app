@@ -313,14 +313,16 @@ class ForumDiskusiActivity : AppCompatActivity() {
                 null
             }
 
-            binding.tvEmptyForum.visibility = View.GONE
-            addMessageBubble(
-                senderName = "Anda ($userRole)",
-                content = content,
-                time = currentTime,
-                isSelf = true,
-                subjectBadge = badgeLabel
-            )
+            if (targetFilter == activeFilter) {
+                binding.tvEmptyForum.visibility = View.GONE
+                addMessageBubble(
+                    senderName = "Anda ($userRole)",
+                    content = content,
+                    time = currentTime,
+                    isSelf = true,
+                    subjectBadge = badgeLabel
+                )
+            }
 
             if (!classId.isNullOrBlank()) {
                 val result = forumRepo.createThread(

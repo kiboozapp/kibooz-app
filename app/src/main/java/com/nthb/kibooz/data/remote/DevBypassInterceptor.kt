@@ -37,6 +37,7 @@ class DevBypassInterceptor(
 
     private data class MockForumThread(
         val id: String,
+        val classId: String?,
         val title: String,
         val body: String,
         val subjectCode: String?,
@@ -57,6 +58,7 @@ class DevBypassInterceptor(
     private val mockForumThreads = mutableListOf(
         MockForumThread(
             id = "th-1",
+            classId = null,
             title = "Diskusi Tugas Seni Budaya Pekan Ini",
             body = "Selamat pagi bapak ibu, mohon bimbingan untuk proyek kolase anorganik di rumah ya.",
             subjectCode = "SENI-A1",
@@ -68,6 +70,7 @@ class DevBypassInterceptor(
         ),
         MockForumThread(
             id = "th-2",
+            classId = null,
             title = "Konfirmasi Jadwal Kelas",
             body = "Apakah jadwal pertemuan besok tetap pukul 08.00 WIB?",
             subjectCode = null,
@@ -138,6 +141,7 @@ class DevBypassInterceptor(
         handleMockProfileAndDashboard(path, method, body)
             ?: handleMockClassAndStudents(path, method)
             ?: handleMockClassroomContent(path, method, body, subjectCode, generalOnly)
+            ?: handleMockTrashAndGuidance(path)
             ?: handleMockActivityAndNotifications(path, method)
 
     private fun handleMockProfileAndDashboard(
@@ -145,10 +149,10 @@ class DevBypassInterceptor(
         method: String,
         body: Map<String, Any?>
     ): String? = when {
-        path.endsWith("/guru/profile") && method == "GET" -> mockGuruProfileJson()
-        path.endsWith("/guru/profile/detail") || (path.endsWith("/guru/profile") && method == "PUT") ->
+        path.endsWith(PATH_GURU_PROFILE) && method == METHOD_GET -> mockGuruProfileJson()
+        path.endsWith("/guru/profile/detail") || (path.endsWith(PATH_GURU_PROFILE) && method == METHOD_PUT) ->
             mockGuruProfileDetailJson(method, body)
-        path.endsWith("/wali/profile") && method == "PATCH" -> mockWaliProfilePatchJson(body)
+        path.endsWith("/wali/profile") && method == METHOD_PATCH -> mockWaliProfilePatchJson(body)
         path.endsWith("/guru/dashboard") -> mockGuruDashboardJson()
         path.endsWith("/wali/dashboard") -> mockWaliDashboardJson()
         path.endsWith("/guru/mood/analytics") -> mockMoodAnalyticsJson()
@@ -156,12 +160,12 @@ class DevBypassInterceptor(
     }
 
     private fun handleMockClassAndStudents(path: String, method: String): String? = when {
-        path.endsWith("/guru/classes") || (path.endsWith("/classes") && !path.contains("students")) ->
+        path.endsWith("/guru/classes") || (path.endsWith("/classes") && !path.contains(SEGMENT_STUDENTS)) ->
             mockClassesListJson()
         path.endsWith("/nisn-verification") -> handleMockNisnVerification(path, method)
-        path.contains("/guru/classes/") && path.contains("/students/") && method == "DELETE" ->
+        path.contains("/guru/classes/") && path.contains("/$SEGMENT_STUDENTS/") && method == METHOD_DELETE ->
             handleMockRemoveStudent(path)
-        path.contains("/students") -> mockStudentsListJson()
+        path.contains("/$SEGMENT_STUDENTS") -> mockStudentsListJson()
         path.endsWith("/wali/children") -> mockWaliChildrenJson()
         path.contains("/wali/child") -> mockWaliChildDetailJson()
         else -> null
@@ -175,11 +179,18 @@ class DevBypassInterceptor(
         generalOnly: Boolean
     ): String? = when {
         path.endsWith("/forum") || path.contains("/threads") ->
-            handleMockForum(method, body, subjectCode, generalOnly)
+            handleMockForum(path, method, body, subjectCode, generalOnly)
         path.contains("/move-requests") -> mockMoveRequestJson()
         path.contains("/leaderboard") -> mockLeaderboardJson()
         path.contains("/videos") -> handleMockVideos(method)
         path.contains("/modules") -> handleMockModules(method)
+        else -> null
+    }
+
+    private fun handleMockTrashAndGuidance(path: String): String? = when {
+        path.endsWith("/trash/stats") -> mockTrashStatsJson()
+        path.contains("/trash/scan-claim") -> mockTrashClaimJson()
+        path.contains("/wali/guidance/apply") -> """{"success": true, "message": "Panduan berhasil diterapkan"}"""
         else -> null
     }
 
@@ -205,10 +216,10 @@ class DevBypassInterceptor(
     """.trimIndent()
 
     private fun mockGuruProfileDetailJson(method: String, body: Map<String, Any?>): String {
-        if (method == "PUT") {
-            nonEmptyBodyField(body, "fullName")?.let { mockGuruName = it }
-            trimmedBodyField(body, "phoneNumber")?.let { mockGuruPhone = it }
-            trimmedBodyField(body, "address")?.let { mockGuruAddress = it }
+        if (method == METHOD_PUT) {
+            nonEmptyBodyField(body, KEY_FULL_NAME)?.let { mockGuruName = it }
+            trimmedBodyField(body, KEY_PHONE)?.let { mockGuruPhone = it }
+            trimmedBodyField(body, KEY_ADDRESS)?.let { mockGuruAddress = it }
         }
         return """
             {
@@ -229,10 +240,10 @@ class DevBypassInterceptor(
     }
 
     private fun mockWaliProfilePatchJson(body: Map<String, Any?>): String {
-        nonEmptyBodyField(body, "fullName")?.let { mockWaliName = it }
-        trimmedBodyField(body, "phoneNumber")?.let { mockWaliPhone = it }
+        nonEmptyBodyField(body, KEY_FULL_NAME)?.let { mockWaliName = it }
+        trimmedBodyField(body, KEY_PHONE)?.let { mockWaliPhone = it }
         trimmedBodyField(body, "whatsappNumber")?.let { mockWaliWhatsapp = it }
-        trimmedBodyField(body, "address")?.let { mockWaliAddress = it }
+        trimmedBodyField(body, KEY_ADDRESS)?.let { mockWaliAddress = it }
         return """
             {
                 "success": true,
@@ -478,6 +489,44 @@ class DevBypassInterceptor(
         }
     """.trimIndent()
 
+    private fun mockTrashStatsJson(): String = """
+        {
+            "success": true,
+            "data": {
+                "student": {
+                    "id": "child-demo-1",
+                    "fullName": "Adit Pratama"
+                },
+                "totalPoints": 120,
+                "seasonPoints": 120,
+                "classRank": 1,
+                "totalScans": 14,
+                "breakdown": [
+                    {"trashType": "ORGANIK", "scans": 8, "points": 80},
+                    {"trashType": "ANORGANIK", "scans": 6, "points": 40},
+                    {"trashType": "B3", "scans": 0, "points": 0}
+                ],
+                "todayScans": 3,
+                "dailyLimit": 5,
+                "remainingDailyScans": 2
+            }
+        }
+    """.trimIndent()
+
+    private fun mockTrashClaimJson(): String = """
+        {
+            "success": true,
+            "data": {
+                "pointsAdded": 10,
+                "totalPoints": 130,
+                "seasonPoints": 130,
+                "newRank": 1,
+                "remainingDailyScans": 1,
+                "reducedPoints": false
+            }
+        }
+    """.trimIndent()
+
     private fun mockGuruHistoryJson(): String = """
         {
             "success": true,
@@ -550,8 +599,8 @@ class DevBypassInterceptor(
     """.trimIndent()
 
     private fun handleMockVideos(method: String): String = when (method) {
-        "DELETE" -> """{"success": true, "message": "Learning video deleted", "data": null}"""
-        "PATCH" -> """
+        METHOD_DELETE -> """{"success": true, "message": "Learning video deleted", "data": null}"""
+        METHOD_PATCH -> """
             {
                 "success": true,
                 "message": "Learning video updated",
@@ -566,7 +615,7 @@ class DevBypassInterceptor(
                 }
             }
         """.trimIndent()
-        "POST" -> """
+        METHOD_POST -> """
             {
                 "success": true,
                 "message": "Learning video created",
@@ -614,8 +663,8 @@ class DevBypassInterceptor(
     }
 
     private fun handleMockModules(method: String): String = when (method) {
-        "DELETE" -> """{"success": true, "message": "Learning module deleted", "data": null}"""
-        "PATCH" -> """
+        METHOD_DELETE -> """{"success": true, "message": "Learning module deleted", "data": null}"""
+        METHOD_PATCH -> """
             {
                 "success": true,
                 "message": "Learning module updated",
@@ -631,7 +680,7 @@ class DevBypassInterceptor(
                 }
             }
         """.trimIndent()
-        "POST" -> """
+        METHOD_POST -> """
             {
                 "success": true,
                 "message": "Learning module created",
@@ -682,9 +731,9 @@ class DevBypassInterceptor(
     }
 
     private fun handleMockNotifications(path: String, method: String): String = when {
-        method == "POST" && path.endsWith("/read-all") ->
+        method == METHOD_POST && path.endsWith("/read-all") ->
             """{"success": true, "message": "All notifications marked as read", "data": null}"""
-        method == "POST" && path.endsWith("/read") ->
+        method == METHOD_POST && path.endsWith("/read") ->
             """{"success": true, "message": "Notification marked as read", "data": null}"""
         else -> """
             {
@@ -723,11 +772,11 @@ class DevBypassInterceptor(
 
     private fun handleMockNisnVerification(path: String, method: String): String {
         val segments = path.split('/').filter { it.isNotEmpty() }
-        val studentsIdx = segments.indexOf("students")
+        val studentsIdx = segments.indexOf(SEGMENT_STUDENTS)
         val studentId = if (studentsIdx >= 0 && studentsIdx + 1 < segments.size) segments[studentsIdx + 1] else ""
         val target = mockStudents.find { it.id == studentId } ?: mockStudents.first()
 
-        return if (method == "POST") {
+        return if (method == METHOD_POST) {
             var displaced = 0
             if (target.nisn.isNotEmpty()) {
                 mockStudents.forEach { other ->
@@ -749,44 +798,67 @@ class DevBypassInterceptor(
 
     private fun handleMockRemoveStudent(path: String): String {
         val segments = path.split('/').filter { it.isNotEmpty() }
-        val studentsIdx = segments.indexOf("students")
+        val studentsIdx = segments.indexOf(SEGMENT_STUDENTS)
         val studentId = if (studentsIdx >= 0 && studentsIdx + 1 < segments.size) segments[studentsIdx + 1] else ""
         mockStudents.removeAll { it.id == studentId }
         return """{"success":true,"message":"Student removed","data":null}"""
     }
 
+    private fun extractForumClassId(path: String): String? {
+        val segments = path.split('/').filter { it.isNotEmpty() }
+        val classesIndex = segments.indexOf("classes")
+        if (classesIndex >= 0 && classesIndex + 1 < segments.size) {
+            return segments[classesIndex + 1].trim().takeIf { it.isNotEmpty() }
+        }
+        return null
+    }
+
     private fun handleMockForum(
+        path: String,
         method: String,
         body: Map<String, Any?>,
         subjectCode: String?,
         generalOnly: Boolean
     ): String {
-        if (method == "POST") {
+        val requestClassId = extractForumClassId(path)
+        if (method == METHOD_POST) {
             val createdSubject = nonEmptyBodyField(body, "subjectCode")
-            val created = MockForumThread(
-                id = "th-demo-${mockForumThreads.size + 1}",
-                title = nonEmptyBodyField(body, "title") ?: "Diskusi Kelas",
-                body = (body["body"] as? String).orEmpty(),
-                subjectCode = createdSubject,
-                authorId = "guru-bypass-1",
-                authorName = mockGuruName,
-                authorRole = "GURU",
-                replyCount = 0,
-                createdAt = "2026-11-27T10:00:00Z"
-            )
-            mockForumThreads.add(created)
+            val created = synchronized(mockForumThreads) {
+                val item = MockForumThread(
+                    id = "th-demo-${mockForumThreads.size + 1}",
+                    classId = requestClassId,
+                    title = nonEmptyBodyField(body, "title") ?: "Diskusi Kelas",
+                    body = (body["body"] as? String).orEmpty(),
+                    subjectCode = createdSubject,
+                    authorId = "guru-bypass-1",
+                    authorName = mockGuruName,
+                    authorRole = "GURU",
+                    replyCount = 0,
+                    createdAt = "2026-11-27T10:00:00Z"
+                )
+                mockForumThreads.add(item)
+                item
+            }
             return """{"success":true,"data":${forumThreadJson(created)}}"""
         }
 
-        val filtered = mockForumThreads.filter { thread ->
-            when {
-                subjectCode != null -> thread.subjectCode.equals(subjectCode, ignoreCase = true)
-                generalOnly -> thread.subjectCode == null
-                else -> true
-            }
+        val snapshot = synchronized(mockForumThreads) { mockForumThreads.toList() }
+        val filtered = snapshot.filter { thread ->
+            val classMatches = thread.classId == null || requestClassId == null || thread.classId == requestClassId
+            classMatches && matchesForumFilter(thread, subjectCode, generalOnly)
         }
         val threadsArray = filtered.joinToString(",") { forumThreadJson(it) }
         return """{"success":true,"data":{"page":1,"limit":20,"total":${filtered.size},"threads":[$threadsArray]}}"""
+    }
+
+    private fun matchesForumFilter(
+        thread: MockForumThread,
+        subjectCode: String?,
+        generalOnly: Boolean
+    ): Boolean = when {
+        subjectCode != null -> thread.subjectCode.equals(subjectCode, ignoreCase = true)
+        generalOnly -> thread.subjectCode == null
+        else -> true
     }
 
     private fun forumThreadJson(thread: MockForumThread): String {
@@ -796,4 +868,17 @@ class DevBypassInterceptor(
 
     private fun jsonString(value: String): String =
         moshi.adapter(String::class.java).toJson(value)
+
+    private companion object {
+        const val METHOD_GET = "GET"
+        const val METHOD_POST = "POST"
+        const val METHOD_PUT = "PUT"
+        const val METHOD_PATCH = "PATCH"
+        const val METHOD_DELETE = "DELETE"
+        const val PATH_GURU_PROFILE = "/guru/profile"
+        const val SEGMENT_STUDENTS = "students"
+        const val KEY_FULL_NAME = "fullName"
+        const val KEY_PHONE = "phoneNumber"
+        const val KEY_ADDRESS = "address"
+    }
 }
