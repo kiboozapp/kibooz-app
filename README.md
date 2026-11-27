@@ -82,7 +82,11 @@ Versi pustaka ada di [app/build.gradle.kts](app/build.gradle.kts), versi plugin 
 2. Cocokkan berkasnya dengan `sha256sum -c kibooz-app-<tag>.apk.sha256`.
 3. Pasang di perangkat dengan Android 7.0 atau lebih baru. Hapus dulu build debug yang pernah dipasang, karena kunci tanda tangannya berbeda.
 
-APK rilis ditandatangani dengan sertifikat yang sidik jari SHA-256-nya `9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb`. Sidik jari itu bisa diperiksa dengan `apksigner verify --print-certs kibooz-app-<tag>.apk`. `apksigner` ada di folder `build-tools/<versi>` pada Android SDK.
+APK rilis ditandatangani dengan sertifikat yang sidik jari SHA-256-nya `9ad8adec25830fb86cbbd692b12472c819822a09f5cc24edcd35646137c613eb`. Sidik jari itu bisa diperiksa dengan `apksigner` dari Android SDK, yang ada di folder `build-tools/<versi>`.
+
+```bash
+"$ANDROID_HOME/build-tools/<versi>/apksigner" verify --print-certs kibooz-app-<tag>.apk
+```
 
 ### Menjalankan dari kode sumber
 
