@@ -500,7 +500,7 @@ class DevBypassInterceptor(
                     "data": {
                         "id": "th-demo-new",
                         "title": ${jsonString(body["title"] as? String ?: "Diskusi Kelas")},
-                        "body": ${jsonString(body["body"] as? String ?: "")},
+                        "body": ${jsonString((body["body"] as? String).orEmpty())},
                         "subjectCode": ${if (createdSubject != null) jsonString(createdSubject) else "null"},
                         "author": {
                             "id": "guru-bypass-1",

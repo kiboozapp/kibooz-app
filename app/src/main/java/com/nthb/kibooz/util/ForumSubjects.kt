@@ -120,12 +120,12 @@ object ForumSubjects {
     }
 
     fun bannerTitle(className: String?, subjectCode: String?): String {
-        val cleanClass = className?.trim()?.takeIf { it.isNotEmpty() }
+        val cleanClass = className?.trim().orEmpty()
         val subject = fromCode(subjectCode)
         return when {
-            subject != null && cleanClass != null -> "Diskusi ${subject.chipLabel} \u2022 $cleanClass"
+            subject != null && cleanClass.isNotEmpty() -> "Diskusi ${subject.chipLabel} \u2022 $cleanClass"
             subject != null -> "Diskusi ${subject.displayName}"
-            cleanClass != null -> "Ruang Diskusi $cleanClass"
+            cleanClass.isNotEmpty() -> "Ruang Diskusi $cleanClass"
             else -> "Ruang Diskusi Kelas Aktif"
         }
     }

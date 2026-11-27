@@ -1,5 +1,6 @@
 package com.nthb.kibooz.ui.guru
 
+import android.graphics.Typeface
 import android.os.Bundle
 import android.view.Gravity
 import android.view.View
@@ -339,6 +340,46 @@ class ForumDiskusiActivity : AppCompatActivity() {
         }
     }
 
+    private data class BubbleStyle(
+        val backgroundRes: Int,
+        val senderColor: Int,
+        val bodyColor: Int,
+        val timeColor: Int
+    )
+
+    private fun bubbleStyle(isSelf: Boolean): BubbleStyle = if (isSelf) {
+        BubbleStyle(
+            backgroundRes = R.drawable.bg_button_purple,
+            senderColor = ContextCompat.getColor(this, R.color.kibooz_yellow_gold),
+            bodyColor = ContextCompat.getColor(this, R.color.kibooz_white),
+            timeColor = ContextCompat.getColor(this, R.color.kibooz_lavender_surface)
+        )
+    } else {
+        BubbleStyle(
+            backgroundRes = R.drawable.bg_input_field,
+            senderColor = ContextCompat.getColor(this, R.color.kibooz_primary_purple),
+            bodyColor = ContextCompat.getColor(this, R.color.kibooz_text_dark),
+            timeColor = ContextCompat.getColor(this, R.color.kibooz_text_muted)
+        )
+    }
+
+    private fun createSubjectBadgeView(badgeText: String, balooFont: Typeface?, density: Float): TextView =
+        TextView(this).apply {
+            text = badgeText
+            textSize = 10f
+            typeface = balooFont
+            paint.isFakeBoldText = true
+            setBackgroundResource(R.drawable.bg_tag_lavender)
+            setTextColor(ContextCompat.getColor(context, R.color.kibooz_primary_purple))
+            setPadding((8 * density).toInt(), (2 * density).toInt(), (8 * density).toInt(), (2 * density).toInt())
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                bottomMargin = (4 * density).toInt()
+            }
+        }
+
     private fun addMessageBubble(
         senderName: String,
         content: String,
@@ -347,13 +388,18 @@ class ForumDiskusiActivity : AppCompatActivity() {
         subjectBadge: String? = null
     ) {
         val density = resources.displayMetrics.density
+        val style = bubbleStyle(isSelf)
+        val balooFont = ResourcesCompat.getFont(this, R.font.baloo2)
+        val sideMargin = (64 * density).toInt()
+        val hPad = (16 * density).toInt()
+        val vPad = (12 * density).toInt()
 
         val container = LinearLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                topMargin = (12 * density).toInt()
+                topMargin = vPad
             }
             gravity = if (isSelf) Gravity.END else Gravity.START
             orientation = LinearLayout.VERTICAL
@@ -364,89 +410,48 @@ class ForumDiskusiActivity : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                if (isSelf) {
-                    marginStart = (64 * density).toInt()
-                } else {
-                    marginEnd = (64 * density).toInt()
-                }
+                marginStart = if (isSelf) sideMargin else 0
+                marginEnd = if (isSelf) 0 else sideMargin
             }
-            setBackgroundResource(if (isSelf) R.drawable.bg_button_purple else R.drawable.bg_input_field)
+            setBackgroundResource(style.backgroundRes)
             orientation = LinearLayout.VERTICAL
-            setPadding((16 * density).toInt(), (12 * density).toInt(), (16 * density).toInt(), (12 * density).toInt())
+            setPadding(hPad, vPad, hPad, vPad)
         }
 
-        val balooFont = ResourcesCompat.getFont(this, R.font.baloo2)
+        subjectBadge?.takeIf { it.isNotBlank() }?.let { badge ->
+            bubble.addView(createSubjectBadgeView(badge, balooFont, density))
+        }
 
-        if (!subjectBadge.isNullOrBlank()) {
-            val badgeTv = TextView(this).apply {
-                text = subjectBadge
-                textSize = 10f
+        bubble.addView(
+            TextView(this).apply {
+                text = senderName
+                setTextColor(style.senderColor)
+                textSize = 12f
                 typeface = balooFont
                 paint.isFakeBoldText = true
-                setBackgroundResource(R.drawable.bg_tag_lavender)
-                setTextColor(ContextCompat.getColor(context, R.color.kibooz_primary_purple))
-                setPadding((8 * density).toInt(), (2 * density).toInt(), (8 * density).toInt(), (2 * density).toInt())
-                layoutParams = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-                ).apply {
-                    bottomMargin = (4 * density).toInt()
-                }
             }
-            bubble.addView(badgeTv)
-        }
-
-        val senderTv = TextView(this).apply {
-            text = senderName
-            setTextColor(
-                if (isSelf) {
-                    ContextCompat.getColor(context, R.color.kibooz_yellow_gold)
-                } else {
-                    ContextCompat.getColor(context, R.color.kibooz_primary_purple)
-                }
-            )
-            textSize = 12f
-            typeface = balooFont
-            paint.isFakeBoldText = true
-        }
-
-        val messageTv = TextView(this).apply {
-            text = content
-            setTextColor(
-                if (isSelf) {
-                    ContextCompat.getColor(context, R.color.kibooz_white)
-                } else {
-                    ContextCompat.getColor(context, R.color.kibooz_text_dark)
-                }
-            )
-            textSize = 14f
-            typeface = balooFont
-        }
-
-        val timeTv = TextView(this).apply {
-            text = time
-            setTextColor(
-                if (isSelf) {
-                    ContextCompat.getColor(context, R.color.kibooz_lavender_surface)
-                } else {
-                    ContextCompat.getColor(context, R.color.kibooz_text_muted)
-                }
-            )
-            textSize = 10f
-            gravity = Gravity.END
-            typeface = balooFont
-        }
-
-        bubble.addView(senderTv)
-        bubble.addView(messageTv)
-        bubble.addView(timeTv)
+        )
+        bubble.addView(
+            TextView(this).apply {
+                text = content
+                setTextColor(style.bodyColor)
+                textSize = 14f
+                typeface = balooFont
+            }
+        )
+        bubble.addView(
+            TextView(this).apply {
+                text = time
+                setTextColor(style.timeColor)
+                textSize = 10f
+                gravity = Gravity.END
+                typeface = balooFont
+            }
+        )
         container.addView(bubble)
 
         binding.llChatMessages.addView(container)
-
-        binding.nsvChat.post {
-            binding.nsvChat.fullScroll(View.FOCUS_DOWN)
-        }
+        binding.nsvChat.post { binding.nsvChat.fullScroll(View.FOCUS_DOWN) }
     }
 
     private companion object {
