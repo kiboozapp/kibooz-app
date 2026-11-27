@@ -106,7 +106,7 @@ internal fun HapusAkunScreen(
                 placeholderColor = secondary,
                 accessibilityLabel = stringResource(R.string.hapus_akun_label_sandi)
             )
-            FieldError(state.passwordError)
+            state.passwordError?.let { FieldError(it) }
 
             if (isTeacher) {
                 val successorLabel = if (state.successorRequired) {
@@ -131,7 +131,7 @@ internal fun HapusAkunScreen(
                     placeholderColor = secondary,
                     accessibilityLabel = stringResource(successorLabel)
                 )
-                FieldError(state.successorError)
+                state.successorError?.let { FieldError(it) }
                 Text(
                     text = stringResource(R.string.hapus_akun_penjelasan_pengganti),
                     modifier = Modifier.padding(top = 6.dp),
@@ -178,15 +178,13 @@ private fun FieldLabel(@StringRes label: Int, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun FieldError(@StringRes error: Int?) {
-    if (error != null) {
-        Text(
-            text = stringResource(error),
-            modifier = Modifier.padding(top = 6.dp).semantics { liveRegion = LiveRegionMode.Polite },
-            color = MaterialTheme.colorScheme.error,
-            fontSize = 13.sp
-        )
-    }
+private fun FieldError(@StringRes error: Int) {
+    Text(
+        text = stringResource(error),
+        modifier = Modifier.padding(top = 6.dp).semantics { liveRegion = LiveRegionMode.Polite },
+        color = MaterialTheme.colorScheme.error,
+        fontSize = 13.sp
+    )
 }
 
 @Preview(widthDp = 360, heightDp = 780)
