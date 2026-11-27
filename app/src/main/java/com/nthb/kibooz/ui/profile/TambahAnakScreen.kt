@@ -110,7 +110,7 @@ internal fun TambahAnakScreen(
             KiboozOutlinedField(
                 value = nisn,
                 onValueChange = {
-                    nisn = it.filter(Char::isDigit).take(NISN_MAX)
+                    nisn = it.filter { c -> c in '0'..'9' }.take(NISN_MAX)
                     edited = edited + AddChildField.NISN
                 },
                 label = stringResource(R.string.anak_hint_nisn),

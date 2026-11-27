@@ -24,8 +24,8 @@ import com.nthb.kibooz.ui.common.NotificationInboxDialog
 import com.nthb.kibooz.ui.common.displayName
 import com.nthb.kibooz.ui.common.emoji
 import com.nthb.kibooz.ui.profile.ProfilSiswaActivity
-import com.nthb.kibooz.ui.profile.TambahAnakActivity
 import com.nthb.kibooz.ui.profile.ProfilWaliActivity
+import com.nthb.kibooz.ui.profile.TambahAnakActivity
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlin.math.roundToInt
