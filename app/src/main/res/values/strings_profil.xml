@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="profil_guru_judul">Profil Guru</string>
+    <string name="profil_guru_lihat_detail">Lihat Detail</string>
+    <string name="profil_ganti_foto">Ganti foto profil</string>
+    <string name="profil_foto_guru">Foto profil %1$s</string>
+    <string name="profil_foto_guru_umum">Foto profil</string>
+    <string name="profil_menu_ubah_sandi">Ubah Kata sandi</string>
+    <string name="profil_menu_syarat">Syarat dan ketentuan</string>
+    <string name="profil_menu_privasi">Kebijakan Privasi</string>
+    <string name="profil_menu_panduan">Panduan</string>
+    <string name="profil_menu_keluar">Keluar</string>
+</resources>
