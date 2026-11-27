@@ -1,6 +1,8 @@
 extends: substitution
 message: "The repository moved to the organization. Use '%s' instead of '%s'."
 level: error
+# raw reads the Markdown source, so an address inside a link or a code block is checked too
+scope: raw
 ignorecase: true
 nonword: true
 swap:
