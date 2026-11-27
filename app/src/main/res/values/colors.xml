@@ -67,6 +67,7 @@
     <!-- Layar profil -->
     <color name="kibooz_profile_name">#221C38</color>
     <color name="kibooz_profile_muted">#7A7593</color>
+    <color name="kibooz_profile_subtitle">#6B6685</color>
     <color name="kibooz_profile_menu_text">#2A2740</color>
     <color name="kibooz_profile_card_border">#EAE7F5</color>
     <color name="kibooz_profile_divider">#F0EEF7</color>

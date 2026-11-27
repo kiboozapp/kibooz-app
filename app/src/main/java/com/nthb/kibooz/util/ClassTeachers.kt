@@ -44,12 +44,13 @@ object ClassTeachers {
     }
 
     fun fromChatContacts(contacts: List<ChatContact>, classId: String?): List<ClassTeacherSummary> {
-        val targetClassId = classId?.trim()?.takeIf { it.isNotEmpty() }
+        // Tanpa kelas tujuan tidak ada pengajar yang bisa dipilih, supaya pengajar kelas lain tidak ikut tampil
+        val targetClassId = classId?.trim()?.takeIf { it.isNotEmpty() } ?: return emptyList()
         val seen = LinkedHashSet<String>()
         return contacts
             .asSequence()
             .filter { !it.deleted && it.role.equals("GURU", ignoreCase = true) && it.fullName.isNotBlank() }
-            .filter { contact -> targetClassId == null || contact.classes.any { it.id == targetClassId } }
+            .filter { contact -> contact.classes.any { it.id == targetClassId } }
             .filter { contact ->
                 val identity = contact.id.trim().ifEmpty { contact.fullName.trim().lowercase() }
                 seen.add(identity)

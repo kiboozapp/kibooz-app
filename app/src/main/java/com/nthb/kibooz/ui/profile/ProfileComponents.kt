@@ -27,12 +27,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nthb.kibooz.R
 
-/** Satu baris menu profil. [danger] mewarnai baris merah dan menghilangkan panah. */
+/** Satu baris menu profil. [danger] mewarnai baris merah. Panah ikut hilang kecuali [showChevron] diisi true. */
 internal data class ProfileMenuItem(
     @DrawableRes val icon: Int,
     val label: String,
     val onClick: () -> Unit,
-    val danger: Boolean = false
+    val danger: Boolean = false,
+    val showChevron: Boolean = !danger
 )
 
 /** Kartu putih berisi baris menu setinggi 52dp yang dipisah garis, sama dengan kartu menu di layar XML. */
@@ -82,12 +83,12 @@ private fun MenuRow(item: ProfileMenuItem) {
             fontSize = 15.sp,
             fontWeight = FontWeight.Bold
         )
-        if (!item.danger) {
+        if (item.showChevron) {
             Icon(
                 painter = painterResource(R.drawable.ic_chevron_right),
                 contentDescription = null,
                 modifier = Modifier.size(20.dp),
-                tint = colorResource(R.color.kibooz_profile_chevron)
+                tint = if (item.danger) tint else colorResource(R.color.kibooz_profile_chevron)
             )
         }
     }

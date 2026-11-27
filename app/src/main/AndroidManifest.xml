@@ -179,7 +179,7 @@
 
         <!-- 17. Wali Flow: Profil Wali (Settings-First) -->
         <activity
-            android:name=".ui.wali.ProfilWaliActivity"
+            android:name=".ui.profile.ProfilWaliActivity"
             android:exported="false" />
 
         <!-- 18. Wali Flow: Profil Siswa & NISN -->
