@@ -20,6 +20,7 @@ class SessionAccessTest {
     fun `screens of a portal need its own role`() {
         assertEquals(Access.GURU, accessFor(ui("guru.DashboardGuruActivity")))
         assertEquals(Access.GURU, accessFor(ui("profile.ProfilGuruActivity")))
+        assertEquals(Access.GURU, accessFor(ui("profile.DetailProfilGuruActivity")))
         assertEquals(Access.WALI, accessFor(ui("wali.DashboardWaliActivity")))
         assertEquals(Access.WALI, accessFor(ui("profile.ProfilWaliActivity")))
     }
