@@ -30,8 +30,8 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 
 | Workflow | Job | Dijalankan pada | Yang dicek |
 | :--- | :--- | :--- | :--- |
-| `android-ci.yaml` | Unit tests | pull request ke `main`, push ke `main`, manual | `./gradlew testDebugUnitTest koverXmlReportDebug` |
-| `android-ci.yaml` | Coverage upload | sama | Mengunggah laporan coverage Kover ke Codecov. Tidak wajib. Kegagalan unggah hanya menggagalkan push ke `main` |
+| `android-ci.yaml` | Unit tests | pull request ke `main`, push ke `main`, manual | `./gradlew testDebugUnitTest createDebugUnitTestCoverageReport` |
+| `android-ci.yaml` | Coverage upload | sama | Mengunggah laporan coverage JaCoCo dari Android Gradle Plugin ke Codecov. Tidak wajib. Kegagalan unggah hanya menggagalkan push ke `main` |
 | `android-ci.yaml` | Debug build | sama | `./gradlew assembleDebug` |
 | `android-ci.yaml` | Android lint | sama | `./gradlew lintDebug` |
 | `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul, isi atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
