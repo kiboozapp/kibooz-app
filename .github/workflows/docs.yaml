@@ -1,0 +1,78 @@
+name: Docs
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    # Monday 02:00 UTC. This run and a run by hand also follow links to other sites
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: docs-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions: {}
+
+# These jobs are not required checks. They need no secret, so they also run on pull requests from forks.
+jobs:
+  links:
+    name: Markdown links
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # A pull request and a push check only the links to files and headings of the repository, so a site that is down
+      # cannot fail them. The weekly run and a run by hand also check the links to other sites. A 429 asks to slow down
+      # and does not mean that a link is dead.
+      - name: Check the links
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          args: >-
+            --no-progress --include-fragments --max-retries 2 --exclude-loopback --exclude 'example\.(com|org|net)'
+            --accept '200..=299,429' --exclude-path CHANGELOG.md
+            ${{ (github.event_name == 'pull_request' || github.event_name == 'push') && '--offline' || '' }}
+            './*.md' './docs/**/*.md' './.github/**/*.md'
+          fail: true
+
+  prose:
+    name: Prose lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The hash belongs to the version above it, so change both together
+      - name: Download Vale
+        env:
+          # renovate: datasource=github-releases depName=errata-ai/vale
+          VALE_VERSION: 3.28.1
+          VALE_SHA256: 068954ad869ebec24b8dec6ebcd1cbb1fd5f5a83e966a35baedfae8b2cdc093a
+        run: |
+          set -euo pipefail
+          version="${VALE_VERSION#v}"
+          curl --fail --silent --show-error --location --retry 3 --output "$RUNNER_TEMP/vale.tar.gz" \
+            "https://github.com/errata-ai/vale/releases/download/v${version}/vale_${version}_Linux_64-bit.tar.gz"
+          echo "${VALE_SHA256}  $RUNNER_TEMP/vale.tar.gz" | sha256sum --check -
+          tar -xzf "$RUNNER_TEMP/vale.tar.gz" -C "$RUNNER_TEMP" vale
+
+      # The rules are in .vale.ini. The changelog is written by Release Please and is not checked.
+      - name: Prose lint
+        run: |
+          set -euo pipefail
+          git ls-files -z '*.md' ':!CHANGELOG.md' | xargs -0 "$RUNNER_TEMP/vale" --output=line
