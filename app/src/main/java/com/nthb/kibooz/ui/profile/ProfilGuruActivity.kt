@@ -8,6 +8,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
@@ -38,12 +39,13 @@ class ProfilGuruActivity : AppCompatActivity() {
 
         setContent {
             KiboozTheme {
+                val menu = remember { menuItems() }
                 ProfilGuruScreen(
                     header = header,
                     avatarLoader = appContainer.avatarLoader,
                     onAvatar = avatarPicker::launchPicker,
                     onDetail = { startActivity(Intent(this, DetailProfilGuruActivity::class.java)) },
-                    menu = menuItems(),
+                    menu = menu,
                     onTab = ::openTab,
                     onScan = { startActivity(Intent(this, CameraScanMoodActivity::class.java)) }
                 )

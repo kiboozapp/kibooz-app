@@ -5,4 +5,9 @@
     <string name="tab_guru_kelas">Ruang kelas</string>
     <string name="tab_guru_profil">Profil</string>
     <string name="scan_face_mood_ai">Scan Face Mood AI</string>
+    <string name="tab_wali_beranda">Beranda</string>
+    <string name="tab_wali_sampah">Statistik sampah</string>
+    <string name="tab_wali_peringkat">Peringkat</string>
+    <string name="tab_wali_profil">Profil</string>
+    <string name="scan_sampah_ai">Scan Sampah AI</string>
 </resources>

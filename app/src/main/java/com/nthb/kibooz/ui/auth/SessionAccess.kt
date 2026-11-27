@@ -22,6 +22,9 @@ private val SHARED_CLASS_SCREENS = setOf(
 private val GURU_PROFILE_SCREENS = setOf(
     "com.nthb.kibooz.ui.profile.ProfilGuruActivity"
 )
+private val WALI_PROFILE_SCREENS = setOf(
+    "com.nthb.kibooz.ui.profile.ProfilWaliActivity"
+)
 
 /**
  * Aturan akses menurut nama kelas Activity. Layar milik aplikasi yang tidak dikenal wajib punya sesi,
@@ -34,6 +37,7 @@ fun accessFor(className: String): Access = when {
         className.startsWith("${APP_PACKAGE}ui.auth.") -> Access.PUBLIC
     className in SHARED_CLASS_SCREENS -> Access.ANY_ROLE
     className in GURU_PROFILE_SCREENS -> Access.GURU
+    className in WALI_PROFILE_SCREENS -> Access.WALI
     className == "${APP_PACKAGE}ui.camera.CameraScanMoodActivity" -> Access.GURU
     className == "${APP_PACKAGE}ui.camera.CameraScanSampahActivity" -> Access.WALI
     className.startsWith("${APP_PACKAGE}ui.guru.") -> Access.GURU

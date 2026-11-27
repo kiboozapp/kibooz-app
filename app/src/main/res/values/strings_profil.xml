@@ -10,4 +10,7 @@
     <string name="profil_menu_privasi">Kebijakan Privasi</string>
     <string name="profil_menu_panduan">Panduan</string>
     <string name="profil_menu_keluar">Keluar</string>
+    <string name="profil_wali_judul">Profil Wali Murid</string>
+    <string name="profil_wali_menu_panduan">Panduan Aplikasi</string>
+    <string name="profil_wali_menu_keluar">Keluar Akun Wali</string>
 </resources>
