@@ -161,7 +161,8 @@ internal fun HapusAkunScreen(
 /** Batas panjang seperti `android:maxLength`. Sisipan di tengah ditolak, agar akhir isian tidak terpotong diam-diam. */
 private fun limited(current: String, typed: String, max: Int): String = when {
     typed.length <= max -> typed
-    typed.startsWith(current) -> typed.take(max)
+    // Pasangan surrogate, misalnya emoji, tidak dipotong di tengah
+    typed.startsWith(current) -> typed.take(if (typed[max - 1].isHighSurrogate()) max - 1 else max)
     else -> current
 }
 
