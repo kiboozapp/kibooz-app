@@ -53,7 +53,7 @@ class DeleteAccountViewModel(
     private val _state = MutableStateFlow(DeleteAccountState())
     val state: StateFlow<DeleteAccountState> = _state.asStateFlow()
 
-    // Disimpan di luar state supaya kata sandi tidak ikut terbawa ke layar. Dipakai setelah dialog dikonfirmasi.
+    // Disimpan di luar state supaya kata sandi tidak ikut terbawa ke layar. Disimpan saat isian lolos pemeriksaan, dipakai saat dialog dikonfirmasi.
     private var pendingPassword: String? = null
     private var pendingSuccessor: String? = null
 
