@@ -1,0 +1,8 @@
+extends: substitution
+message: "The repository moved to the organization. Use '%s' instead of '%s'."
+level: error
+ignorecase: true
+nonword: true
+swap:
+  ValentinusMarvel/kibooz-app: kiboozapp/kibooz-app
+  SyafaHadyan/kibooz-backend: kiboozapp/kibooz-backend

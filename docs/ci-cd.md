@@ -40,6 +40,8 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 | `release-please.yaml` | Sign and publish the release | setelah rilis dibuat | Menandatangani APK rilis, melampirkannya ke draft release, lalu menerbitkan rilisnya |
 | `release-build.yaml` | Release build | pull request ke `main`, dipanggil oleh `release-please.yaml` | Membangun APK rilis yang belum ditandatangani. Tidak wajib |
 | `kotlin-lint.yaml` | Kotlin lint | pull request ke `main`, push ke `main`, manual | Gaya dan penamaan kode Kotlin dengan ktlint menurut `.editorconfig`. Aturan tata letak yang belum dipenuhi kode lama dimatikan. Tidak wajib |
+| `docs.yaml` | Markdown links | pull request ke `main`, push ke `main`, setiap Senin, manual | Tautan ke berkas dan judul di repositori. Jalan mingguan dan manual juga memeriksa tautan ke situs lain. Tidak wajib |
+| `docs.yaml` | Prose lint | sama | Kata yang terulang dan alamat pemilik lama di Markdown, dengan Vale. Tidak wajib |
 | `file-names.yaml` | File names | pull request ke `main`, push ke `main`, manual | Penamaan berkas menurut `.ls-lint.yml` |
 | `gitleaks.yaml` | Secret scan (gitleaks) | pull request ke `main`, push ke `main`, manual | Seluruh riwayat git dicek untuk rahasia yang tidak sengaja ikut |
 | `trivy.yaml` | Trivy filesystem scan | pull request ke `main`, push ke `main`, setiap Senin, manual | Kerentanan, rahasia, dan salah konfigurasi di berkas repositori. Hanya temuan CRITICAL dan HIGH yang sudah punya perbaikan yang dilaporkan |
@@ -71,6 +73,7 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 | Berkas | Fungsi |
 | :--- | :--- |
 | `commitlint.config.mjs` | Aturan pesan commit untuk job Conventional commits |
+| `.vale.ini` dan `.github/vale/styles` | Aturan Vale untuk job Prose lint |
 | `.editorconfig` | Aturan ktlint untuk job Kotlin lint, juga dibaca Android Studio |
 | `codecov.yml` | Pengaturan status Codecov. Statusnya hanya informasi |
 | `renovate.json` | Pengaturan Renovate. Pembaruan rutin dibuat pada Senin pagi setelah rilisnya berumur 7 hari. Pembaruan keamanan bisa dibuat kapan saja. Pembaruan besar alat build dan versi minor Kotlin menunggu centang di dependency dashboard |
