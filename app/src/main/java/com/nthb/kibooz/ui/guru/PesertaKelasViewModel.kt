@@ -57,6 +57,7 @@ class PesertaKelasViewModel(
 
     private var lastTeachersClassId: String? = null
     private var lastResolvedTeachers: List<ClassTeacherSummary>? = null
+    private var teachersRequestSeq = 0
 
     private data class ResolvedClassContext(
         val classId: String,
@@ -300,11 +301,15 @@ class PesertaKelasViewModel(
             clearRetainedTeachers()
         }
         val sessionUser = currentSessionUser()
+        // Dua pemuatan bisa tumpang tindih, jadi hanya permintaan terbaru yang boleh mengisi cache pengajar
+        val requestId = ++teachersRequestSeq
         val fetched = fetchClassTeachers(classId, teacherRole)
         if (fetched != null) {
             val merged = ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
-            lastTeachersClassId = classId
-            lastResolvedTeachers = merged
+            if (requestId == teachersRequestSeq) {
+                lastTeachersClassId = classId
+                lastResolvedTeachers = merged
+            }
             return merged
         }
         return retainedTeachersFor(classId) ?: seededTeachers
