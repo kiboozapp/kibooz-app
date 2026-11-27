@@ -54,6 +54,8 @@ class ProfilGuruActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Layar edit bisa mengganti foto di URL yang sama, jadi muat ulang setiap kembali ke layar ini.
+        header = header.copy(avatarVersion = header.avatarVersion + 1)
         bindProfileData()
     }
 
