@@ -59,6 +59,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.wrapContentWidth
+import com.nthb.kibooz.data.remote.ChildProfile
+import com.nthb.kibooz.data.remote.Guardian
 import com.nthb.kibooz.R
 import com.nthb.kibooz.ui.components.AvatarImage
 import com.nthb.kibooz.ui.components.ConnectionStatusCard
@@ -76,11 +79,16 @@ private const val PHONE_MAX = 30
 private fun isPhoneChar(c: Char): Boolean = c.isDigit() || c in "+()- "
 
 /** Gambar foto di satu kartu, yaitu foto anak atau foto Wali. */
-internal class EditPhoto(val url: String?, val placeholder: Int, val description: String)
+internal data class EditPhoto(val url: String?, val placeholder: Int, val description: String)
+
+/** Galat sebuah isian, atau null bila isinya sudah diubah sejak simpan terakhir. */
+private fun EditProfilState.errorOf(field: EditField, edited: Set<EditField>): Int? =
+    if (field in edited) null else fieldErrors[field]
 
 /**
- * Formulir edit data anak dan data Wali, masing-masing dengan tombol simpan sendiri. Isian terisi sekali dari
- * `state.profile`, supaya ketikan Wali tidak tertimpa saat data lain disimpan. Galat per isian datang dari [state].
+ * Formulir edit data anak dan data Wali, masing-masing dengan tombol simpan sendiri. Setiap kartu menyimpan isiannya
+ * sendiri dan mengisinya sekali dari `state.profile`, supaya ketikan Wali tidak tertimpa saat data lain disimpan.
+ * Galat per isian datang dari [state].
  */
 @Composable
 internal fun EditProfilSiswaScreen(
@@ -97,16 +105,6 @@ internal fun EditProfilSiswaScreen(
     onSaveChild: (name: String, nisn: String) -> Unit,
     onSaveParent: (name: String, phone: String, whatsapp: String, address: String) -> Unit
 ) {
-    var childName by rememberSaveable { mutableStateOf("") }
-    var nisn by rememberSaveable { mutableStateOf("") }
-    var parentName by rememberSaveable { mutableStateOf("") }
-    var phone by rememberSaveable { mutableStateOf("") }
-    var whatsapp by rememberSaveable { mutableStateOf("") }
-    var address by rememberSaveable { mutableStateOf("") }
-    var childFilled by rememberSaveable { mutableStateOf(false) }
-    var parentFilled by rememberSaveable { mutableStateOf(false) }
-    // Galat sebuah isian disembunyikan begitu isinya diubah, dan muncul lagi bila simpan berikutnya masih gagal
-    var edited by remember { mutableStateOf(emptySet<EditField>()) }
     // Foto di URL yang sama bisa berganti isinya, jadi muat ulang gambar setiap unggahan selesai
     var uploading by remember { mutableStateOf(false) }
     var avatarVersion by remember { mutableIntStateOf(0) }
@@ -116,33 +114,6 @@ internal fun EditProfilSiswaScreen(
     }
 
     val profile = state.profile
-    LaunchedEffect(profile != null) {
-        if (profile == null) return@LaunchedEffect
-        if (!childFilled) {
-            childFilled = true
-            childName = profile.fullName
-            nisn = profile.nisn
-        }
-        if (!parentFilled) {
-            parentFilled = true
-            val guardian = profile.guardian
-            parentName = guardian.fullName
-            phone = guardian.phoneNumber.orEmpty()
-            whatsapp = guardian.whatsappNumber.orEmpty()
-            address = guardian.address.orEmpty()
-        }
-    }
-    LaunchedEffect(pickedAddress) {
-        if (pickedAddress != null) {
-            address = pickedAddress
-            edited = edited + EditField.ADDRESS
-            onAddressConsumed()
-        }
-    }
-
-    fun errorOf(field: EditField): Int? = if (field in edited) null else state.fieldErrors[field]
-    val blocking = state.loadError != null && profile == null
-
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         KiboozTopBar(title = stringResource(R.string.anak_edit_judul), onBack = onBack)
         Column(
@@ -152,169 +123,246 @@ internal fun EditProfilSiswaScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 40.dp)
         ) {
-            if (state.loading && profile == null) {
-                CircularProgressIndicator(
-                    modifier = Modifier.padding(vertical = 24.dp).size(48.dp).align(Alignment.CenterHorizontally),
-                    color = MaterialTheme.colorScheme.primary
+            if (profile == null) {
+                LoadStatus(state = state, onRetry = onRetry)
+            } else {
+                ChildSection(
+                    state = state,
+                    profile = profile,
+                    avatarLoader = avatarLoader,
+                    avatarVersion = avatarVersion,
+                    onPickPhoto = onPickChildPhoto,
+                    onSave = onSaveChild
                 )
-            }
-            if (blocking) {
-                val outage = state.outage
-                if (outage != null) {
-                    ConnectionStatusCard(kind = outage, onRetry = onRetry)
-                } else if (state.loadError != null) {
-                    // Anak yang sudah tidak ada tidak bisa dicoba lagi, jadi hanya pesannya yang tampil
-                    LoadErrorCard(message = stringResource(state.loadError), onRetry = if (state.gone) null else onRetry)
-                }
-            }
-            if (profile != null) {
-                SectionCard(title = stringResource(R.string.anak_edit_bagian_anak)) {
-                    PhotoRow(
-                        photo = EditPhoto(profile.avatarUrl, R.drawable.img_avatar_siswa, stringResource(R.string.anak_avatar_siswa)),
-                        button = stringResource(R.string.avatar_ubah_foto_anak),
-                        enabled = !state.saving,
-                        avatarLoader = avatarLoader,
-                        avatarVersion = avatarVersion,
-                        onPick = onPickChildPhoto
-                    )
-                    if (profile.nisnNeedsUpdate) {
-                        Text(
-                            text = stringResource(R.string.anak_nisn_perlu_isi_pesan),
-                            modifier = Modifier
-                                .padding(top = 8.dp)
-                                .fillMaxWidth()
-                                .background(colorResource(R.color.kibooz_nisn_prompt_surface))
-                                .padding(12.dp),
-                            color = colorResource(R.color.kibooz_text_dark),
-                            fontSize = 13.sp
-                        )
-                    }
-                    KiboozOutlinedField(
-                        value = childName,
-                        onValueChange = {
-                            childName = it
-                            edited = edited + EditField.CHILD_NAME
-                        },
-                        label = stringResource(R.string.anak_hint_nama_anak),
-                        modifier = Modifier.padding(top = 12.dp),
-                        errorText = errorOf(EditField.CHILD_NAME)?.let { stringResource(it) },
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
-                        textSize = 14.sp
-                    )
-                    // Pesan galat NISN menggantikan bantuan selama ada, dan bantuan kembali setelah galat hilang
-                    KiboozOutlinedField(
-                        value = nisn,
-                        onValueChange = {
-                            nisn = it.filter(Char::isDigit).take(NISN_MAX)
-                            edited = edited + EditField.NISN
-                        },
-                        label = stringResource(R.string.anak_hint_nisn),
-                        modifier = Modifier.padding(top = 12.dp),
-                        errorText = errorOf(EditField.NISN)?.let { stringResource(it) },
-                        helperText = if (profile.nisnVerified) stringResource(R.string.anak_hint_nisn_terverifikasi) else null,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
-                        textSize = 14.sp
-                    )
-                    SolidButton(
-                        text = stringResource(R.string.anak_simpan_anak),
-                        onClick = {
-                            edited = emptySet()
-                            onSaveChild(childName, nisn)
-                        },
-                        modifier = Modifier.padding(top = 16.dp).fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(26.dp),
-                        fontSize = 15.sp,
-                        enabled = !state.saving
-                    )
-                }
-                SectionCard(title = stringResource(R.string.anak_edit_bagian_wali), modifier = Modifier.padding(top = 16.dp)) {
-                    PhotoRow(
-                        photo = EditPhoto(parentAvatarUrl, R.drawable.img_avatar_guru, stringResource(R.string.anak_avatar_wali)),
-                        button = stringResource(R.string.avatar_ubah_foto_wali),
-                        enabled = !state.saving,
-                        avatarLoader = avatarLoader,
-                        avatarVersion = avatarVersion,
-                        onPick = onPickParentPhoto
-                    )
-                    KiboozOutlinedField(
-                        value = parentName,
-                        onValueChange = {
-                            parentName = it
-                            edited = edited + EditField.PARENT_NAME
-                        },
-                        label = stringResource(R.string.anak_hint_nama_wali),
-                        modifier = Modifier.padding(top = 12.dp),
-                        errorText = errorOf(EditField.PARENT_NAME)?.let { stringResource(it) },
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
-                        textSize = 14.sp
-                    )
-                    // Email tidak bisa diubah, jadi hanya dibaca
-                    KiboozOutlinedField(
-                        value = profile.guardian.email,
-                        onValueChange = {},
-                        label = stringResource(R.string.anak_hint_email),
-                        modifier = Modifier.padding(top = 12.dp),
-                        enabled = false,
-                        helperText = stringResource(R.string.anak_hint_email_bantuan),
-                        textSize = 14.sp
-                    )
-                    KiboozOutlinedField(
-                        value = phone,
-                        onValueChange = {
-                            phone = it.filter(::isPhoneChar).take(PHONE_MAX)
-                            edited = edited + EditField.PHONE
-                        },
-                        label = stringResource(R.string.anak_hint_telepon),
-                        modifier = Modifier.padding(top = 12.dp),
-                        errorText = errorOf(EditField.PHONE)?.let { stringResource(it) },
-                        helperText = stringResource(R.string.anak_hint_kosongkan),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
-                        textSize = 14.sp
-                    )
-                    KiboozOutlinedField(
-                        value = whatsapp,
-                        onValueChange = {
-                            whatsapp = it.filter(::isPhoneChar).take(PHONE_MAX)
-                            edited = edited + EditField.WHATSAPP
-                        },
-                        label = stringResource(R.string.anak_hint_whatsapp),
-                        modifier = Modifier.padding(top = 12.dp),
-                        errorText = errorOf(EditField.WHATSAPP)?.let { stringResource(it) },
-                        helperText = stringResource(R.string.anak_hint_kosongkan),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
-                        textSize = 14.sp
-                    )
-                    KiboozOutlinedField(
-                        value = address,
-                        onValueChange = {
-                            address = it
-                            edited = edited + EditField.ADDRESS
-                        },
-                        label = stringResource(R.string.anak_hint_alamat),
-                        modifier = Modifier.padding(top = 12.dp),
-                        errorText = errorOf(EditField.ADDRESS)?.let { stringResource(it) },
-                        helperText = stringResource(R.string.anak_hint_kosongkan),
-                        keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
-                        textSize = 14.sp,
-                        singleLine = false,
-                        minLines = 3
-                    )
-                    MapButton(enabled = !state.saving, onClick = { onPickMap(address) })
-                    SolidButton(
-                        text = stringResource(R.string.anak_simpan_wali),
-                        onClick = {
-                            edited = emptySet()
-                            onSaveParent(parentName, phone, whatsapp, address)
-                        },
-                        modifier = Modifier.padding(top = 16.dp).fillMaxWidth().heightIn(min = 52.dp),
-                        shape = RoundedCornerShape(26.dp),
-                        fontSize = 15.sp,
-                        enabled = !state.saving
-                    )
-                }
+                ParentSection(
+                    state = state,
+                    guardian = profile.guardian,
+                    avatarUrl = parentAvatarUrl,
+                    avatarLoader = avatarLoader,
+                    avatarVersion = avatarVersion,
+                    pickedAddress = pickedAddress,
+                    onAddressConsumed = onAddressConsumed,
+                    onPickPhoto = onPickParentPhoto,
+                    onPickMap = onPickMap,
+                    onSave = onSaveParent
+                )
             }
         }
     }
+}
+
+/** Selama belum ada data, yaitu pemuat, kartu gangguan server, atau kartu galat muat. */
+@Composable
+private fun LoadStatus(state: EditProfilState, onRetry: () -> Unit) {
+    val loadError = state.loadError
+    val outage = state.outage
+    when {
+        loadError == null -> if (state.loading) {
+            CircularProgressIndicator(
+                modifier = Modifier.fillMaxWidth().wrapContentWidth().padding(vertical = 24.dp).size(48.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+        outage != null -> ConnectionStatusCard(kind = outage, onRetry = onRetry)
+        // Anak yang sudah tidak ada tidak bisa dicoba lagi, jadi hanya pesannya yang tampil
+        else -> LoadErrorCard(message = stringResource(loadError), onRetry = if (state.gone) null else onRetry)
+    }
+}
+
+@Composable
+private fun ChildSection(
+    state: EditProfilState,
+    profile: ChildProfile,
+    avatarLoader: AvatarLoader,
+    avatarVersion: Int,
+    onPickPhoto: () -> Unit,
+    onSave: (name: String, nisn: String) -> Unit
+) {
+    // Diisi sekali saat kartu pertama tampil, karena kartu ini hanya ada setelah profil termuat
+    var name by rememberSaveable { mutableStateOf(profile.fullName) }
+    var nisn by rememberSaveable { mutableStateOf(profile.nisn) }
+    // Galat sebuah isian disembunyikan begitu isinya diubah, dan muncul lagi bila simpan berikutnya masih gagal
+    var edited by remember { mutableStateOf(emptySet<EditField>()) }
+
+    SectionCard(title = stringResource(R.string.anak_edit_bagian_anak)) {
+        PhotoRow(
+            photo = EditPhoto(profile.avatarUrl, R.drawable.img_avatar_siswa, stringResource(R.string.anak_avatar_siswa)),
+            button = stringResource(R.string.avatar_ubah_foto_anak),
+            enabled = !state.saving,
+            avatarLoader = avatarLoader,
+            avatarVersion = avatarVersion,
+            onPick = onPickPhoto
+        )
+        if (profile.nisnNeedsUpdate) {
+            Text(
+                text = stringResource(R.string.anak_nisn_perlu_isi_pesan),
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth()
+                    .background(colorResource(R.color.kibooz_nisn_prompt_surface))
+                    .padding(12.dp),
+                color = colorResource(R.color.kibooz_text_dark),
+                fontSize = 13.sp
+            )
+        }
+        KiboozOutlinedField(
+            value = name,
+            onValueChange = {
+                name = it
+                edited = edited + EditField.CHILD_NAME
+            },
+            label = stringResource(R.string.anak_hint_nama_anak),
+            modifier = Modifier.padding(top = 12.dp),
+            errorText = state.errorOf(EditField.CHILD_NAME, edited)?.let { stringResource(it) },
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+            textSize = 14.sp
+        )
+        // Pesan galat NISN menggantikan bantuan selama ada, dan bantuan kembali setelah galat hilang
+        KiboozOutlinedField(
+            value = nisn,
+            onValueChange = {
+                nisn = it.filter(Char::isDigit).take(NISN_MAX)
+                edited = edited + EditField.NISN
+            },
+            label = stringResource(R.string.anak_hint_nisn),
+            modifier = Modifier.padding(top = 12.dp),
+            errorText = state.errorOf(EditField.NISN, edited)?.let { stringResource(it) },
+            helperText = if (profile.nisnVerified) stringResource(R.string.anak_hint_nisn_terverifikasi) else null,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, imeAction = ImeAction.Done),
+            textSize = 14.sp
+        )
+        SolidButton(
+            text = stringResource(R.string.anak_simpan_anak),
+            onClick = {
+                edited = emptySet()
+                onSave(name, nisn)
+            },
+            modifier = Modifier.padding(top = 16.dp).fillMaxWidth().heightIn(min = 52.dp),
+            shape = RoundedCornerShape(26.dp),
+            fontSize = 15.sp,
+            enabled = !state.saving
+        )
+    }
+}
+
+@Composable
+private fun ParentSection(
+    state: EditProfilState,
+    guardian: Guardian,
+    avatarUrl: String?,
+    avatarLoader: AvatarLoader,
+    avatarVersion: Int,
+    pickedAddress: String?,
+    onAddressConsumed: () -> Unit,
+    onPickPhoto: () -> Unit,
+    onPickMap: (currentAddress: String) -> Unit,
+    onSave: (name: String, phone: String, whatsapp: String, address: String) -> Unit
+) {
+    var name by rememberSaveable { mutableStateOf(guardian.fullName) }
+    var phone by rememberSaveable { mutableStateOf(guardian.phoneNumber.orEmpty()) }
+    var whatsapp by rememberSaveable { mutableStateOf(guardian.whatsappNumber.orEmpty()) }
+    var address by rememberSaveable { mutableStateOf(guardian.address.orEmpty()) }
+    var edited by remember { mutableStateOf(emptySet<EditField>()) }
+    LaunchedEffect(pickedAddress) {
+        if (pickedAddress != null) {
+            address = pickedAddress
+            edited = edited + EditField.ADDRESS
+            onAddressConsumed()
+        }
+    }
+
+    SectionCard(title = stringResource(R.string.anak_edit_bagian_wali), modifier = Modifier.padding(top = 16.dp)) {
+        PhotoRow(
+            photo = EditPhoto(avatarUrl, R.drawable.img_avatar_guru, stringResource(R.string.anak_avatar_wali)),
+            button = stringResource(R.string.avatar_ubah_foto_wali),
+            enabled = !state.saving,
+            avatarLoader = avatarLoader,
+            avatarVersion = avatarVersion,
+            onPick = onPickPhoto
+        )
+        KiboozOutlinedField(
+            value = name,
+            onValueChange = {
+                name = it
+                edited = edited + EditField.PARENT_NAME
+            },
+            label = stringResource(R.string.anak_hint_nama_wali),
+            modifier = Modifier.padding(top = 12.dp),
+            errorText = state.errorOf(EditField.PARENT_NAME, edited)?.let { stringResource(it) },
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Words, imeAction = ImeAction.Next),
+            textSize = 14.sp
+        )
+        // Email tidak bisa diubah, jadi hanya dibaca
+        KiboozOutlinedField(
+            value = guardian.email,
+            onValueChange = {},
+            label = stringResource(R.string.anak_hint_email),
+            modifier = Modifier.padding(top = 12.dp),
+            enabled = false,
+            helperText = stringResource(R.string.anak_hint_email_bantuan),
+            textSize = 14.sp
+        )
+        PhoneField(
+            value = phone,
+            onValueChange = {
+                phone = it
+                edited = edited + EditField.PHONE
+            },
+            label = stringResource(R.string.anak_hint_telepon),
+            errorRes = state.errorOf(EditField.PHONE, edited)
+        )
+        PhoneField(
+            value = whatsapp,
+            onValueChange = {
+                whatsapp = it
+                edited = edited + EditField.WHATSAPP
+            },
+            label = stringResource(R.string.anak_hint_whatsapp),
+            errorRes = state.errorOf(EditField.WHATSAPP, edited)
+        )
+        KiboozOutlinedField(
+            value = address,
+            onValueChange = {
+                address = it
+                edited = edited + EditField.ADDRESS
+            },
+            label = stringResource(R.string.anak_hint_alamat),
+            modifier = Modifier.padding(top = 12.dp),
+            errorText = state.errorOf(EditField.ADDRESS, edited)?.let { stringResource(it) },
+            helperText = stringResource(R.string.anak_hint_kosongkan),
+            keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences),
+            textSize = 14.sp,
+            singleLine = false,
+            minLines = 3
+        )
+        MapButton(enabled = !state.saving, onClick = { onPickMap(address) })
+        SolidButton(
+            text = stringResource(R.string.anak_simpan_wali),
+            onClick = {
+                edited = emptySet()
+                onSave(name, phone, whatsapp, address)
+            },
+            modifier = Modifier.padding(top = 16.dp).fillMaxWidth().heightIn(min = 52.dp),
+            shape = RoundedCornerShape(26.dp),
+            fontSize = 15.sp,
+            enabled = !state.saving
+        )
+    }
+}
+
+/** Isian nomor telepon yang menyaring karakter selain angka dan tanda nomor. */
+@Composable
+private fun PhoneField(value: String, onValueChange: (String) -> Unit, label: String, errorRes: Int?) {
+    KiboozOutlinedField(
+        value = value,
+        onValueChange = { onValueChange(it.filter(::isPhoneChar).take(PHONE_MAX)) },
+        label = label,
+        modifier = Modifier.padding(top = 12.dp),
+        errorText = errorRes?.let { stringResource(it) },
+        helperText = stringResource(R.string.anak_hint_kosongkan),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
+        textSize = 14.sp
+    )
 }
 
 /** Kartu putih dengan judul bagian dan isinya. */
