@@ -55,9 +55,11 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -313,11 +315,17 @@ private fun FormField(
     val dark = colorResource(R.color.kibooz_text_dark)
     val muted = colorResource(R.color.kibooz_text_muted)
     val borderColor = if (errorText != null) MaterialTheme.colorScheme.error else colorResource(R.color.kibooz_border)
+    // Isi yang diganti dari luar, seperti alamat dari peta, menaruh kursor di akhir. Ketikan sendiri menjaga kursornya
+    var field by remember { mutableStateOf(TextFieldValue(value, TextRange(value.length))) }
+    if (field.text != value) field = TextFieldValue(value, TextRange(value.length))
     Column(modifier = modifier.fillMaxWidth()) {
         Text(text = label, color = dark, fontSize = 14.sp, fontWeight = FontWeight.Bold)
         BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
+            value = field,
+            onValueChange = {
+                field = it
+                onValueChange(it.text)
+            },
             modifier = Modifier
                 .padding(top = 6.dp)
                 .fillMaxWidth()
