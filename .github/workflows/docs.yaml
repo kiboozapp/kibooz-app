@@ -6,7 +6,7 @@ on:
   push:
     branches: [main]
   schedule:
-    # Monday 02:00 UTC, the only run that follows links to other sites
+    # Monday 02:00 UTC. This run and a run by hand also follow links to other sites
     - cron: "0 2 * * 1"
   workflow_dispatch:
 

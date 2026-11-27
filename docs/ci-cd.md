@@ -60,6 +60,8 @@ Beberapa catatan tentang isi pengecekan.
 - Gitleaks memakai `.gitleaksignore` untuk empat contoh token atau UUID yang terpotong di riwayat awal PRD. Isinya bukan rahasia sungguhan.
 - PR format melewati pull request milik bot di cabang `renovate/*`, `dependabot/*` atau `release-please--*`. Conventional commits tetap memeriksa semua pull request.
 
+Renovate hanya menaikkan versi ktlint dan Vale. Hash SHA-256 di bawah versinya harus diperbarui secara manual di pull request yang sama.
+
 ## Aturan penulisan pull request
 
 Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
