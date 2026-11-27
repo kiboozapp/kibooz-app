@@ -27,4 +27,5 @@
     <string name="verifikasi_error_kirim_gagal">Email belum bisa dikirim, coba lagi nanti</string>
     <string name="verifikasi_error_belum_terverifikasi">Email akun ini belum diverifikasi</string>
     <string name="verifikasi_sudah_terverifikasi">Email ini sudah terverifikasi, silakan masuk</string>
+    <string name="verifikasi_kode_terisi">%1$d dari %2$d angka terisi</string>
 </resources>
