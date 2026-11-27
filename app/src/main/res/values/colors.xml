@@ -51,6 +51,10 @@
     <color name="kibooz_topbar_start">#4D288D</color>
     <color name="kibooz_topbar_end">#6C41BA</color>
 
+    <!-- Kolom bergaris tepi, sama dengan colorOutline dan colorOnSurfaceVariant bawaan Material 3 -->
+    <color name="kibooz_field_border">#79747E</color>
+    <color name="kibooz_field_label">#49454F</color>
+
     <!-- Layar pilih peran -->
     <color name="kibooz_role_bg_top">#FAF9FD</color>
     <color name="kibooz_role_bg_center">#CDBCEB</color>
