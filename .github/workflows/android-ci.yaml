@@ -44,7 +44,15 @@ jobs:
           cache-provider: basic
 
       - name: Unit tests
-        run: sh ./gradlew testDebugUnitTest --stacktrace
+        run: sh ./gradlew testDebugUnitTest koverXmlReportDebug --stacktrace
+
+      - name: Upload the coverage report
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage-report
+          path: app/build/reports/kover/reportDebug.xml
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload the unit test reports
         if: failure()
@@ -56,6 +64,36 @@ jobs:
             app/build/test-results/testDebugUnitTest/
           if-no-files-found: ignore
           retention-days: 14
+
+  # A job of its own, so that the Codecov token is never present while Gradle runs the code of the build and its dependencies
+  coverage:
+    name: Coverage upload
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the coverage report
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: coverage-report
+          path: coverage
+
+      # A pull request of a fork gets no secret, and Codecov accepts its upload without one. An outage of Codecov fails
+      # only a push to main, so it does not block a pull request.
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/reportDebug.xml
+          disable_search: true
+          fail_ci_if_error: ${{ github.event_name == 'push' }}
 
   debug-build:
     name: Debug build

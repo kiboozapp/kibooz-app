@@ -30,7 +30,8 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 
 | Workflow | Job | Dijalankan pada | Yang dicek |
 | :--- | :--- | :--- | :--- |
-| `android-ci.yaml` | Unit tests | pull request ke `main`, push ke `main`, manual | `./gradlew testDebugUnitTest` |
+| `android-ci.yaml` | Unit tests | pull request ke `main`, push ke `main`, manual | `./gradlew testDebugUnitTest koverXmlReportDebug` |
+| `android-ci.yaml` | Coverage upload | sama | Mengunggah laporan coverage Kover ke Codecov. Tidak wajib. Kegagalan unggah hanya menggagalkan push ke `main` |
 | `android-ci.yaml` | Debug build | sama | `./gradlew assembleDebug` |
 | `android-ci.yaml` | Android lint | sama | `./gradlew lintDebug` |
 | `commits.yaml` | Conventional commits | pull request ke `main` (dibuka, push baru, dibuka ulang, judul, isi atau branch tujuan diubah) | Pesan setiap commit dan judul pull request mengikuti Conventional Commits |
@@ -69,6 +70,7 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 | Berkas | Fungsi |
 | :--- | :--- |
 | `commitlint.config.mjs` | Aturan pesan commit untuk job Conventional commits |
+| `codecov.yml` | Pengaturan status Codecov. Statusnya hanya informasi |
 | `renovate.json` | Pengaturan Renovate. Pembaruan rutin dibuat pada Senin pagi setelah rilisnya berumur 7 hari. Pembaruan keamanan bisa dibuat kapan saja. Pembaruan besar alat build dan versi minor Kotlin menunggu centang di dependency dashboard |
 | `.ls-lint.yml` | Aturan penamaan berkas untuk job File names |
 | `.github/zizmor.yml` | Pengaturan audit Zizmor, semua action wajib dipin ke SHA commit |
@@ -92,4 +94,4 @@ Aturan lengkapnya ada di [CONTRIBUTING.md](../CONTRIBUTING.md). Ringkasnya.
 - Setiap action dipin ke SHA commit lengkap dengan versi di komentar.
 - Setiap workflow memakai `permissions: {}` di atas dan izin minimum untuk setiap job.
 - Checkout memakai `persist-credentials: false`, dan setiap job memiliki `timeout-minutes`.
-- Hanya `release-please.yaml` yang memakai secret, yaitu kunci GitHub App, berkas kunci penandatanganan APK dan kata sandinya di environment `release` yang hanya bisa dipakai dari `main`. Workflow yang berjalan di pull request tidak memerlukan secret, jadi semuanya juga berjalan di pull request dari fork.
+- `release-please.yaml` memakai kunci GitHub App, berkas kunci penandatanganan APK dan kata sandinya di environment `release` yang hanya bisa dipakai dari `main`. Job Coverage upload memakai secret repositori `CODECOV_TOKEN`, di job terpisah yang tidak menjalankan Gradle. Pull request dari fork tidak mendapat secret, dan semua workflow tetap berjalan di sana.
