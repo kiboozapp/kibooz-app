@@ -1,78 +1,89 @@
-package com.nthb.kibooz.ui.guru
+package com.nthb.kibooz.ui.profile
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.errorMessageRes
-import com.nthb.kibooz.databinding.ActivityProfilGuruBinding
 import com.nthb.kibooz.sessionManager
 import com.nthb.kibooz.ui.account.AvatarPickerHelper
 import com.nthb.kibooz.ui.account.HapusAkunActivity
 import com.nthb.kibooz.ui.account.UbahKataSandiActivity
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.components.GuruTab
+import com.nthb.kibooz.ui.guru.DashboardGuruActivity
+import com.nthb.kibooz.ui.guru.DetailProfilGuruActivity
+import com.nthb.kibooz.ui.guru.RuangKelasGuruActivity
+import com.nthb.kibooz.ui.guru.StatistikMoodActivity
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
 
 class ProfilGuruActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityProfilGuruBinding
-    private lateinit var avatarPicker: AvatarPickerHelper
+    private val avatarPicker = AvatarPickerHelper(this, ::uploadAvatar)
+    private var header by mutableStateOf(GuruProfileHeader(name = "", subtitle = "", avatarUrl = null))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityProfilGuruBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
-        // Terapkan insets lengkap: Status bar pada header atas, Navigation bar pada bottom bar & FAB
-        InsetsUtil.applySystemBarInsets(
-            root = binding.clRootProfilGuru,
-            headerView = binding.clHeaderArea,
-            bottomBar = binding.clBottomNavigation,
-            fab = binding.fabScannerFace
-        )
-
-        avatarPicker = AvatarPickerHelper(this) { croppedFile ->
-            uploadAvatar(croppedFile)
+        setContent {
+            KiboozTheme {
+                ProfilGuruScreen(
+                    header = header,
+                    avatarLoader = appContainer.avatarLoader,
+                    onAvatar = avatarPicker::launchPicker,
+                    onDetail = { startActivity(Intent(this, DetailProfilGuruActivity::class.java)) },
+                    menu = menuItems(),
+                    onTab = ::openTab,
+                    onScan = { startActivity(Intent(this, CameraScanMoodActivity::class.java)) }
+                )
+            }
         }
-
-        setupListeners()
         bindProfileData()
     }
 
     override fun onResume() {
         super.onResume()
+        // Layar edit bisa mengganti foto di URL yang sama, jadi muat ulang setiap kembali ke layar ini.
+        header = header.copy(avatarVersion = header.avatarVersion + 1)
         bindProfileData()
     }
 
     private fun bindProfileData() {
         val sessionUser = appContainer.authRepository.session.value?.user
         if (sessionUser != null) {
-            if (sessionUser.fullName.isNotBlank()) binding.tvNamaGuru.text = sessionUser.fullName
-            appContainer.avatarLoader.load(binding.ivAvatarGuru, sessionUser.avatarUrl, R.drawable.img_avatar_guru)
+            header = header.copy(
+                name = sessionUser.fullName.ifBlank { header.name },
+                avatarUrl = sessionUser.avatarUrl
+            )
         }
 
         lifecycleScope.launch {
             if (sessionUser == null) {
                 val stored = appContainer.sessionStore.readSession()?.user
                 if (stored != null) {
-                    if (stored.fullName.isNotBlank()) binding.tvNamaGuru.text = stored.fullName
-                    appContainer.avatarLoader.load(binding.ivAvatarGuru, stored.avatarUrl, R.drawable.img_avatar_guru)
+                    header = header.copy(name = stored.fullName.ifBlank { header.name }, avatarUrl = stored.avatarUrl)
                 }
             }
             when (val res = appContainer.guruProfileRepository.profileDetail()) {
                 is ApiResult.Success -> {
                     val d = res.data
-                    binding.tvNamaGuru.text = d.fullName
                     val joined = TimeFormat.localDate(d.joinedAt)
-                    binding.tvJoinDate.text = if (joined != null) "Bergabung sejak $joined" else d.schoolName
-                    appContainer.avatarLoader.load(binding.ivAvatarGuru, d.avatarUrl, R.drawable.img_avatar_guru)
+                    header = header.copy(
+                        name = d.fullName,
+                        subtitle = if (joined != null) "Bergabung sejak $joined" else d.schoolName,
+                        avatarUrl = d.avatarUrl
+                    )
                     appContainer.authRepository.updateSessionUser(fullName = d.fullName, avatarUrl = d.avatarUrl)
                 }
                 else -> Unit
@@ -88,7 +99,7 @@ class ProfilGuruActivity : AppCompatActivity() {
                 is ApiResult.Success -> {
                     appContainer.avatarLoader.evict(oldUrl)
                     appContainer.authRepository.updateSessionUser(avatarUrl = res.data)
-                    appContainer.avatarLoader.load(binding.ivAvatarGuru, res.data, R.drawable.img_avatar_guru)
+                    header = header.copy(avatarUrl = res.data, avatarVersion = header.avatarVersion + 1)
                     Toast.makeText(this@ProfilGuruActivity, R.string.avatar_sukses, Toast.LENGTH_SHORT).show()
                 }
                 else -> {
@@ -102,25 +113,24 @@ class ProfilGuruActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupListeners() {
-        // Ketuk avatar untuk langsung memilih dan memangkas foto profil baru
-        binding.cardAvatar.setOnClickListener {
-            avatarPicker.launchPicker()
-        }
-
-        // Tombol Lihat Detail -> Membuka Detail Profil Guru
-        binding.btnLihatDetail.setOnClickListener {
-            startActivity(Intent(this, DetailProfilGuruActivity::class.java))
-        }
-
-        // Menu 1: Ubah Kata Sandi
-        binding.menuUbahSandi.setOnClickListener {
+    private fun menuItems() = listOf(
+        ProfileMenuItem(R.drawable.ic_key, getString(R.string.profil_menu_ubah_sandi), {
             startActivity(Intent(this, UbahKataSandiActivity::class.java))
-        }
+        }),
+        ProfileMenuItem(R.drawable.ic_document, getString(R.string.profil_menu_syarat), ::showTerms),
+        ProfileMenuItem(R.drawable.ic_shield_check, getString(R.string.profil_menu_privasi), ::showPrivacy),
+        ProfileMenuItem(R.drawable.ic_book, getString(R.string.profil_menu_panduan), ::showGuide),
+        ProfileMenuItem(R.drawable.ic_logout, getString(R.string.profil_menu_keluar), ::confirmSignOut, danger = true),
+        ProfileMenuItem(
+            R.drawable.ic_trash_delete,
+            getString(R.string.hapus_akun_menu),
+            { startActivity(HapusAkunActivity.intent(this, isTeacher = true)) },
+            danger = true
+        )
+    )
 
-        // Menu 2: Syarat dan Ketentuan
-        binding.menuSyaratKetentuan.setOnClickListener {
-            AlertDialog.Builder(this)
+    private fun showTerms() {
+        AlertDialog.Builder(this)
                 .setTitle("Syarat dan Ketentuan Penggunaan")
                 .setMessage(
                     "Ketentuan Layanan Aplikasi Kibooz bagi Guru / Pendidik:\n\n" +
@@ -135,11 +145,10 @@ class ProfilGuruActivity : AppCompatActivity() {
                 )
                 .setPositiveButton("Saya Mengerti", null)
                 .show()
-        }
+    }
 
-        // Menu 3: Kebijakan Privasi
-        binding.menuKebijakanPrivasi.setOnClickListener {
-            AlertDialog.Builder(this)
+    private fun showPrivacy() {
+        AlertDialog.Builder(this)
                 .setTitle("Kebijakan Privasi & Keamanan Data")
                 .setMessage(
                     "Komitmen Privasi Kibooz:\n\n" +
@@ -154,11 +163,10 @@ class ProfilGuruActivity : AppCompatActivity() {
                 )
                 .setPositiveButton("Tutup", null)
                 .show()
-        }
+    }
 
-        // Menu 4: Panduan
-        binding.menuPanduan.setOnClickListener {
-            AlertDialog.Builder(this)
+    private fun showGuide() {
+        AlertDialog.Builder(this)
                 .setTitle("Panduan Aplikasi Kibooz untuk Guru")
                 .setMessage(
                     "Panduan Cepat Penggunaan Kibooz Guru:\n\n" +
@@ -175,48 +183,37 @@ class ProfilGuruActivity : AppCompatActivity() {
                 )
                 .setPositiveButton("Tutup", null)
                 .show()
-        }
+    }
 
-        // Menu 5: Keluar Akun
-        binding.menuKeluar.setOnClickListener {
-            AlertDialog.Builder(this)
-                .setTitle("Keluar Akun Guru")
-                .setMessage("Apakah Anda yakin ingin keluar dari akun Kibooz Guru?")
-                .setPositiveButton("Ya, Keluar") { _, _ ->
-                    sessionManager.signOut()
+    private fun confirmSignOut() {
+        AlertDialog.Builder(this)
+            .setTitle("Keluar Akun Guru")
+            .setMessage("Apakah Anda yakin ingin keluar dari akun Kibooz Guru?")
+            .setPositiveButton("Ya, Keluar") { _, _ -> sessionManager.signOut() }
+            .setNegativeButton("Batal", null)
+            .show()
+    }
+
+    private fun openTab(tab: GuruTab) {
+        when (tab) {
+            GuruTab.PROFILE -> Unit
+            GuruTab.HOME -> {
+                // Kembali ke dasbor yang sudah ada, bukan menumpuk dasbor baru
+                startActivity(
+                    Intent(this, DashboardGuruActivity::class.java).apply {
+                        flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+                    }
+                )
+                finish()
             }
-                .setNegativeButton("Batal", null)
-                .show()
-        }
-
-        // Menu 6: Hapus Akun
-        binding.menuHapusAkun.setOnClickListener {
-            startActivity(HapusAkunActivity.intent(this, isTeacher = true))
-        }
-
-        // Bottom Navigation Tabs
-        binding.tabHome.setOnClickListener {
-            // Kembali ke dasbor yang sudah ada, bukan menumpuk dasbor baru
-            startActivity(
-                Intent(this, DashboardGuruActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-                }
-            )
-            finish()
-        }
-
-        binding.tabKelas.setOnClickListener {
-            startActivity(Intent(this, RuangKelasGuruActivity::class.java))
-            finish()
-        }
-
-        binding.tabStats.setOnClickListener {
-            startActivity(Intent(this, StatistikMoodActivity::class.java))
-            finish()
-        }
-
-        binding.fabScannerFace.setOnClickListener {
-            startActivity(Intent(this, CameraScanMoodActivity::class.java))
+            GuruTab.CLASS -> {
+                startActivity(Intent(this, RuangKelasGuruActivity::class.java))
+                finish()
+            }
+            GuruTab.STATS -> {
+                startActivity(Intent(this, StatistikMoodActivity::class.java))
+                finish()
+            }
         }
     }
 }

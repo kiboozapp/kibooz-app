@@ -16,6 +16,7 @@ import com.nthb.kibooz.databinding.ActivityDashboardGuruBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.chat.ChatListActivity
+import com.nthb.kibooz.ui.profile.ProfilGuruActivity
 import com.nthb.kibooz.ui.wali.LeaderboardActivity
 import com.nthb.kibooz.ui.common.MoodChartMath
 import com.nthb.kibooz.ui.common.NotificationInboxDialog
