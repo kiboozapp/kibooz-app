@@ -55,9 +55,7 @@ class HapusAkunActivity : AppCompatActivity() {
                     successor = successor,
                     onSuccessorChange = { successor = it },
                     onBack = ::finish,
-                    onDelete = { password -> viewModel.requestDelete(password, successor) },
-                    // Kata sandi dan pengganti sudah diperiksa dan dikonfirmasi, jadi coba lagi langsung mengirim ulang
-                    onRetry = viewModel::confirm
+                    onDelete = { password -> viewModel.requestDelete(password, successor) }
                 )
             }
         }

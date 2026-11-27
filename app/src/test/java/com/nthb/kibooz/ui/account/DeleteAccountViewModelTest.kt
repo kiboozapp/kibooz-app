@@ -308,7 +308,7 @@ class DeleteAccountViewModelTest {
     }
 
     @Test
-    fun `offline shows the outage card and a retry sends the same form again`() {
+    fun `offline shows the outage card and a retry asks again with the current fields`() {
         // OkHttp repeats a request once after a dropped connection, so two answers are consumed
         server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START))
         val viewModel = teacher()
@@ -320,6 +320,11 @@ class DeleteAccountViewModelTest {
         assertNull(offline.finishedMessage)
         assertEquals(0, signOuts)
 
+        // Coba lagi di layar memanggil requestDelete dengan isian yang tampil, jadi pengganti yang diubah ikut terkirim
+        viewModel.requestDelete("secret-123", "ani@example.com")
+        assertTrue(viewModel.state.value.confirming)
+        assertNull(viewModel.state.value.outage)
+
         server.enqueue(jsonResponse(deleted))
         viewModel.confirm()
         val done = runBlocking { viewModel.state.first { it.finishedMessage != null } }
@@ -327,7 +332,7 @@ class DeleteAccountViewModelTest {
         assertEquals(R.string.hapus_akun_berhasil, done.finishedMessage)
         assertNull(done.outage)
         // Percobaan pertama diputus sebelum dibaca, jadi hanya isi permintaan terakhir yang dibandingkan
-        assertEquals("""{"password":"secret-123","successorEmail":"budi@example.com"}""", lastRequestBody())
+        assertEquals("""{"password":"secret-123","successorEmail":"ani@example.com"}""", lastRequestBody())
     }
 
     @Test

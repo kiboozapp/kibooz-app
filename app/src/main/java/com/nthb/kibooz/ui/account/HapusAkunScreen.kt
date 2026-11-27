@@ -57,8 +57,7 @@ internal fun HapusAkunScreen(
     successor: String,
     onSuccessorChange: (String) -> Unit,
     onBack: () -> Unit,
-    onDelete: (password: String) -> Unit,
-    onRetry: () -> Unit
+    onDelete: (password: String) -> Unit
 ) {
     var password by rememberSaveable { mutableStateOf("") }
     val submit = { onDelete(password) }
@@ -141,7 +140,9 @@ internal fun HapusAkunScreen(
             }
 
             state.outage?.let {
-                ConnectionStatusCard(kind = it, onRetry = onRetry, modifier = Modifier.padding(top = 20.dp))
+                // Coba lagi memakai isian yang tampil sekarang dan meminta konfirmasi lagi, karena isiannya
+                // bisa sudah diubah sejak gagal
+                ConnectionStatusCard(kind = it, onRetry = submit, modifier = Modifier.padding(top = 20.dp))
             }
             KiboozDangerButton(
                 text = when {
@@ -197,8 +198,7 @@ private fun HapusAkunPreview() {
             successor = "",
             onSuccessorChange = {},
             onBack = {},
-            onDelete = {},
-            onRetry = {}
+            onDelete = {}
         )
     }
 }

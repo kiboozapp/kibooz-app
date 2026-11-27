@@ -17,6 +17,12 @@ private val SHARED_CLASS_SCREENS = setOf(
     "com.nthb.kibooz.ui.wali.LeaderboardActivity"
 )
 
+// Layar profil ada di package profile, jadi package-nya tidak menunjukkan peran. Yang boleh dibuka tiap peran ditulis
+// satu per satu, dan layar profil yang belum tertulis di sini wajib punya sesi tetapi terbuka bagi kedua peran
+private val GURU_PROFILE_SCREENS = setOf(
+    "com.nthb.kibooz.ui.profile.ProfilGuruActivity"
+)
+
 /**
  * Aturan akses menurut nama kelas Activity. Layar milik aplikasi yang tidak dikenal wajib punya sesi,
  * supaya layar baru tidak terbuka tanpa login sebelum aturannya ditulis di sini.
@@ -27,6 +33,7 @@ fun accessFor(className: String): Access = when {
         className.startsWith("${APP_PACKAGE}ui.onboarding.") ||
         className.startsWith("${APP_PACKAGE}ui.auth.") -> Access.PUBLIC
     className in SHARED_CLASS_SCREENS -> Access.ANY_ROLE
+    className in GURU_PROFILE_SCREENS -> Access.GURU
     className == "${APP_PACKAGE}ui.camera.CameraScanMoodActivity" -> Access.GURU
     className == "${APP_PACKAGE}ui.camera.CameraScanSampahActivity" -> Access.WALI
     className.startsWith("${APP_PACKAGE}ui.guru.") -> Access.GURU

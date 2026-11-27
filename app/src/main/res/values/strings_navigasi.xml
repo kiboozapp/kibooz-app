@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_guru_beranda">Beranda</string>
+    <string name="tab_guru_statistik">Statistik mood</string>
+    <string name="tab_guru_kelas">Ruang kelas</string>
+    <string name="tab_guru_profil">Profil</string>
+    <string name="scan_face_mood_ai">Scan Face Mood AI</string>
+</resources>
