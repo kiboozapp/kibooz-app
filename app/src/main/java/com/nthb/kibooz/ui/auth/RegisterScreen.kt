@@ -225,7 +225,8 @@ private fun FormField(
         value = value,
         onValueChange = onValueChange,
         label = stringResource(label),
-        modifier = Modifier.padding(top = 12.dp).alpha(if (enabled) 1f else 0.7f),
+        // Isian terkunci diredupkan, kecuali saat ada galat yang harus terbaca
+        modifier = Modifier.padding(top = 12.dp).alpha(if (enabled || error != null) 1f else 0.7f),
         enabled = enabled,
         errorText = error?.let { stringResource(it) },
         contentType = contentType,

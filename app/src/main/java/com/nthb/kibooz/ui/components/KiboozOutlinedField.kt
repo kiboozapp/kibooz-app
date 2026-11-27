@@ -18,6 +18,8 @@ import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.error
 import androidx.compose.ui.semantics.semantics
@@ -49,6 +51,10 @@ fun KiboozOutlinedField(
     // Warna bawaan TextInputLayout Material 3, agar layar Compose sama dengan layar XML
     val border = colorResource(R.color.kibooz_field_border)
     val labelColor = colorResource(R.color.kibooz_field_label)
+    // Kolom terkunci tetap harus menampilkan galatnya, jadi warna galat juga dipakai saat nonaktif
+    val errorColor = MaterialTheme.colorScheme.error
+    val disabledBorder = if (errorText != null) errorColor else border
+    val disabledLabel = if (errorText != null) errorColor else labelColor
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
@@ -59,7 +65,19 @@ fun KiboozOutlinedField(
         enabled = enabled,
         textStyle = MaterialTheme.typography.bodyLarge,
         label = { Text(label) },
-        supportingText = supporting?.let { { Text(it) } },
+        supportingText = supporting?.let {
+            {
+                // Galat diumumkan pembaca layar begitu muncul, seperti TextInputLayout
+                Text(
+                    text = it,
+                    modifier = if (errorText != null) {
+                        Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+                    } else {
+                        Modifier
+                    }
+                )
+            }
+        },
         trailingIcon = trailingIcon,
         isError = errorText != null,
         visualTransformation = visualTransformation,
@@ -75,8 +93,9 @@ fun KiboozOutlinedField(
             errorTrailingIconColor = labelColor,
             // Kolom yang dikunci tetap terbaca, layar yang meredupkannya bila perlu
             disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = border,
-            disabledLabelColor = labelColor
+            disabledBorderColor = disabledBorder,
+            disabledLabelColor = disabledLabel,
+            disabledSupportingTextColor = disabledLabel
         )
     )
 }
