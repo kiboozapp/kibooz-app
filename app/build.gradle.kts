@@ -1,6 +1,18 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlinx.kover")
+}
+
+// Coverage hanya menghitung kode yang ditulis tim, bukan kelas yang dibuat oleh build
+kover {
+    reports {
+        filters {
+            excludes {
+                classes("com.nthb.kibooz.BuildConfig", "com.nthb.kibooz.R", "com.nthb.kibooz.R\$*", "com.nthb.kibooz.databinding.*")
+            }
+        }
+    }
 }
 
 android {
