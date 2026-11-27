@@ -106,7 +106,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="10dp"
                     android:fontFamily="@font/baloo2"
-                    android:text="Siti Rahayu"
+                    android:text="Profil Guru"
                     android:textColor="#221C38"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -165,7 +165,7 @@
                         android:layout_weight="1"
                         android:fontFamily="@font/baloo2"
                         android:gravity="end"
-                        android:text="198507152010032005"
+                        android:text="-"
                         android:textColor="#2A2740"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -216,7 +216,7 @@
                         android:layout_weight="1"
                         android:fontFamily="@font/baloo2"
                         android:gravity="end"
-                        android:text="siti.rahayu@kiboozguru.id"
+                        android:text="-"
                         android:textColor="#2A2740"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -267,7 +267,7 @@
                         android:layout_weight="1"
                         android:fontFamily="@font/baloo2"
                         android:gravity="end"
-                        android:text="+62 812 3456 7890"
+                        android:text="-"
                         android:textColor="#2A2740"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -324,7 +324,7 @@
                         android:layout_marginStart="38dp"
                         android:layout_marginTop="6dp"
                         android:fontFamily="@font/baloo2"
-                        android:text="Jl. Pendidikan No. 123, Jakarta Selatan"
+                        android:text="-"
                         android:textColor="#2A2740"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -453,7 +453,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🟡 Happy 58%"
+                            android:text="🟡 Happy 0%"
                             android:textColor="#F59E0B"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -464,7 +464,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🟠 Bingung 20%"
+                            android:text="🟠 Bingung 0%"
                             android:textColor="#F97316"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -475,7 +475,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🔵 Sedih 15%"
+                            android:text="🔵 Sedih 0%"
                             android:textColor="#3B82F6"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -486,7 +486,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginHorizontal="6dp"
                             android:fontFamily="@font/baloo2"
-                            android:text="🔴 Marah 7%"
+                            android:text="🔴 Marah 0%"
                             android:textColor="#EF4444"
                             android:textSize="12sp"
                             android:textStyle="bold" />

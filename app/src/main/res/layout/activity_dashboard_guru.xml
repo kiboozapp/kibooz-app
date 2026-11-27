@@ -92,7 +92,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/img_avatar_guru"
-                        android:contentDescription="Foto Ibu Siti Rahayu" />
+                        android:contentDescription="Foto Profil Guru" />
 
                 </androidx.cardview.widget.CardView>
 

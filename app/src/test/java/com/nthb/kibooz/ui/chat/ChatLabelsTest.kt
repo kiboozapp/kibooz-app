@@ -75,6 +75,30 @@ class ChatLabelsTest {
         assertEquals("Siti (Rani)", contact("u1", name = "Siti", children = listOf("Rani")).title())
         assertEquals("Siti (Rani, Dika)", contact("u1", name = "Siti", children = listOf("Rani", "Dika")).title())
         assertEquals("Bu Sari", contact("u2", name = "Bu Sari").title())
+        assertEquals(
+            "Ibu Siti Aminah, S.Pd",
+            contact("u3", name = "Ibu Siti Aminah, S.Pd", children = listOf("Adit Pratama"))
+                .copy(role = "GURU")
+                .title()
+        )
+        assertEquals(
+            "Wali Kelas 1A (Aisyah Pratama +2 anak)",
+            contact(
+                "u4",
+                name = "Wali Kelas 1A",
+                children = listOf("Aisyah Pratama", "Akbar Ramadhan", "Alif Rahman")
+            ).title()
+        )
+    }
+
+    @Test
+    fun `contact subtitle includes explicit role and shared classes`() {
+        val guru = contact("u3", name = "Ibu Siti Aminah, S.Pd", children = listOf("Adit Pratama")).copy(role = "GURU")
+        val wali = contact("u1", name = "Hendra", children = listOf("Adit Pratama"))
+
+        assertEquals("Guru • Bunga", guru.subtitle("Guru", "Wali murid"))
+        assertEquals("Wali murid • Bunga", wali.subtitle("Guru", "Wali murid"))
+        assertEquals("Guru", guru.copy(classes = emptyList()).subtitle("Guru", "Wali murid"))
     }
 
     @Test

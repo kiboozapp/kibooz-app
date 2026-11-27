@@ -27,19 +27,23 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ClassStudent
 import com.nthb.kibooz.databinding.ActivityPesertaKelasBinding
 import com.nthb.kibooz.ml.Emotion
+import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
 class PesertaKelasActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPesertaKelasBinding
+    private var loadedTeacherAvatarUrl: String? = null
+    private var hasLoadedTeacherAvatar: Boolean = false
 
     private val viewModel: PesertaKelasViewModel by viewModels {
         PesertaKelasViewModel.Factory(
             appContainer.classRepository,
             appContainer.leaderboardRepository,
             appContainer.authRepository,
-            appContainer.classManagementRepository
+            appContainer.classManagementRepository,
+            appContainer.chatRepository
         )
     }
 
@@ -54,22 +58,31 @@ class PesertaKelasActivity : AppCompatActivity() {
             headerView = binding.clTopBar
         )
 
-        val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Bahasa & Komunikasi"
+        val rombelName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
+            ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
+        val namaKelas = rombelName.orEmpty()
+        val headerTitle = rombelName
+            ?: intent.getStringExtra("NAMA_KELAS")?.takeIf { it.isNotBlank() }
+            ?: "Daftar Peserta"
         val classId = intent.getStringExtra("CLASS_ID")
-        binding.tvKelasTitle.text = namaKelas
+        val initialTeacherName = intent.getStringExtra("TEACHER_NAME")?.takeIf { it.isNotBlank() }
+        val initialTeacherAvatarUrl = intent.getStringExtra("TEACHER_AVATAR_URL")?.takeIf { it.isNotBlank() }
+        binding.tvKelasTitle.text = headerTitle
 
         val sessionUser = appContainer.authRepository.session.value?.user
         val isTeacher = sessionUser?.role == com.nthb.kibooz.data.session.Role.GURU
-        if (isTeacher) {
-            appContainer.avatarLoader.load(binding.ivTeacherAvatar, sessionUser?.avatarUrl, com.nthb.kibooz.R.drawable.img_avatar_guru)
-        }
-        if (isTeacher && sessionUser?.fullName?.isNotBlank() == true) {
-            binding.tvTeacherName.text = sessionUser.fullName
-            binding.tvTeacherRole.text = "Wali Kelas & Pendidik Utama"
-        } else {
-            binding.tvTeacherName.text = "Ibu Dewi Lestari, S.Pd."
-            binding.tvTeacherRole.text = "Wali Kelas & Pendidik Utama"
-        }
+        val prefilledAvatar = initialTeacherAvatarUrl ?: if (isTeacher) sessionUser?.avatarUrl else null
+        loadedTeacherAvatarUrl = prefilledAvatar
+        hasLoadedTeacherAvatar = true
+        appContainer.avatarLoader.load(binding.ivTeacherAvatar, prefilledAvatar, R.drawable.img_avatar_guru)
+
+        binding.tvTeacherName.text = initialTeacherName
+            ?: if (isTeacher && !sessionUser?.fullName.isNullOrBlank()) {
+                sessionUser!!.fullName
+            } else {
+                ClassTeachers.DEFAULT_TEACHER_LABEL
+            }
+        binding.tvTeacherRole.text = ClassTeachers.formatSubtitle(emptyList(), namaKelas)
 
         val refreshPendingMoveCard: (String) -> Unit = { targetClassId ->
             lifecycleScope.launch {
@@ -105,7 +118,7 @@ class PesertaKelasActivity : AppCompatActivity() {
             refreshPendingMoveCard(classId)
         }
 
-        setupListeners(namaKelas)
+        setupListeners(headerTitle)
         observeViewModel()
 
         viewModel.loadPeserta(classId, namaKelas)
@@ -120,6 +133,15 @@ class PesertaKelasActivity : AppCompatActivity() {
                     }
                     binding.tvTeacherName.text = state.teacherName
                     binding.tvTeacherRole.text = state.teacherRole
+                    if (!hasLoadedTeacherAvatar || loadedTeacherAvatarUrl != state.teacherAvatarUrl) {
+                        hasLoadedTeacherAvatar = true
+                        loadedTeacherAvatarUrl = state.teacherAvatarUrl
+                        appContainer.avatarLoader.load(
+                            binding.ivTeacherAvatar,
+                            state.teacherAvatarUrl,
+                            R.drawable.img_avatar_guru
+                        )
+                    }
                     binding.tvStudentCount.text = "${state.students.size} Siswa Terdaftar"
                     binding.tvNisnHintGuru.isVisible = state.isTeacher && state.students.isNotEmpty()
                     binding.ivMenu.isVisible = state.isTeacher

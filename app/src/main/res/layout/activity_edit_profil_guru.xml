@@ -136,7 +136,7 @@
                 android:background="@drawable/bg_input_field"
                 android:fontFamily="@font/baloo2"
                 android:paddingHorizontal="16dp"
-                android:text="Ibu Siti Rahayu, S.Pd."
+                android:text=""
                 android:textColor="@color/kibooz_text_dark"
                 android:textSize="14sp" />
 
@@ -222,7 +222,7 @@
                 android:fontFamily="@font/baloo2"
                 android:inputType="phone"
                 android:paddingHorizontal="16dp"
-                android:text="+62 812-3456-7890"
+                android:text=""
                 android:textColor="@color/kibooz_text_dark"
                 android:textSize="14sp" />
 
@@ -248,7 +248,7 @@
                 android:hint="Ketik alamat manual atau pilih di peta"
                 android:paddingHorizontal="16dp"
                 android:paddingVertical="10dp"
-                android:text="Jl. Melati No. 14, Lowokwaru, Kota Malang"
+                android:text=""
                 android:textColor="@color/kibooz_text_dark"
                 android:textSize="14sp" />
 

@@ -37,7 +37,7 @@
             android:fontFamily="@font/baloo2"
             android:gravity="center"
             android:maxLines="1"
-            android:text="Bahasa &amp; Komunikasi"
+            android:text="Daftar Peserta"
             android:textColor="@color/kibooz_white"
             android:textSize="20sp"
             android:textStyle="bold"
@@ -212,7 +212,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Wali Kelas A &amp; Pendidik Utama"
+                            android:text="Guru Pengajar"
                             android:textColor="#75718E"
                             android:textSize="12sp" />
 

@@ -141,7 +141,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/baloo2"
-                                android:text="Pengajar: Ibu Siti Rahayu, S.Pd."
+                                android:text="Pengajar: Guru Kelas"
                                 android:textColor="@color/kibooz_primary_purple"
                                 android:textSize="13sp" />
 
@@ -290,7 +290,7 @@
                         android:fontFamily="@font/baloo2"
                         android:paddingHorizontal="18dp"
                         android:paddingVertical="8dp"
-                        android:text="Peserta Kelas (24)"
+                        android:text="Peserta Kelas"
                         android:textColor="@color/kibooz_text_muted"
                         android:textSize="14sp" />
 
@@ -407,7 +407,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="1 Guru Pengajar &amp; 24 Siswa Terdaftar"
+                            android:text="Guru Pengajar &amp; Daftar Siswa"
                             android:textColor="#D97706"
                             android:textSize="12sp" />
 
@@ -495,7 +495,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Selesai • 10 Okt 2026 • 24 Siswa Hadir"
+                            android:text="Memuat jadwal..."
                             android:textColor="#4CAF50"
                             android:textSize="12sp" />
 
@@ -561,7 +561,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Selesai • 17 Okt 2026 • 24 Siswa Hadir"
+                            android:text="Memuat jadwal..."
                             android:textColor="#4CAF50"
                             android:textSize="12sp" />
 
@@ -629,7 +629,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Sedang Berlangsung • 24 Okt 2026"
+                            android:text="Memuat jadwal..."
                             android:textColor="@color/kibooz_primary_purple"
                             android:textSize="12sp"
                             android:textStyle="bold" />
@@ -697,7 +697,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:fontFamily="@font/baloo2"
-                            android:text="Mendatang • 31 Okt 2026"
+                            android:text="Memuat jadwal..."
                             android:textColor="@color/kibooz_text_muted"
                             android:textSize="12sp" />
 

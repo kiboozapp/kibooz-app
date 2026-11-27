@@ -2,6 +2,7 @@ package com.nthb.kibooz.data.repository
 
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ClassSummary
+import com.nthb.kibooz.data.remote.ClassTeacher
 import com.nthb.kibooz.data.remote.CreateClassRequest
 import com.nthb.kibooz.data.remote.GuruClassApi
 import com.nthb.kibooz.data.remote.NisnVerificationData
@@ -27,6 +28,14 @@ class ClassManagementRepository(
     private val api: GuruClassApi,
     private val moshi: Moshi
 ) {
+
+    /** Daftar pengajar aktif dalam kelas ini, dengan pemilik kelas tampil lebih dulu bila diketahui. */
+    suspend fun classTeachers(classId: String): ApiResult<List<ClassTeacher>> =
+        when (val result = safeApiCall(moshi) { api.listClassTeachers(classId) }) {
+            is ApiResult.Success -> ApiResult.Success(result.data.teachers)
+            is ApiResult.Failure -> result
+            is ApiResult.NetworkError -> result
+        }
 
     /** Semua kelas Guru, termasuk yang diarsipkan (ada `archivedAt`), yang paling lama dibuat lebih dulu. */
     suspend fun list(): ApiResult<List<ClassSummary>> = classes.teacherClasses()

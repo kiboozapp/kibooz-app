@@ -1,6 +1,7 @@
 package com.nthb.kibooz.ui.chat
 
 import com.nthb.kibooz.R
+import com.nthb.kibooz.data.remote.ChatContactClass
 import com.nthb.kibooz.ui.chat.ChatFixtures.contact
 import com.nthb.kibooz.ui.chat.ChatFixtures.direct
 import com.nthb.kibooz.ui.chat.ChatFixtures.room
@@ -88,5 +89,30 @@ class ChatListRowsTest {
         )
 
         assertEquals(listOf("v:a"), buildChatListRows(state).map { it.key })
+    }
+
+    @Test
+    fun `multi-class contacts group by class by default and filter cleanly when one class is picked`() {
+        val waliMatahari = contact("u1", name = "Bapak Hendra", children = listOf("Adit"))
+            .copy(classes = listOf(ChatContactClass("c1", "Kelas Matahari")))
+        val waliSakura = contact("u2", name = "Wali Kelas 2A", children = listOf("Calista"))
+            .copy(classes = listOf(ChatContactClass("c2", "Kelas Sakura")))
+        val waliMatahari2 = contact("u3", name = "Wali Kelas 1A", children = listOf("Aisyah"))
+            .copy(classes = listOf(ChatContactClass("c1", "Kelas Matahari")))
+        val starters = ChatStarters(
+            contacts = listOf(waliMatahari, waliSakura, waliMatahari2),
+            classes = listOf(ChatClassOption("c1", "Kelas Matahari"), ChatClassOption("c2", "Kelas Sakura"), ChatClassOption("c3", "Kelas Kosong"))
+        )
+
+        val allState = ChatListState(tab = ChatListTab.NEW, starters = ChatSection(loading = false, data = starters))
+        val allRows = buildChatListRows(allState)
+        assertEquals(listOf("u:u1", "u:u3", "u:u2"), allRows.filterIsInstance<ContactRow>().map { it.key })
+
+        val filtered = buildChatListRows(allState.copy(selectedContactClassId = "c2"))
+        assertEquals(listOf("u:u2"), filtered.filterIsInstance<ContactRow>().map { it.key })
+
+        val emptyClass = buildChatListRows(allState.copy(selectedContactClassId = "c3"))
+        assertTrue(emptyClass.any { it is EmptyFilterRow })
+        assertTrue(emptyClass.any { it is SectionRow && it.title == R.string.chat_bagian_kontak })
     }
 }

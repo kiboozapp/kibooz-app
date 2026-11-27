@@ -29,6 +29,8 @@ import com.nthb.kibooz.data.remote.ModuleItem
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityDetailKelasBinding
 import com.nthb.kibooz.util.ClassCode
+import com.nthb.kibooz.util.ClassTeacherSummary
+import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
@@ -49,6 +51,8 @@ class DetailKelasActivity : AppCompatActivity() {
     private var loadedModules: List<ModuleItem> = emptyList()
     private var selectedModuleId: String? = null
     private var hasInitialized: Boolean = false
+    private var resolvedTeachers: List<ClassTeacherSummary> = emptyList()
+    private var lastStudentCount: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -141,6 +145,7 @@ class DetailKelasActivity : AppCompatActivity() {
 
             val classId = activeClassId
             if (!classId.isNullOrBlank()) {
+                loadClassTeachers(classId)
                 if (isTeacherRole) {
                     val roster = appContainer.classRepository.students(classId)
                     if (roster is ApiResult.Success) {
@@ -178,9 +183,34 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun updatePesertaBanner(studentCount: Int) {
+        lastStudentCount = studentCount
+        binding.tabAnggota.text = "Peserta Kelas ($studentCount)"
         binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
         val countText = "$studentCount Siswa Terdaftar"
-        binding.tvSubDaftarPeserta.text = "1 Guru Pengajar & $countText"
+        binding.tvSubDaftarPeserta.text = ClassTeachers.formatBannerCount(resolvedTeachers.size, countText)
+    }
+
+    private fun loadClassTeachers(classId: String) {
+        lifecycleScope.launch {
+            val sessionUser = appContainer.authRepository.session.value?.user
+            val fetched = if (isTeacherRole) {
+                when (val res = appContainer.classManagementRepository.classTeachers(classId)) {
+                    is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
+                    else -> emptyList()
+                }
+            } else {
+                when (val res = appContainer.chatRepository.allContacts()) {
+                    is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
+                    else -> emptyList()
+                }
+            }
+            val finalTeachers = ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+            if (finalTeachers.isNotEmpty()) {
+                resolvedTeachers = finalTeachers
+                binding.tvPengajar.text = ClassTeachers.formatPengajarLine(finalTeachers)
+                updatePesertaBanner(lastStudentCount)
+            }
+        }
     }
 
     private fun setupDynamicMeetingSchedule(studentCount: Int) {
@@ -254,9 +284,8 @@ class DetailKelasActivity : AppCompatActivity() {
         showClassCode(kodeKelas)
         binding.tabModul.text = "Modul (4)"
         val sessionUser = appContainer.authRepository.session.value?.user
-        if (isTeacherRole && !sessionUser?.fullName.isNullOrBlank()) {
-            binding.tvPengajar.text = "Pengajar: ${sessionUser!!.fullName}"
-        }
+        resolvedTeachers = ClassTeachers.mergeWithSessionFallback(resolvedTeachers, sessionUser)
+        binding.tvPengajar.text = ClassTeachers.formatPengajarLine(resolvedTeachers)
         updatePesertaBanner(initialCount)
 
         when {
@@ -394,6 +423,9 @@ class DetailKelasActivity : AppCompatActivity() {
     private fun openPesertaKelas(namaKelas: String, kodeKelas: String? = null) {
         val intent = Intent(this, PesertaKelasActivity::class.java).apply {
             putExtra("NAMA_KELAS", namaKelas)
+            resolvedRombelName?.takeIf { it.isNotBlank() }?.let { putExtra("ROMBEL_NAME", it) }
+            ClassTeachers.formatHeadlineOrNull(resolvedTeachers)?.let { putExtra("TEACHER_NAME", it) }
+            resolvedTeachers.firstOrNull()?.avatarUrl?.let { putExtra("TEACHER_AVATAR_URL", it) }
             putExtra("CLASS_ID", activeClassId)
             if (kodeKelas != null) putExtra("KODE_KELAS", kodeKelas)
         }

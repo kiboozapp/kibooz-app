@@ -22,41 +22,51 @@
         android:orientation="horizontal"
         android:padding="14dp">
 
-        <FrameLayout
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="48dp"
-            android:layout_height="48dp">
+            android:layout_height="48dp"
+            app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
 
-            <TextView
-                android:id="@+id/tvInitials"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_chat_avatar"
-                android:fontFamily="@font/baloo2"
-                android:gravity="center"
-                android:importantForAccessibility="no"
-                android:textColor="#472F91"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_height="match_parent">
 
-            <ImageView
-                android:id="@+id/ivAvatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:importantForAccessibility="no"
-                android:scaleType="centerCrop" />
+                <TextView
+                    android:id="@+id/tvInitials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_chat_avatar"
+                    android:fontFamily="@font/baloo2"
+                    android:gravity="center"
+                    android:importantForAccessibility="no"
+                    android:textColor="#472F91"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
 
-            <ImageView
-                android:id="@+id/ivRoomIcon"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@drawable/bg_chat_avatar"
-                android:importantForAccessibility="no"
-                android:padding="12dp"
-                android:src="@drawable/ic_class"
-                android:visibility="gone"
-                app:tint="#472F91" />
+                <ImageView
+                    android:id="@+id/ivAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop" />
 
-        </FrameLayout>
+                <ImageView
+                    android:id="@+id/ivRoomIcon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/bg_chat_avatar"
+                    android:importantForAccessibility="no"
+                    android:padding="12dp"
+                    android:src="@drawable/ic_class"
+                    android:visibility="gone"
+                    app:tint="#472F91" />
+
+            </FrameLayout>
+
+        </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="0dp"

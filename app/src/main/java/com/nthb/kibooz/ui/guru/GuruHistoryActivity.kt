@@ -17,6 +17,7 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.GuruHistoryEvent
 import com.nthb.kibooz.databinding.ActivityGuruHistoryBinding
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
@@ -40,7 +41,7 @@ class GuruHistoryActivity : AppCompatActivity() {
 
         val className = intent.getStringExtra(EXTRA_CLASS_NAME)
         if (!className.isNullOrBlank()) {
-            binding.tvClassSubtitle.text = "Aktivitas kelas $className"
+            binding.tvClassSubtitle.text = "Aktivitas ${ClassNames.withPrefix(className)}"
         }
 
         binding.ivBack.setOnClickListener { finish() }
@@ -89,8 +90,7 @@ class GuruHistoryActivity : AppCompatActivity() {
                         return@launch
                     }
 
-                    val rawClass = events.first().className
-                    val label = if (rawClass.startsWith("Kelas", ignoreCase = true)) rawClass else "Kelas $rawClass"
+                    val label = ClassNames.withPrefix(events.first().className)
                     binding.tvClassSubtitle.text = "$label (${res.data.total} catatan)"
                     binding.tvEmptyState.visibility = View.GONE
                     events.forEach { event ->

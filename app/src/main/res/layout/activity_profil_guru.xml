@@ -71,7 +71,7 @@
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
                         android:src="@drawable/img_avatar_guru"
-                        android:contentDescription="Avatar Siti Rahayu" />
+                        android:contentDescription="Avatar Profil Guru" />
 
                 </com.google.android.material.card.MaterialCardView>
 
@@ -82,7 +82,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:fontFamily="@font/baloo2"
-                    android:text="Siti Rahayu"
+                    android:text="Profil Guru"
                     android:textColor="#221C38"
                     android:textSize="22sp"
                     android:textStyle="bold"
@@ -97,7 +97,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:fontFamily="@font/baloo2"
-                    android:text="Bergabung sejak 15 Agustus 2015"
+                    android:text="Bergabung di Kibooz"
                     android:textColor="#7A7593"
                     android:textSize="13sp"
                     app:layout_constraintEnd_toEndOf="parent"

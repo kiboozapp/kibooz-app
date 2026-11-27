@@ -191,7 +191,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/baloo2"
-                            android:text="Diunggah 23 Mei"
+                            android:text=""
                             android:textColor="#75718E"
                             android:textSize="12sp" />
 
@@ -306,7 +306,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/baloo2"
-                            android:text="Diunggah 21 Mei"
+                            android:text=""
                             android:textColor="#75718E"
                             android:textSize="12sp" />
 
@@ -422,7 +422,7 @@
                             android:layout_marginStart="6dp"
                             android:layout_weight="1"
                             android:fontFamily="@font/baloo2"
-                            android:text="Diunggah 18 Mei"
+                            android:text=""
                             android:textColor="#75718E"
                             android:textSize="12sp" />
 

@@ -373,4 +373,20 @@ class ChatListViewModelTest {
         assertEquals(conversation, viewModel.state.value.opened)
         assertTrue(chatApi.started.isEmpty())
     }
+
+    @Test
+    fun `selecting a contact class updates the filter and resets if the class disappears on reload`() {
+        val viewModel = viewModel(Role.GURU)
+        viewModel.selectTab(ChatListTab.NEW)
+
+        assertNull(viewModel.state.value.selectedContactClassId)
+
+        viewModel.selectContactClass("c2")
+        assertEquals("c2", viewModel.state.value.selectedContactClassId)
+
+        classesApi.classesReply = { ok(ClassList(1, 50, 1, listOf(summary("c1", "Bunga")))) }
+        viewModel.refresh()
+
+        assertNull(viewModel.state.value.selectedContactClassId)
+    }
 }

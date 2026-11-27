@@ -16,6 +16,7 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ForumThreadItem
 import com.nthb.kibooz.data.remote.ForumThreadList
 import com.nthb.kibooz.databinding.ActivityForumDiskusiBinding
+import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
@@ -94,7 +95,18 @@ class ForumDiskusiActivity : AppCompatActivity() {
                     studentsRes.data.size
                 } else 1
             }
-            binding.tvSubtitleForum.text = "Forum Kelas • $sCount Siswa • 1 Guru Pengajar"
+            val teachersCount = if (isWali) {
+                when (val contactsRes = appContainer.chatRepository.allContacts()) {
+                    is ApiResult.Success -> maxOf(1, ClassTeachers.fromChatContacts(contactsRes.data, classId).size)
+                    else -> 1
+                }
+            } else {
+                when (val teachersRes = appContainer.classManagementRepository.classTeachers(classId)) {
+                    is ApiResult.Success -> maxOf(1, ClassTeachers.fromClassTeachers(teachersRes.data).size)
+                    else -> 1
+                }
+            }
+            binding.tvSubtitleForum.text = "Forum Kelas • $sCount Siswa • $teachersCount Guru Pengajar"
 
             val result = forumRepo.threads(classId)
             if (result is ApiResult.Success) {

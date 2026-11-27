@@ -9,10 +9,13 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ClassStudent
 import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.repository.AuthRepository
+import com.nthb.kibooz.data.repository.ChatRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.nthb.kibooz.data.session.Role
+import com.nthb.kibooz.util.ClassTeacherSummary
+import com.nthb.kibooz.util.ClassTeachers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,8 +33,10 @@ data class PesertaUiState(
     val className: String = "",
     val classArchived: Boolean = false,
     val isTeacher: Boolean = false,
-    val teacherName: String = "Siti Rahayu, S.Pd.",
-    val teacherRole: String = "Wali Kelas A & Pendidik Utama",
+    val teacherName: String = ClassTeachers.DEFAULT_TEACHER_LABEL,
+    val teacherAvatarUrl: String? = null,
+    val teacherRole: String = ClassTeachers.DEFAULT_ROLE_LABEL,
+    val teacherCount: Int = 1,
     val students: List<ClassStudent> = emptyList(),
     val busyStudentId: String? = null,
     val actionMessage: PesertaMessage? = null,
@@ -42,28 +47,34 @@ class PesertaKelasViewModel(
     private val classRepository: ClassRepository,
     private val leaderboardRepository: LeaderboardRepository? = null,
     private val authRepository: AuthRepository? = null,
-    private val classManagementRepository: ClassManagementRepository? = null
+    private val classManagementRepository: ClassManagementRepository? = null,
+    private val chatRepository: ChatRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PesertaUiState(isLoading = true))
     val uiState: StateFlow<PesertaUiState> = _uiState.asStateFlow()
 
-    fun loadPeserta(initialClassId: String? = null, defaultClassName: String = "Kelas A") {
+    fun loadPeserta(initialClassId: String? = null, defaultClassName: String = "") {
         viewModelScope.launch {
-            val isWaliRole = authRepository?.session?.value?.user?.role == Role.WALI
-            val teacherRole = authRepository?.session?.value?.user?.role == Role.GURU ||
+            val sessionUser = authRepository?.session?.value?.user
+            val isWaliRole = sessionUser?.role == Role.WALI
+            val teacherRole = sessionUser?.role == Role.GURU ||
                 (!isWaliRole && classManagementRepository != null)
 
+            val initialTeachers = ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
             _uiState.value = _uiState.value.copy(
                 isLoading = true,
                 isTeacher = teacherRole,
+                teacherName = ClassTeachers.formatHeadline(initialTeachers),
+                teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
+                teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
+                teacherCount = maxOf(1, initialTeachers.size),
                 errorMessage = null
             )
 
             var resolvedClassId = initialClassId
             var resolvedClassName = defaultClassName
             var resolvedArchived = false
-            val teacherName = _uiState.value.teacherName
 
             if (resolvedClassId.isNullOrBlank()) {
                 val childrenResult = classRepository.children()
@@ -96,11 +107,40 @@ class PesertaKelasViewModel(
                     className = resolvedClassName,
                     classArchived = false,
                     isTeacher = teacherRole,
-                    teacherName = teacherName,
+                    teacherName = ClassTeachers.formatHeadline(initialTeachers),
+                    teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
+                    teacherRole = ClassTeachers.formatSubtitle(initialTeachers, resolvedClassName),
+                    teacherCount = maxOf(1, initialTeachers.size),
                     errorMessage = "Kelas tidak ditemukan"
                 )
                 return@launch
             }
+
+            if (resolvedClassName.isBlank() && authRepository != null) {
+                if (teacherRole) {
+                    val classesRes = classRepository.teacherClasses()
+                    if (classesRes is ApiResult.Success) {
+                        classesRes.data.firstOrNull { it.id == resolvedClassId }?.let { match ->
+                            resolvedClassName = match.name
+                            resolvedArchived = match.archived
+                        }
+                    }
+                } else {
+                    val childrenRes = classRepository.children()
+                    if (childrenRes is ApiResult.Success) {
+                        childrenRes.data.firstOrNull { it.classId == resolvedClassId }?.let { match ->
+                            resolvedClassName = match.className
+                            resolvedArchived = match.classArchivedAt != null
+                        }
+                    }
+                }
+            }
+
+            val resolvedTeachers = resolveClassTeachers(resolvedClassId, teacherRole)
+            val teacherName = ClassTeachers.formatHeadline(resolvedTeachers)
+            val teacherAvatarUrl = resolvedTeachers.firstOrNull()?.avatarUrl
+            val teacherSubtitle = ClassTeachers.formatSubtitle(resolvedTeachers, resolvedClassName)
+            val teacherCount = maxOf(1, resolvedTeachers.size)
 
             if (isWaliRole && leaderboardRepository != null) {
                 when (val lbResult = leaderboardRepository.leaderboard(resolvedClassId)) {
@@ -125,6 +165,9 @@ class PesertaKelasViewModel(
                             classArchived = resolvedArchived,
                             isTeacher = false,
                             teacherName = teacherName,
+                            teacherAvatarUrl = teacherAvatarUrl,
+                            teacherRole = teacherSubtitle,
+                            teacherCount = teacherCount,
                             students = mappedStudents,
                             errorMessage = null
                         )
@@ -138,6 +181,9 @@ class PesertaKelasViewModel(
                             classArchived = resolvedArchived,
                             isTeacher = false,
                             teacherName = teacherName,
+                            teacherAvatarUrl = teacherAvatarUrl,
+                            teacherRole = teacherSubtitle,
+                            teacherCount = teacherCount,
                             errorMessage = lbResult.message
                         )
                         return@launch
@@ -150,6 +196,9 @@ class PesertaKelasViewModel(
                             classArchived = resolvedArchived,
                             isTeacher = false,
                             teacherName = teacherName,
+                            teacherAvatarUrl = teacherAvatarUrl,
+                            teacherRole = teacherSubtitle,
+                            teacherCount = teacherCount,
                             errorMessage = "Koneksi internet bermasalah"
                         )
                         return@launch
@@ -166,6 +215,9 @@ class PesertaKelasViewModel(
                         classArchived = resolvedArchived,
                         isTeacher = teacherRole,
                         teacherName = teacherName,
+                        teacherAvatarUrl = teacherAvatarUrl,
+                        teacherRole = teacherSubtitle,
+                        teacherCount = teacherCount,
                         students = studentsResult.data,
                         errorMessage = null
                     )
@@ -178,6 +230,9 @@ class PesertaKelasViewModel(
                         classArchived = resolvedArchived,
                         isTeacher = teacherRole,
                         teacherName = teacherName,
+                        teacherAvatarUrl = teacherAvatarUrl,
+                        teacherRole = teacherSubtitle,
+                        teacherCount = teacherCount,
                         errorMessage = studentsResult.message
                     )
                 }
@@ -189,11 +244,34 @@ class PesertaKelasViewModel(
                         classArchived = resolvedArchived,
                         isTeacher = teacherRole,
                         teacherName = teacherName,
+                        teacherAvatarUrl = teacherAvatarUrl,
+                        teacherRole = teacherSubtitle,
+                        teacherCount = teacherCount,
                         errorMessage = "Koneksi internet bermasalah"
                     )
                 }
             }
         }
+    }
+
+    private suspend fun resolveClassTeachers(classId: String, teacherRole: Boolean): List<ClassTeacherSummary> {
+        val sessionUser = authRepository?.session?.value?.user
+        val fetched = when {
+            teacherRole && authRepository != null && classManagementRepository != null -> {
+                when (val res = classManagementRepository.classTeachers(classId)) {
+                    is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
+                    else -> emptyList()
+                }
+            }
+            !teacherRole && chatRepository != null -> {
+                when (val res = chatRepository.allContacts()) {
+                    is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
+                    else -> emptyList()
+                }
+            }
+            else -> emptyList()
+        }
+        return ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
     }
 
     fun verifyStudentNisn(student: ClassStudent) {
@@ -340,10 +418,17 @@ class PesertaKelasViewModel(
         private val classRepository: ClassRepository,
         private val leaderboardRepository: LeaderboardRepository? = null,
         private val authRepository: AuthRepository? = null,
-        private val classManagementRepository: ClassManagementRepository? = null
+        private val classManagementRepository: ClassManagementRepository? = null,
+        private val chatRepository: ChatRepository? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            PesertaKelasViewModel(classRepository, leaderboardRepository, authRepository, classManagementRepository) as T
+            PesertaKelasViewModel(
+                classRepository,
+                leaderboardRepository,
+                authRepository,
+                classManagementRepository,
+                chatRepository
+            ) as T
     }
 }

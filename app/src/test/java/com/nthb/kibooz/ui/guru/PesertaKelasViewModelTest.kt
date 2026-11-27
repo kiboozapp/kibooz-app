@@ -1,13 +1,23 @@
 package com.nthb.kibooz.ui.guru
 
 import com.nthb.kibooz.R
+import com.nthb.kibooz.data.InMemorySessionStore
 import com.nthb.kibooz.data.failureJson
+import com.nthb.kibooz.data.remote.AuthApi
+import com.nthb.kibooz.data.remote.ChatApi
 import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.GuruClassApi
+import com.nthb.kibooz.data.remote.LeaderboardApi
+import com.nthb.kibooz.data.repository.AuthRepository
+import com.nthb.kibooz.data.repository.ChatRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
+import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.nthb.kibooz.data.repository.jsonResponse
 import com.nthb.kibooz.data.repository.testClient
+import com.nthb.kibooz.data.session.Role
+import com.nthb.kibooz.data.session.Session
+import com.nthb.kibooz.data.session.SessionUser
 import com.nthb.kibooz.ml.Emotion
 import java.util.concurrent.TimeUnit
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +112,8 @@ class PesertaKelasViewModelTest {
 
         val state = settled(viewModel)
         assertFalse(state.isLoading)
+        assertEquals("Guru Kelas", state.teacherName)
+        assertEquals("Guru Pengajar • Kelas Melati", state.teacherRole)
         assertEquals(2, state.students.size)
         assertEquals("Amelia Siti Zahra", state.students[0].fullName)
         assertEquals(Emotion.SENANG, state.students[0].todayMood)
@@ -332,5 +344,174 @@ class PesertaKelasViewModelTest {
         val afterArchived = actionSettled(viewModel)
         assertEquals(R.string.error_class_archived, afterArchived.actionMessage?.resId)
         assertTrue(afterArchived.classArchived)
+    }
+
+    private fun signedInAuth(role: Role, fullName: String, avatarUrl: String? = null): AuthRepository {
+        val client = testClient(server)
+        val user = SessionUser(
+            id = "u-${role.name.lowercase()}",
+            email = "${role.name.lowercase()}@kibooz.id",
+            fullName = fullName,
+            role = role,
+            avatarUrl = avatarUrl
+        )
+        val store = InMemorySessionStore(Session("acc", "ref", user))
+        return AuthRepository(client.create(AuthApi::class.java), store, client.moshi).also {
+            runBlocking { it.restore() }
+        }
+    }
+
+    @Test
+    fun `loadPeserta resolves real rombel name and class teachers for Guru`() {
+        val classesJson = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 1,
+                "classes": [
+                  {"id":"c-matahari","name":"Kelas Matahari","gradeLevel":"TK B","schoolName":"TK Kibooz","academicYear":"2026/2027","joinCode":"MTH123","joinOpen":true,"totalStudents":1,"createdAt":"2026-08-01T00:00:00Z"}
+                ]
+              }
+            }
+        """.trimIndent()
+        val teachersJson = """
+            {
+              "success": true,
+              "data": {
+                "teachers": [
+                  {"id":"t2","userId":"u2","isSelf":false,"fullName":"Pak Budi","nip":null,"avatarUrl":null,"isOwner":false,"joinedAt":"2026-08-02T00:00:00Z"},
+                  {"id":"t1","userId":"u1","isSelf":true,"fullName":"Ibu Siti Aminah, S.Pd","nip":"123","avatarUrl":"https://cdn/siti.png","isOwner":true,"joinedAt":"2026-08-01T00:00:00Z"}
+                ]
+              }
+            }
+        """.trimIndent()
+        val rosterJson = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 1,
+                "students": [
+                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"}
+                ]
+              }
+            }
+        """.trimIndent()
+
+        server.enqueue(jsonResponse(classesJson))
+        server.enqueue(jsonResponse(teachersJson))
+        server.enqueue(jsonResponse(rosterJson))
+
+        val authRepo = signedInAuth(Role.GURU, "Ibu Siti Aminah, S.Pd", "https://cdn/self.png")
+        val viewModel = PesertaKelasViewModel(
+            classRepository = classRepository,
+            authRepository = authRepo,
+            classManagementRepository = managementRepository
+        )
+        viewModel.loadPeserta(initialClassId = "c-matahari", defaultClassName = "")
+
+        val state = settled(viewModel)
+        assertTrue(state.isTeacher)
+        assertEquals("Kelas Matahari", state.className)
+        assertEquals("Ibu Siti Aminah, S.Pd, Pak Budi", state.teacherName)
+        assertEquals("https://cdn/siti.png", state.teacherAvatarUrl)
+        assertEquals("2 Guru Pengajar • Kelas Matahari", state.teacherRole)
+        assertEquals(2, state.teacherCount)
+    }
+
+    @Test
+    fun `loadPeserta Guru falls back to session user name when teachers endpoint fails`() {
+        val rosterJson = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 1,
+                "students": [
+                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","nisnVerified":true,"nisnNeedsUpdate":false,"avatarUrl":null,"currentPoints":100,"seasonPoints":100,"classRank":1,"todayMood":"SENANG"}
+                ]
+              }
+            }
+        """.trimIndent()
+
+        server.enqueue(MockResponse().setResponseCode(500).setBody("""{"success":false,"message":"error"}"""))
+        server.enqueue(jsonResponse(rosterJson))
+
+        val authRepo = signedInAuth(Role.GURU, "Ibu Siti Aminah, S.Pd", "https://cdn/self.png")
+        val viewModel = PesertaKelasViewModel(
+            classRepository = classRepository,
+            authRepository = authRepo,
+            classManagementRepository = managementRepository
+        )
+        viewModel.loadPeserta(initialClassId = "c-matahari", defaultClassName = "Kelas Matahari")
+
+        val state = settled(viewModel)
+        assertEquals("Ibu Siti Aminah, S.Pd", state.teacherName)
+        assertEquals("https://cdn/self.png", state.teacherAvatarUrl)
+        assertEquals("Guru Pengajar • Kelas Matahari", state.teacherRole)
+    }
+
+    @Test
+    fun `loadPeserta Wali resolves class teacher from chat contacts`() {
+        val childrenJson = """
+            {
+              "success": true,
+              "data": {
+                "children": [
+                  {"id":"s1","fullName":"Adit Pratama","nisn":"0012345671","avatarUrl":null,"classId":"c-matahari","className":"Kelas Matahari"}
+                ]
+              }
+            }
+        """.trimIndent()
+        val contactsJson = """
+            {
+              "success": true,
+              "data": {
+                "page": 1,
+                "limit": 50,
+                "total": 3,
+                "contacts": [
+                  {"id":"g-other","fullName":"Guru Kelas Lain","role":"GURU","avatarUrl":null,"deleted":false,"classes":[{"id":"c-bulan","name":"Kelas Bulan"}]},
+                  {"id":"w-self","fullName":"Bapak Hendra","role":"WALI","avatarUrl":null,"deleted":false,"classes":[{"id":"c-matahari","name":"Kelas Matahari"}]},
+                  {"id":"g-matahari","fullName":"Ibu Siti Aminah, S.Pd","role":"GURU","avatarUrl":"https://cdn/siti.png","deleted":false,"classes":[{"id":"c-matahari","name":"Kelas Matahari"}]}
+                ]
+              }
+            }
+        """.trimIndent()
+        val leaderboardJson = """
+            {
+              "success": true,
+              "data": {
+                "podium": [{"rank":1,"studentName":"Adit Pratama","points":120,"avatarUrl":null}],
+                "rankings": []
+              }
+            }
+        """.trimIndent()
+
+        server.enqueue(jsonResponse(childrenJson))
+        server.enqueue(jsonResponse(contactsJson))
+        server.enqueue(jsonResponse(leaderboardJson))
+
+        val client = testClient(server)
+        val authRepo = signedInAuth(Role.WALI, "Bapak Hendra Gunawan")
+        val viewModel = PesertaKelasViewModel(
+            classRepository = classRepository,
+            leaderboardRepository = LeaderboardRepository(client.create(LeaderboardApi::class.java), client.moshi),
+            authRepository = authRepo,
+            chatRepository = ChatRepository(client.create(ChatApi::class.java), client.moshi)
+        )
+        viewModel.loadPeserta(initialClassId = "c-matahari", defaultClassName = "")
+
+        val state = settled(viewModel)
+        assertFalse(state.isTeacher)
+        assertEquals("Kelas Matahari", state.className)
+        assertEquals("Ibu Siti Aminah, S.Pd", state.teacherName)
+        assertEquals("https://cdn/siti.png", state.teacherAvatarUrl)
+        assertEquals("Guru Pengajar • Kelas Matahari", state.teacherRole)
+        assertEquals(1, state.students.size)
     }
 }
