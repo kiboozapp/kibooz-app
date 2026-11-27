@@ -52,6 +52,17 @@ Workflow di pull request dari fork menunggu persetujuan maintainer sebelum berja
 
 Menambahkan label atau assignee tidak memulai pengecekan lagi. Setelah menambahkannya, jalankan ulang pengecekan "PR format" dari tab Checks. Menjalankan ulang memerlukan izin menulis di repositori. Tanpa izin itu, minta maintainer menjalankannya, atau ubah isi pull request agar pengecekan berjalan lagi.
 
+## Sebelum pull request digabung
+
+Pull request digabung setelah dua hal terpenuhi, yaitu semua pengecekan lulus dan semua komentar review sudah ditangani.
+
+- Semua pengecekan harus lulus. Ruleset `main` memblokir merge selama pengecekan wajib gagal atau belum selesai. Pengecekan yang tidak wajib, seperti DeepSource, tidak memblokir merge, tetapi temuan yang berasal dari perubahanmu tetap diperbaiki. Temuan di kode yang tidak kamu ubah cukup disampaikan ke maintainer.
+- Pengecekan yang gagal diperbaiki dengan commit baru, bukan dilewati. Baca log pengecekan itu dulu supaya penyebabnya jelas. Jalankan ulang hanya jika kegagalannya berasal dari infrastruktur GitHub, misalnya runner yang mati, dan bukan dari kode.
+- Semua komentar review harus ditangani, baik dari reviewer maupun dari bot seperti CodeRabbit dan DeepSource. Menangani berarti masalahnya diperbaiki di kode atau dokumen, lalu perbaikannya di-push. Tombol "Resolve conversation" hanya menutup thread dan tidak memperbaiki apa pun, jadi tekan setelah perbaikannya ada di branch.
+- Jika sebuah komentar menurutmu keliru atau tidak berlaku, tulis alasannya di thread itu sebelum menutupnya, supaya reviewer bisa menilai ulang. Jangan menutup thread tanpa perbaikan atau alasan.
+- Ruleset `main` hanya mengizinkan merge setelah semua thread review diselesaikan, tetapi tidak menilai apakah perbaikannya benar. Bagian itu menjadi tanggung jawab penulis dan reviewer.
+- Setelah setiap push, cek lagi daftar pengecekan dan komentar, karena bot bisa menambahkan komentar baru pada commit terbaru.
+
 ## Melaporkan masalah
 
 Gunakan template issue untuk bug dan permintaan fitur. Masalah keamanan jangan dilaporkan sebagai issue publik. Kirim secara pribadi lewat [Report a vulnerability](https://github.com/kiboozapp/kibooz-app/security/advisories/new), seperti dijelaskan di [SECURITY.md](SECURITY.md).
