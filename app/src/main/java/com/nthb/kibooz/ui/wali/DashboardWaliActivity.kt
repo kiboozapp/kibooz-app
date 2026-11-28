@@ -60,7 +60,7 @@ class DashboardWaliActivity : AppCompatActivity() {
                     avatarLoader = appContainer.avatarLoader,
                     snackbarHost = snackbarHost,
                     actions = DashboardWaliActions(
-                        onRetry = { viewModel.load() },
+                        onRetry = ::retryLoad,
                         onHistory = ::openHistory,
                         onNotifications = { NotificationInboxDialog.show(this) },
                         onStudentHeader = ::onStudentHeaderClicked,
@@ -104,6 +104,12 @@ class DashboardWaliActivity : AppCompatActivity() {
         super.onResume()
         // Kembali dari scan sampah atau panduan membawa poin dan status yang baru. Muat pertama yang gagal dicoba lagi
         if (!viewModel.state.value.loading) viewModel.load()
+    }
+
+    /** Tombol coba lagi di layar. Pesan galat yang masih tampil dilepas dulu, karena snackbar tanpa batas tidak hilang sendiri. */
+    private fun retryLoad() {
+        snackbarHost.currentSnackbarData?.dismiss()
+        viewModel.load()
     }
 
     private fun handleState(state: WaliDashboardState) {
