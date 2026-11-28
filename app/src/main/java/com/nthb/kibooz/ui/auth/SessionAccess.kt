@@ -44,6 +44,7 @@ fun accessFor(className: String): Access = when {
     className in GURU_PROFILE_SCREENS -> Access.GURU
     className in WALI_PROFILE_SCREENS -> Access.WALI
     className == "${APP_PACKAGE}ui.camera.CameraScanMoodActivity" -> Access.GURU
+    className == "${APP_PACKAGE}ui.camera.ReviewScanMoodActivity" -> Access.GURU
     className == "${APP_PACKAGE}ui.camera.CameraScanSampahActivity" -> Access.WALI
     className.startsWith("${APP_PACKAGE}ui.guru.") -> Access.GURU
     className.startsWith("${APP_PACKAGE}ui.wali.") -> Access.WALI
