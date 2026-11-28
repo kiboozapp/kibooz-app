@@ -104,7 +104,6 @@ class PesertaKelasViewModelTest {
         const val CLASS_MATAHARI_NAME = "Kelas Matahari"
         const val TEACHER_SITI = "Ibu Siti Aminah, S.Pd"
         const val TEACHER_BUDI = "Pak Budi"
-        const val DEFAULT_TEACHER = "Guru Kelas"
         const val CHILD_ADIT = "Adit Pratama"
         const val URL_SITI = "https://cdn/siti.png"
         const val URL_SELF = "https://cdn/self.png"
@@ -129,8 +128,7 @@ class PesertaKelasViewModelTest {
 
         val state = settled(viewModel)
         assertFalse(state.isLoading)
-        assertEquals("Guru Kelas", state.teacherName)
-        assertEquals("Guru Pengajar • Kelas Melati", state.teacherRole)
+        assertEquals(emptyList<String>(), state.teacherNames)
         assertEquals(2, state.students.size)
         assertEquals("Amelia Siti Zahra", state.students[0].fullName)
         assertEquals(Emotion.SENANG, state.students[0].todayMood)
@@ -328,10 +326,9 @@ class PesertaKelasViewModelTest {
         val state = settled(viewModel)
         assertTrue(state.isTeacher)
         assertEquals(CLASS_MATAHARI_NAME, state.className)
-        assertEquals("$TEACHER_SITI, Pak Budi", state.teacherName)
+        assertEquals(listOf(TEACHER_SITI, "Pak Budi"), state.teacherNames)
         assertEquals(URL_SITI, state.teacherAvatarUrl)
-        assertEquals("2 Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
-        assertEquals(2, state.teacherCount)
+        assertEquals(2, state.teacherNames.size)
     }
 
     @Test
@@ -351,9 +348,8 @@ class PesertaKelasViewModelTest {
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = CLASS_MATAHARI_NAME)
 
         val state = settled(viewModel)
-        assertEquals(TEACHER_SITI, state.teacherName)
+        assertEquals(listOf(TEACHER_SITI), state.teacherNames)
         assertEquals(URL_SELF, state.teacherAvatarUrl)
-        assertEquals("Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
     }
 
     @Test
@@ -399,9 +395,8 @@ class PesertaKelasViewModelTest {
         val state = settled(viewModel)
         assertFalse(state.isTeacher)
         assertEquals(CLASS_MATAHARI_NAME, state.className)
-        assertEquals(TEACHER_SITI, state.teacherName)
+        assertEquals(listOf(TEACHER_SITI), state.teacherNames)
         assertEquals(URL_SITI, state.teacherAvatarUrl)
-        assertEquals("Guru Pengajar • $CLASS_MATAHARI_NAME", state.teacherRole)
         assertEquals(1, state.students.size)
     }
 
@@ -428,31 +423,29 @@ class PesertaKelasViewModelTest {
         enqueueWaliLoad(jsonResponse(twoTeachersJson))
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
         val initial = settled(viewModel)
-        assertEquals(2, initial.teacherCount)
+        assertEquals(2, initial.teacherNames.size)
 
         enqueueWaliLoad(serverError())
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
         val afterFailure = settled(viewModel)
-        assertEquals(2, afterFailure.teacherCount)
-        assertEquals("$TEACHER_SITI, $TEACHER_BUDI", afterFailure.teacherName)
+        assertEquals(2, afterFailure.teacherNames.size)
+        assertEquals(listOf(TEACHER_SITI, TEACHER_BUDI), afterFailure.teacherNames)
         assertEquals(URL_SITI, afterFailure.teacherAvatarUrl)
 
         enqueueWaliLoad(jsonResponse(EMPTY_CONTACTS_JSON))
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
         val afterEmptySuccess = settled(viewModel)
-        assertEquals(1, afterEmptySuccess.teacherCount)
-        assertEquals(DEFAULT_TEACHER, afterEmptySuccess.teacherName)
+        assertEquals(emptyList<String>(), afterEmptySuccess.teacherNames)
         assertNull(afterEmptySuccess.teacherAvatarUrl)
 
         enqueueWaliLoad(jsonResponse(twoTeachersJson))
         viewModel.loadPeserta(initialClassId = CLASS_MATAHARI_ID, defaultClassName = "")
-        assertEquals(2, settled(viewModel).teacherCount)
+        assertEquals(2, settled(viewModel).teacherNames.size)
 
         enqueueWaliLoad(serverError())
         viewModel.loadPeserta(initialClassId = secondClassId, defaultClassName = "")
         val switchedClass = settled(viewModel)
-        assertEquals(1, switchedClass.teacherCount)
-        assertEquals(DEFAULT_TEACHER, switchedClass.teacherName)
+        assertEquals(emptyList<String>(), switchedClass.teacherNames)
         assertNull(switchedClass.teacherAvatarUrl)
     }
 
@@ -478,21 +471,21 @@ class PesertaKelasViewModelTest {
         viewModel.loadPeserta(
             initialClassId = CLASS_MATAHARI_ID,
             defaultClassName = CLASS_MATAHARI_NAME,
-            initialTeacherName = seededName,
+            initialTeacherNames = listOf(seededName),
             initialTeacherAvatarUrl = URL_SITI
         )
         val failedInitial = settled(viewModel)
-        assertEquals(seededName, failedInitial.teacherName)
+        assertEquals(listOf(seededName), failedInitial.teacherNames)
         assertEquals(URL_SITI, failedInitial.teacherAvatarUrl)
 
         viewModel.loadPeserta(
             initialClassId = CLASS_MATAHARI_ID,
             defaultClassName = CLASS_MATAHARI_NAME,
-            initialTeacherName = seededName,
+            initialTeacherNames = listOf(seededName),
             initialTeacherAvatarUrl = URL_SITI
         )
         val refreshedEmpty = settled(viewModel)
-        assertEquals(DEFAULT_TEACHER, refreshedEmpty.teacherName)
+        assertEquals(emptyList<String>(), refreshedEmpty.teacherNames)
         assertNull(refreshedEmpty.teacherAvatarUrl)
     }
 }

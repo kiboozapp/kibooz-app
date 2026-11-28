@@ -6,7 +6,6 @@ import com.nthb.kibooz.data.remote.ClassTeacher
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.data.session.SessionUser
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class ClassTeachersTest {
@@ -107,28 +106,6 @@ class ClassTeachersTest {
         assertEquals(1, fromGuru.size)
         assertEquals(TEACHER_SITI, fromGuru[0].fullName)
         assertEquals(0, fromWali.size)
-    }
-
-    @Test
-    fun `format helpers handle zero, one, two, and many teachers cleanly`() {
-        assertNull(ClassTeachers.formatHeadlineOrNull(emptyList()))
-        assertEquals("Guru Kelas", ClassTeachers.formatHeadline(emptyList()))
-        assertEquals("Pengajar: Guru Kelas", ClassTeachers.formatPengajarLine(emptyList()))
-
-        val one = listOf(ClassTeacherSummary(TEACHER_SITI))
-        val expectedSingleRole = "Guru Pengajar • $CLASS_MATAHARI_NAME"
-        assertEquals(TEACHER_SITI, ClassTeachers.formatHeadline(one))
-        assertEquals("Pengajar: $TEACHER_SITI", ClassTeachers.formatPengajarLine(one))
-        assertEquals(expectedSingleRole, ClassTeachers.formatSubtitle(one, CLASS_MATAHARI_NAME))
-        assertEquals(expectedSingleRole, ClassTeachers.formatSubtitle(one, "Matahari"))
-
-        val two = one + ClassTeacherSummary(TEACHER_BUDI)
-        assertEquals("$TEACHER_SITI, $TEACHER_BUDI", ClassTeachers.formatHeadline(two))
-        assertEquals("2 Guru Pengajar • $CLASS_MATAHARI_NAME", ClassTeachers.formatSubtitle(two, CLASS_MATAHARI_NAME))
-
-        val three = two + ClassTeacherSummary("Ibu Rina")
-        assertEquals("$TEACHER_SITI, +2 pengajar", ClassTeachers.formatHeadline(three))
-        assertEquals("3 Guru Pengajar & 12 Siswa Terdaftar", ClassTeachers.formatBannerCount(three.size, "12 Siswa Terdaftar"))
     }
 
     private companion object {

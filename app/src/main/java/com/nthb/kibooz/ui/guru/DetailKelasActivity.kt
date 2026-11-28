@@ -188,7 +188,7 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.tabAnggota.text = "Peserta Kelas ($studentCount)"
         binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
         val countText = "$studentCount Siswa Terdaftar"
-        binding.tvSubDaftarPeserta.text = ClassTeachers.formatBannerCount(resolvedTeachers.size, countText)
+        binding.tvSubDaftarPeserta.text = ClassTeacherTexts.bannerCount(this, resolvedTeachers.size, countText)
     }
 
     private fun loadClassTeachers(classId: String) {
@@ -213,7 +213,7 @@ class DetailKelasActivity : AppCompatActivity() {
                 else -> return@launch
             }
             resolvedTeachers = finalTeachers
-            binding.tvPengajar.text = ClassTeachers.formatPengajarLine(finalTeachers)
+            binding.tvPengajar.text = ClassTeacherTexts.pengajarLine(this, finalTeachers.map { it.fullName })
             updatePesertaBanner(lastStudentCount)
         }
     }
@@ -290,7 +290,7 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.tabModul.text = "Modul (4)"
         val sessionUser = appContainer.authRepository.session.value?.user
         resolvedTeachers = ClassTeachers.mergeWithSessionFallback(resolvedTeachers, sessionUser)
-        binding.tvPengajar.text = ClassTeachers.formatPengajarLine(resolvedTeachers)
+        binding.tvPengajar.text = ClassTeacherTexts.pengajarLine(this, resolvedTeachers.map { it.fullName })
         updatePesertaBanner(initialCount)
         applySubjectPreset(kodeKelas, namaKelas)
     }
@@ -463,7 +463,9 @@ class DetailKelasActivity : AppCompatActivity() {
         val intent = Intent(this, PesertaKelasActivity::class.java).apply {
             putExtra("NAMA_KELAS", namaKelas)
             resolvedRombelName?.takeIf { it.isNotBlank() }?.let { putExtra(EXTRA_ROMBEL_NAME, it) }
-            ClassTeachers.formatHeadlineOrNull(resolvedTeachers)?.let { putExtra("TEACHER_NAME", it) }
+            if (resolvedTeachers.isNotEmpty()) {
+                putExtra("TEACHER_NAMES", resolvedTeachers.map { it.fullName }.toTypedArray())
+            }
             resolvedTeachers.firstOrNull()?.avatarUrl?.let { putExtra("TEACHER_AVATAR_URL", it) }
             putExtra("CLASS_ID", activeClassId)
             if (kodeKelas != null) putExtra("KODE_KELAS", kodeKelas)

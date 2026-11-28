@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="class_teacher_default_name">Guru Kelas</string>
+    <string name="class_teacher_role">Guru Pengajar</string>
+    <string name="class_teacher_role_count">%1$d Guru Pengajar</string>
+    <string name="class_teacher_pair">%1$s, %2$s</string>
+    <string name="class_teacher_more">%1$s, +%2$d pengajar</string>
+    <string name="class_teacher_line">Pengajar: %1$s</string>
+    <string name="class_teacher_subtitle_class">%1$s • %2$s</string>
+    <string name="class_teacher_banner_count">%1$d Guru Pengajar &amp; %2$s</string>
+</resources>

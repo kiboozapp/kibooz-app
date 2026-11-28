@@ -35,10 +35,8 @@ data class PesertaUiState(
     val className: String = "",
     val classArchived: Boolean = false,
     val isTeacher: Boolean = false,
-    val teacherName: String = ClassTeachers.DEFAULT_TEACHER_LABEL,
+    val teacherNames: List<String> = emptyList(),
     val teacherAvatarUrl: String? = null,
-    val teacherRole: String = ClassTeachers.DEFAULT_ROLE_LABEL,
-    val teacherCount: Int = 1,
     val students: List<ClassStudent> = emptyList(),
     val busyStudentId: String? = null,
     val actionMessage: PesertaMessage? = null,
@@ -69,7 +67,7 @@ class PesertaKelasViewModel(
     fun loadPeserta(
         initialClassId: String? = null,
         defaultClassName: String = "",
-        initialTeacherName: String? = null,
+        initialTeacherNames: List<String> = emptyList(),
         initialTeacherAvatarUrl: String? = null
     ) {
         // Muat ulang membatalkan pemuatan sebelumnya, supaya hasil lama tidak menimpa yang baru dan tidak mengisi cache
@@ -78,7 +76,7 @@ class PesertaKelasViewModel(
             loadPesertaContent(
                 initialClassId = initialClassId,
                 defaultClassName = defaultClassName,
-                initialTeacherName = initialTeacherName,
+                initialTeacherNames = initialTeacherNames,
                 initialTeacherAvatarUrl = initialTeacherAvatarUrl
             )
         }
@@ -87,13 +85,13 @@ class PesertaKelasViewModel(
     private suspend fun loadPesertaContent(
         initialClassId: String?,
         defaultClassName: String,
-        initialTeacherName: String?,
+        initialTeacherNames: List<String>,
         initialTeacherAvatarUrl: String?
     ) {
         val user = currentSessionUser()
         val isWaliRole = user?.role == Role.WALI
         val teacherRole = isTeacherPortal(user, isWaliRole)
-        val seededTeachers = seededTeachersFor(user, initialTeacherName, initialTeacherAvatarUrl)
+        val seededTeachers = seededTeachersFor(user, initialTeacherNames, initialTeacherAvatarUrl)
         val initialTeachers = initialTeachersForLoad(initialClassId, seededTeachers)
 
         emitLoadingState(teacherRole, initialTeachers, defaultClassName)
@@ -116,17 +114,15 @@ class PesertaKelasViewModel(
 
     private fun seededTeachersFor(
         user: SessionUser?,
-        initialTeacherName: String?,
+        initialTeacherNames: List<String>,
         initialTeacherAvatarUrl: String?
     ): List<ClassTeacherSummary> {
-        val explicitName = initialTeacherName?.trim()?.takeIf { it.isNotEmpty() }
-        if (explicitName != null) {
-            return listOf(
-                ClassTeacherSummary(
-                    fullName = explicitName,
-                    avatarUrl = initialTeacherAvatarUrl?.trim()?.takeIf { it.isNotEmpty() }
-                )
-            )
+        val explicitNames = initialTeacherNames.map(String::trim).filter(String::isNotEmpty)
+        if (explicitNames.isNotEmpty()) {
+            val avatarUrl = initialTeacherAvatarUrl?.trim()?.takeIf { it.isNotEmpty() }
+            return explicitNames.mapIndexed { index, name ->
+                ClassTeacherSummary(fullName = name, avatarUrl = avatarUrl.takeIf { index == 0 })
+            }
         }
         return ClassTeachers.mergeWithSessionFallback(emptyList(), user)
     }
@@ -163,11 +159,10 @@ class PesertaKelasViewModel(
     ) {
         _uiState.value = _uiState.value.copy(
             isLoading = true,
+            className = defaultClassName.ifBlank { _uiState.value.className },
             isTeacher = teacherRole,
-            teacherName = ClassTeachers.formatHeadline(initialTeachers),
+            teacherNames = initialTeachers.map { it.fullName },
             teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
-            teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
-            teacherCount = maxOf(1, initialTeachers.size),
             errorMessage = null
         )
     }
@@ -183,10 +178,8 @@ class PesertaKelasViewModel(
             className = defaultClassName,
             classArchived = false,
             isTeacher = teacherRole,
-            teacherName = ClassTeachers.formatHeadline(initialTeachers),
+            teacherNames = initialTeachers.map { it.fullName },
             teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
-            teacherRole = ClassTeachers.formatSubtitle(initialTeachers, defaultClassName),
-            teacherCount = maxOf(1, initialTeachers.size),
             errorMessage = "Kelas tidak ditemukan"
         )
     }
@@ -197,21 +190,14 @@ class PesertaKelasViewModel(
         resolvedTeachers: List<ClassTeacherSummary>,
         rosterResult: ApiResult<List<ClassStudent>>
     ) {
-        val teacherName = ClassTeachers.formatHeadline(resolvedTeachers)
-        val teacherAvatarUrl = resolvedTeachers.firstOrNull()?.avatarUrl
-        val teacherSubtitle = ClassTeachers.formatSubtitle(resolvedTeachers, resolved.className)
-        val teacherCount = maxOf(1, resolvedTeachers.size)
-
         val base = _uiState.value.copy(
             isLoading = false,
             classId = resolved.classId,
             className = resolved.className,
             classArchived = resolved.archived,
             isTeacher = effectiveIsTeacher,
-            teacherName = teacherName,
-            teacherAvatarUrl = teacherAvatarUrl,
-            teacherRole = teacherSubtitle,
-            teacherCount = teacherCount
+            teacherNames = resolvedTeachers.map { it.fullName },
+            teacherAvatarUrl = resolvedTeachers.firstOrNull()?.avatarUrl
         )
         _uiState.value = when (rosterResult) {
             is ApiResult.Success -> base.copy(students = rosterResult.data, errorMessage = null)

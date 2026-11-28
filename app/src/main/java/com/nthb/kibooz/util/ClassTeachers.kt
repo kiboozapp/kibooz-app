@@ -13,14 +13,10 @@ data class ClassTeacherSummary(
 )
 
 /**
- * Helper murni untuk menyaring, mengurutkan, dan memformat daftar pengajar kelas secara konsisten
+ * Helper murni untuk menyaring dan mengurutkan daftar pengajar kelas secara konsisten
  * di seluruh portal Guru dan Wali tanpa ketergantungan Android atau teks nama palsu.
  */
 object ClassTeachers {
-
-    const val DEFAULT_TEACHER_LABEL = "Guru Kelas"
-    const val DEFAULT_ROLE_LABEL = "Guru Pengajar"
-
     fun fromClassTeachers(teachers: List<ClassTeacher>): List<ClassTeacherSummary> {
         val seen = LinkedHashSet<String>()
         return teachers
@@ -80,30 +76,4 @@ object ClassTeachers {
         }
         return emptyList()
     }
-
-    fun formatHeadline(teachers: List<ClassTeacherSummary>): String =
-        formatHeadlineOrNull(teachers) ?: DEFAULT_TEACHER_LABEL
-
-    fun formatHeadlineOrNull(teachers: List<ClassTeacherSummary>): String? = when (teachers.size) {
-        0 -> null
-        1 -> teachers[0].fullName
-        2 -> "${teachers[0].fullName}, ${teachers[1].fullName}"
-        else -> "${teachers[0].fullName}, +${teachers.size - 1} pengajar"
-    }
-
-    fun formatPengajarLine(teachers: List<ClassTeacherSummary>): String =
-        "Pengajar: ${formatHeadline(teachers)}"
-
-    fun formatSubtitle(teachers: List<ClassTeacherSummary>, className: String?): String {
-        val rolePart = if (teachers.size > 1) {
-            "${teachers.size} $DEFAULT_ROLE_LABEL"
-        } else {
-            DEFAULT_ROLE_LABEL
-        }
-        val cleanClass = className?.trim()?.takeIf { it.isNotBlank() }?.let(ClassNames::withPrefix)
-        return cleanClass?.let { "$rolePart • $it" } ?: rolePart
-    }
-
-    fun formatBannerCount(teacherCount: Int, studentCountText: String): String =
-        "${maxOf(1, teacherCount)} $DEFAULT_ROLE_LABEL & $studentCountText"
 }

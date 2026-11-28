@@ -27,7 +27,6 @@ import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ClassStudent
 import com.nthb.kibooz.databinding.ActivityPesertaKelasBinding
 import com.nthb.kibooz.ml.Emotion
-import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
@@ -64,7 +63,7 @@ class PesertaKelasActivity : AppCompatActivity() {
             ?: intent.getStringExtra("NAMA_KELAS")?.takeIf { it.isNotBlank() }
             ?: "Daftar Peserta"
         val classId = intent.getStringExtra("CLASS_ID")
-        val initialTeacherName = intent.getStringExtra("TEACHER_NAME")?.takeIf { it.isNotBlank() }
+        val initialTeacherNames = intent.getStringArrayExtra("TEACHER_NAMES")?.filter { it.isNotBlank() }.orEmpty()
         val initialTeacherAvatarUrl = intent.getStringExtra("TEACHER_AVATAR_URL")?.takeIf { it.isNotBlank() }
 
         val sessionUser = appContainer.authRepository.session.value?.user
@@ -75,14 +74,14 @@ class PesertaKelasActivity : AppCompatActivity() {
             namaKelas = namaKelas,
             sessionUser = sessionUser,
             isTeacher = isTeacher,
-            initialTeacherName = initialTeacherName,
+            initialTeacherNames = initialTeacherNames,
             initialTeacherAvatarUrl = initialTeacherAvatarUrl
         )
         setupMoveRequestsSection(classId, namaKelas, isTeacher)
         setupListeners(headerTitle)
         observeViewModel()
 
-        viewModel.loadPeserta(classId, namaKelas, initialTeacherName, initialTeacherAvatarUrl)
+        viewModel.loadPeserta(classId, namaKelas, initialTeacherNames, initialTeacherAvatarUrl)
     }
 
     private fun prefillInitialUi(
@@ -90,7 +89,7 @@ class PesertaKelasActivity : AppCompatActivity() {
         namaKelas: String,
         sessionUser: com.nthb.kibooz.data.session.SessionUser?,
         isTeacher: Boolean,
-        initialTeacherName: String?,
+        initialTeacherNames: List<String>,
         initialTeacherAvatarUrl: String?
     ) {
         binding.tvKelasTitle.text = headerTitle
@@ -100,10 +99,11 @@ class PesertaKelasActivity : AppCompatActivity() {
         hasLoadedTeacherAvatar = true
         appContainer.avatarLoader.load(binding.ivTeacherAvatar, prefilledAvatar, R.drawable.img_avatar_guru)
 
-        binding.tvTeacherName.text = initialTeacherName
-            ?: sessionUser?.fullName?.takeIf { isTeacher && it.isNotBlank() }
-            ?: ClassTeachers.DEFAULT_TEACHER_LABEL
-        binding.tvTeacherRole.text = ClassTeachers.formatSubtitle(emptyList(), namaKelas)
+        val prefilledNames = initialTeacherNames.ifEmpty {
+            listOfNotNull(sessionUser?.fullName?.takeIf { isTeacher && it.isNotBlank() })
+        }
+        binding.tvTeacherName.text = ClassTeacherTexts.headline(this, prefilledNames)
+        binding.tvTeacherRole.text = ClassTeacherTexts.subtitle(this, 1, namaKelas)
     }
 
     private fun setupMoveRequestsSection(classId: String?, namaKelas: String, isTeacher: Boolean) {
@@ -149,8 +149,12 @@ class PesertaKelasActivity : AppCompatActivity() {
                     if (state.className.isNotBlank()) {
                         binding.tvKelasTitle.text = state.className
                     }
-                    binding.tvTeacherName.text = state.teacherName
-                    binding.tvTeacherRole.text = state.teacherRole
+                    binding.tvTeacherName.text = ClassTeacherTexts.headline(this@PesertaKelasActivity, state.teacherNames)
+                    binding.tvTeacherRole.text = ClassTeacherTexts.subtitle(
+                        this@PesertaKelasActivity,
+                        state.teacherNames.size,
+                        state.className
+                    )
                     if (!hasLoadedTeacherAvatar || loadedTeacherAvatarUrl != state.teacherAvatarUrl) {
                         hasLoadedTeacherAvatar = true
                         loadedTeacherAvatarUrl = state.teacherAvatarUrl
