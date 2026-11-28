@@ -53,14 +53,14 @@ class ClassTeachersTest {
                 classes = listOf(ChatContactClass(CLASS_MATAHARI_ID, CLASS_MATAHARI_NAME))
             ),
             ChatContact(
-                id = "u-guru",
+                id = USER_GURU_ID,
                 fullName = TEACHER_SITI,
                 role = ROLE_GURU,
                 avatarUrl = "https://cdn/siti.jpg",
                 classes = listOf(ChatContactClass(CLASS_MATAHARI_ID, CLASS_MATAHARI_NAME))
             ),
             ChatContact(
-                id = "u-guru",
+                id = USER_GURU_ID,
                 fullName = TEACHER_SITI,
                 role = ROLE_GURU,
                 classes = listOf(ChatContactClass(CLASS_MATAHARI_ID, CLASS_MATAHARI_NAME))
@@ -85,7 +85,7 @@ class ClassTeachersTest {
     fun `fromChatContacts returns no teachers without a target classId`() {
         val contacts = listOf(
             ChatContact(
-                id = "u-guru",
+                id = USER_GURU_ID,
                 fullName = TEACHER_SITI,
                 role = ROLE_GURU,
                 classes = listOf(ChatContactClass(CLASS_MATAHARI_ID, CLASS_MATAHARI_NAME))
@@ -133,6 +133,7 @@ class ClassTeachersTest {
 
     private companion object {
         const val TEACHER_SITI = "Ibu Siti Aminah, S.Pd"
+        const val USER_GURU_ID = "u-guru"
         const val TEACHER_BUDI = "Pak Budi"
         const val CLASS_MATAHARI_ID = "c-matahari"
         const val CLASS_MATAHARI_NAME = "Kelas Matahari"
