@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -22,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -46,6 +49,9 @@ private val barColor = Color(0xFF1E1930)
 private val hintColor = Color(0xFFD8D2EE)
 private val rotateStrokeColor = Color(0xFF6E6396)
 private val buttonShape = RoundedCornerShape(24.dp)
+
+// Bilah gelap, jadi riak sentuhnya putih seperti tombol XML sebelumnya
+private val whiteRipple = ripple(color = Color.White)
 
 /**
  * Layar pangkas foto profil. [cropView] adalah `CropOverlayView` milik activity, karena activity yang memasukkan bitmap
@@ -87,7 +93,7 @@ private fun TopBar(onBack: () -> Unit) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
-            modifier = Modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onBack),
+            modifier = Modifier.size(48.dp).clip(CircleShape).clickable(interactionSource = null, indication = whiteRipple, role = Role.Button, onClick = onBack),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -113,8 +119,8 @@ private fun BottomActions(saving: Boolean, onRotate: () -> Unit, onSave: () -> U
         modifier = Modifier
             .fillMaxWidth()
             .background(barColor)
-            // Latar bilah sampai ke tepi layar, tombolnya di atas tombol navigasi sistem
-            .windowInsetsPadding(WindowInsets.navigationBars)
+            // Latar bilah sampai ke tepi layar, tombolnya di atas tombol navigasi sistem. Hanya sisi bawah, seperti sebelumnya
+            .windowInsetsPadding(WindowInsets.navigationBars.only(WindowInsetsSides.Bottom))
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -124,7 +130,7 @@ private fun BottomActions(saving: Boolean, onRotate: () -> Unit, onSave: () -> U
                 .height(48.dp)
                 .clip(buttonShape)
                 .border(1.dp, rotateStrokeColor, buttonShape)
-                .clickable(role = Role.Button, onClick = onRotate),
+                .clickable(interactionSource = null, indication = whiteRipple, role = Role.Button, onClick = onRotate),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -140,7 +146,7 @@ private fun BottomActions(saving: Boolean, onRotate: () -> Unit, onSave: () -> U
                 .height(48.dp)
                 .clip(buttonShape)
                 .background(MaterialTheme.colorScheme.primary)
-                .clickable(enabled = !saving, role = Role.Button, onClick = onSave),
+                .clickable(interactionSource = null, indication = whiteRipple, enabled = !saving, role = Role.Button, onClick = onSave),
             contentAlignment = Alignment.Center
         ) {
             Text(
