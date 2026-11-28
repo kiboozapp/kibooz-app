@@ -119,7 +119,7 @@ class ForumDiskusiActivity : AppCompatActivity() {
 
     private suspend fun fetchTeacherCount(classId: String, isWali: Boolean): Int {
         if (isWali) {
-            val contactsRes = appContainer.chatRepository.allContacts()
+            val contactsRes = appContainer.chatRepository.recentContacts()
             return if (contactsRes is ApiResult.Success) {
                 maxOf(1, ClassTeachers.fromChatContacts(contactsRes.data, classId).size)
             } else {

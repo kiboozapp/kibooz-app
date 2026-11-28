@@ -322,7 +322,7 @@ class PesertaKelasViewModel(
             }
         }
         !teacherRole && chatRepository != null -> {
-            when (val res = chatRepository.allContacts()) {
+            when (val res = chatRepository.recentContacts()) {
                 is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
                 else -> null
             }

@@ -202,7 +202,7 @@ class DetailKelasActivity : AppCompatActivity() {
                     else -> null
                 }
             } else {
-                when (val res = appContainer.chatRepository.allContacts()) {
+                when (val res = appContainer.chatRepository.recentContacts()) {
                     is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
                     else -> null
                 }

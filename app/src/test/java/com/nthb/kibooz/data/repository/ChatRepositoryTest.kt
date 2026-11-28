@@ -138,6 +138,78 @@ class ChatRepositoryTest {
         assertEquals("AUTH_FORBIDDEN", result.errorCode)
     }
 
+    // recentContacts, cache kontak untuk layar kelas
+
+    private fun contactsPage(id: String) = jsonResponse(listJson("contacts", listOf("""{"id":"$id","fullName":"Guru $id"}""")))
+
+    private fun cachedRepository(userId: () -> String?, clock: () -> Long): ChatRepository {
+        val client = testClient(server)
+        return ChatRepository(client.create(ChatApi::class.java), client.moshi, currentUserId = userId, nowMillis = clock)
+    }
+
+    @Test
+    fun `recentContacts reuses the result within the cache window`() = runBlocking {
+        var now = 1_000L
+        val cached = cachedRepository({ "u1" }, { now })
+        server.enqueue(contactsPage("a"))
+
+        val first = cached.recentContacts() as ApiResult.Success
+        now += 29_000L
+        val second = cached.recentContacts() as ApiResult.Success
+
+        assertEquals(listOf("a"), first.data.map { it.id })
+        assertEquals(first.data, second.data)
+        assertEquals(1, server.requestCount)
+    }
+
+    @Test
+    fun `recentContacts loads again after the cache window`() = runBlocking {
+        var now = 1_000L
+        val cached = cachedRepository({ "u1" }, { now })
+        server.enqueue(contactsPage("a"))
+        server.enqueue(contactsPage("b"))
+
+        cached.recentContacts()
+        now += 30_000L
+        val second = cached.recentContacts() as ApiResult.Success
+
+        assertEquals(listOf("b"), second.data.map { it.id })
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `recentContacts never serves contacts of another signed in user`() = runBlocking {
+        var user: String? = "u1"
+        val cached = cachedRepository({ user }, { 1_000L })
+        server.enqueue(contactsPage("a"))
+        server.enqueue(contactsPage("b"))
+
+        cached.recentContacts()
+        user = "u2"
+        val second = cached.recentContacts() as ApiResult.Success
+
+        assertEquals(listOf("b"), second.data.map { it.id })
+        assertEquals(2, server.requestCount)
+    }
+
+    @Test
+    fun `recentContacts does not cache without a signed in user or after a failure`() = runBlocking {
+        val noUser = cachedRepository({ null }, { 1_000L })
+        server.enqueue(contactsPage("a"))
+        server.enqueue(contactsPage("b"))
+        noUser.recentContacts()
+        noUser.recentContacts()
+        assertEquals(2, server.requestCount)
+
+        val failing = cachedRepository({ "u1" }, { 1_000L })
+        server.enqueue(failure(403, "AUTH_FORBIDDEN"))
+        server.enqueue(contactsPage("c"))
+        assertTrue(failing.recentContacts() is ApiResult.Failure)
+        val retry = failing.recentContacts() as ApiResult.Success
+        assertEquals(listOf("c"), retry.data.map { it.id })
+        assertEquals(4, server.requestCount)
+    }
+
     // GET /chat/conversations
 
     @Test

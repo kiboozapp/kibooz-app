@@ -148,7 +148,12 @@ class AppContainer(context: Context) {
     }
 
     val chatRepository: ChatRepository by lazy {
-        ChatRepository(apiClient.create(ChatApi::class.java), apiClient.moshi, chatStorage)
+        ChatRepository(
+            apiClient.create(ChatApi::class.java),
+            apiClient.moshi,
+            chatStorage,
+            currentUserId = { authRepository.session.value?.user?.id }
+        )
     }
 
     val chatMediaLoader: ChatMediaLoader by lazy {
