@@ -55,11 +55,12 @@ class DashboardGuruActivity : AppCompatActivity() {
         setContent {
             KiboozTheme {
                 val state by viewModel.state.collectAsStateWithLifecycle()
+                val session by appContainer.authRepository.session.collectAsStateWithLifecycle()
                 val greeting = remember { greetingRes(Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) }
                 val date = remember { TimeFormat.compactHomeDate() }
                 DashboardGuruScreen(
                     state = state,
-                    info = GuruDashboardHeaderInfo(greeting, date, appContainer.authRepository.session.value?.user?.avatarUrl),
+                    info = GuruDashboardHeaderInfo(greeting, date, session?.user?.avatarUrl),
                     avatarLoader = appContainer.avatarLoader,
                     outageSecondsLeft = outageSecondsLeft,
                     snackbarHost = snackbarHost,
