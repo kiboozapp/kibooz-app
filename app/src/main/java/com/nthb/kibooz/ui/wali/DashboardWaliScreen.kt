@@ -36,6 +36,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -150,7 +151,11 @@ private fun Header(state: WaliDashboardState, date: String, avatarLoader: Avatar
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 12.dp)
-                .clickable(role = Role.Button, onClick = actions.onStudentHeader),
+                .clickable(
+                    onClickLabel = stringResource(if (state.children.size > 1) R.string.wali_pilih_anak else R.string.dashboard_wali_buka_profil),
+                    role = Role.Button,
+                    onClick = actions.onStudentHeader
+                ),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
@@ -244,7 +249,9 @@ private fun MetricCard(modifier: Modifier, onClick: (() -> Unit)?, content: @Com
             .height(94.dp)
             .outlinedCard(16.dp, 4.dp, Color.White, MaterialTheme.colorScheme.outlineVariant)
             .clip(shape)
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .then(
+                if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier.semantics(mergeDescendants = true) {}
+            )
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -402,12 +409,15 @@ private fun MoodCard(data: WaliDashboard?, outline: Color, onClick: () -> Unit) 
                 fontSize = 12.sp
             )
         }
-        PillButton(
-            text = stringResource(R.string.dashboard_wali_lihat_panduan),
-            fill = colorResource(R.color.kibooz_primary_purple),
-            textColor = Color.White,
-            onClick = onClick
-        )
+        // Tombolnya hanya ada bersama panduan, yang baru ada setelah guru mencatat mood hari ini
+        if (data?.recommendedGuidance != null) {
+            PillButton(
+                text = stringResource(R.string.dashboard_wali_lihat_panduan),
+                fill = colorResource(R.color.kibooz_primary_purple),
+                textColor = Color.White,
+                onClick = onClick
+            )
+        }
     }
 }
 
@@ -517,6 +527,7 @@ private fun TrashCard(data: WaliDashboard?, state: WaliDashboardState, outline: 
                     .padding(top = 12.dp)
                     .fillMaxWidth()
                     .background(colorResource(R.color.kibooz_lavender_light), RoundedCornerShape(14.dp))
+                    .border(1.dp, outline, RoundedCornerShape(14.dp))
                     .padding(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
