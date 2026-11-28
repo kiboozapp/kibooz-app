@@ -92,7 +92,12 @@ class ChatRepository(
             return@withLock ApiResult.Success(snapshot.contacts)
         }
         val result = allContacts()
-        contactsSnapshot = if (userId != null && result is ApiResult.Success) ContactsSnapshot(userId, now, result.data) else null
+        // Bila akun berganti selagi memuat, hasilnya bukan milik akun yang dicatat di awal dan tidak disimpan
+        contactsSnapshot = if (userId != null && userId == currentUserId() && result is ApiResult.Success) {
+            ContactsSnapshot(userId, now, result.data)
+        } else {
+            null
+        }
         result
     }
 
