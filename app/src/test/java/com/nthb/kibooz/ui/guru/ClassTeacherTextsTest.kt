@@ -10,13 +10,13 @@ class ClassTeacherTextsTest {
         override fun get(id: Int): String = when (id) {
             R.string.class_teacher_default_name -> DEFAULT_NAME
             R.string.class_teacher_role -> ROLE
-            else -> error("unexpected string $id")
+            else -> unexpected(id)
         }
 
         override fun get(id: Int, first: Any): String = when (id) {
             R.string.class_teacher_role_count -> "$first $ROLE"
             R.string.class_teacher_line -> "Pengajar: $first"
-            else -> error("unexpected string $id")
+            else -> unexpected(id)
         }
 
         override fun get(id: Int, first: Any, second: Any): String = when (id) {
@@ -24,11 +24,13 @@ class ClassTeacherTextsTest {
             R.string.class_teacher_more -> "$first, +$second pengajar"
             R.string.class_teacher_subtitle_class -> "$first \u2022 $second"
             R.string.class_teacher_banner_count -> "$first $ROLE & $second"
-            else -> error("unexpected string $id")
+            else -> unexpected(id)
         }
     }
 
     private val texts = ClassTeacherTexts(strings)
+
+    private fun unexpected(id: Int): Nothing = error("unexpected string $id")
 
     @Test
     fun `headline covers zero, one, two and many teachers`() {
