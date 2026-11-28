@@ -47,8 +47,9 @@ import kotlinx.coroutines.launch
 
 class CameraScanSampahActivity : AppCompatActivity() {
 
-    private lateinit var cameraPermission: CameraPermissionHelper
-    private lateinit var previewView: PreviewView
+    // Null sampai onCreate lolos gerbang model. Gerbang itu bisa menutup layar sebelum helper dibuat
+    private var cameraPermission: CameraPermissionHelper? = null
+    private val previewView by lazy { PreviewView(this).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
 
     private val viewModel: TrashScanViewModel by viewModels {
         TrashScanViewModel.Factory(appContainer.classRepository, appContainer.trashRepository)
@@ -94,11 +95,11 @@ class CameraScanSampahActivity : AppCompatActivity() {
             return
         }
 
-        previewView = PreviewView(this).apply { scaleType = PreviewView.ScaleType.FILL_CENTER }
-        cameraPermission = CameraPermissionHelper(this) { newState ->
+        val permissionHelper = CameraPermissionHelper(this) { newState ->
             permission = newState
             if (newState == CameraPermissionState.GRANTED) startCamera()
         }
+        cameraPermission = permissionHelper
 
         setContent {
             KiboozTheme {
@@ -113,7 +114,7 @@ class CameraScanSampahActivity : AppCompatActivity() {
                     onBack = ::finish,
                     onFlash = ::toggleFlash,
                     onClaim = ::onClaimClicked,
-                    onPermissionAction = cameraPermission::requestOrOpenSettings,
+                    onPermissionAction = permissionHelper::requestOrOpenSettings,
                     cameraPreview = { AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize()) }
                 )
             }
@@ -121,12 +122,12 @@ class CameraScanSampahActivity : AppCompatActivity() {
 
         viewModel.start(intent.getStringExtra(EXTRA_STUDENT_ID))
         observeEvents()
-        cameraPermission.start()
+        permissionHelper.start()
     }
 
     override fun onResume() {
         super.onResume()
-        if (::cameraPermission.isInitialized) cameraPermission.onResume()
+        cameraPermission?.onResume()
     }
 
     override fun onDestroy() {
