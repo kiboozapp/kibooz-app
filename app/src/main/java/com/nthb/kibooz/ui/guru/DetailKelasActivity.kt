@@ -42,6 +42,8 @@ import java.util.Locale
 
 class DetailKelasActivity : AppCompatActivity() {
 
+    private val teacherTexts by lazy { ClassTeacherTexts.of(this) }
+
     private val binding by lazy { ActivityDetailKelasBinding.inflate(layoutInflater) }
     private var activeClassId: String? = null
     private var resolvedRombelName: String? = null
@@ -188,7 +190,7 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.tabAnggota.text = "Peserta Kelas ($studentCount)"
         binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
         val countText = "$studentCount Siswa Terdaftar"
-        binding.tvSubDaftarPeserta.text = ClassTeacherTexts.bannerCount(this, resolvedTeachers.size, countText)
+        binding.tvSubDaftarPeserta.text = teacherTexts.bannerCount(resolvedTeachers.size, countText)
     }
 
     private fun loadClassTeachers(classId: String) {
@@ -213,7 +215,7 @@ class DetailKelasActivity : AppCompatActivity() {
                 else -> return@launch
             }
             resolvedTeachers = finalTeachers
-            binding.tvPengajar.text = ClassTeacherTexts.pengajarLine(this@DetailKelasActivity, finalTeachers.map { it.fullName })
+            binding.tvPengajar.text = teacherTexts.pengajarLine(finalTeachers.map { it.fullName })
             updatePesertaBanner(lastStudentCount)
         }
     }
@@ -290,7 +292,7 @@ class DetailKelasActivity : AppCompatActivity() {
         binding.tabModul.text = "Modul (4)"
         val sessionUser = appContainer.authRepository.session.value?.user
         resolvedTeachers = ClassTeachers.mergeWithSessionFallback(resolvedTeachers, sessionUser)
-        binding.tvPengajar.text = ClassTeacherTexts.pengajarLine(this, resolvedTeachers.map { it.fullName })
+        binding.tvPengajar.text = teacherTexts.pengajarLine(resolvedTeachers.map { it.fullName })
         updatePesertaBanner(initialCount)
         applySubjectPreset(kodeKelas, namaKelas)
     }

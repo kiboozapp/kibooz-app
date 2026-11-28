@@ -32,6 +32,8 @@ import kotlinx.coroutines.launch
 
 class PesertaKelasActivity : AppCompatActivity() {
 
+    private val teacherTexts by lazy { ClassTeacherTexts.of(this) }
+
     private val binding by lazy { ActivityPesertaKelasBinding.inflate(layoutInflater) }
     private var loadedTeacherAvatarUrl: String? = null
     private var hasLoadedTeacherAvatar: Boolean = false
@@ -102,8 +104,8 @@ class PesertaKelasActivity : AppCompatActivity() {
         val prefilledNames = initialTeacherNames.ifEmpty {
             listOfNotNull(sessionUser?.fullName?.takeIf { isTeacher && it.isNotBlank() })
         }
-        binding.tvTeacherName.text = ClassTeacherTexts.headline(this, prefilledNames)
-        binding.tvTeacherRole.text = ClassTeacherTexts.subtitle(this, 1, namaKelas)
+        binding.tvTeacherName.text = teacherTexts.headline(prefilledNames)
+        binding.tvTeacherRole.text = teacherTexts.subtitle(prefilledNames.size, namaKelas)
     }
 
     private fun setupMoveRequestsSection(classId: String?, namaKelas: String, isTeacher: Boolean) {
@@ -149,12 +151,8 @@ class PesertaKelasActivity : AppCompatActivity() {
                     if (state.className.isNotBlank()) {
                         binding.tvKelasTitle.text = state.className
                     }
-                    binding.tvTeacherName.text = ClassTeacherTexts.headline(this@PesertaKelasActivity, state.teacherNames)
-                    binding.tvTeacherRole.text = ClassTeacherTexts.subtitle(
-                        this@PesertaKelasActivity,
-                        state.teacherNames.size,
-                        state.className
-                    )
+                    binding.tvTeacherName.text = teacherTexts.headline(state.teacherNames)
+                    binding.tvTeacherRole.text = teacherTexts.subtitle(state.teacherNames.size, state.className)
                     if (!hasLoadedTeacherAvatar || loadedTeacherAvatarUrl != state.teacherAvatarUrl) {
                         hasLoadedTeacherAvatar = true
                         loadedTeacherAvatarUrl = state.teacherAvatarUrl
