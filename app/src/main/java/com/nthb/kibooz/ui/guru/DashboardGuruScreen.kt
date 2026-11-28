@@ -132,6 +132,8 @@ internal fun DashboardGuruScreen(
                         modifier = Modifier.padding(start = 20.dp, top = 12.dp, end = 20.dp)
                     )
                 }
+                // Muat pertama yang gagal tanpa gangguan server. Tombol ini tetap ada sampai ada data yang berhasil dimuat
+                if (data == null && !state.loading && state.outage == null) RetryButton(onClick = onRetry)
                 MoodCard(data = data, pulse = pulse, onClick = onMoodStats, onScan = onScan)
                 ChatEntryCard(onClick = onChat)
                 RankingBanner(onClick = onRanking)
@@ -332,6 +334,27 @@ private fun Stat(label: String, value: String, pulse: () -> Float, modifier: Mod
             modifier = Modifier.padding(top = 2.dp).graphicsLayer { alpha = pulse() },
             color = colorResource(R.color.kibooz_text_primary),
             fontSize = 16.sp,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun RetryButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(start = 20.dp, top = 12.dp, end = 20.dp)
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(colorResource(R.color.kibooz_lavender))
+            .clickable(role = Role.Button, onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.coba_lagi),
+            color = colorResource(R.color.kibooz_primary_purple),
+            fontSize = 14.sp,
             fontWeight = FontWeight.Bold
         )
     }

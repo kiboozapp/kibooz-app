@@ -123,7 +123,8 @@ class DashboardGuruActivity : AppCompatActivity() {
         val state = viewModel.state.value
         if (sharedClassId != null && sharedClassId != state.selectedClassId) {
             viewModel.selectClass(sharedClassId)
-        } else if (!state.loading && state.dashboard != null) {
+        } else if (!state.loading && (state.dashboard != null || state.outage == null)) {
+            // Tanpa data dan tanpa gangguan, muat pertama yang gagal dicoba lagi. Saat gangguan, hitung mundur yang mencoba lagi
             viewModel.load(sharedClassId)
         }
     }
