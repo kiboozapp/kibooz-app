@@ -61,7 +61,7 @@ class ChatRepository(
     private val nowMillis: () -> Long = System::currentTimeMillis
 ) {
 
-    private class ContactsSnapshot(val userId: String, val savedAt: Long, val contacts: List<ChatContact>)
+    private data class ContactsSnapshot(val userId: String, val savedAt: Long, val contacts: List<ChatContact>)
 
     private val contactsLock = Mutex()
     private var contactsSnapshot: ContactsSnapshot? = null
