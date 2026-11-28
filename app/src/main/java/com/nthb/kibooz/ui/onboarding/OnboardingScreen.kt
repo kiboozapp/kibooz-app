@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -81,7 +80,8 @@ private val extraBelowLine = LineHeightStyle(alignment = LineHeightStyle.Alignme
 internal fun OnboardingScreen(onFinished: () -> Unit) {
     val pagerState = rememberPagerState { slides.size }
     val scope = rememberCoroutineScope()
-    val page = pagerState.currentPage
+    // Seperti currentItem di ViewPager2, halaman tujuan berlaku begitu animasi dimulai, jadi ketukan cepat berturut-turut tetap maju
+    val page = pagerState.targetPage
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.primary)) {
         HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize()) { index -> SlidePage(slides[index]) }
