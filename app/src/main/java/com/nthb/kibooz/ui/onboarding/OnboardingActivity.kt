@@ -12,12 +12,11 @@ import com.nthb.kibooz.util.InsetsUtil
 
 class OnboardingActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityOnboardingBinding
+    private val binding by lazy { ActivityOnboardingBinding.inflate(layoutInflater) }
     private lateinit var adapter: OnboardingAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Pastikan navigasi bawah tidak tertutup oleh navigasi sistem bawaan HP

@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 
 class DashboardGuruActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityDashboardGuruBinding
+    private val binding by lazy { ActivityDashboardGuruBinding.inflate(layoutInflater) }
     private val viewModel: GuruDashboardViewModel by viewModels {
         GuruDashboardViewModel.Factory(
             repository = appContainer.guruRepository,
@@ -51,7 +51,6 @@ class DashboardGuruActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDashboardGuruBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Menerapkan Status Bar Inset pada Header dan Navigation Bar Inset pada Bottom Nav & FAB

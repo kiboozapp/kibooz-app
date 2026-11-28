@@ -39,7 +39,7 @@ import java.util.Locale
 
 class DetailKelasActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityDetailKelasBinding
+    private val binding by lazy { ActivityDetailKelasBinding.inflate(layoutInflater) }
     private var activeClassId: String? = null
     private var resolvedRombelName: String? = null
     private var isTeacherRole: Boolean = true
@@ -52,7 +52,6 @@ class DetailKelasActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDetailKelasBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

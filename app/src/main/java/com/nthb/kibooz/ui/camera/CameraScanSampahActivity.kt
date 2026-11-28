@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 
 class CameraScanSampahActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityCameraScanSampahBinding
+    private val binding by lazy { ActivityCameraScanSampahBinding.inflate(layoutInflater) }
     private lateinit var cameraPermission: CameraPermissionHelper
 
     private val viewModel: TrashScanViewModel by viewModels {
@@ -78,7 +78,6 @@ class CameraScanSampahActivity : AppCompatActivity() {
             return
         }
 
-        binding = ActivityCameraScanSampahBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

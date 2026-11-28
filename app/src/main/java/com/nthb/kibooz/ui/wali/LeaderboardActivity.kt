@@ -38,7 +38,7 @@ import nl.dionsegijn.konfetti.core.models.Shape
  */
 class LeaderboardActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityLeaderboardBinding
+    private val binding by lazy { ActivityLeaderboardBinding.inflate(layoutInflater) }
     private val viewModel: LeaderboardViewModel by viewModels {
         val user = sessionUser()
         val extraClassId = intent.getStringExtra(EXTRA_CLASS_ID)
@@ -69,7 +69,6 @@ class LeaderboardActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLeaderboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(
