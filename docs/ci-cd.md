@@ -7,7 +7,7 @@ Halaman ini mendaftar semua workflow di `.github/workflows` dan menjelaskan apa 
 Branch `main` dilindungi ruleset bernama `main` tanpa pengecualian (bypass).
 
 - Perubahan hanya masuk lewat pull request, dan hanya dengan merge commit.
-- Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib.
+- Semua thread review harus diselesaikan sebelum merge. Persetujuan review tidak wajib, seperti dijelaskan di [review.md](review.md).
 - `main` tidak bisa dihapus dan tidak bisa di-force push.
 - Dua belas pengecekan harus berhasil, yaitu Unit tests, Debug build, Android lint, Conventional commits, PR format, File names, Secret scan (gitleaks), Trivy filesystem scan, Actionlint, Zizmor, CodeQL analysis dan Dependency review.
 - Branch pull request harus mutakhir terhadap `main` sebelum digabung.
@@ -55,7 +55,7 @@ Pengecekan lain hanya melaporkan hasil. Repositori juga mengaktifkan secret scan
 
 Beberapa catatan tentang isi pengecekan.
 
-- Job Android memakai JDK 17 dan Gradle wrapper repositori. Laporan pengujian dan lint diunggah sebagai artifact hanya saat job gagal. Job Debug build menyimpan APK debug sebagai artifact `kibooz-debug-apk` selama 7 hari. APK ini ditandatangani dengan kunci sementara runner, sehingga versi lama harus dihapus dari ponsel sebelum memasang yang baru. Pasang hanya APK dari run di `main` atau dari pull request anggota tim.
+- Job Android memakai JDK 17 dan Gradle wrapper repositori. Laporan pengujian dan lint diunggah sebagai artifact hanya saat job gagal. Job Debug build menyimpan APK debug sebagai artifact `kibooz-debug-apk` selama 7 hari. APK ini ditandatangani dengan kunci sementara runner, sehingga versi lama harus dihapus dari ponsel sebelum memasang yang baru. Pasang hanya APK dari run di `main` atau dari pull request anggota tim. Cara memasang dan menguji APK ini ada di [phone-testing.md](phone-testing.md).
 - Job Trivy tidak menemukan apa pun di dependensi Gradle, karena repositori tidak memiliki lock file. Hasilnya ditulis ke log dan ke ringkasan job, tidak ke code scanning GitHub.
 - Gitleaks memakai `.gitleaksignore` untuk empat contoh token atau UUID yang terpotong di riwayat awal PRD. Isinya bukan rahasia sungguhan.
 - PR format melewati pull request milik bot di cabang `renovate/*`, `dependabot/*` atau `release-please--*`. Conventional commits tetap memeriksa semua pull request.
