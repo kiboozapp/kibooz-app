@@ -39,17 +39,14 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.nthb.kibooz.R
+import com.nthb.kibooz.ui.components.lineSpacedStyle
 import com.nthb.kibooz.ui.theme.KiboozTheme
 import kotlinx.coroutines.launch
 
@@ -68,12 +65,6 @@ private val slides = listOf(
 // Ungu muda yang sama dengan deskripsi slide di layar XML sebelumnya
 private val descriptionColor = Color(0xFFE5DEFF)
 private val inactiveDotColor = Color(0x66FFFFFF)
-
-// Tinggi baris alami Baloo 2 adalah 1,602 kali ukuran huruf. Layar XML menambah jarak antarbaris lewat lineSpacingExtra
-private const val BALOO_LINE_HEIGHT = 1.602f
-
-// Jarak tambahan diletakkan di bawah tiap baris, seperti TextView
-private val extraBelowLine = LineHeightStyle(alignment = LineHeightStyle.Alignment.Top, trim = LineHeightStyle.Trim.None)
 
 /** Pengenalan tiga slide sebelum pengguna memilih peran. [onFinished] dipanggil saat Lanjut ditekan di slide terakhir. */
 @Composable
@@ -209,18 +200,6 @@ private fun SlidePage(slide: OnboardingSlide) {
             )
         }
     }
-}
-
-/** Gaya dengan tinggi baris alami Baloo 2 ditambah [extraDp], yang tidak ikut membesar saat huruf diperbesar. */
-@Composable
-private fun lineSpacedStyle(fontSize: Float, extraDp: Float): TextStyle {
-    // 1dp tambahan sama dengan 1/fontScale sp, sehingga jarak tambahan tidak ikut membesar saat huruf diperbesar
-    val lineHeight = (fontSize * BALOO_LINE_HEIGHT + extraDp / LocalDensity.current.fontScale).sp
-    return MaterialTheme.typography.bodyLarge.copy(
-        fontSize = fontSize.sp,
-        lineHeight = lineHeight,
-        lineHeightStyle = extraBelowLine
-    )
 }
 
 @Preview(widthDp = 360, heightDp = 740)

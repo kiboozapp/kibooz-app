@@ -5,23 +5,24 @@ import android.os.Bundle
 import android.text.InputType
 import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
-import com.nthb.kibooz.databinding.ActivityDetailPenangananMoodBinding
 import com.nthb.kibooz.ml.Emotion
 import com.nthb.kibooz.ui.common.displayName
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import kotlinx.coroutines.launch
 
 class DetailPenangananMoodActivity : AppCompatActivity() {
 
-    private val binding by lazy { ActivityDetailPenangananMoodBinding.inflate(layoutInflater) }
     private val viewModel: GuidanceApplyViewModel by viewModels { GuidanceApplyViewModel.Factory(appContainer.waliRepository) }
 
     private val guidanceId: String? get() = intent.getStringExtra(GuidanceExtras.GUIDANCE_ID)
@@ -29,42 +30,36 @@ class DetailPenangananMoodActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
 
-        InsetsUtil.applySystemBarInsets(
-            root = binding.root,
-            headerView = binding.clTopBar,
-            bottomBar = binding.clBottomCta
-        )
-
-        setupListeners()
-        showGuidanceHeader()
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                DetailPenangananMoodScreen(
+                    categoryText = categoryText(),
+                    title = intent.getStringExtra(GuidanceExtras.TITLE).orEmpty(),
+                    state = state,
+                    onBack = ::finish,
+                    onShare = ::shareGuidance,
+                    onApply = ::onApplyClicked
+                )
+            }
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                viewModel.state.collect(::handleEvents)
             }
         }
     }
 
-    /** Judul dan kategori dari panduan yang dipilih server. Kategori yang bernama emosi ditulis dalam bahasa Indonesia. */
-    private fun showGuidanceHeader() {
+    /** Kategori dari panduan yang dipilih server. Kategori yang bernama emosi ditulis dalam bahasa Indonesia. */
+    private fun categoryText(): String {
         val category = intent.getStringExtra(GuidanceExtras.CATEGORY)
         val label = category?.let { name -> Emotion.entries.firstOrNull { it.name == name.uppercase() }?.displayName() ?: name }
-        binding.tvKategori.text = label?.let { getString(R.string.panduan_kategori, it) } ?: ""
-        binding.tvJudulPanduan.text = intent.getStringExtra(GuidanceExtras.TITLE) ?: ""
+        return label?.let { getString(R.string.panduan_kategori, it) }.orEmpty()
     }
 
-    private fun render(state: GuidanceApplyState) {
-        val button = binding.btnTerapkanPanduan
-        button.isEnabled = !state.sending && !state.applied
-        button.alpha = if (button.isEnabled) 1f else 0.5f
-        button.text = when {
-            state.applied -> getString(R.string.panduan_sudah_dilaporkan)
-            state.retryInSeconds != null -> getString(R.string.batas_laju_menunggu, state.retryInSeconds)
-            else -> getString(R.string.panduan_terapkan_label)
-        }
-
+    private fun handleEvents(state: GuidanceApplyState) {
         if (state.applied) Toast.makeText(this, R.string.panduan_terkirim, Toast.LENGTH_LONG).show()
 
         state.error?.let {
@@ -89,31 +84,22 @@ class DetailPenangananMoodActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun setupListeners() {
-        binding.ivBack.setOnClickListener {
-            finish()
+    private fun shareGuidance() {
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, getString(R.string.panduan_bagikan_teks))
+            type = "text/plain"
         }
+        startActivity(Intent.createChooser(shareIntent, getString(R.string.panduan_bagikan_pilih)))
+    }
 
-        binding.ivShare.setOnClickListener {
-            val shareIntent = Intent().apply {
-                action = Intent.ACTION_SEND
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "Panduan Penanganan Emosi Kibooz: Berikan rasa aman pada anak dengan 4 langkah praktis."
-                )
-                type = "text/plain"
-            }
-            startActivity(Intent.createChooser(shareIntent, "Bagikan Panduan Emosi"))
-        }
-
-        binding.btnTerapkanPanduan.setOnClickListener {
-            when {
-                guidanceId.isNullOrBlank() || studentId.isNullOrBlank() ->
-                    Toast.makeText(this, R.string.panduan_tidak_ada, Toast.LENGTH_LONG).show()
-                // Setelah gagal yang boleh diulang, laporan yang sama dikirim lagi tanpa bertanya catatan lagi
-                viewModel.state.value.canRetry -> viewModel.apply(guidanceId, studentId, "")
-                else -> askNotesThenApply()
-            }
+    private fun onApplyClicked() {
+        when {
+            guidanceId.isNullOrBlank() || studentId.isNullOrBlank() ->
+                Toast.makeText(this, R.string.panduan_tidak_ada, Toast.LENGTH_LONG).show()
+            // Setelah gagal yang boleh diulang, laporan yang sama dikirim lagi tanpa bertanya catatan lagi
+            viewModel.state.value.canRetry -> viewModel.apply(guidanceId, studentId, "")
+            else -> askNotesThenApply()
         }
     }
 }
