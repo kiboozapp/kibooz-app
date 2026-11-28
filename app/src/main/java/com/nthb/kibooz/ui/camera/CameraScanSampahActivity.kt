@@ -270,7 +270,7 @@ class CameraScanSampahActivity : AppCompatActivity() {
             val result = snackbarHostState.showSnackbar(
                 message = message,
                 actionLabel = action,
-                duration = if (action != null) SnackbarDuration.Indefinite else SnackbarDuration.Long
+                duration = if (action != null) SnackbarDuration.Indefinite else SnackbarDuration.Short
             )
             if (result == SnackbarResult.ActionPerformed) {
                 if (childMissing) viewModel.retryChildren() else viewModel.claim()

@@ -83,7 +83,6 @@
     <string name="sampah_akurasi">Akurasi %1$d%%</string>
     <string name="sampah_petunjuk">Arahkan ke tong sampah %1$s</string>
     <string name="sampah_petunjuk_b3">Sampah berbahaya, minta bantuan orang dewasa</string>
-    <string name="sampah_poin_siap">Poin Siap Diklaim!</string>
     <string name="sampah_klaim_tombol">Klaim Poin</string>
     <string name="sampah_klaim_lagi">Pindai Sampah Lagi</string>
     <string name="sampah_memproses">Memproses…</string>

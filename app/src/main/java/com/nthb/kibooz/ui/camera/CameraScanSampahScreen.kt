@@ -115,12 +115,10 @@ private fun Viewport(
             )
         }
 
-        Box(
-            Modifier
-                .align(Alignment.Center)
-                .size(FRAME_SIZE)
-                .border(3.dp, Color(0xE6FFFFFF), RoundedCornerShape(20.dp))
-        ) {
+        Box(Modifier.align(Alignment.Center).size(FRAME_SIZE)) {
+            // Garis bingkai digambar lebih dulu dan lencana di atasnya, seperti latar bingkai di layar XML.
+            // Modifier.border menggambar di atas isinya, jadi garis akan melintasi lencana jika dipasang di Box ini
+            Box(Modifier.fillMaxSize().border(3.dp, Color(0xE6FFFFFF), RoundedCornerShape(20.dp)))
             if (detected != null) DetectionBadge(detected)
         }
 
