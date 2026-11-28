@@ -1,5 +1,49 @@
 # Changelog
 
+## [0.3.0](https://github.com/kiboozapp/kibooz-app/compare/v0.2.0...v0.3.0) (2026-11-28)
+
+
+### Features
+
+* **account:** rewrite the profile photo crop screen in Compose ([a37fbf7](https://github.com/kiboozapp/kibooz-app/commit/a37fbf7062f79ca7ffa03347b463ada1f856b026))
+* **account:** rewrite the profile photo crop screen in Compose ([#159](https://github.com/kiboozapp/kibooz-app/issues/159)) ([54ac64a](https://github.com/kiboozapp/kibooz-app/commit/54ac64aaa74afac8fc5b6ccac2989f1ca3bf330d))
+* **components:** add an actions slot to the Compose top bar ([07d1725](https://github.com/kiboozapp/kibooz-app/commit/07d1725ef758b8fed8cf9dc9b276d3acb3a61086))
+* **guru:** rewrite the teacher dashboard in Compose ([5df1b9b](https://github.com/kiboozapp/kibooz-app/commit/5df1b9b493528c9978d20af36f0277782f4af133))
+* **guru:** rewrite the teacher dashboard in Compose ([#161](https://github.com/kiboozapp/kibooz-app/issues/161)) ([fff06f0](https://github.com/kiboozapp/kibooz-app/commit/fff06f0e31e65edaf49a2e5abcf067d82277f583))
+* **onboarding:** rewrite the onboarding screen in Compose ([498caf8](https://github.com/kiboozapp/kibooz-app/commit/498caf8aaefa566cbb07fbced474b6b637b3c751))
+* **onboarding:** rewrite the onboarding screen in Compose ([#158](https://github.com/kiboozapp/kibooz-app/issues/158)) ([7361045](https://github.com/kiboozapp/kibooz-app/commit/73610450c9a688ea43339f136db3c02ff0a473f5))
+* **scan:** rewrite the trash scanner screen in Compose ([#148](https://github.com/kiboozapp/kibooz-app/issues/148)) ([1a50ee5](https://github.com/kiboozapp/kibooz-app/commit/1a50ee579e566f8528830ace84843cc4d54ba377))
+* **splash:** rewrite the splash screen in Compose ([2954742](https://github.com/kiboozapp/kibooz-app/commit/2954742fdd34ce918b4953af835f76f31252604d))
+* **splash:** rewrite the splash screen in Compose ([#156](https://github.com/kiboozapp/kibooz-app/issues/156)) ([7e22749](https://github.com/kiboozapp/kibooz-app/commit/7e22749651529921626ef8b88764f6d42f3f7883))
+* **wali:** add the Compose trash stats screen ([e999db2](https://github.com/kiboozapp/kibooz-app/commit/e999db2f6f27f072df8c5e923fc5d7c9754b698c))
+* **wali:** rewrite the mood guide screen in Compose ([d8c0137](https://github.com/kiboozapp/kibooz-app/commit/d8c01376d84264036a2c5305bba6fd211b4b27b8))
+* **wali:** rewrite the mood guide screen in Compose ([#160](https://github.com/kiboozapp/kibooz-app/issues/160)) ([56ae9d9](https://github.com/kiboozapp/kibooz-app/commit/56ae9d967fe8bd39c3829862c66e8b928ff0ea0f))
+* **wali:** rewrite the parent dashboard in Compose ([7aecc40](https://github.com/kiboozapp/kibooz-app/commit/7aecc40c77c3fca2d2331d6e9465886d01ef7705))
+* **wali:** rewrite the parent dashboard in Compose ([#162](https://github.com/kiboozapp/kibooz-app/issues/162)) ([7f9ca5b](https://github.com/kiboozapp/kibooz-app/commit/7f9ca5bdf140dc2c82dc11ca03382d98d3167e71))
+* **wali:** rewrite the trash stats screen in Compose ([8538af7](https://github.com/kiboozapp/kibooz-app/commit/8538af7ce6ce72e53de6094d4874c2c82f76201f))
+* **wali:** rewrite the trash stats screen in Compose ([#163](https://github.com/kiboozapp/kibooz-app/issues/163)) ([f00f78e](https://github.com/kiboozapp/kibooz-app/commit/f00f78e5e6734f816c1ece132b649a9bff957f74))
+
+
+### Bug Fixes
+
+* **account:** use a white ripple and pad only the bottom navigation inset on the crop screen ([ec993e9](https://github.com/kiboozapp/kibooz-app/commit/ec993e9f913c4da905243c81bee72e6f8bdcdb6a))
+* **guru:** collect the session as state instead of reading it in composition ([337910e](https://github.com/kiboozapp/kibooz-app/commit/337910e423d356973342c6a4dec401a34b6096e6))
+* **guru:** drop the previous class numbers when loading another class fails ([5d3be92](https://github.com/kiboozapp/kibooz-app/commit/5d3be92c96f72fe8a8315ca41c1e40ed486ca51d))
+* **guru:** import the state delegate and make the header info a data class ([e38948c](https://github.com/kiboozapp/kibooz-app/commit/e38948c3c37e39a3186124fdc65b60205fbc8e94))
+* **guru:** keep a retry available after a failed first dashboard load ([a767597](https://github.com/kiboozapp/kibooz-app/commit/a76759726c1c0fdd76726313165b2435a2509f76))
+* **guru:** keep the last dashboard on screen while another class loads ([228e4ae](https://github.com/kiboozapp/kibooz-app/commit/228e4ae769268695988a96891fdcb4f941b86cdc))
+* **guru:** read the loading pulse at draw time and replace the error snackbar ([eb998c5](https://github.com/kiboozapp/kibooz-app/commit/eb998c5f1282693b8bae5bf25e9ab613920f24c7))
+* **onboarding:** add the line spacing without TextUnit plus and make the slide a data class ([7311951](https://github.com/kiboozapp/kibooz-app/commit/73119517fa0244f38f4b680b0fd1957820df2fa1))
+* **onboarding:** drop the unused import and follow the target page like the old pager ([a78959c](https://github.com/kiboozapp/kibooz-app/commit/a78959c61d2c361ea37b4a6a1d32d1298a41eb50))
+* **scan:** clip the camera viewport so the enlarged preview stays below the top bar ([e47adec](https://github.com/kiboozapp/kibooz-app/commit/e47adec8553362dcf0651a205a6004f96612b6b1))
+* **scan:** keep the detection badge above the frame stroke and trim leftovers ([9b8b402](https://github.com/kiboozapp/kibooz-app/commit/9b8b4024c730cf7887b543dcb747e90944a6d5c2))
+* **scan:** use the compatible preview so the camera does not cover the top bar ([94298c3](https://github.com/kiboozapp/kibooz-app/commit/94298c3c262ee558b406ee8d42098612181ec490))
+* **wali:** dismiss the error snackbar when the inline retry runs ([676670e](https://github.com/kiboozapp/kibooz-app/commit/676670ef7e44548078ab0c89edff9c09a4bb80c7))
+* **wali:** fix the header card height of the mood guide and make cardSurface a plain modifier ([d078799](https://github.com/kiboozapp/kibooz-app/commit/d078799b942a8cf4352f2616afd373db118194c3))
+* **wali:** import the state delegate in the mood guide activity ([406df1d](https://github.com/kiboozapp/kibooz-app/commit/406df1d3d3cbd629354eb32ca7a8f4571f50cd19))
+* **wali:** show the guidance button only with guidance and label the header ([f24b3c3](https://github.com/kiboozapp/kibooz-app/commit/f24b3c398ae622c9b7e010a12a4ee2e874e98a7a))
+* **wali:** use orEmpty for the guidance title and category ([2ff09b3](https://github.com/kiboozapp/kibooz-app/commit/2ff09b385c30e320c80d7f737ea0d32f1f3bddf4))
+
 ## [0.2.0](https://github.com/kiboozapp/kibooz-app/compare/v0.1.0...v0.2.0) (2026-11-28)
 
 
