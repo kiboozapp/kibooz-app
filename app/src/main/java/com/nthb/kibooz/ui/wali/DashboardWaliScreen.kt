@@ -321,12 +321,21 @@ private fun RankingBanner(data: WaliDashboard?, onClick: () -> Unit) {
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(R.drawable.img_banner_ranking),
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            contentScale = ContentScale.Fit
-        )
+        val iconShape = RoundedCornerShape(14.dp)
+        Box(
+            modifier = Modifier
+                .size(58.dp)
+                .clip(iconShape)
+                .background(Color(0xFFFFF8E7))
+                .border(1.dp, Color(0xFFFFE0B2), iconShape)
+        ) {
+            Image(
+                painter = painterResource(R.drawable.img_icon_ranking),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
         Column(modifier = Modifier.weight(1f).padding(start = 14.dp)) {
             Text(
                 text = if (rank == null) "…" else stringResource(R.string.wali_banner_peringkat, rank),
