@@ -213,7 +213,7 @@ class DetailKelasActivity : AppCompatActivity() {
                 else -> return@launch
             }
             resolvedTeachers = finalTeachers
-            binding.tvPengajar.text = ClassTeacherTexts.pengajarLine(this, finalTeachers.map { it.fullName })
+            binding.tvPengajar.text = ClassTeacherTexts.pengajarLine(this@DetailKelasActivity, finalTeachers.map { it.fullName })
             updatePesertaBanner(lastStudentCount)
         }
     }
