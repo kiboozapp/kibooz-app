@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 
 class StatistikMoodActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityStatistikMoodBinding
+    private val binding by lazy { ActivityStatistikMoodBinding.inflate(layoutInflater) }
     private val viewModel: MoodStatsViewModel by viewModels {
         val userId = currentUserId()
         val extraClassId = intent.getStringExtra(EXTRA_CLASS_ID)
@@ -55,7 +55,6 @@ class StatistikMoodActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityStatistikMoodBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
  */
 class PermintaanPindahKelasActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPermintaanPindahKelasBinding
+    private val binding by lazy { ActivityPermintaanPindahKelasBinding.inflate(layoutInflater) }
     private var className: String = "Kelas"
 
     private val viewModel: PermintaanPindahKelasViewModel by viewModels {
@@ -40,7 +40,6 @@ class PermintaanPindahKelasActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPermintaanPindahKelasBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
  */
 class ChatActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityChatBinding
+    private val binding by lazy { ActivityChatBinding.inflate(layoutInflater) }
     private lateinit var adapter: ChatAdapter
     private lateinit var layoutManager: LinearLayoutManager
 
@@ -86,7 +86,6 @@ class ChatActivity : AppCompatActivity() {
         isRoom = intent.getBooleanExtra(EXTRA_IS_ROOM, false)
         peerDeleted = intent.getBooleanExtra(EXTRA_PEER_DELETED, false)
 
-        binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
         InsetsUtil.applySystemBarInsets(root = binding.root, headerView = binding.clTopBar, bottomBar = binding.clInputBar)
 

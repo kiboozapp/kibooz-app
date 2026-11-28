@@ -20,10 +20,15 @@ private val SHARED_CLASS_SCREENS = setOf(
 // Layar profil ada di package profile, jadi package-nya tidak menunjukkan peran. Yang boleh dibuka tiap peran ditulis
 // satu per satu, dan layar profil yang belum tertulis di sini wajib punya sesi tetapi terbuka bagi kedua peran
 private val GURU_PROFILE_SCREENS = setOf(
-    "com.nthb.kibooz.ui.profile.ProfilGuruActivity"
+    "com.nthb.kibooz.ui.profile.ProfilGuruActivity",
+    "com.nthb.kibooz.ui.profile.DetailProfilGuruActivity",
+    "com.nthb.kibooz.ui.profile.EditProfilGuruActivity"
 )
 private val WALI_PROFILE_SCREENS = setOf(
-    "com.nthb.kibooz.ui.profile.ProfilWaliActivity"
+    "com.nthb.kibooz.ui.profile.ProfilWaliActivity",
+    "com.nthb.kibooz.ui.profile.ProfilSiswaActivity",
+    "com.nthb.kibooz.ui.profile.EditProfilSiswaActivity",
+    "com.nthb.kibooz.ui.profile.TambahAnakActivity"
 )
 
 /**
@@ -39,6 +44,7 @@ fun accessFor(className: String): Access = when {
     className in GURU_PROFILE_SCREENS -> Access.GURU
     className in WALI_PROFILE_SCREENS -> Access.WALI
     className == "${APP_PACKAGE}ui.camera.CameraScanMoodActivity" -> Access.GURU
+    className == "${APP_PACKAGE}ui.camera.ReviewScanMoodActivity" -> Access.GURU
     className == "${APP_PACKAGE}ui.camera.CameraScanSampahActivity" -> Access.WALI
     className.startsWith("${APP_PACKAGE}ui.guru.") -> Access.GURU
     className.startsWith("${APP_PACKAGE}ui.wali.") -> Access.WALI

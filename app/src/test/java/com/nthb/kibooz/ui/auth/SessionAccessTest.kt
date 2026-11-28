@@ -20,8 +20,13 @@ class SessionAccessTest {
     fun `screens of a portal need its own role`() {
         assertEquals(Access.GURU, accessFor(ui("guru.DashboardGuruActivity")))
         assertEquals(Access.GURU, accessFor(ui("profile.ProfilGuruActivity")))
+        assertEquals(Access.GURU, accessFor(ui("profile.DetailProfilGuruActivity")))
+        assertEquals(Access.GURU, accessFor(ui("profile.EditProfilGuruActivity")))
         assertEquals(Access.WALI, accessFor(ui("wali.DashboardWaliActivity")))
         assertEquals(Access.WALI, accessFor(ui("profile.ProfilWaliActivity")))
+        assertEquals(Access.WALI, accessFor(ui("profile.ProfilSiswaActivity")))
+        assertEquals(Access.WALI, accessFor(ui("profile.EditProfilSiswaActivity")))
+        assertEquals(Access.WALI, accessFor(ui("profile.TambahAnakActivity")))
     }
 
     @Test
@@ -43,6 +48,7 @@ class SessionAccessTest {
     @Test
     fun `each camera screen belongs to the role that opens it`() {
         assertEquals(Access.GURU, accessFor(ui("camera.CameraScanMoodActivity")))
+        assertEquals(Access.GURU, accessFor(ui("camera.ReviewScanMoodActivity")))
         assertEquals(Access.WALI, accessFor(ui("camera.CameraScanSampahActivity")))
     }
 

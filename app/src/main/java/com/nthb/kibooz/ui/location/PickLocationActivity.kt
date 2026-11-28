@@ -55,7 +55,7 @@ import org.osmdroid.views.overlay.MapEventsOverlay
  */
 class PickLocationActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPickLocationBinding
+    private val binding by lazy { ActivityPickLocationBinding.inflate(layoutInflater) }
     private lateinit var geocoder: LocationGeocoder
 
     private var currentLat = DEFAULT_LAT
@@ -94,7 +94,6 @@ class PickLocationActivity : AppCompatActivity() {
         osmConfig.osmdroidTileCache = File(osmBase, "tiles")
         osmConfig.userAgentValue = "${BuildConfig.APPLICATION_ID}/${BuildConfig.VERSION_NAME} (https://kibooz.syafahadyan.com)"
 
-        binding = ActivityPickLocationBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         applyLocationInsets()

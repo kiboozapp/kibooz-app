@@ -68,6 +68,12 @@
     <color name="kibooz_profile_name">#221C38</color>
     <color name="kibooz_profile_muted">#7A7593</color>
     <color name="kibooz_profile_subtitle">#6B6685</color>
+    <color name="kibooz_profile_label">#75718E</color>
+    <color name="kibooz_profile_info_border">#ECEAF5</color>
+    <color name="kibooz_legend_happy">#F59E0B</color>
+    <color name="kibooz_legend_bingung">#F97316</color>
+    <color name="kibooz_legend_sedih">#3B82F6</color>
+    <color name="kibooz_legend_marah">#EF4444</color>
     <color name="kibooz_profile_menu_text">#2A2740</color>
     <color name="kibooz_profile_card_border">#EAE7F5</color>
     <color name="kibooz_profile_divider">#F0EEF7</color>
@@ -92,4 +98,9 @@
     <!-- Kartu gangguan server -->
     <color name="kibooz_outage_surface">#FFF8E7</color>
     <color name="kibooz_outage_border">#FFE0B2</color>
+    <color name="kibooz_student_class">#E0DBF5</color>
+    <color name="kibooz_student_edit_button">#F2EDFD</color>
+    <color name="kibooz_nisn_prompt_surface">#FFF4E0</color>
+    <color name="kibooz_delete_child_text">#C62828</color>
+    <color name="kibooz_delete_child_border">#FFCDD2</color>
 </resources>

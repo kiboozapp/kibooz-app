@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
  */
 class ChatListActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityChatListBinding
+    private val binding by lazy { ActivityChatListBinding.inflate(layoutInflater) }
     private lateinit var adapter: ChatListAdapter
 
     private val session get() = appContainer.authRepository.session.value
@@ -47,7 +47,6 @@ class ChatListActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityChatListBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(root = binding.root, headerView = binding.clTopBar)

@@ -6,11 +6,14 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.nthb.kibooz.R
-import com.nthb.kibooz.databinding.ActivityCropAvatarBinding
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.util.decodeOrientedBitmap
 import java.io.File
 import kotlinx.coroutines.Dispatchers
@@ -23,19 +26,11 @@ import kotlinx.coroutines.withContext
  */
 class CropAvatarActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityCropAvatarBinding
+    private val cropView by lazy { CropOverlayView(this) }
+    private var saving by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityCropAvatarBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-
-        InsetsUtil.applySystemBarInsets(
-            root = binding.root,
-            headerView = binding.clTopBar,
-            bottomBar = binding.clBottomActions
-        )
-
         val sourceUri = intent.getParcelableExtra<Uri>(EXTRA_SOURCE_URI)
         if (sourceUri == null) {
             Toast.makeText(this, R.string.avatar_gagal_baca, Toast.LENGTH_SHORT).show()
@@ -43,17 +38,19 @@ class CropAvatarActivity : AppCompatActivity() {
             return
         }
 
-        binding.ivBack.setOnClickListener {
-            setResult(Activity.RESULT_CANCELED)
-            finish()
-        }
-
-        binding.btnPutar.setOnClickListener {
-            binding.cropOverlay.rotate90()
-        }
-
-        binding.btnSimpanFoto.setOnClickListener {
-            exportAndReturn()
+        setContent {
+            KiboozTheme {
+                CropAvatarScreen(
+                    cropView = cropView,
+                    saving = saving,
+                    onBack = {
+                        setResult(Activity.RESULT_CANCELED)
+                        finish()
+                    },
+                    onRotate = { cropView.rotate90() },
+                    onSave = ::exportAndReturn
+                )
+            }
         }
 
         loadSourceImage(sourceUri)
@@ -67,20 +64,20 @@ class CropAvatarActivity : AppCompatActivity() {
                 finish()
                 return@launch
             }
-            binding.cropOverlay.setBitmap(bitmap)
+            cropView.setBitmap(bitmap)
         }
     }
 
     private fun exportAndReturn() {
-        binding.btnSimpanFoto.isEnabled = false
+        saving = true
         lifecycleScope.launch {
             val outFile = File(cacheDir, "avatar_crop_${System.currentTimeMillis()}.jpg")
-            val ok = withContext(Dispatchers.IO) { binding.cropOverlay.exportCroppedJpeg(outFile) }
+            val ok = withContext(Dispatchers.IO) { cropView.exportCroppedJpeg(outFile) }
             if (ok && outFile.exists() && outFile.length() > 0) {
                 setResult(Activity.RESULT_OK, Intent().putExtra(EXTRA_CROPPED_PATH, outFile.absolutePath))
                 finish()
             } else {
-                binding.btnSimpanFoto.isEnabled = true
+                saving = false
                 Toast.makeText(this@CropAvatarActivity, R.string.avatar_gagal_baca, Toast.LENGTH_SHORT).show()
             }
         }

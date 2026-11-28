@@ -56,7 +56,9 @@ fun KiboozOutlinedField(
     placeholder: String? = null,
     counter: String? = null,
     counterDescription: String? = null,
-    textSize: TextUnit = TextUnit.Unspecified
+    textSize: TextUnit = TextUnit.Unspecified,
+    singleLine: Boolean = true,
+    minLines: Int = 1
 ) {
     val supporting = errorText ?: helperText
     // Warna bawaan TextInputLayout Material 3, agar layar Compose sama dengan layar XML
@@ -111,7 +113,8 @@ fun KiboozOutlinedField(
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         keyboardActions = keyboardActions,
-        singleLine = true,
+        singleLine = singleLine,
+        minLines = minLines,
         colors = OutlinedTextFieldDefaults.colors(
             unfocusedBorderColor = border,
             unfocusedLabelColor = labelColor,

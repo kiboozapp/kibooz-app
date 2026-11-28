@@ -24,7 +24,7 @@ import kotlinx.coroutines.launch
 
 class RuangKelasWaliActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRuangKelasWaliBinding
+    private val binding by lazy { ActivityRuangKelasWaliBinding.inflate(layoutInflater) }
     private var studentId: String? = null
     private var childClassName: String? = null
     private var childClassId: String? = null
@@ -32,7 +32,6 @@ class RuangKelasWaliActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityRuangKelasWaliBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         studentId = intent.getStringExtra(EXTRA_STUDENT_ID)

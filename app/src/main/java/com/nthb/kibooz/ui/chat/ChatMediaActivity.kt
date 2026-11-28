@@ -22,7 +22,8 @@ import com.nthb.kibooz.util.InsetsUtil
  */
 class ChatMediaActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityChatMediaBinding
+    private val bindingDelegate = lazy { ActivityChatMediaBinding.inflate(layoutInflater) }
+    private val binding by bindingDelegate
 
     /** Posisi putar video, dipertahankan saat layar diputar atau ditinggal sebentar. */
     private var positionMillis = 0
@@ -40,7 +41,6 @@ class ChatMediaActivity : AppCompatActivity() {
             return
         }
 
-        binding = ActivityChatMediaBinding.inflate(layoutInflater)
         setContentView(binding.root)
         InsetsUtil.applySystemBarInsets(root = binding.root, headerView = binding.llTopBar)
         binding.ivBack.setOnClickListener { finish() }
@@ -51,7 +51,7 @@ class ChatMediaActivity : AppCompatActivity() {
     }
 
     override fun onPause() {
-        if (::binding.isInitialized) {
+        if (bindingDelegate.isInitialized()) {
             // Durasi negatif berarti video belum siap, jadi keadaan yang tersimpan tidak ditimpa
             val duration = binding.videoView.duration
             if (duration > 0) {

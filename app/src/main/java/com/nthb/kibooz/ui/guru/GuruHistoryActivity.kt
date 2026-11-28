@@ -25,13 +25,12 @@ import kotlinx.coroutines.launch
 /** Linimasa riwayat aktivitas kelas lintas tanggal untuk Guru (mood, panduan wali, video). */
 class GuruHistoryActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityGuruHistoryBinding
+    private val binding by lazy { ActivityGuruHistoryBinding.inflate(layoutInflater) }
     private var activeClassId: String? = null
     private var selectedFilter: String = "all"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityGuruHistoryBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(root = binding.root, headerView = binding.clTopBar)
