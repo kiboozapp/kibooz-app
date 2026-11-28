@@ -26,9 +26,7 @@ import com.nthb.kibooz.ui.components.WaliTab
 import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.ui.wali.DashboardWaliActivity
 import com.nthb.kibooz.ui.wali.LeaderboardActivity
-import com.nthb.kibooz.ui.wali.ProfilSiswaActivity
 import com.nthb.kibooz.ui.wali.StatistikSampahActivity
-import com.nthb.kibooz.ui.wali.TambahAnakActivity
 import com.nthb.kibooz.ui.wali.WaliProfileState
 import com.nthb.kibooz.ui.wali.WaliProfileViewModel
 import kotlinx.coroutines.launch

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_wali_judul">Kibooz Wali</string>
+    <string name="dashboard_wali_riwayat">Riwayat Aktivitas</string>
+    <string name="dashboard_wali_notifikasi">Notifikasi</string>
+    <string name="dashboard_wali_sapaan">Halo Ayah &amp; Bunda,</string>
+    <string name="dashboard_wali_ranking_kelas">Ranking Kelas</string>
+    <string name="dashboard_wali_pilah_sampah">Pilah Sampah</string>
+    <string name="dashboard_wali_total_poin">Total Poin</string>
+    <string name="dashboard_wali_mood_judul">Mood Si Kecil Hari Ini</string>
+    <string name="dashboard_wali_catatan_guru">💡 Catatan guru</string>
+    <string name="dashboard_wali_lihat_panduan">Lihat Panduan Penanganan Emosi</string>
+    <string name="dashboard_wali_kelas_judul">Ruang Kelas Si Kecil</string>
+    <string name="dashboard_wali_kelas_kartu_judul">Ruang Kelas &amp; Aktivitas Belajar</string>
+    <string name="dashboard_wali_kelas_kartu_isi">6 mata pelajaran aktif, video pembelajaran, &amp; forum.</string>
+    <string name="dashboard_wali_sampah_judul">Aktivitas Pilah Sampah Si Kecil</string>
+    <string name="dashboard_wali_lihat_statistik">Lihat Detail Statistik Sampah</string>
+    <string name="dashboard_wali_panduan_judul">Panduan Emosi Anak</string>
+    <string name="dashboard_wali_panduan_isi">4 langkah praktis untuk dicoba di rumah</string>
+    <string name="dashboard_wali_buka_profil">Buka profil anak</string>
+</resources>

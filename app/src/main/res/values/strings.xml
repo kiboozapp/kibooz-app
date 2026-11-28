@@ -9,6 +9,9 @@
     <string name="onboarding_desc_2">Dengan permainan dan cerita, anak belajar mengekspresikan emosi tanpa rasa tertekan.</string>
     <string name="onboarding_title_3">Dapatkan Insight Harian dalam 1 Klik</string>
     <string name="onboarding_desc_3">Lihat perkembangan emosi anak melalui grafik yang mudah dibaca, kapan saja dan di mana saja.</string>
+    <string name="onboarding_ilustrasi">Ilustrasi Onboarding</string>
+    <string name="onboarding_sebelumnya">Sebelumnya</string>
+    <string name="onboarding_lanjut">Lanjut</string>
     
     <!-- Role Selection -->
     <string name="role_title">Selamat datang di Kibooz!</string>
@@ -283,6 +286,20 @@
     <string name="panduan_sudah_dilaporkan">Sudah dilaporkan ke guru</string>
     <string name="panduan_tidak_ada">Buka panduan dari dasbor setelah guru mencatat mood anak</string>
     <string name="panduan_terapkan_label">Terapkan Panduan &amp; Laporkan ke Guru</string>
+    <string name="panduan_judul">Panduan Emosi Si Kecil</string>
+    <string name="panduan_bagikan">Bagikan Panduan</string>
+    <string name="panduan_bagikan_pilih">Bagikan Panduan Emosi</string>
+    <string name="panduan_bagikan_teks">Panduan Penanganan Emosi Kibooz: Berikan rasa aman pada anak dengan 4 langkah praktis.</string>
+    <string name="panduan_tujuan">Tujuan: Membantu anak merasa aman dan didengar, apa pun perasaannya hari ini.</string>
+    <string name="panduan_langkah_judul">4 Langkah Penanganan Praktis</string>
+    <string name="panduan_langkah_1_judul">Turun ke Level Pandang Anak</string>
+    <string name="panduan_langkah_1_isi">Dekati si kecil dan posisikan tubuh Anda sejajar dengan tinggi matanya. Pandangan mata yang setara memberikan rasa aman dan tidak mengintimidasi.</string>
+    <string name="panduan_langkah_2_judul">Validasi Perasaannya</string>
+    <string name="panduan_langkah_2_isi">Katakan pada anak bahwa apa pun yang ia rasakan adalah hal wajar. Hindari menyuruhnya berhenti menangis atau meremehkan apa yang ia rasakan.</string>
+    <string name="panduan_langkah_3_judul">Ajak Berbicara Perlahan</string>
+    <string name="panduan_langkah_3_isi">Gunakan kalimat pendek dan nada menenangkan. Berikan pertanyaan terbuka seperti \'Mau ditemani dulu?\' tanpa memaksanya langsung menjawab.</string>
+    <string name="panduan_langkah_4_judul">Bantu dengan Contoh Nyata &amp; Pelukan</string>
+    <string name="panduan_langkah_4_isi">Berikan pelukan hangat atau sentuhan lembut di pundak, lalu ajak anak melihat teman-temannya yang sedang asyik bermain bersama maskot Kibby.</string>
     <string name="leaderboard_judul">Ranking Poin Semester Ini</string>
     <string name="leaderboard_judul_hari">Ranking Poin Hari Ini</string>
     <string name="leaderboard_judul_minggu">Ranking Poin Minggu Ini</string>

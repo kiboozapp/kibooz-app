@@ -25,13 +25,12 @@ import java.util.Locale
 
 class ForumDiskusiActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityForumDiskusiBinding
+    private val binding by lazy { ActivityForumDiskusiBinding.inflate(layoutInflater) }
     private var activeClassId: String? = null
     private var activeClassName: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityForumDiskusiBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

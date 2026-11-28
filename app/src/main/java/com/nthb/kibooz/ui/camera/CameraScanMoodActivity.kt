@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 
 class CameraScanMoodActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityCameraScanMoodBinding
+    private val binding by lazy { ActivityCameraScanMoodBinding.inflate(layoutInflater) }
     private lateinit var cameraPermission: CameraPermissionHelper
 
     private val analysisExecutor = Executors.newSingleThreadExecutor()
@@ -84,7 +84,6 @@ class CameraScanMoodActivity : AppCompatActivity() {
             return
         }
 
-        binding = ActivityCameraScanMoodBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

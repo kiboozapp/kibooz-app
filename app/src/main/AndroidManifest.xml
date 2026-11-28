@@ -126,7 +126,7 @@
 
         <!-- 11. Guru Flow: Edit Profil Guru -->
         <activity
-            android:name=".ui.guru.EditProfilGuruActivity"
+            android:name=".ui.profile.EditProfilGuruActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
@@ -184,12 +184,12 @@
 
         <!-- 18. Wali Flow: Profil Siswa & NISN -->
         <activity
-            android:name=".ui.wali.ProfilSiswaActivity"
+            android:name=".ui.profile.ProfilSiswaActivity"
             android:exported="false" />
 
         <!-- 19. Wali Flow: Edit Profil Siswa & Wali -->
         <activity
-            android:name=".ui.wali.EditProfilSiswaActivity"
+            android:name=".ui.profile.EditProfilSiswaActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
@@ -201,7 +201,7 @@
 
         <!-- 19c. Wali Flow: Tambah Anak dengan kode kelas -->
         <activity
-            android:name=".ui.wali.TambahAnakActivity"
+            android:name=".ui.profile.TambahAnakActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
@@ -232,7 +232,7 @@
         <!-- 20. Guru Flow: Review Hasil Scan Mood Siswa -->
         <activity
             android:name=".ui.camera.ReviewScanMoodActivity"
-            android:exported="true"
+            android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
     </application>

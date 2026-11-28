@@ -22,7 +22,7 @@ Panduan ini untuk siapa pun yang memindahkan layar XML ke Compose. Aturan singka
 8. Hapus layout XML lama dan resource yang hanya dipakai layout itu. Cari nama activity, kelas binding dan nama layout di seluruh repositori, termasuk folder `docs`, karena pengecekan "Markdown links" gagal pada tautan ke berkas yang sudah pindah.
 9. Tambahkan fungsi `@Preview` di berkas layar dengan teks contoh.
 10. Buang import yang tidak terpakai. Pengecekan "Kotlin lint" gagal karenanya. Import `getValue` dan `setValue` tetap diperlukan oleh `by mutableStateOf`.
-11. Ambil tangkapan layar versi XML dari ponsel lebih dulu. Lalu uji di ponsel asli dengan APK debug dari pull request dan bandingkan hasilnya. Setiap build CI memakai kunci penandatanganan baru, jadi versi yang sudah terpasang harus dihapus dulu sebelum APK baru dipasang. Menghapus aplikasi juga menghapus data lokalnya, seperti sesi masuk. Detailnya ada di [docs/ci-cd.md](ci-cd.md).
+11. Ambil tangkapan layar versi XML dari ponsel lebih dulu. Lalu uji di ponsel asli dengan APK debug dari pull request dan bandingkan hasilnya. Setiap build CI memakai kunci penandatanganan baru, jadi versi yang sudah terpasang harus dihapus dulu sebelum APK baru dipasang. Menghapus aplikasi juga menghapus data lokalnya, seperti sesi masuk. Langkah uji dan daftar yang diperiksa ada di [docs/phone-testing.md](phone-testing.md), dan detail APK debug ada di [docs/ci-cd.md](ci-cd.md).
 
 ## Komponen bersama
 
