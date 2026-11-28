@@ -9,6 +9,9 @@
     <string name="onboarding_desc_2">Dengan permainan dan cerita, anak belajar mengekspresikan emosi tanpa rasa tertekan.</string>
     <string name="onboarding_title_3">Dapatkan Insight Harian dalam 1 Klik</string>
     <string name="onboarding_desc_3">Lihat perkembangan emosi anak melalui grafik yang mudah dibaca, kapan saja dan di mana saja.</string>
+    <string name="onboarding_ilustrasi">Ilustrasi Onboarding</string>
+    <string name="onboarding_sebelumnya">Sebelumnya</string>
+    <string name="onboarding_lanjut">Lanjut</string>
     
     <!-- Role Selection -->
     <string name="role_title">Selamat datang di Kibooz!</string>

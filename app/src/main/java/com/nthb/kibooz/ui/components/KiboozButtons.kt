@@ -103,7 +103,7 @@ fun KiboozDangerButton(text: String, onClick: () -> Unit, modifier: Modifier = M
     }
 }
 
-/** Tombol putih bergaris tepi, sama dengan `bg_button_google`. [icon] hanya hiasan, teksnya yang dibaca. */
+/** Tombol putih dengan garis tepi 1,5dp. [icon] hanya hiasan, teksnya yang dibaca. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun KiboozOutlinedButton(
