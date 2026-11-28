@@ -113,25 +113,31 @@ internal fun DetailPenangananMoodScreen(
 }
 
 /** Kartu putih dengan garis tepi tipis dan bayangan, pengganti `MaterialCardView` di layar XML. */
-@Composable
-private fun Modifier.cardSurface(radius: Dp, elevation: Dp): Modifier {
+private fun Modifier.cardSurface(radius: Dp, elevation: Dp, outline: Color): Modifier {
     val shape = RoundedCornerShape(radius)
     return this
         .shadow(elevation, shape)
         .background(Color.White, shape)
-        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, shape)
+        .border(1.dp, outline, shape)
 }
 
 @Composable
 private fun HeaderCard(categoryText: String, title: String) {
     val imageShape = RoundedCornerShape(14.dp)
-    Column(modifier = Modifier.fillMaxWidth().cardSurface(radius = 20.dp, elevation = 3.dp).padding(16.dp)) {
+    val outline = MaterialTheme.colorScheme.outlineVariant
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .cardSurface(radius = 20.dp, elevation = 3.dp, outline = outline)
+            // Tanpa jarak bawah di sini, karena teks terakhir membawa jarak bawahnya sendiri
+            .padding(start = 16.dp, top = 16.dp, end = 16.dp)
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(160.dp)
                 .clip(imageShape)
-                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, imageShape)
+                .border(1.dp, outline, imageShape)
         ) {
             Image(
                 painter = painterResource(R.drawable.img_penanganan_aman_banner),
@@ -173,7 +179,7 @@ private fun StepCard(number: Int, step: GuidanceStep) {
         modifier = Modifier
             .padding(top = 10.dp)
             .fillMaxWidth()
-            .cardSurface(radius = 16.dp, elevation = 2.dp)
+            .cardSurface(radius = 16.dp, elevation = 2.dp, outline = MaterialTheme.colorScheme.outlineVariant)
             .padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = (16 - BODY_EXTRA_DP).dp)
     ) {
         Box(
