@@ -21,7 +21,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -43,7 +42,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -67,6 +65,11 @@ import com.nthb.kibooz.ui.components.AvatarImage
 import com.nthb.kibooz.ui.components.ConnectionStatusCard
 import com.nthb.kibooz.ui.components.GuruTab
 import com.nthb.kibooz.ui.components.KiboozGuruScaffold
+import com.nthb.kibooz.ui.components.PortalHeaderActions
+import com.nthb.kibooz.ui.components.PortalRetryButton
+import com.nthb.kibooz.ui.components.outlinedCard
+import com.nthb.kibooz.ui.components.plainCard
+import com.nthb.kibooz.ui.components.pullUp
 import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.util.AvatarLoader
 import kotlin.math.roundToInt
@@ -133,7 +136,7 @@ internal fun DashboardGuruScreen(
                     )
                 }
                 // Muat pertama yang gagal tanpa gangguan server. Tombol ini tetap ada sampai ada data yang berhasil dimuat
-                if (data == null && !state.loading && state.outage == null) RetryButton(onClick = onRetry)
+                if (data == null && !state.loading && state.outage == null) PortalRetryButton(onClick = onRetry)
                 MoodCard(data = data, pulse = pulse, onClick = onMoodStats, onScan = onScan)
                 ChatEntryCard(onClick = onChat)
                 RankingBanner(onClick = onRanking)
@@ -156,19 +159,6 @@ private fun pulseAlpha(active: Boolean): () -> Float {
     )
     // Dibaca di fase gambar oleh pemakainya, supaya kedipan tidak menyusun ulang seluruh layar
     return { alpha.value }
-}
-
-/** Menarik isi ke atas sejauh [amount] dan ikut memendekkan tempatnya, seperti margin negatif di layar XML. */
-private fun Modifier.pullUp(amount: Dp): Modifier = layout { measurable, constraints ->
-    val placeable = measurable.measure(constraints)
-    val up = amount.roundToPx()
-    layout(placeable.width, placeable.height - up) { placeable.place(0, -up) }
-}
-
-/** Kartu putih bersudut bulat dengan bayangan, pengganti `CardView` tanpa garis tepi di layar XML. */
-private fun Modifier.plainCard(radius: Dp, elevation: Dp): Modifier {
-    val shape = RoundedCornerShape(radius)
-    return this.shadow(elevation, shape).background(Color.White, shape)
 }
 
 @Composable
@@ -204,21 +194,15 @@ private fun Header(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
-            // Ikon 26dp di jarak 20dp dari tepi, dengan area sentuh 48dp yang sedikit bertumpuk seperti jarak 16dp antar ikon
-            Box(modifier = Modifier.offset(x = 11.dp).size(width = 90.dp, height = 48.dp)) {
-                HeaderIcon(
-                    icon = R.drawable.ic_notification,
-                    description = stringResource(R.string.dashboard_guru_notifikasi),
-                    onClick = onNotifications,
-                    modifier = Modifier.align(Alignment.CenterStart)
-                )
-                HeaderIcon(
-                    icon = R.drawable.ic_history,
-                    description = stringResource(R.string.dashboard_guru_riwayat),
-                    onClick = onHistory,
-                    modifier = Modifier.align(Alignment.CenterEnd)
-                )
-            }
+            PortalHeaderActions(
+                startIcon = R.drawable.ic_notification,
+                startDescription = stringResource(R.string.dashboard_guru_notifikasi),
+                onStart = onNotifications,
+                endIcon = R.drawable.ic_history,
+                endDescription = stringResource(R.string.dashboard_guru_riwayat),
+                onEnd = onHistory,
+                iconGap = 16.dp
+            )
         }
         Row(
             modifier = Modifier.fillMaxWidth().padding(top = 12.dp),
@@ -265,16 +249,6 @@ private fun Header(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun HeaderIcon(icon: Int, description: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Box(
-        modifier = modifier.size(48.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Image(painter = painterResource(icon), contentDescription = description, modifier = Modifier.size(26.dp))
     }
 }
 
@@ -337,33 +311,6 @@ private fun Stat(label: String, value: String, pulse: () -> Float, modifier: Mod
             fontWeight = FontWeight.Bold
         )
     }
-}
-
-@Composable
-private fun RetryButton(onClick: () -> Unit) {
-    Box(
-        modifier = Modifier
-            .padding(start = 20.dp, top = 12.dp, end = 20.dp)
-            .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(colorResource(R.color.kibooz_lavender))
-            .clickable(role = Role.Button, onClick = onClick),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = stringResource(R.string.coba_lagi),
-            color = colorResource(R.color.kibooz_primary_purple),
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold
-        )
-    }
-}
-
-/** Kartu dengan garis tepi, pengganti `MaterialCardView` yang punya `strokeColor` di layar XML. */
-private fun Modifier.outlinedCard(radius: Dp, elevation: Dp, fill: Color, outline: Color): Modifier {
-    val shape = RoundedCornerShape(radius)
-    return this.shadow(elevation, shape).background(fill, shape).border(1.dp, outline, shape)
 }
 
 /** Kelas yang sedang dipilih. Hanya bisa diketuk, dan menampilkan pil "Ganti kelas", bila Guru punya lebih dari satu kelas. */
