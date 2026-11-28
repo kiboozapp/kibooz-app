@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 class ReviewScanMoodActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityReviewScanMoodBinding
+    private val binding by lazy { ActivityReviewScanMoodBinding.inflate(layoutInflater) }
     private val studentList = mutableListOf<ScannedStudentMood>()
     private lateinit var adapter: ReviewScanMoodAdapter
 
@@ -40,7 +40,6 @@ class ReviewScanMoodActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityReviewScanMoodBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Apply edge-to-edge system insets

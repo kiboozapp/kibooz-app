@@ -32,7 +32,7 @@ import kotlinx.coroutines.launch
 
 class PesertaKelasActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityPesertaKelasBinding
+    private val binding by lazy { ActivityPesertaKelasBinding.inflate(layoutInflater) }
 
     private val viewModel: PesertaKelasViewModel by viewModels {
         PesertaKelasViewModel.Factory(
@@ -45,7 +45,6 @@ class PesertaKelasActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityPesertaKelasBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Insets status bar

@@ -21,7 +21,7 @@ import kotlinx.coroutines.launch
 
 class DetailPenangananMoodActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityDetailPenangananMoodBinding
+    private val binding by lazy { ActivityDetailPenangananMoodBinding.inflate(layoutInflater) }
     private val viewModel: GuidanceApplyViewModel by viewModels { GuidanceApplyViewModel.Factory(appContainer.waliRepository) }
 
     private val guidanceId: String? get() = intent.getStringExtra(GuidanceExtras.GUIDANCE_ID)
@@ -29,7 +29,6 @@ class DetailPenangananMoodActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDetailPenangananMoodBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

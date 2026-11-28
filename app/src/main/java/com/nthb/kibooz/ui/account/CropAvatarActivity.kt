@@ -23,11 +23,10 @@ import kotlinx.coroutines.withContext
  */
 class CropAvatarActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityCropAvatarBinding
+    private val binding by lazy { ActivityCropAvatarBinding.inflate(layoutInflater) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityCropAvatarBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

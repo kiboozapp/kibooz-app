@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
  */
 class RuangKelasGuruActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRuangKelasGuruBinding
+    private val binding by lazy { ActivityRuangKelasGuruBinding.inflate(layoutInflater) }
     private val viewModel: KelolaKelasViewModel by viewModels {
         KelolaKelasViewModel.Factory(appContainer.classManagementRepository)
     }
@@ -68,7 +68,6 @@ class RuangKelasGuruActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityRuangKelasGuruBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

@@ -20,7 +20,7 @@ import com.nthb.kibooz.util.InsetsUtil
  */
 class TemaKelasGuruActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityTemaKelasGuruBinding
+    private val binding by lazy { ActivityTemaKelasGuruBinding.inflate(layoutInflater) }
 
     private var classId: String? = null
     private var joinCode: String = ""
@@ -30,7 +30,6 @@ class TemaKelasGuruActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityTemaKelasGuruBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

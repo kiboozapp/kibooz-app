@@ -26,13 +26,12 @@ import kotlinx.coroutines.launch
 
 class RiwayatAktivitasWaliActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityRiwayatAktivitasWaliBinding
+    private val binding by lazy { ActivityRiwayatAktivitasWaliBinding.inflate(layoutInflater) }
     private var studentId: String? = null
     private var selectedFilter: String = "all"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityRiwayatAktivitasWaliBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         studentId = intent.getStringExtra(EXTRA_STUDENT_ID)
