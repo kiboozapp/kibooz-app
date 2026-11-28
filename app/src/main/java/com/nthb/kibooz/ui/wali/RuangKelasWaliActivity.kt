@@ -18,6 +18,7 @@ import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.guru.DetailKelasActivity
 import com.nthb.kibooz.ui.profile.ProfilWaliActivity
 import com.nthb.kibooz.util.ClassCode
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.launch
 
@@ -55,7 +56,8 @@ class RuangKelasWaliActivity : AppCompatActivity() {
                     childClassName = st.className
                     childClassId = st.classId
                     childJoinCode = st.joinCode?.takeIf { it.isNotBlank() }
-                    binding.tvSubtitleRuangKelas.text = "Kelas Aktif: ${st.className} • 6 Tema Pembelajaran"
+                    val shortClass = ClassNames.stemOrFallback(st.className, st.className)
+                    binding.tvSubtitleRuangKelas.text = "Kelas Aktif: $shortClass • 6 Tema Pembelajaran"
                     loadPendingMoveRequest(st.id)
                 }
                 else -> {}

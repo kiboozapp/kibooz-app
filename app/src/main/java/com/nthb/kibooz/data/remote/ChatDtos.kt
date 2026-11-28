@@ -13,7 +13,10 @@ data class ChatPerson(
 
 data class ChatContactClass(val id: String, val name: String)
 
-/** Orang yang bisa diajak bicara. [children] berisi nama anak si wali di kelas bersama, kosong untuk guru. */
+/**
+ * Orang yang bisa diajak bicara. Untuk kontak wali ([role] = `WALI`), [children] berisi nama anaknya di kelas bersama.
+ * Untuk kontak guru ([role] = `GURU`), server juga dapat menyertakan nama anak si wali yang diajar di kelas bersama.
+ */
 data class ChatContact(
     val id: String,
     val fullName: String,

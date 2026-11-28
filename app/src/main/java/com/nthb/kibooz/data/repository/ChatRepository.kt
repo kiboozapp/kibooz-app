@@ -28,6 +28,8 @@ import com.nthb.kibooz.data.remote.newIdempotencyKey
 import com.nthb.kibooz.data.remote.safeApiCall
 import com.squareup.moshi.Moshi
 import okhttp3.MediaType.Companion.toMediaType
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.MultipartBody
 
 /**
@@ -54,8 +56,15 @@ class PendingMessage(
 class ChatRepository(
     private val api: ChatApi,
     private val moshi: Moshi,
-    private val storage: ChatStorage = OkHttpChatStorage()
+    private val storage: ChatStorage = OkHttpChatStorage(),
+    private val currentUserId: () -> String? = { null },
+    private val nowMillis: () -> Long = System::currentTimeMillis
 ) {
+
+    private data class ContactsSnapshot(val userId: String, val savedAt: Long, val contacts: List<ChatContact>)
+
+    private val contactsLock = Mutex()
+    private var contactsSnapshot: ContactsSnapshot? = null
 
     suspend fun contacts(page: Int = 1, limit: Int = PAGE_LIMIT): ApiResult<ChatContactList> =
         safeApiCall(moshi) { api.listContacts(page, limit) }
@@ -67,6 +76,29 @@ class ChatRepository(
             is ApiResult.Failure -> result
             is ApiResult.NetworkError -> result
         }
+    }
+
+    /**
+     * Semua kontak, dengan hasil beberapa detik terakhir dipakai ulang. Layar kelas Wali memuat kontak hanya untuk
+     * menurunkan nama pengajar, jadi satu pengambilan melayani beberapa layar yang dibuka berurutan. Cache terikat
+     * pada pengguna yang masuk, sehingga akun lain tidak pernah menerima kontak akun sebelumnya. Daftar obrolan
+     * tetap memakai [allContacts] agar selalu terbaru.
+     */
+    suspend fun recentContacts(): ApiResult<List<ChatContact>> = contactsLock.withLock {
+        val userId = currentUserId()
+        val snapshot = contactsSnapshot
+        val now = nowMillis()
+        if (userId != null && snapshot != null && snapshot.userId == userId && now - snapshot.savedAt in 0 until CONTACTS_CACHE_MS) {
+            return@withLock ApiResult.Success(snapshot.contacts)
+        }
+        val result = allContacts()
+        // Bila akun berganti selagi memuat, hasilnya bukan milik akun yang dicatat di awal dan tidak disimpan
+        contactsSnapshot = if (userId != null && userId == currentUserId() && result is ApiResult.Success) {
+            ContactsSnapshot(userId, now, result.data)
+        } else {
+            null
+        }
+        result
     }
 
     suspend fun conversations(page: Int = 1, limit: Int = PAGE_LIMIT): ApiResult<ChatConversationList> =
@@ -216,6 +248,9 @@ class ChatRepository(
 
     private companion object {
         const val PAGE_LIMIT = 50
+
+        // Cukup singkat agar kelas yang baru diikuti anak segera muncul, dan cukup lama untuk layar yang dibuka berurutan
+        const val CONTACTS_CACHE_MS = 30_000L
         const val MESSAGE_LIMIT = 50
 
         // Pengaman: 20 halaman dari 50 sudah 1000 entri, jauh di atas satu akun guru atau wali

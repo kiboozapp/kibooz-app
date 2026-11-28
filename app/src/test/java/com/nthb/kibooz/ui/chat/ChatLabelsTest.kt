@@ -27,19 +27,19 @@ class ChatLabelsTest {
     @Test
     fun `a deleted message previews as deleted even if it still had media`() {
         assertEquals(PreviewKind.DELETED, message(1, deleted = true).previewKind())
-        assertEquals(PreviewKind.DELETED, message(1, deleted = true, media = ChatMedia("photo")).previewKind())
+        assertEquals(PreviewKind.DELETED, message(1, deleted = true, media = ChatMedia(MEDIA_PHOTO)).previewKind())
     }
 
     @Test
     fun `a message with only a photo or a video previews by its kind`() {
-        assertEquals(PreviewKind.PHOTO, message(1, body = "", media = ChatMedia("photo")).previewKind())
-        assertEquals(PreviewKind.VIDEO, message(1, body = "", media = ChatMedia("video")).previewKind())
-        assertEquals(PreviewKind.ATTACHMENT, message(1, body = "", media = ChatMedia("audio")).previewKind())
+        assertEquals(PreviewKind.PHOTO, message(1, body = "", media = ChatMedia(MEDIA_PHOTO)).previewKind())
+        assertEquals(PreviewKind.VIDEO, message(1, body = "", media = ChatMedia(MEDIA_VIDEO)).previewKind())
+        assertEquals(PreviewKind.ATTACHMENT, message(1, body = "", media = ChatMedia(MEDIA_AUDIO)).previewKind())
     }
 
     @Test
     fun `text with media previews as text and an empty message previews as empty`() {
-        assertEquals(PreviewKind.TEXT, message(1, body = "lihat", media = ChatMedia("photo")).previewKind())
+        assertEquals(PreviewKind.TEXT, message(1, body = MSG_LOOK, media = ChatMedia(MEDIA_PHOTO)).previewKind())
         assertEquals(PreviewKind.EMPTY, message(1, body = "  ").previewKind())
     }
 
@@ -47,10 +47,10 @@ class ChatLabelsTest {
 
     @Test
     fun `a bubble shows a photo or a video, and nothing for a deleted or unknown attachment`() {
-        assertEquals("photo", message(1, body = "lihat", media = ChatMedia("photo")).shownMedia()?.kind)
-        assertEquals("video", message(1, body = "", media = ChatMedia("video")).shownMedia()?.kind)
-        assertNull(message(1, deleted = true, media = ChatMedia("photo")).shownMedia())
-        assertNull(message(1, media = ChatMedia("audio")).shownMedia())
+        assertEquals(MEDIA_PHOTO, message(1, body = MSG_LOOK, media = ChatMedia(MEDIA_PHOTO)).shownMedia()?.kind)
+        assertEquals(MEDIA_VIDEO, message(1, body = "", media = ChatMedia(MEDIA_VIDEO)).shownMedia()?.kind)
+        assertNull(message(1, deleted = true, media = ChatMedia(MEDIA_PHOTO)).shownMedia())
+        assertNull(message(1, media = ChatMedia(MEDIA_AUDIO)).shownMedia())
         assertNull(message(1).shownMedia())
     }
 
@@ -66,15 +66,39 @@ class ChatLabelsTest {
 
     @Test
     fun `a deleted account shows the local label and not the name from the server`() {
-        assertEquals("Akun dihapus", person(name = "Deleted account", deleted = true).displayName("Akun dihapus"))
-        assertEquals("Bu Sari", person(name = "Bu Sari").displayName("Akun dihapus"))
+        assertEquals(LABEL_DELETED, person(name = "Deleted account", deleted = true).displayName(LABEL_DELETED))
+        assertEquals(NAME_BU_SARI, person(name = NAME_BU_SARI).displayName(LABEL_DELETED))
     }
 
     @Test
     fun `a parent contact shows the names of the children, a teacher contact shows only the name`() {
-        assertEquals("Siti (Rani)", contact("u1", name = "Siti", children = listOf("Rani")).title())
-        assertEquals("Siti (Rani, Dika)", contact("u1", name = "Siti", children = listOf("Rani", "Dika")).title())
-        assertEquals("Bu Sari", contact("u2", name = "Bu Sari").title())
+        assertEquals("Siti (Rani)", contact(ID_U1, name = "Siti", children = listOf("Rani")).title())
+        assertEquals("Siti (Rani, Dika)", contact(ID_U1, name = "Siti", children = listOf("Rani", "Dika")).title())
+        assertEquals(NAME_BU_SARI, contact("u2", name = NAME_BU_SARI).title())
+        assertEquals(
+            NAME_TEACHER_SITI,
+            contact("u3", name = NAME_TEACHER_SITI, children = listOf(CHILD_ADIT))
+                .copy(role = ROLE_GURU)
+                .title()
+        )
+        assertEquals(
+            "Wali Kelas 1A (Aisyah Pratama +2 anak)",
+            contact(
+                "u4",
+                name = "Wali Kelas 1A",
+                children = listOf("Aisyah Pratama", "Akbar Ramadhan", "Alif Rahman")
+            ).title()
+        )
+    }
+
+    @Test
+    fun `contact subtitle includes explicit role and shared classes`() {
+        val guru = contact("u3", name = NAME_TEACHER_SITI, children = listOf(CHILD_ADIT)).copy(role = ROLE_GURU)
+        val wali = contact(ID_U1, name = "Hendra", children = listOf(CHILD_ADIT))
+
+        assertEquals("$LABEL_GURU • Bunga", guru.subtitle(LABEL_GURU, LABEL_WALI))
+        assertEquals("$LABEL_WALI • Bunga", wali.subtitle(LABEL_GURU, LABEL_WALI))
+        assertEquals(LABEL_GURU, guru.copy(classes = emptyList()).subtitle(LABEL_GURU, LABEL_WALI))
     }
 
     @Test
@@ -85,7 +109,7 @@ class ChatLabelsTest {
 
     @Test
     fun `initials come from the first two words`() {
-        assertEquals("BS", initialsOf("Bu Sari"))
+        assertEquals("BS", initialsOf(NAME_BU_SARI))
         assertEquals("BS", initialsOf("budi santoso wijaya"))
         assertEquals("S", initialsOf("siti"))
         assertEquals("AB", initialsOf("  ani   budi "))
@@ -124,5 +148,20 @@ class ChatLabelsTest {
         assertEquals(R.string.chat_ditutup_kelas_arsip, closedReasonRes(isRoom = true, peerDeleted = true))
         assertEquals(R.string.chat_ditutup_akun_dihapus, closedReasonRes(isRoom = false, peerDeleted = true))
         assertEquals(R.string.chat_ditutup_tidak_sekelas, closedReasonRes(isRoom = false, peerDeleted = false))
+    }
+
+    private companion object {
+        const val MEDIA_PHOTO = "photo"
+        const val MEDIA_VIDEO = "video"
+        const val MEDIA_AUDIO = "audio"
+        const val MSG_LOOK = "lihat"
+        const val LABEL_DELETED = "Akun dihapus"
+        const val NAME_BU_SARI = "Bu Sari"
+        const val ID_U1 = "u1"
+        const val NAME_TEACHER_SITI = "Ibu Siti Aminah, S.Pd"
+        const val CHILD_ADIT = "Adit Pratama"
+        const val ROLE_GURU = "GURU"
+        const val LABEL_GURU = "Guru"
+        const val LABEL_WALI = "Wali murid"
     }
 }

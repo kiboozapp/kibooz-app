@@ -9,10 +9,15 @@ import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ClassStudent
 import com.nthb.kibooz.data.remote.errorMessageRes
 import com.nthb.kibooz.data.repository.AuthRepository
+import com.nthb.kibooz.data.repository.ChatRepository
 import com.nthb.kibooz.data.repository.ClassManagementRepository
 import com.nthb.kibooz.data.repository.ClassRepository
 import com.nthb.kibooz.data.repository.LeaderboardRepository
 import com.nthb.kibooz.data.session.Role
+import com.nthb.kibooz.data.session.SessionUser
+import com.nthb.kibooz.util.ClassTeacherSummary
+import com.nthb.kibooz.util.ClassTeachers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,8 +35,8 @@ data class PesertaUiState(
     val className: String = "",
     val classArchived: Boolean = false,
     val isTeacher: Boolean = false,
-    val teacherName: String = "Siti Rahayu, S.Pd.",
-    val teacherRole: String = "Wali Kelas A & Pendidik Utama",
+    val teacherNames: List<String> = emptyList(),
+    val teacherAvatarUrl: String? = null,
     val students: List<ClassStudent> = emptyList(),
     val busyStudentId: String? = null,
     val actionMessage: PesertaMessage? = null,
@@ -42,158 +47,273 @@ class PesertaKelasViewModel(
     private val classRepository: ClassRepository,
     private val leaderboardRepository: LeaderboardRepository? = null,
     private val authRepository: AuthRepository? = null,
-    private val classManagementRepository: ClassManagementRepository? = null
+    private val classManagementRepository: ClassManagementRepository? = null,
+    private val chatRepository: ChatRepository? = null
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PesertaUiState(isLoading = true))
     val uiState: StateFlow<PesertaUiState> = _uiState.asStateFlow()
 
-    fun loadPeserta(initialClassId: String? = null, defaultClassName: String = "Kelas A") {
-        viewModelScope.launch {
-            val isWaliRole = authRepository?.session?.value?.user?.role == Role.WALI
-            val teacherRole = authRepository?.session?.value?.user?.role == Role.GURU ||
-                (!isWaliRole && classManagementRepository != null)
+    private var lastTeachersClassId: String? = null
+    private var lastResolvedTeachers: List<ClassTeacherSummary>? = null
+    private var loadJob: Job? = null
 
-            _uiState.value = _uiState.value.copy(
-                isLoading = true,
-                isTeacher = teacherRole,
-                errorMessage = null
+    private data class ResolvedClassContext(
+        val classId: String,
+        val className: String,
+        val archived: Boolean
+    )
+
+    fun loadPeserta(
+        initialClassId: String? = null,
+        defaultClassName: String = "",
+        initialTeacherNames: List<String> = emptyList(),
+        initialTeacherAvatarUrl: String? = null
+    ) {
+        // Muat ulang membatalkan pemuatan sebelumnya, supaya hasil lama tidak menimpa yang baru dan tidak mengisi cache
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch {
+            loadPesertaContent(
+                initialClassId = initialClassId,
+                defaultClassName = defaultClassName,
+                initialTeacherNames = initialTeacherNames,
+                initialTeacherAvatarUrl = initialTeacherAvatarUrl
             )
+        }
+    }
 
-            var resolvedClassId = initialClassId
-            var resolvedClassName = defaultClassName
-            var resolvedArchived = false
-            val teacherName = _uiState.value.teacherName
+    private suspend fun loadPesertaContent(
+        initialClassId: String?,
+        defaultClassName: String,
+        initialTeacherNames: List<String>,
+        initialTeacherAvatarUrl: String?
+    ) {
+        val user = currentSessionUser()
+        val isWaliRole = user?.role == Role.WALI
+        val teacherRole = isTeacherPortal(user, isWaliRole)
+        val seededTeachers = seededTeachersFor(user, initialTeacherNames, initialTeacherAvatarUrl)
+        val initialTeachers = initialTeachersForLoad(initialClassId, seededTeachers)
 
-            if (resolvedClassId.isNullOrBlank()) {
-                val childrenResult = classRepository.children()
-                if (childrenResult is ApiResult.Success) {
-                    val firstChild = childrenResult.data.firstOrNull()
-                    if (firstChild != null) {
-                        resolvedClassId = firstChild.classId
-                        resolvedClassName = firstChild.className
-                        resolvedArchived = firstChild.classArchivedAt != null
-                    }
-                }
-            }
+        emitLoadingState(teacherRole, initialTeachers, defaultClassName)
 
-            if (resolvedClassId.isNullOrBlank()) {
-                val teacherClassesResult = classRepository.teacherClasses()
-                if (teacherClassesResult is ApiResult.Success) {
-                    val firstClass = teacherClassesResult.data.firstOrNull()
-                    if (firstClass != null) {
-                        resolvedClassId = firstClass.id
-                        resolvedClassName = firstClass.name
-                        resolvedArchived = firstClass.archived
-                    }
-                }
-            }
+        val resolved = resolveClassContext(initialClassId, defaultClassName, teacherRole)
+        if (resolved == null) {
+            clearRetainedTeachers()
+            val fallbackTeachers = ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+            emitNotFoundState(teacherRole, fallbackTeachers, defaultClassName)
+            return
+        }
 
-            if (resolvedClassId.isNullOrBlank()) {
-                _uiState.value = _uiState.value.copy(
-                    isLoading = false,
-                    classId = null,
-                    className = resolvedClassName,
-                    classArchived = false,
-                    isTeacher = teacherRole,
-                    teacherName = teacherName,
-                    errorMessage = "Kelas tidak ditemukan"
-                )
-                return@launch
-            }
+        val resolvedTeachers = resolveClassTeachers(resolved.classId, teacherRole, seededTeachers)
+        val useLeaderboard = isWaliRole && leaderboardRepository != null
+        val rosterResult = loadRosterStudents(resolved.classId, useLeaderboard)
+        val effectiveIsTeacher = if (useLeaderboard) false else teacherRole
 
-            if (isWaliRole && leaderboardRepository != null) {
-                when (val lbResult = leaderboardRepository.leaderboard(resolvedClassId)) {
-                    is ApiResult.Success -> {
-                        val allEntries = lbResult.data.podium + lbResult.data.rankings
-                        val mappedStudents = allEntries.map { entry ->
-                            ClassStudent(
-                                id = entry.studentName,
-                                fullName = entry.studentName,
-                                nisn = "-",
-                                avatarUrl = entry.avatarUrl,
-                                currentPoints = entry.points,
-                                seasonPoints = entry.points,
-                                classRank = entry.rank,
-                                todayMood = null
-                            )
-                        }
-                        _uiState.value = PesertaUiState(
-                            isLoading = false,
-                            classId = resolvedClassId,
-                            className = resolvedClassName,
-                            classArchived = resolvedArchived,
-                            isTeacher = false,
-                            teacherName = teacherName,
-                            students = mappedStudents,
-                            errorMessage = null
-                        )
-                        return@launch
-                    }
-                    is ApiResult.Failure -> {
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            classId = resolvedClassId,
-                            className = resolvedClassName,
-                            classArchived = resolvedArchived,
-                            isTeacher = false,
-                            teacherName = teacherName,
-                            errorMessage = lbResult.message
-                        )
-                        return@launch
-                    }
-                    is ApiResult.NetworkError -> {
-                        _uiState.value = _uiState.value.copy(
-                            isLoading = false,
-                            classId = resolvedClassId,
-                            className = resolvedClassName,
-                            classArchived = resolvedArchived,
-                            isTeacher = false,
-                            teacherName = teacherName,
-                            errorMessage = "Koneksi internet bermasalah"
-                        )
-                        return@launch
-                    }
-                }
-            }
+        emitLoadedState(resolved, effectiveIsTeacher, resolvedTeachers, rosterResult)
+    }
 
-            when (val studentsResult = classRepository.allStudents(resolvedClassId)) {
-                is ApiResult.Success -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        classId = resolvedClassId,
-                        className = resolvedClassName,
-                        classArchived = resolvedArchived,
-                        isTeacher = teacherRole,
-                        teacherName = teacherName,
-                        students = studentsResult.data,
-                        errorMessage = null
-                    )
-                }
-                is ApiResult.Failure -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        classId = resolvedClassId,
-                        className = resolvedClassName,
-                        classArchived = resolvedArchived,
-                        isTeacher = teacherRole,
-                        teacherName = teacherName,
-                        errorMessage = studentsResult.message
-                    )
-                }
-                is ApiResult.NetworkError -> {
-                    _uiState.value = _uiState.value.copy(
-                        isLoading = false,
-                        classId = resolvedClassId,
-                        className = resolvedClassName,
-                        classArchived = resolvedArchived,
-                        isTeacher = teacherRole,
-                        teacherName = teacherName,
-                        errorMessage = "Koneksi internet bermasalah"
-                    )
-                }
+    private fun seededTeachersFor(
+        user: SessionUser?,
+        initialTeacherNames: List<String>,
+        initialTeacherAvatarUrl: String?
+    ): List<ClassTeacherSummary> {
+        val explicitNames = initialTeacherNames.map(String::trim).filter(String::isNotEmpty)
+        if (explicitNames.isNotEmpty()) {
+            val avatarUrl = initialTeacherAvatarUrl?.trim()?.takeIf { it.isNotEmpty() }
+            return explicitNames.mapIndexed { index, name ->
+                ClassTeacherSummary(fullName = name, avatarUrl = avatarUrl.takeIf { index == 0 })
             }
         }
+        return ClassTeachers.mergeWithSessionFallback(emptyList(), user)
+    }
+
+    private fun initialTeachersForLoad(
+        initialClassId: String?,
+        seededTeachers: List<ClassTeacherSummary>
+    ): List<ClassTeacherSummary> {
+        val normalizedTarget = initialClassId?.takeIf { it.isNotBlank() }
+        if (normalizedTarget != null && normalizedTarget != lastTeachersClassId) {
+            clearRetainedTeachers()
+        }
+        val activeTarget = normalizedTarget ?: _uiState.value.classId
+        return retainedTeachersFor(activeTarget) ?: seededTeachers
+    }
+
+    private fun retainedTeachersFor(classId: String?): List<ClassTeacherSummary>? =
+        if (classId != null && classId == lastTeachersClassId) lastResolvedTeachers else null
+
+    private fun clearRetainedTeachers() {
+        lastTeachersClassId = null
+        lastResolvedTeachers = null
+    }
+
+    private fun currentSessionUser(): SessionUser? = authRepository?.session?.value?.user
+
+    private fun isTeacherPortal(user: SessionUser?, isWaliRole: Boolean): Boolean =
+        user?.role == Role.GURU || (!isWaliRole && classManagementRepository != null)
+
+    private fun emitLoadingState(
+        teacherRole: Boolean,
+        initialTeachers: List<ClassTeacherSummary>,
+        defaultClassName: String
+    ) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            className = defaultClassName.ifBlank { _uiState.value.className },
+            isTeacher = teacherRole,
+            teacherNames = initialTeachers.map { it.fullName },
+            teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
+            errorMessage = null
+        )
+    }
+
+    private fun emitNotFoundState(
+        teacherRole: Boolean,
+        initialTeachers: List<ClassTeacherSummary>,
+        defaultClassName: String
+    ) {
+        _uiState.value = _uiState.value.copy(
+            isLoading = false,
+            classId = null,
+            className = defaultClassName,
+            classArchived = false,
+            isTeacher = teacherRole,
+            teacherNames = initialTeachers.map { it.fullName },
+            teacherAvatarUrl = initialTeachers.firstOrNull()?.avatarUrl,
+            errorMessage = "Kelas tidak ditemukan"
+        )
+    }
+
+    private fun emitLoadedState(
+        resolved: ResolvedClassContext,
+        effectiveIsTeacher: Boolean,
+        resolvedTeachers: List<ClassTeacherSummary>,
+        rosterResult: ApiResult<List<ClassStudent>>
+    ) {
+        val base = _uiState.value.copy(
+            isLoading = false,
+            classId = resolved.classId,
+            className = resolved.className,
+            classArchived = resolved.archived,
+            isTeacher = effectiveIsTeacher,
+            teacherNames = resolvedTeachers.map { it.fullName },
+            teacherAvatarUrl = resolvedTeachers.firstOrNull()?.avatarUrl
+        )
+        _uiState.value = when (rosterResult) {
+            is ApiResult.Success -> base.copy(students = rosterResult.data, errorMessage = null)
+            is ApiResult.Failure -> base.copy(errorMessage = rosterResult.message)
+            is ApiResult.NetworkError -> base.copy(errorMessage = "Koneksi internet bermasalah")
+        }
+    }
+
+    private suspend fun resolveClassContext(
+        initialClassId: String?,
+        defaultClassName: String,
+        teacherRole: Boolean
+    ): ResolvedClassContext? {
+        var resolvedId = initialClassId
+        var resolvedName = defaultClassName
+        var resolvedArchived = false
+
+        if (resolvedId.isNullOrBlank()) {
+            val childMatch = (classRepository.children() as? ApiResult.Success)?.data?.firstOrNull()
+            if (childMatch != null) {
+                resolvedId = childMatch.classId
+                resolvedName = childMatch.className
+                resolvedArchived = childMatch.classArchivedAt != null
+            }
+        }
+        if (resolvedId.isNullOrBlank()) {
+            val classMatch = (classRepository.teacherClasses() as? ApiResult.Success)?.data?.firstOrNull()
+            if (classMatch != null) {
+                resolvedId = classMatch.id
+                resolvedName = classMatch.name
+                resolvedArchived = classMatch.archived
+            }
+        }
+        val finalId = resolvedId?.takeIf { it.isNotBlank() } ?: return null
+        if (authRepository != null) {
+            return lookupClassMeta(finalId, teacherRole, resolvedName, resolvedArchived)
+        }
+        return ResolvedClassContext(finalId, resolvedName, resolvedArchived)
+    }
+
+    private suspend fun lookupClassMeta(
+        classId: String,
+        teacherRole: Boolean,
+        fallbackName: String,
+        fallbackArchived: Boolean
+    ): ResolvedClassContext {
+        if (teacherRole) {
+            val match = (classRepository.teacherClasses() as? ApiResult.Success)?.data?.firstOrNull { it.id == classId }
+            if (match != null) {
+                return ResolvedClassContext(classId, fallbackName.ifBlank { match.name }, match.archived)
+            }
+        } else {
+            val match = (classRepository.children() as? ApiResult.Success)?.data?.firstOrNull { it.classId == classId }
+            if (match != null) {
+                return ResolvedClassContext(classId, fallbackName.ifBlank { match.className }, match.classArchivedAt != null)
+            }
+        }
+        return ResolvedClassContext(classId, fallbackName, fallbackArchived)
+    }
+
+    private suspend fun loadRosterStudents(classId: String, useLeaderboard: Boolean): ApiResult<List<ClassStudent>> {
+        val repo = leaderboardRepository
+        if (!useLeaderboard || repo == null) return classRepository.allStudents(classId)
+        return when (val lbResult = repo.leaderboard(classId)) {
+            is ApiResult.Success -> ApiResult.Success(
+                (lbResult.data.podium + lbResult.data.rankings).map { entry ->
+                    ClassStudent(
+                        id = entry.studentName,
+                        fullName = entry.studentName,
+                        nisn = "-",
+                        avatarUrl = entry.avatarUrl,
+                        currentPoints = entry.points,
+                        seasonPoints = entry.points,
+                        classRank = entry.rank,
+                        todayMood = null
+                    )
+                }
+            )
+            is ApiResult.Failure -> lbResult
+            is ApiResult.NetworkError -> lbResult
+        }
+    }
+
+    private suspend fun resolveClassTeachers(
+        classId: String,
+        teacherRole: Boolean,
+        seededTeachers: List<ClassTeacherSummary>
+    ): List<ClassTeacherSummary> {
+        if (lastTeachersClassId != classId) {
+            clearRetainedTeachers()
+        }
+        val sessionUser = currentSessionUser()
+        val fetched = fetchClassTeachers(classId, teacherRole)
+        if (fetched != null) {
+            val merged = ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+            lastTeachersClassId = classId
+            lastResolvedTeachers = merged
+            return merged
+        }
+        return retainedTeachersFor(classId) ?: seededTeachers
+    }
+
+    private suspend fun fetchClassTeachers(classId: String, teacherRole: Boolean): List<ClassTeacherSummary>? = when {
+        teacherRole && authRepository != null && classManagementRepository != null -> {
+            when (val res = classManagementRepository.classTeachers(classId)) {
+                is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
+                else -> null
+            }
+        }
+        !teacherRole && chatRepository != null -> {
+            when (val res = chatRepository.recentContacts()) {
+                is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
+                else -> null
+            }
+        }
+        else -> emptyList()
     }
 
     fun verifyStudentNisn(student: ClassStudent) {
@@ -340,10 +460,17 @@ class PesertaKelasViewModel(
         private val classRepository: ClassRepository,
         private val leaderboardRepository: LeaderboardRepository? = null,
         private val authRepository: AuthRepository? = null,
-        private val classManagementRepository: ClassManagementRepository? = null
+        private val classManagementRepository: ClassManagementRepository? = null,
+        private val chatRepository: ChatRepository? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            PesertaKelasViewModel(classRepository, leaderboardRepository, authRepository, classManagementRepository) as T
+            PesertaKelasViewModel(
+                classRepository,
+                leaderboardRepository,
+                authRepository,
+                classManagementRepository,
+                chatRepository
+            ) as T
     }
 }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
@@ -19,14 +20,15 @@
             android:textColor="@color/kibooz_text_primary"
             android:textSize="13sp" />
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivAvatar"
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:contentDescription="@null"
             android:importantForAccessibility="no"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_avatar_siswa" />
+            android:src="@drawable/img_avatar_siswa"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
 
         <TextView
             android:id="@+id/tvNama"

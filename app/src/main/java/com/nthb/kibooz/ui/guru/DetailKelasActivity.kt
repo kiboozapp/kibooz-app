@@ -29,8 +29,11 @@ import com.nthb.kibooz.data.remote.ModuleItem
 import com.nthb.kibooz.data.session.Role
 import com.nthb.kibooz.databinding.ActivityDetailKelasBinding
 import com.nthb.kibooz.util.ClassCode
+import com.nthb.kibooz.util.ClassTeacherSummary
+import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -38,6 +41,8 @@ import java.util.Date
 import java.util.Locale
 
 class DetailKelasActivity : AppCompatActivity() {
+
+    private val teacherTexts by lazy { ClassTeacherTexts.of(this) }
 
     private val binding by lazy { ActivityDetailKelasBinding.inflate(layoutInflater) }
     private var activeClassId: String? = null
@@ -49,6 +54,9 @@ class DetailKelasActivity : AppCompatActivity() {
     private var loadedModules: List<ModuleItem> = emptyList()
     private var selectedModuleId: String? = null
     private var hasInitialized: Boolean = false
+    private var resolvedTeachers: List<ClassTeacherSummary> = emptyList()
+    private var lastStudentCount: Int = 0
+    private var teachersJob: Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,7 +71,7 @@ class DetailKelasActivity : AppCompatActivity() {
         val rawKodeKelas = intent.getStringExtra("KODE_KELAS").orEmpty()
         val namaKelas = intent.getStringExtra("NAMA_KELAS") ?: "Seni & Kreativitas"
         activeClassId = intent.getStringExtra("CLASS_ID")
-        resolvedRombelName = intent.getStringExtra("ROMBEL_NAME")?.takeIf { it.isNotBlank() }
+        resolvedRombelName = intent.getStringExtra(EXTRA_ROMBEL_NAME)?.takeIf { it.isNotBlank() }
             ?: intent.getStringExtra("CHILD_CLASS_NAME")?.takeIf { it.isNotBlank() }
 
         // Role-Gating: Wali murid hanya memantau modul dan aktivitas, Guru dapat mengelola modul dan menyalin kode
@@ -140,6 +148,7 @@ class DetailKelasActivity : AppCompatActivity() {
 
             val classId = activeClassId
             if (!classId.isNullOrBlank()) {
+                loadClassTeachers(classId)
                 if (isTeacherRole) {
                     val roster = appContainer.classRepository.students(classId)
                     if (roster is ApiResult.Success) {
@@ -177,9 +186,38 @@ class DetailKelasActivity : AppCompatActivity() {
     }
 
     private fun updatePesertaBanner(studentCount: Int) {
+        lastStudentCount = studentCount
+        binding.tabAnggota.text = "Peserta Kelas ($studentCount)"
         binding.tvTitleDaftarPeserta.text = "Daftar Peserta Kelas"
         val countText = "$studentCount Siswa Terdaftar"
-        binding.tvSubDaftarPeserta.text = "1 Guru Pengajar & $countText"
+        binding.tvSubDaftarPeserta.text = teacherTexts.bannerCount(resolvedTeachers.size, countText)
+    }
+
+    private fun loadClassTeachers(classId: String) {
+        // Dipanggil setiap onResume, jadi pemuatan yang masih berjalan dibatalkan agar hasil lama tidak menimpa yang baru
+        teachersJob?.cancel()
+        teachersJob = lifecycleScope.launch {
+            val sessionUser = appContainer.authRepository.session.value?.user
+            val fetched = if (isTeacherRole) {
+                when (val res = appContainer.classManagementRepository.classTeachers(classId)) {
+                    is ApiResult.Success -> ClassTeachers.fromClassTeachers(res.data)
+                    else -> null
+                }
+            } else {
+                when (val res = appContainer.chatRepository.recentContacts()) {
+                    is ApiResult.Success -> ClassTeachers.fromChatContacts(res.data, classId)
+                    else -> null
+                }
+            }
+            val finalTeachers = when {
+                fetched != null -> ClassTeachers.mergeWithSessionFallback(fetched, sessionUser)
+                resolvedTeachers.isEmpty() -> ClassTeachers.mergeWithSessionFallback(emptyList(), sessionUser)
+                else -> return@launch
+            }
+            resolvedTeachers = finalTeachers
+            binding.tvPengajar.text = teacherTexts.pengajarLine(finalTeachers.map { it.fullName })
+            updatePesertaBanner(lastStudentCount)
+        }
     }
 
     private fun setupDynamicMeetingSchedule(studentCount: Int) {
@@ -253,60 +291,93 @@ class DetailKelasActivity : AppCompatActivity() {
         showClassCode(kodeKelas)
         binding.tabModul.text = "Modul (4)"
         val sessionUser = appContainer.authRepository.session.value?.user
-        if (isTeacherRole && !sessionUser?.fullName.isNullOrBlank()) {
-            binding.tvPengajar.text = "Pengajar: ${sessionUser!!.fullName}"
-        }
+        resolvedTeachers = ClassTeachers.mergeWithSessionFallback(resolvedTeachers, sessionUser)
+        binding.tvPengajar.text = teacherTexts.pengajarLine(resolvedTeachers.map { it.fullName })
         updatePesertaBanner(initialCount)
+        applySubjectPreset(kodeKelas, namaKelas)
+    }
 
-        when {
-            namaKelas.contains("Bahasa", ignoreCase = true) || kodeKelas.startsWith("BHS") -> {
-                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_bahasa)
-                binding.tvDeskripsiKelas.text = "Mengenalkan kosakata baru, bercerita bergambar, dan melatih kepercayaan diri anak dalam berkomunikasi."
-                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Huruf Vokal & Konsonan"
-                binding.tvTitleModul2.text = "Pertemuan 2: Bercerita Bergambar Bersama Teman"
-                binding.tvTitleModul3.text = "Pertemuan 3: Mengeja Kata Sederhana"
-                binding.tvTitleModul4.text = "Pertemuan 4: Menyanyi Lagu Kata Ajaib"
-            }
-            namaKelas.contains("Logika", ignoreCase = true) || namaKelas.contains("Berpikir", ignoreCase = true) || kodeKelas.startsWith("LOG") -> {
-                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_logika)
-                binding.tvDeskripsiKelas.text = "Mengasah kemampuan berpikir kritis melalui pengenalan pola, berhitung benda, dan perbandingan ukuran."
-                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Pola Bentuk Geometri"
-                binding.tvTitleModul2.text = "Pertemuan 2: Menghitung Benda 1 sampai 10"
-                binding.tvTitleModul3.text = "Pertemuan 3: Membandingkan Ukuran Besar & Kecil"
-                binding.tvTitleModul4.text = "Pertemuan 4: Teka-Teki Warna & Urutan"
-            }
-            namaKelas.contains("Motorik", ignoreCase = true) || namaKelas.contains("Fisik", ignoreCase = true) || kodeKelas.startsWith("MOT") -> {
-                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_motorik)
-                binding.tvDeskripsiKelas.text = "Melatih koordinasi gerak kasar dan halus anak lewat senam ceria, permainan ketangkasan, dan origami."
-                binding.tvTitleModul1.text = "Pertemuan 1: Gerak Jalan Seimbang & Senam Ceria"
-                binding.tvTitleModul2.text = "Pertemuan 2: Melipat Kertas Origami Hewan"
-                binding.tvTitleModul3.text = "Pertemuan 3: Menangkap & Melempar Bola Karet"
-                binding.tvTitleModul4.text = "Pertemuan 4: Meronce Manik-Manik & Tali Sepatu"
-            }
-            namaKelas.contains("Agama", ignoreCase = true) || namaKelas.contains("Moral", ignoreCase = true) || kodeKelas.startsWith("AGM") -> {
-                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_agama)
-                binding.tvDeskripsiKelas.text = "Menanamkan akhlak mulia, kebiasaan berdoa harian, berbagi bersama sahabat, dan rasa syukur setiap hari."
-                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Doa Harian & Bersyukur"
-                binding.tvTitleModul2.text = "Pertemuan 2: Berbagi Bekal dengan Sahabat"
-                binding.tvTitleModul3.text = "Pertemuan 3: Menghormati Orang Tua & Guru"
-                binding.tvTitleModul4.text = "Pertemuan 4: Menjaga Kebersihan Tempat Ibadah"
-            }
-            namaKelas.contains("Sosial", ignoreCase = true) || namaKelas.contains("Emotional", ignoreCase = true) || namaKelas.contains("Emosional", ignoreCase = true) || kodeKelas.startsWith("SOS") -> {
-                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_sosial)
-                binding.tvDeskripsiKelas.text = "Membantu anak mengenali dan mengelola emosi, bekerja sama dalam kelompok, serta bersikap sopan santun."
-                binding.tvTitleModul1.text = "Pertemuan 1: Mengenali Perasaan Bahagia & Sedih"
-                binding.tvTitleModul2.text = "Pertemuan 2: Mengungkapkan Keinginan dengan Sopan"
-                binding.tvTitleModul3.text = "Pertemuan 3: Bekerja Sama dalam Permainan Kelompok"
-                binding.tvTitleModul4.text = "Pertemuan 4: Mengucapkan Maaf dan Terima Kasih"
-            }
-            else -> {
-                binding.ivMapelIcon.setImageResource(R.drawable.img_mapel_seni)
-                binding.tvDeskripsiKelas.text = "Aktivitas menggambar emosi, mewarnai suasana hati, dan kerajinan daur ulang kreatif untuk mengenalkan emosi si kecil."
-                binding.tvTitleModul1.text = "Pertemuan 1: Mengenal Warna Emosiku"
-                binding.tvTitleModul2.text = "Pertemuan 2: Menggambar Ekspresi Senang & Sedih"
-                binding.tvTitleModul3.text = "Pertemuan 3: Kolase Kertas Daur Ulang"
-                binding.tvTitleModul4.text = "Pertemuan 4: Pameran Karya Seni Bersama"
-            }
+    private data class SubjectPreset(
+        val iconRes: Int,
+        val description: String,
+        val moduleTitles: List<String>
+    )
+
+    private fun applySubjectPreset(kodeKelas: String, namaKelas: String) {
+        val preset = resolveSubjectPreset(kodeKelas, namaKelas)
+        binding.ivMapelIcon.setImageResource(preset.iconRes)
+        binding.tvDeskripsiKelas.text = preset.description
+        binding.tvTitleModul1.text = preset.moduleTitles[0]
+        binding.tvTitleModul2.text = preset.moduleTitles[1]
+        binding.tvTitleModul3.text = preset.moduleTitles[2]
+        binding.tvTitleModul4.text = preset.moduleTitles[3]
+    }
+
+    private fun resolveSubjectPreset(kodeKelas: String, namaKelas: String): SubjectPreset {
+        val matches: (String, List<String>) -> Boolean = { prefix, keywords ->
+            kodeKelas.startsWith(prefix) || keywords.any { namaKelas.contains(it, ignoreCase = true) }
+        }
+        return when {
+            matches("BHS", listOf("Bahasa")) -> SubjectPreset(
+                R.drawable.img_mapel_bahasa,
+                "Mengenalkan kosakata baru, bercerita bergambar, dan melatih kepercayaan diri anak dalam berkomunikasi.",
+                listOf(
+                    "Pertemuan 1: Mengenal Huruf Vokal & Konsonan",
+                    "Pertemuan 2: Bercerita Bergambar Bersama Teman",
+                    "Pertemuan 3: Mengeja Kata Sederhana",
+                    "Pertemuan 4: Menyanyi Lagu Kata Ajaib"
+                )
+            )
+            matches("LOG", listOf("Logika", "Berpikir")) -> SubjectPreset(
+                R.drawable.img_mapel_logika,
+                "Mengasah kemampuan berpikir kritis melalui pengenalan pola, berhitung benda, dan perbandingan ukuran.",
+                listOf(
+                    "Pertemuan 1: Mengenal Pola Bentuk Geometri",
+                    "Pertemuan 2: Menghitung Benda 1 sampai 10",
+                    "Pertemuan 3: Membandingkan Ukuran Besar & Kecil",
+                    "Pertemuan 4: Teka-Teki Warna & Urutan"
+                )
+            )
+            matches("MOT", listOf("Motorik", "Fisik")) -> SubjectPreset(
+                R.drawable.img_mapel_motorik,
+                "Melatih koordinasi gerak kasar dan halus anak lewat senam ceria, permainan ketangkasan, dan origami.",
+                listOf(
+                    "Pertemuan 1: Gerak Jalan Seimbang & Senam Ceria",
+                    "Pertemuan 2: Melipat Kertas Origami Hewan",
+                    "Pertemuan 3: Menangkap & Melempar Bola Karet",
+                    "Pertemuan 4: Meronce Manik-Manik & Tali Sepatu"
+                )
+            )
+            matches("AGM", listOf("Agama", "Moral")) -> SubjectPreset(
+                R.drawable.img_mapel_agama,
+                "Menanamkan akhlak mulia, kebiasaan berdoa harian, berbagi bersama sahabat, dan rasa syukur setiap hari.",
+                listOf(
+                    "Pertemuan 1: Mengenal Doa Harian & Bersyukur",
+                    "Pertemuan 2: Berbagi Bekal dengan Sahabat",
+                    "Pertemuan 3: Menghormati Orang Tua & Guru",
+                    "Pertemuan 4: Menjaga Kebersihan Tempat Ibadah"
+                )
+            )
+            matches("SOS", listOf("Sosial", "Emotional", "Emosional")) -> SubjectPreset(
+                R.drawable.img_mapel_sosial,
+                "Membantu anak mengenali dan mengelola emosi, bekerja sama dalam kelompok, serta bersikap sopan santun.",
+                listOf(
+                    "Pertemuan 1: Mengenali Perasaan Bahagia & Sedih",
+                    "Pertemuan 2: Mengungkapkan Keinginan dengan Sopan",
+                    "Pertemuan 3: Bekerja Sama dalam Permainan Kelompok",
+                    "Pertemuan 4: Mengucapkan Maaf dan Terima Kasih"
+                )
+            )
+            else -> SubjectPreset(
+                R.drawable.img_mapel_seni,
+                "Aktivitas menggambar emosi, mewarnai suasana hati, dan kerajinan daur ulang kreatif untuk mengenalkan emosi si kecil.",
+                listOf(
+                    "Pertemuan 1: Mengenal Warna Emosiku",
+                    "Pertemuan 2: Menggambar Ekspresi Senang & Sedih",
+                    "Pertemuan 3: Kolase Kertas Daur Ulang",
+                    "Pertemuan 4: Pameran Karya Seni Bersama"
+                )
+            )
         }
     }
 
@@ -393,6 +464,11 @@ class DetailKelasActivity : AppCompatActivity() {
     private fun openPesertaKelas(namaKelas: String, kodeKelas: String? = null) {
         val intent = Intent(this, PesertaKelasActivity::class.java).apply {
             putExtra("NAMA_KELAS", namaKelas)
+            resolvedRombelName?.takeIf { it.isNotBlank() }?.let { putExtra(EXTRA_ROMBEL_NAME, it) }
+            if (resolvedTeachers.isNotEmpty()) {
+                putExtra("TEACHER_NAMES", resolvedTeachers.map { it.fullName }.toTypedArray())
+            }
+            resolvedTeachers.firstOrNull()?.avatarUrl?.let { putExtra("TEACHER_AVATAR_URL", it) }
             putExtra("CLASS_ID", activeClassId)
             if (kodeKelas != null) putExtra("KODE_KELAS", kodeKelas)
         }
@@ -403,7 +479,7 @@ class DetailKelasActivity : AppCompatActivity() {
         val classTitle = resolvedRombelName?.takeIf { it.isNotBlank() }
         val intent = Intent(this, ForumDiskusiActivity::class.java).apply {
             if (classTitle != null) {
-                putExtra("ROMBEL_NAME", classTitle)
+                putExtra(EXTRA_ROMBEL_NAME, classTitle)
                 putExtra("NAMA_KELAS", classTitle)
             }
             putExtra("CLASS_ID", activeClassId)
@@ -775,5 +851,9 @@ class DetailKelasActivity : AppCompatActivity() {
                 }
             }
             .show()
+    }
+
+    private companion object {
+        const val EXTRA_ROMBEL_NAME = "ROMBEL_NAME"
     }
 }

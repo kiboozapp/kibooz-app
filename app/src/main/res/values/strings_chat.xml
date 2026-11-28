@@ -27,6 +27,11 @@
     <string name="chat_baru_kosong_wali">Guru muncul di sini setelah anak Anda bergabung ke sebuah kelas.</string>
     <string name="chat_bagian_ruang_kelas">Ruang kelas</string>
     <string name="chat_bagian_kontak">Kontak</string>
+    <string name="chat_semua_kelas">Semua kelas</string>
+    <string name="chat_filter_kelas_cd">Pilih kelas untuk menyaring kontak</string>
+    <string name="chat_filter_kelas_terpilih_cd">%1$s. Pilih kelas untuk menyaring kontak</string>
+    <string name="chat_filter_opsi_jumlah">%1$s (%2$d)</string>
+    <string name="chat_kontak_kelas_kosong">Belum ada kontak di kelas ini. Pilih Semua kelas untuk melihat kelas lain.</string>
     <string name="chat_ruang_judul">Ruang kelas %1$s</string>
     <string name="chat_ruang_isi">Guru dan wali murid satu kelas</string>
     <string name="chat_membuka">Membuka percakapan</string>

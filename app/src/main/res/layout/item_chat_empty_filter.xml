@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvEmptyFilter"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="8dp"
+    android:background="@drawable/bg_chat_closed_note"
+    android:fontFamily="@font/baloo2"
+    android:gravity="center"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="14dp"
+    android:text="@string/chat_kontak_kelas_kosong"
+    android:textColor="@color/kibooz_text_secondary"
+    android:textSize="13sp" />

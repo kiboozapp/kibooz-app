@@ -56,7 +56,8 @@ class ChatListActivity : AppCompatActivity() {
             ownUserId = session?.user?.id.orEmpty(),
             onConversation = viewModel::openConversation,
             onContact = viewModel::openContact,
-            onClass = viewModel::openClass
+            onClass = viewModel::openClass,
+            onSelectContactClass = viewModel::selectContactClass
         )
         binding.rvList.layoutManager = LinearLayoutManager(this)
         binding.rvList.adapter = adapter

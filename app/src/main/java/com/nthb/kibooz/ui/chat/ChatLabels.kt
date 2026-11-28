@@ -39,15 +39,43 @@ fun fileSizeLabel(bytes: Long): String {
 
 private const val BYTES_PER_MB = 1024L * 1024
 
+private const val ROLE_GURU = "GURU"
+private const val ROLE_WALI = "WALI"
+private const val MAX_INLINE_CHILD_NAMES = 2
+
 /** Nama yang tampil untuk [person]. Server mengirim nama bahasa Inggris untuk akun yang dihapus, jadi diganti. */
 fun ChatPerson.displayName(deletedLabel: String): String = if (deleted) deletedLabel else fullName
 
-/** Judul kontak. Untuk wali dengan nama anak di kelas bersama, misalnya "Siti (Rani)". */
-fun ChatContact.title(): String =
-    if (children.isEmpty()) fullName else "$fullName (${children.joinToString(", ")})"
+/**
+ * Judul kontak. Hanya wali murid yang menampilkan nama anak dalam tanda kurung (misalnya "Siti (Rani)").
+ * Bila seorang wali punya lebih dari dua anak, nama diringkas ("Wali Kelas 1A (Aisyah Pratama +9 anak)") agar tetap
+ * terbaca rapi. Kontak guru menampilkan nama guru saja supaya tidak terbaca seolah guru adalah wali murid.
+ */
+fun ChatContact.title(): String {
+    val cleanName = fullName.trim()
+    val cleanChildren = children.map { it.trim() }.filter { it.isNotEmpty() }.distinct()
+    if (role.equals(ROLE_GURU, ignoreCase = true) || cleanChildren.isEmpty()) return cleanName
 
-/** Kelas yang dibagi dengan kontak, dipisah koma. */
-fun ChatContact.classNames(): String = classes.joinToString(", ") { it.name }
+    val summary = if (cleanChildren.size <= MAX_INLINE_CHILD_NAMES) {
+        cleanChildren.joinToString(", ")
+    } else {
+        "${cleanChildren.first()} +${cleanChildren.size - 1} anak"
+    }
+    return "$cleanName ($summary)"
+}
+
+/** Kelas yang dibagi dengan kontak, dipisah koma tanpa duplikat. */
+fun ChatContact.classNames(): String = classes.map { it.name.trim() }.filter { it.isNotEmpty() }.distinct().joinToString(", ")
+
+/** Subjudul kontak yang memperjelas peran ("Guru" atau "Wali murid") serta kelas yang dibagikan. */
+fun ChatContact.subtitle(guruLabel: String, waliLabel: String): String {
+    val roleLabel = when {
+        role.equals(ROLE_GURU, ignoreCase = true) -> guruLabel
+        role.equals(ROLE_WALI, ignoreCase = true) -> waliLabel
+        else -> ""
+    }
+    return listOf(roleLabel, classNames()).filter { it.isNotEmpty() }.joinToString(" • ")
+}
 
 /**
  * Waktu pesan terakhir di daftar percakapan. Hari ini berupa jam ("07:05"), hari lain berupa tanggal singkat

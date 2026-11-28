@@ -45,6 +45,8 @@ data class ChatListState(
     val conversations: ChatSection<List<ChatConversation>> = ChatSection(),
     /** Null selama tab "Mulai baru" belum pernah dibuka. */
     val starters: ChatSection<ChatStarters>? = null,
+    /** Filter kelas aktif pada daftar kontak; null berarti tampilkan kontak dari semua kelas. */
+    val selectedContactClassId: String? = null,
     /** Kunci kontak atau kelas yang sedang dibuka, supaya satu ketukan tidak membuka dua kali. */
     val opening: String? = null,
     @StringRes val notice: Int? = null,
@@ -160,6 +162,12 @@ class ChatListViewModel(
         }
     }
 
+    /** Mengubah filter kelas aktif di bagian kontak; null menampilkan kontak dari seluruh kelas. */
+    fun selectContactClass(classId: String?) {
+        if (classId == _state.value.selectedContactClassId) return
+        _state.update { it.copy(selectedContactClassId = classId) }
+    }
+
     private fun loadConversations() {
         conversationsJob?.cancel()
         _state.update { it.copy(conversations = it.conversations.copy(loading = true, error = null, outage = null)) }
@@ -200,8 +208,16 @@ class ChatListViewModel(
             when (val options = classOptions()) {
                 is ApiResult.Success -> {
                     outageAttempts = 0
+                    val starters = ChatStarters(contacts.data, options.data)
+                    val availableClasses = contactFilterClasses(starters)
                     _state.update {
-                        it.copy(starters = ChatSection(loading = false, data = ChatStarters(contacts.data, options.data)))
+                        val nextFilter = it.selectedContactClassId?.takeIf { id ->
+                            availableClasses.any { option -> option.id == id }
+                        }
+                        it.copy(
+                            starters = ChatSection(loading = false, data = starters),
+                            selectedContactClassId = nextFilter
+                        )
                     }
                 }
                 else -> failStarters(options)

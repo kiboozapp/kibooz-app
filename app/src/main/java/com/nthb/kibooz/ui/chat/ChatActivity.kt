@@ -24,6 +24,7 @@ import com.nthb.kibooz.data.remote.CHAT_MEDIA_PHOTO
 import com.nthb.kibooz.data.remote.ChatConversation
 import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.databinding.ActivityChatBinding
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -354,7 +355,7 @@ class ChatActivity : AppCompatActivity() {
         fun intent(context: Context, conversation: ChatConversation): Intent {
             val deletedLabel = context.getString(R.string.chat_akun_dihapus)
             val title = if (conversation.isRoom) {
-                context.getString(R.string.chat_ruang_judul, conversation.classRoom?.name.orEmpty())
+                ClassNames.chatRoomTitle(context, conversation.classRoom?.name)
             } else {
                 conversation.peer?.displayName(deletedLabel).orEmpty()
             }

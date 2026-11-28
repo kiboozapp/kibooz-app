@@ -29,6 +29,7 @@ import com.nthb.kibooz.databinding.DialogTambahKelasBinding
 import com.nthb.kibooz.databinding.ItemKelasGuruBinding
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.profile.ProfilGuruActivity
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.InsetsUtil
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -141,17 +142,14 @@ class RuangKelasGuruActivity : AppCompatActivity() {
     }
 
     private fun render(state: KelolaKelasState) {
-        val classes = state.classes
-        val noData = classes == null
-
+        val noData = state.classes == null
         binding.tvDaftarJudul.text =
             if (noData) getString(R.string.kelola_judul_polos) else getString(R.string.kelola_judul_daftar, state.activeTotal)
         binding.btnTambahKelas.isEnabled = !noData && !state.creating
-        binding.llCari.isVisible = !classes.isNullOrEmpty()
+        binding.llCari.isVisible = !state.classes.isNullOrEmpty()
 
         binding.llMemuat.isVisible = noData && state.loading && state.outage == null
-        // Saat server tidak terjangkau atau gagal sesi di mode bypass, sediakan kelas demo fallback
-        val failed = noData && !state.loading && state.loadError != null && state.outage == null && state.classes != null
+        val failed = noData && !state.loading && state.loadError != null && state.outage == null
         binding.llGagal.isVisible = failed
         if (failed) state.loadError?.let { binding.tvGagalPesan.setText(it) }
         binding.llKosong.isVisible = state.empty
@@ -159,22 +157,40 @@ class RuangKelasGuruActivity : AppCompatActivity() {
 
         showCards(state)
         renderAddDialog(state)
-
-        state.notice?.let {
-            Snackbar.make(binding.root, getString(it.res, *it.args.toTypedArray()), Snackbar.LENGTH_LONG).show()
-            viewModel.noticeShown()
-        }
+        state.notice?.let(::renderNotice)
 
         if (state.createDone) {
             addDialog?.dismiss()
             viewModel.createHandled()
         }
 
-        // Muat ulang yang gagal saat daftar lama masih tampil dijelaskan lewat pesan singkat, bukan layar penuh
+        renderReloadError(noData, state)
+    }
+
+    private fun renderNotice(notice: KelolaNotice) {
+        val args = if (notice.args.isNotEmpty() && notice.res in classNameNoticeResources) {
+            notice.args.mapIndexed { index, value ->
+                if (index == 0) ClassNames.stemOrFallback(value, "ini") else value
+            }
+        } else {
+            notice.args
+        }
+        val message = when (args.size) {
+            0 -> getString(notice.res)
+            1 -> getString(notice.res, args[0])
+            else -> getString(notice.res, args[0], args[1])
+        }
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        viewModel.noticeShown()
+    }
+
+    private fun renderReloadError(noData: Boolean, state: KelolaKelasState) {
         val loadError = state.loadError
         if (loadError == null) {
             announcedLoadError = null
-        } else if (!noData && state.outage == null && loadError != announcedLoadError) {
+            return
+        }
+        if (!noData && state.outage == null && loadError != announcedLoadError) {
             announcedLoadError = loadError
             Snackbar.make(binding.root, loadError, Snackbar.LENGTH_LONG)
                 .setAnchorView(binding.clBottomNavigation)
@@ -184,23 +200,7 @@ class RuangKelasGuruActivity : AppCompatActivity() {
     }
 
     private fun showCards(state: KelolaKelasState) {
-        val activeList = if (state.active.isEmpty() && state.loadError != null && state.classes == null) {
-            listOf(
-                ClassSummary(
-                    id = "class-demo-1",
-                    name = "Kelas 4A (Seni & Kreativitas)",
-                    gradeLevel = "4",
-                    schoolName = "SD Negeri Percobaan",
-                    academicYear = "2026/2027",
-                    joinCode = "SENI-A1",
-                    joinOpen = true,
-                    totalStudents = 24,
-                    createdAt = "2026-08-01T07:00:00Z"
-                )
-            )
-        } else {
-            state.active
-        }
+        val activeList = state.active
 
         val key = Triple(activeList, state.archived, state.busyClassId)
         if (key == renderedCards) return
@@ -238,15 +238,17 @@ class RuangKelasGuruActivity : AppCompatActivity() {
         card.btnPermintaanPindah.isVisible = !archived
         card.btnPulihkan.isVisible = archived
 
+        val shortClassName = ClassNames.stemOrFallback(item.name, "ini")
+
         if (archived) {
             card.cardKelas.isClickable = false
             card.cardKelas.isFocusable = false
-            card.btnPulihkan.contentDescription = getString(R.string.kelola_aksi_pulihkan_cd, item.name)
+            card.btnPulihkan.contentDescription = getString(R.string.kelola_aksi_pulihkan_cd, shortClassName)
             card.btnPulihkan.isEnabled = !busy
             card.btnPulihkan.setOnClickListener {
                 confirm(
                     R.string.kelola_konfirmasi_pulihkan_judul,
-                    getString(R.string.kelola_konfirmasi_pulihkan_isi, item.name),
+                    getString(R.string.kelola_konfirmasi_pulihkan_isi, shortClassName),
                     R.string.kelola_konfirmasi_pulihkan_ya
                 ) { viewModel.restore(item.id) }
             }
@@ -278,12 +280,12 @@ class RuangKelasGuruActivity : AppCompatActivity() {
             card.btnSalin.contentDescription = getString(R.string.kelola_salin_cd, item.joinCode)
             card.btnSalin.setOnClickListener { copyJoinCode(item.joinCode) }
 
-            card.btnKodeBaru.contentDescription = getString(R.string.kelola_aksi_kode_baru_cd, item.name)
+            card.btnKodeBaru.contentDescription = getString(R.string.kelola_aksi_kode_baru_cd, shortClassName)
             card.btnKodeBaru.isEnabled = !busy
             card.btnKodeBaru.setOnClickListener {
                 confirm(
                     R.string.kelola_konfirmasi_kode_judul,
-                    getString(R.string.kelola_konfirmasi_kode_isi, item.name),
+                    getString(R.string.kelola_konfirmasi_kode_isi, shortClassName),
                     R.string.kelola_konfirmasi_kode_ya
                 ) { viewModel.rotateJoinCode(item.id) }
             }
@@ -291,22 +293,22 @@ class RuangKelasGuruActivity : AppCompatActivity() {
             val closing = item.joinOpen
             card.btnPendaftaran.setText(if (closing) R.string.kelola_aksi_tutup else R.string.kelola_aksi_buka)
             card.btnPendaftaran.contentDescription =
-                getString(if (closing) R.string.kelola_aksi_tutup_cd else R.string.kelola_aksi_buka_cd, item.name)
+                getString(if (closing) R.string.kelola_aksi_tutup_cd else R.string.kelola_aksi_buka_cd, shortClassName)
             card.btnPendaftaran.isEnabled = !busy
             card.btnPendaftaran.setOnClickListener {
                 confirm(
                     if (closing) R.string.kelola_konfirmasi_tutup_judul else R.string.kelola_konfirmasi_buka_judul,
-                    getString(if (closing) R.string.kelola_konfirmasi_tutup_isi else R.string.kelola_konfirmasi_buka_isi, item.name),
+                    getString(if (closing) R.string.kelola_konfirmasi_tutup_isi else R.string.kelola_konfirmasi_buka_isi, shortClassName),
                     if (closing) R.string.kelola_konfirmasi_tutup_ya else R.string.kelola_konfirmasi_buka_ya
                 ) { viewModel.setJoining(item.id, open = !closing) }
             }
 
-            card.btnArsip.contentDescription = getString(R.string.kelola_aksi_arsip_cd, item.name)
+            card.btnArsip.contentDescription = getString(R.string.kelola_aksi_arsip_cd, shortClassName)
             card.btnArsip.isEnabled = !busy
             card.btnArsip.setOnClickListener {
                 confirm(
                     R.string.kelola_konfirmasi_arsip_judul,
-                    getString(R.string.kelola_konfirmasi_arsip_isi, item.name),
+                    getString(R.string.kelola_konfirmasi_arsip_isi, shortClassName),
                     R.string.kelola_konfirmasi_arsip_ya
                 ) { viewModel.archive(item.id) }
             }
@@ -393,5 +395,16 @@ class RuangKelasGuruActivity : AppCompatActivity() {
         val error = state.createError
         form.tvError.isVisible = error != null
         if (error != null) form.tvError.setText(error)
+    }
+
+    private companion object {
+        val classNameNoticeResources = setOf(
+            R.string.kelola_hasil_dibuat,
+            R.string.kelola_hasil_kode_baru,
+            R.string.kelola_hasil_dibuka,
+            R.string.kelola_hasil_ditutup,
+            R.string.kelola_hasil_diarsipkan,
+            R.string.kelola_hasil_dipulihkan
+        )
     }
 }

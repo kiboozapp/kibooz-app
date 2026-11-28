@@ -54,7 +54,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/baloo2"
-                android:text="Kelas A • Presensi Pagi Hari Ini"
+                android:text="Presensi Mood Siswa"
                 android:textColor="#E5DEFF"
                 android:textSize="12sp" />
 

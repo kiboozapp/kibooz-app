@@ -7,6 +7,7 @@ import com.nthb.kibooz.data.remote.ClassApi
 import com.nthb.kibooz.data.remote.ClassList
 import com.nthb.kibooz.data.remote.ClassStudentList
 import com.nthb.kibooz.data.remote.ClassSummary
+import com.nthb.kibooz.data.remote.ClassTeacherList
 import com.nthb.kibooz.data.remote.CreateClassRequest
 import com.nthb.kibooz.data.remote.EmptyData
 import com.nthb.kibooz.data.remote.GuruClassApi
@@ -103,6 +104,9 @@ class KelolaKelasViewModelTest {
             error("not used")
 
         override suspend fun removeStudent(classId: String, studentId: String): Response<ApiEnvelope<EmptyData>> =
+            error("not used")
+
+        override suspend fun listClassTeachers(classId: String): Response<ApiEnvelope<ClassTeacherList>> =
             error("not used")
     }
 

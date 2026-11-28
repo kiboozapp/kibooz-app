@@ -17,6 +17,7 @@ import com.nthb.kibooz.ui.guru.loadActiveTeacherClasses
 import com.nthb.kibooz.ui.guru.resolveSelectedClass
 import com.nthb.kibooz.ui.guru.showGuruClassPickerDialog
 import com.nthb.kibooz.ui.theme.KiboozTheme
+import com.nthb.kibooz.util.ClassNames
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -138,7 +139,11 @@ class DetailProfilGuruActivity : AppCompatActivity() {
                     classes = cachedClasses,
                     selectedClassId = targetId ?: overview.classId,
                     fallbackClassName = overview.className,
-                    note = if (distribution.total == 0) getString(R.string.detail_profil_belum_ada_mood, overview.className) else null,
+                    note = if (distribution.total == 0) {
+                        getString(R.string.detail_profil_belum_ada_mood, ClassNames.stemOrFallback(overview.className, "ini"))
+                    } else {
+                        null
+                    },
                     distribution = distribution
                 )
                 hasRenderedStats = true

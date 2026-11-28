@@ -14,8 +14,8 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
 import com.nthb.kibooz.data.remote.ApiResult
 import com.nthb.kibooz.data.remote.ForumThreadItem
-import com.nthb.kibooz.data.remote.ForumThreadList
 import com.nthb.kibooz.databinding.ActivityForumDiskusiBinding
+import com.nthb.kibooz.util.ClassTeachers
 import com.nthb.kibooz.util.InsetsUtil
 import com.nthb.kibooz.util.TimeFormat
 import kotlinx.coroutines.launch
@@ -49,57 +49,93 @@ class ForumDiskusiActivity : AppCompatActivity() {
     }
 
     private fun resolveClassAndLoadThreads() {
-        val forumRepo = appContainer.forumRepository
-        val classRepo = appContainer.classRepository
-
         lifecycleScope.launch {
             val session = appContainer.sessionStore.readSession()
             val isWali = session?.user?.role == com.nthb.kibooz.data.session.Role.WALI
-            if (activeClassId.isNullOrBlank() || activeClassName.isNullOrBlank()) {
-                if (session == null || isWali) {
-                    val childrenRes = classRepo.children()
-                    if (childrenRes is ApiResult.Success) {
-                        val matched = childrenRes.data.firstOrNull {
-                            !activeClassId.isNullOrBlank() && it.classId == activeClassId
-                        } ?: childrenRes.data.firstOrNull()
-                        if (activeClassId.isNullOrBlank()) activeClassId = matched?.classId
-                        if (!matched?.className.isNullOrBlank()) activeClassName = matched?.className
-                    }
-                }
-                if ((session == null && activeClassId.isNullOrBlank()) ||
-                    (!isWali && (activeClassId.isNullOrBlank() || activeClassName.isNullOrBlank()))
-                ) {
-                    val teacherClasses = classRepo.teacherClasses()
-                    if (teacherClasses is ApiResult.Success) {
-                        val matched = teacherClasses.data.firstOrNull {
-                            !activeClassId.isNullOrBlank() && it.id == activeClassId
-                        } ?: teacherClasses.data.firstOrNull()
-                        if (activeClassId.isNullOrBlank()) activeClassId = matched?.id
-                        if (!matched?.name.isNullOrBlank()) activeClassName = matched?.name
-                    }
-                }
-            }
+            ensureActiveClassMetadata(session == null, isWali)
             binding.tvForumTitle.text = formatForumHeaderTitle(activeClassName)
 
             val classId = activeClassId ?: return@launch
-            val sCount = if (isWali) {
-                val lbRes = appContainer.leaderboardRepository.leaderboard(classId)
-                if (lbRes is ApiResult.Success) {
-                    maxOf(1, lbRes.data.podium.size + lbRes.data.rankings.size)
-                } else 1
-            } else {
-                val studentsRes = classRepo.allStudents(classId)
-                if (studentsRes is ApiResult.Success) {
-                    studentsRes.data.size
-                } else 1
-            }
-            binding.tvSubtitleForum.text = "Forum Kelas • $sCount Siswa • 1 Guru Pengajar"
+            // Angka di subjudul tidak boleh menahan daftar diskusi, jadi dimuat terpisah
+            launch { showForumSubtitle(classId, isWali) }
 
-            val result = forumRepo.threads(classId)
+            val result = appContainer.forumRepository.threads(classId)
             if (result is ApiResult.Success) {
-                val threadList = result.data
-                renderThreads(threadList.threads, session?.user)
+                renderThreads(result.data.threads, session?.user)
             }
+        }
+    }
+
+    private suspend fun showForumSubtitle(classId: String, isWali: Boolean) {
+        val studentCount = fetchStudentCount(classId, isWali)
+        val teacherCount = fetchTeacherCount(classId, isWali)
+        binding.tvSubtitleForum.text = "Forum Kelas • $studentCount Siswa • $teacherCount Guru Pengajar"
+    }
+
+    private suspend fun ensureActiveClassMetadata(hasNoSession: Boolean, isWali: Boolean) {
+        if (!activeClassId.isNullOrBlank() && !activeClassName.isNullOrBlank()) return
+        val classRepo = appContainer.classRepository
+        if (hasNoSession || isWali) {
+            resolveFromChildren(classRepo)
+        }
+        val shouldCheckTeacherClasses = (hasNoSession && activeClassId.isNullOrBlank()) ||
+            (!isWali && (activeClassId.isNullOrBlank() || activeClassName.isNullOrBlank()))
+        if (shouldCheckTeacherClasses) {
+            resolveFromTeacherClasses(classRepo)
+        }
+    }
+
+    private suspend fun resolveFromChildren(classRepo: com.nthb.kibooz.data.repository.ClassRepository) {
+        val children = (classRepo.children() as? ApiResult.Success)?.data ?: return
+        val requestedId = activeClassId?.takeIf { it.isNotBlank() }
+        val matched = if (requestedId != null) {
+            children.firstOrNull { it.classId == requestedId }
+        } else {
+            children.firstOrNull()
+        } ?: return
+        if (requestedId == null) activeClassId = matched.classId
+        matched.className.takeIf { it.isNotBlank() }?.let { activeClassName = it }
+    }
+
+    private suspend fun resolveFromTeacherClasses(classRepo: com.nthb.kibooz.data.repository.ClassRepository) {
+        val classes = (classRepo.teacherClasses() as? ApiResult.Success)?.data ?: return
+        val requestedId = activeClassId?.takeIf { it.isNotBlank() }
+        val matched = if (requestedId != null) {
+            classes.firstOrNull { it.id == requestedId }
+        } else {
+            classes.firstOrNull()
+        } ?: return
+        if (requestedId == null) activeClassId = matched.id
+        matched.name.takeIf { it.isNotBlank() }?.let { activeClassName = it }
+    }
+
+    private suspend fun fetchStudentCount(classId: String, isWali: Boolean): Int {
+        if (!isWali) {
+            val studentsRes = appContainer.classRepository.allStudents(classId)
+            return if (studentsRes is ApiResult.Success) studentsRes.data.size else 1
+        }
+        val lbRes = appContainer.leaderboardRepository.leaderboard(classId)
+        return if (lbRes is ApiResult.Success) {
+            maxOf(1, lbRes.data.podium.size + lbRes.data.rankings.size)
+        } else {
+            1
+        }
+    }
+
+    private suspend fun fetchTeacherCount(classId: String, isWali: Boolean): Int {
+        if (isWali) {
+            val contactsRes = appContainer.chatRepository.recentContacts()
+            return if (contactsRes is ApiResult.Success) {
+                maxOf(1, ClassTeachers.fromChatContacts(contactsRes.data, classId).size)
+            } else {
+                1
+            }
+        }
+        val teachersRes = appContainer.classManagementRepository.classTeachers(classId)
+        return if (teachersRes is ApiResult.Success) {
+            maxOf(1, ClassTeachers.fromClassTeachers(teachersRes.data).size)
+        } else {
+            1
         }
     }
 
