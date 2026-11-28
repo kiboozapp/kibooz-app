@@ -35,6 +35,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -77,7 +78,7 @@ private const val PULSE_MIN_ALPHA = 0.35f
 private const val PULSE_MILLIS = 800
 
 /** Yang dibutuhkan layar dari luar selain [GuruDashboardState], supaya layar tidak membaca sesi atau jam sendiri. */
-internal class GuruDashboardHeaderInfo(
+internal data class GuruDashboardHeaderInfo(
     @StringRes val greeting: Int,
     val date: String,
     val avatarUrl: String?
