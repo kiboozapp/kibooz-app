@@ -36,7 +36,7 @@ class DetailPenangananMoodActivity : AppCompatActivity() {
                 val state by viewModel.state.collectAsStateWithLifecycle()
                 DetailPenangananMoodScreen(
                     categoryText = categoryText(),
-                    title = intent.getStringExtra(GuidanceExtras.TITLE) ?: "",
+                    title = intent.getStringExtra(GuidanceExtras.TITLE).orEmpty(),
                     state = state,
                     onBack = ::finish,
                     onShare = ::shareGuidance,
@@ -56,7 +56,7 @@ class DetailPenangananMoodActivity : AppCompatActivity() {
     private fun categoryText(): String {
         val category = intent.getStringExtra(GuidanceExtras.CATEGORY)
         val label = category?.let { name -> Emotion.entries.firstOrNull { it.name == name.uppercase() }?.displayName() ?: name }
-        return label?.let { getString(R.string.panduan_kategori, it) } ?: ""
+        return label?.let { getString(R.string.panduan_kategori, it) }.orEmpty()
     }
 
     private fun handleEvents(state: GuidanceApplyState) {
