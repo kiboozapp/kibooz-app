@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 class DashboardWaliActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityDashboardWaliBinding
+    private val binding by lazy { ActivityDashboardWaliBinding.inflate(layoutInflater) }
     private val viewModel: WaliDashboardViewModel by viewModels {
         WaliDashboardViewModel.Factory(appContainer.waliRepository, appContainer.classRepository, appContainer.trashRepository)
     }
@@ -43,7 +43,6 @@ class DashboardWaliActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityDashboardWaliBinding.inflate(layoutInflater)
         setContentView(binding.root)
         requestNotificationPermission()
 

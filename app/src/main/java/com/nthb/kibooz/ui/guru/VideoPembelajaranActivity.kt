@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 /** Layar daftar video pembelajaran kelas. Guru dapat menambah, mengubah metadata, dan menghapus video. */
 class VideoPembelajaranActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityVideoPembelajaranBinding
+    private val binding by lazy { ActivityVideoPembelajaranBinding.inflate(layoutInflater) }
     private var activeClassId: String? = null
     private var currentSubjectName: String = "Bahasa & Komunikasi"
     private var isTeacher: Boolean = false
@@ -53,7 +53,6 @@ class VideoPembelajaranActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityVideoPembelajaranBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(

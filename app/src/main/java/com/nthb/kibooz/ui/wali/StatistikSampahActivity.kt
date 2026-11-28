@@ -22,14 +22,13 @@ import kotlinx.coroutines.launch
 /** Statistik pilah sampah seorang anak untuk semester yang berjalan. API tidak punya filter harian atau mingguan. */
 class StatistikSampahActivity : AppCompatActivity() {
 
-    private lateinit var binding: ActivityStatistikSampahBinding
+    private val binding by lazy { ActivityStatistikSampahBinding.inflate(layoutInflater) }
     private val viewModel: TrashStatsViewModel by viewModels {
         TrashStatsViewModel.Factory(appContainer.trashRepository, intent.getStringExtra(EXTRA_STUDENT_ID))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityStatistikSampahBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         InsetsUtil.applySystemBarInsets(
