@@ -1,10 +1,11 @@
 package com.nthb.kibooz.ui.camera
 
-import android.graphics.Color
 import android.os.Bundle
 import android.util.Size
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.Camera
@@ -15,30 +16,47 @@ import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
-import com.nthb.kibooz.databinding.ActivityCameraScanSampahBinding
 import com.nthb.kibooz.ml.ClassifierProvider
-import com.nthb.kibooz.ml.isScanAllowed
 import com.nthb.kibooz.ml.TrashAnalyzer
 import com.nthb.kibooz.ml.TrashCategory
 import com.nthb.kibooz.ml.TrashResult
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ml.isScanAllowed
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.Executors
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class CameraScanSampahActivity : AppCompatActivity() {
 
-    private val binding by lazy { ActivityCameraScanSampahBinding.inflate(layoutInflater) }
-    private lateinit var cameraPermission: CameraPermissionHelper
+    // Null sampai onCreate lolos gerbang model. Gerbang itu bisa menutup layar sebelum helper dibuat
+    private var cameraPermission: CameraPermissionHelper? = null
+
+    // TextureView dan bukan SurfaceView bawaan, karena hanya TextureView yang ikut terpotong oleh clipToBounds di layar
+    private val previewView by lazy {
+        PreviewView(this).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+        }
+    }
 
     private val viewModel: TrashScanViewModel by viewModels {
         TrashScanViewModel.Factory(appContainer.classRepository, appContainer.trashRepository)
@@ -47,12 +65,18 @@ class CameraScanSampahActivity : AppCompatActivity() {
     private val analysisExecutor = Executors.newSingleThreadExecutor()
     private var camera: Camera? = null
     private var analyzer: TrashAnalyzer? = null
-    private var cameraGranted = false
-    private var isFlashOn = false
+
+    // Keadaan tampilan yang bukan milik ViewModel: izin, cahaya dan senter
+    // Null selama belum diketahui, supaya panel izin tidak muncul di belakang dialog izin sistem, sama seperti layar XML
+    private var permission by mutableStateOf<CameraPermissionState?>(null)
+    private var lowLight by mutableStateOf(false)
+    private var flashOn by mutableStateOf(false)
+
+    private val snackbarHostState = SnackbarHostState()
+    private var errorJob: Job? = null
 
     private var childDialog: AlertDialog? = null
     private var categoryDialog: AlertDialog? = null
-    private var errorBar: Snackbar? = null
 
     private val analysisListener = object : TrashAnalyzer.Listener {
         // Dipanggil dari thread analyzer, jadi pindahkan ke thread utama sebelum menyentuh tampilan
@@ -61,7 +85,7 @@ class CameraScanSampahActivity : AppCompatActivity() {
         }
 
         override fun onLowLight(isLow: Boolean) {
-            runOnUiThread { if (!isDestroyed) binding.tvLowLight.isVisible = isLow }
+            runOnUiThread { if (!isDestroyed) lowLight = isLow }
         }
     }
 
@@ -78,34 +102,39 @@ class CameraScanSampahActivity : AppCompatActivity() {
             return
         }
 
-        setContentView(binding.root)
-
-        InsetsUtil.applySystemBarInsets(
-            root = binding.root,
-            headerView = binding.clTopOverlay,
-            bottomBar = binding.clBottomControls
-        )
-
-        binding.tvModelContoh.isVisible = placeholder
-        viewModel.start(intent.getStringExtra(EXTRA_STUDENT_ID))
-        setupListeners()
-        observeState()
-
-        cameraPermission = CameraPermissionHelper(
-            this,
-            binding.layoutIzinKamera,
-            R.string.izin_kamera_sampah
-        ) { granted ->
-            cameraGranted = granted
-            render(viewModel.state.value)
-            if (granted) startCamera()
+        val permissionHelper = CameraPermissionHelper(this) { newState ->
+            permission = newState
+            if (newState == CameraPermissionState.GRANTED) startCamera()
         }
-        cameraPermission.start()
+        cameraPermission = permissionHelper
+
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                CameraScanSampahScreen(
+                    state = state,
+                    permission = permission,
+                    lowLight = lowLight,
+                    placeholderModel = placeholder,
+                    flashOn = flashOn,
+                    snackbarHostState = snackbarHostState,
+                    onBack = ::finish,
+                    onFlash = ::toggleFlash,
+                    onClaim = ::onClaimClicked,
+                    onPermissionAction = permissionHelper::requestOrOpenSettings,
+                    cameraPreview = { AndroidView(factory = { previewView }, modifier = Modifier.fillMaxSize()) }
+                )
+            }
+        }
+
+        viewModel.start(intent.getStringExtra(EXTRA_STUDENT_ID))
+        observeEvents()
+        permissionHelper.start()
     }
 
     override fun onResume() {
         super.onResume()
-        if (::cameraPermission.isInitialized) cameraPermission.onResume()
+        cameraPermission?.onResume()
     }
 
     override fun onDestroy() {
@@ -119,26 +148,19 @@ class CameraScanSampahActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun setupListeners() {
-        binding.ivBack.setOnClickListener {
-            finish()
+    private fun toggleFlash() {
+        val activeCamera = camera
+        if (activeCamera == null || !activeCamera.cameraInfo.hasFlashUnit()) {
+            Toast.makeText(this, R.string.mood_senter_tidak_ada, Toast.LENGTH_SHORT).show()
+            return
         }
 
-        binding.ivFlash.setOnClickListener {
-            val activeCamera = camera
-            if (activeCamera == null || !activeCamera.cameraInfo.hasFlashUnit()) {
-                Toast.makeText(this, R.string.mood_senter_tidak_ada, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+        flashOn = !flashOn
+        activeCamera.cameraControl.enableTorch(flashOn)
+    }
 
-            isFlashOn = !isFlashOn
-            activeCamera.cameraControl.enableTorch(isFlashOn)
-            showFlashState(isFlashOn)
-        }
-
-        binding.btnClaimPoin.setOnClickListener {
-            if (viewModel.state.value.claimed != null) viewModel.scanAgain() else viewModel.claim()
-        }
+    private fun onClaimClicked() {
+        if (viewModel.state.value.claimed != null) viewModel.scanAgain() else viewModel.claim()
     }
 
     private fun startCamera() {
@@ -161,7 +183,7 @@ class CameraScanSampahActivity : AppCompatActivity() {
                 .build()
 
             val preview = Preview.Builder().setResolutionSelector(resolution).build()
-                .also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
+                .also { it.setSurfaceProvider(previewView.surfaceProvider) }
 
             val classifier = ClassifierProvider.trash(this)
             if (classifier == null) {
@@ -196,85 +218,18 @@ class CameraScanSampahActivity : AppCompatActivity() {
         Toast.makeText(this, R.string.mood_kamera_gagal, Toast.LENGTH_LONG).show()
     }
 
-    private fun observeState() {
+    /** Dialog dan snackbar sekali tampil. Isi layarnya digambar oleh [CameraScanSampahScreen]. */
+    private fun observeEvents() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.state.collect { state ->
-                    render(state)
+                    if (state.claiming || state.claimed != null) dismissError()
                     showChildChoiceIfNeeded(state)
                     showCategoryChoiceIfNeeded(state)
                     state.error?.let { showError(it, state.canRetry, state.childId == null) }
                 }
             }
         }
-    }
-
-    private fun render(state: TrashScanState) {
-        val detected = state.detected.takeIf { state.claimed == null }
-
-        binding.llDeteksi.isVisible = detected != null
-        if (detected != null) {
-            binding.llDeteksi.setBackgroundColor(categoryColor(detected.category))
-            binding.tvKategori.setText(categoryName(detected.category))
-            binding.tvDetail.text = getString(R.string.sampah_akurasi, (detected.confidence * 100).toInt())
-        }
-
-        binding.tvPetunjuk.text = when {
-            detected == null -> getString(R.string.sampah_mencari)
-            detected.category == TrashCategory.B3 -> getString(R.string.sampah_petunjuk_b3)
-            else -> getString(R.string.sampah_petunjuk, getString(shortName(detected.category)))
-        }
-
-        val claimed = state.claimed
-        binding.llPoinHeader.isVisible = claimed != null
-        if (claimed != null) {
-            val points = when {
-                claimed.pointsAdded <= 0 -> getString(R.string.sampah_tanpa_poin)
-                claimed.reducedPoints -> getString(R.string.sampah_poin_dikurangi, claimed.pointsAdded)
-                else -> getString(R.string.sampah_poin_diterima, claimed.pointsAdded)
-            }
-            val quota = if (claimed.reducedPoints) {
-                getString(R.string.sampah_lewat_batas)
-            } else {
-                getString(R.string.sampah_sisa_klaim, claimed.remainingDailyScans)
-            }
-            binding.tvPoin.text = getString(R.string.sampah_poin_ringkasan, points, quota)
-        }
-
-        val label = when {
-            claimed != null -> R.string.sampah_klaim_lagi
-            state.retryInSeconds != null -> R.string.batas_laju_menunggu
-            state.claiming -> R.string.sampah_memproses
-            else -> R.string.sampah_klaim_tombol
-        }
-        binding.btnClaimPoin.text = state.retryInSeconds?.let { getString(label, it) } ?: getString(label)
-        val enabled = cameraGranted && !state.claiming && !state.loadingChildren
-        binding.btnClaimPoin.isEnabled = enabled
-        binding.btnClaimPoin.alpha = if (enabled) 1f else 0.4f
-
-        if (state.claiming || claimed != null) {
-            errorBar?.dismiss()
-            errorBar = null
-        }
-    }
-
-    private fun categoryName(category: TrashCategory) = when (category) {
-        TrashCategory.ORGANIK -> R.string.sampah_kategori_organik
-        TrashCategory.ANORGANIK -> R.string.sampah_kategori_anorganik
-        TrashCategory.B3 -> R.string.sampah_kategori_b3
-    }
-
-    private fun shortName(category: TrashCategory) = when (category) {
-        TrashCategory.ORGANIK -> R.string.sampah_organik
-        TrashCategory.ANORGANIK -> R.string.sampah_anorganik
-        TrashCategory.B3 -> R.string.sampah_kategori_b3
-    }
-
-    /** Warna hanya pelengkap, kategori selalu tertulis di lencana. */
-    private fun categoryColor(category: TrashCategory) = when (category) {
-        TrashCategory.ORGANIK -> Color.parseColor("#D92E7D32")
-        TrashCategory.ANORGANIK -> Color.parseColor("#D91565C0")
-        TrashCategory.B3 -> Color.parseColor("#D9C62828")
     }
 
     /** Wali yang punya beberapa anak memilih satu. */
@@ -309,26 +264,31 @@ class CameraScanSampahActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun showError(messageRes: Int, canRetry: Boolean, childMissing: Boolean) {
-        errorBar?.dismiss()
-        val bar = Snackbar.make(binding.root, messageRes, Snackbar.LENGTH_INDEFINITE)
-            .setAnchorView(binding.clBottomControls)
+    /**
+     * Galat yang bisa diulang tetap tampil sampai pengguna menekan Coba lagi. Snackbar baru menggantikan yang lama,
+     * karena SnackbarHostState mengantrekan snackbar dan snackbar tanpa batas waktu akan menahan antrean.
+     */
+    private fun showError(@StringRes messageRes: Int, canRetry: Boolean, childMissing: Boolean) {
+        dismissError()
+        val action = if (childMissing || canRetry) getString(R.string.review_coba_lagi) else null
+        val message = getString(messageRes)
 
-        when {
-            childMissing -> bar.setAction(R.string.review_coba_lagi) { viewModel.retryChildren() }
-            canRetry -> bar.setAction(R.string.review_coba_lagi) { viewModel.claim() }
-            else -> bar.duration = Snackbar.LENGTH_LONG
+        errorJob = lifecycleScope.launch {
+            val result = snackbarHostState.showSnackbar(
+                message = message,
+                actionLabel = action,
+                duration = if (action != null) SnackbarDuration.Indefinite else SnackbarDuration.Short
+            )
+            if (result == SnackbarResult.ActionPerformed) {
+                if (childMissing) viewModel.retryChildren() else viewModel.claim()
+            }
         }
-
-        errorBar = bar.also { it.show() }
         viewModel.errorShown()
     }
 
-
-    /** Ikon dan label baca layar tombol senter mengikuti keadaannya. */
-    private fun showFlashState(on: Boolean) {
-        binding.ivFlash.setImageResource(if (on) R.drawable.ic_flash_on else R.drawable.ic_flash_off)
-        binding.ivFlash.contentDescription = getString(if (on) R.string.senter_matikan else R.string.senter_nyalakan)
+    private fun dismissError() {
+        errorJob?.cancel()
+        errorJob = null
     }
 
     companion object {

@@ -100,17 +100,25 @@ class CameraScanMoodActivity : AppCompatActivity() {
         viewModel.start(intent.getStringExtra(EXTRA_CLASS_ID))
         observeScanState()
 
-        cameraPermission = CameraPermissionHelper(
-            this,
-            binding.layoutIzinKamera,
-            R.string.izin_kamera_mood
-        ) { granted ->
+        cameraPermission = CameraPermissionHelper(this) { permission ->
+            showPermissionPanel(permission)
+            val granted = permission == CameraPermissionState.GRANTED
             binding.btnCaptureMood.isEnabled = granted
             binding.btnCaptureMood.alpha = if (granted) 1f else 0.4f
             if (granted && consentAccepted) startCamera()
         }
+        binding.layoutIzinKamera.btnIzinAksi.setOnClickListener { cameraPermission.requestOrOpenSettings() }
 
         if (consentAccepted) cameraPermission.start() else showConsent()
+    }
+
+    /** Panel penolakan tampil selama izin kamera belum diberikan. */
+    private fun showPermissionPanel(permission: CameraPermissionState) {
+        val panel = binding.layoutIzinKamera
+        val blocked = permission == CameraPermissionState.BLOCKED
+        panel.root.isVisible = permission != CameraPermissionState.GRANTED
+        panel.tvIzinPesan.setText(if (blocked) R.string.izin_kamera_ditolak else R.string.izin_kamera_mood)
+        panel.btnIzinAksi.setText(if (blocked) R.string.izin_kamera_pengaturan else R.string.izin_kamera_beri)
     }
 
     override fun onResume() {
