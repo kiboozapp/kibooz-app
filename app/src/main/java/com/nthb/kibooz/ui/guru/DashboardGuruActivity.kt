@@ -18,6 +18,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
+import com.nthb.kibooz.data.remote.GuruDashboard
 import com.nthb.kibooz.data.remote.ServiceOutage
 import com.nthb.kibooz.ui.camera.CameraScanMoodActivity
 import com.nthb.kibooz.ui.chat.ChatListActivity
@@ -46,6 +47,9 @@ class DashboardGuruActivity : AppCompatActivity() {
 
     private val snackbarHost = SnackbarHostState()
 
+    // Data terakhir yang diterima. Angka tetap tampil selagi kelas lain dimuat, seperti layar XML sebelumnya
+    private var lastDashboard by mutableStateOf<GuruDashboard?>(null)
+
     // Sisa detik hitung mundur gangguan server. Null selama tidak ada gangguan
     private var outageSecondsLeft by mutableStateOf<Int?>(null)
 
@@ -60,6 +64,7 @@ class DashboardGuruActivity : AppCompatActivity() {
                 val date = remember { TimeFormat.compactHomeDate() }
                 DashboardGuruScreen(
                     state = state,
+                    dashboard = state.dashboard ?: lastDashboard,
                     info = GuruDashboardHeaderInfo(greeting, date, session?.user?.avatarUrl),
                     avatarLoader = appContainer.avatarLoader,
                     outageSecondsLeft = outageSecondsLeft,
@@ -123,6 +128,7 @@ class DashboardGuruActivity : AppCompatActivity() {
     }
 
     private fun handleState(state: GuruDashboardState) {
+        state.dashboard?.let { lastDashboard = it }
         val userId = currentUserId()
         val resolvedClassId = state.selectedClassId ?: state.dashboard?.classOverview?.classId
         if (resolvedClassId != null && appContainer.guruClassSelection.current(userId) == null) {

@@ -85,11 +85,13 @@ internal data class GuruDashboardHeaderInfo(
 
 /**
  * Dasbor Guru, yaitu kepala ungu dengan foto dan sapaan, ringkasan kelas, donat mood hari ini, pintu masuk chat,
- * banner ranking dan bilah bawah portal Guru. Angka dan donat berkedip selama data pertama belum tiba.
+ * banner ranking dan bilah bawah portal Guru. Angka dan donat berkedip selama data belum tiba. [dashboard] adalah data
+ * terakhir yang diterima, jadi angka kelas sebelumnya tetap tampil selagi kelas lain dimuat.
  */
 @Composable
 internal fun DashboardGuruScreen(
     state: GuruDashboardState,
+    dashboard: GuruDashboard?,
     info: GuruDashboardHeaderInfo,
     avatarLoader: AvatarLoader,
     outageSecondsLeft: Int?,
@@ -105,8 +107,9 @@ internal fun DashboardGuruScreen(
     onRanking: () -> Unit,
     onTab: (GuruTab) -> Unit
 ) {
-    val data = state.dashboard
-    val pulse = pulseAlpha(active = state.loading && data == null)
+    // Selama kelas lain dimuat, angka kelas sebelumnya tetap tampil dan berkedip, seperti layar XML
+    val data = dashboard
+    val pulse = pulseAlpha(active = state.loading && state.dashboard == null)
 
     KiboozGuruScaffold(selected = GuruTab.HOME, onTab = onTab, onScan = onScan) {
         Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
@@ -549,6 +552,7 @@ private fun DashboardGuruScreenPreview() {
     KiboozTheme {
         DashboardGuruScreen(
             state = GuruDashboardState(loading = true),
+            dashboard = null,
             info = GuruDashboardHeaderInfo(greeting = R.string.sapaan_pagi, date = "Sab, 28 Nov 2026", avatarUrl = null),
             avatarLoader = AvatarLoader(okhttp3.OkHttpClient()),
             outageSecondsLeft = null,
