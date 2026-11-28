@@ -132,10 +132,12 @@ class DashboardGuruActivity : AppCompatActivity() {
             // Saat server tidak terjangkau, kartu gangguan sudah menjelaskan dan menawarkan coba lagi
             if (state.outage == null) {
                 lifecycleScope.launch {
+                    // Pesan baru menggantikan yang sedang tampil, seperti Snackbar di layar XML
+                    snackbarHost.currentSnackbarData?.dismiss()
                     val result = snackbarHost.showSnackbar(
                         message = getString(message),
                         actionLabel = getString(R.string.coba_lagi),
-                        duration = SnackbarDuration.Long
+                        duration = SnackbarDuration.Short
                     )
                     if (result == SnackbarResult.ActionPerformed) viewModel.load()
                 }

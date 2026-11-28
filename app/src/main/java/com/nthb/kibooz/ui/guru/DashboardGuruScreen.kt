@@ -35,12 +35,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -141,16 +140,17 @@ internal fun DashboardGuruScreen(
 
 /** Kedipan pelan pengganti data yang belum tiba, dari terang penuh ke 35 persen selama 0,8 detik. */
 @Composable
-private fun pulseAlpha(active: Boolean): Float {
-    if (!active) return 1f
+private fun pulseAlpha(active: Boolean): () -> Float {
+    if (!active) return { 1f }
     val transition = rememberInfiniteTransition(label = "pulse")
-    val alpha by transition.animateFloat(
+    val alpha = transition.animateFloat(
         initialValue = 1f,
         targetValue = PULSE_MIN_ALPHA,
         animationSpec = infiniteRepeatable(tween(PULSE_MILLIS, easing = EaseInOutSine), RepeatMode.Reverse),
         label = "pulseAlpha"
     )
-    return alpha
+    // Dibaca di fase gambar oleh pemakainya, supaya kedipan tidak menyusun ulang seluruh layar
+    return { alpha.value }
 }
 
 /** Menarik isi ke atas sejauh [amount] dan ikut memendekkan tempatnya, seperti margin negatif di layar XML. */
@@ -274,7 +274,7 @@ private fun HeaderIcon(icon: Int, description: String, onClick: () -> Unit, modi
 }
 
 @Composable
-private fun StatsCard(data: GuruDashboard?, pulse: Float, modifier: Modifier = Modifier) {
+private fun StatsCard(data: GuruDashboard?, pulse: () -> Float, modifier: Modifier = Modifier) {
     val overview = data?.classOverview
     val dividerColor = colorResource(R.color.kibooz_border)
     Row(
@@ -321,12 +321,12 @@ private fun StatsCard(data: GuruDashboard?, pulse: Float, modifier: Modifier = M
 }
 
 @Composable
-private fun Stat(label: String, value: String, pulse: Float, modifier: Modifier = Modifier) {
+private fun Stat(label: String, value: String, pulse: () -> Float, modifier: Modifier = Modifier) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Text(text = label, color = colorResource(R.color.kibooz_text_secondary), fontSize = 12.sp)
         Text(
             text = value,
-            modifier = Modifier.padding(top = 2.dp).alpha(pulse),
+            modifier = Modifier.padding(top = 2.dp).graphicsLayer { alpha = pulse() },
             color = colorResource(R.color.kibooz_text_primary),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold
@@ -391,7 +391,7 @@ private fun ClassSwitcher(state: GuruDashboardState, onClick: () -> Unit) {
 }
 
 @Composable
-private fun MoodCard(data: GuruDashboard?, pulse: Float, onClick: () -> Unit, onScan: () -> Unit) {
+private fun MoodCard(data: GuruDashboard?, pulse: () -> Float, onClick: () -> Unit, onScan: () -> Unit) {
     val today = data?.dailyMoodDistribution
     val percentages = today?.let(MoodChartMath::percentages)
     Column(
@@ -430,7 +430,7 @@ private fun MoodCard(data: GuruDashboard?, pulse: Float, onClick: () -> Unit, on
             }
         }
         Row(modifier = Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-            DonutChart(distribution = today, modifier = Modifier.padding(start = 8.dp).size(130.dp).alpha(pulse))
+            DonutChart(distribution = today, modifier = Modifier.padding(start = 8.dp).size(130.dp).graphicsLayer { alpha = pulse() })
             Column(modifier = Modifier.padding(start = 24.dp)) {
                 Legend(R.string.legend_senang, R.color.mood_happy, percentages, Emotion.SENANG, first = true)
                 Legend(R.string.legend_bingung, R.color.mood_bingung, percentages, Emotion.BINGUNG)
