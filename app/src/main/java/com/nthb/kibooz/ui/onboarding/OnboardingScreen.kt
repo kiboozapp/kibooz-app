@@ -54,7 +54,7 @@ import com.nthb.kibooz.R
 import com.nthb.kibooz.ui.theme.KiboozTheme
 import kotlinx.coroutines.launch
 
-private class OnboardingSlide(
+private data class OnboardingSlide(
     @DrawableRes val image: Int,
     @StringRes val title: Int,
     @StringRes val description: Int
@@ -214,7 +214,8 @@ private fun SlidePage(slide: OnboardingSlide) {
 /** Gaya dengan tinggi baris alami Baloo 2 ditambah [extraDp], yang tidak ikut membesar saat huruf diperbesar. */
 @Composable
 private fun lineSpacedStyle(fontSize: Float, extraDp: Float): TextStyle {
-    val lineHeight = (fontSize * BALOO_LINE_HEIGHT).sp + with(LocalDensity.current) { extraDp.dp.toSp() }
+    // 1dp tambahan sama dengan 1/fontScale sp, sehingga jarak tambahan tidak ikut membesar saat huruf diperbesar
+    val lineHeight = (fontSize * BALOO_LINE_HEIGHT + extraDp / LocalDensity.current.fontScale).sp
     return MaterialTheme.typography.bodyLarge.copy(
         fontSize = fontSize.sp,
         lineHeight = lineHeight,
