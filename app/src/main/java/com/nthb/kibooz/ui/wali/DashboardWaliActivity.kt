@@ -4,63 +4,85 @@ import android.Manifest
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
-import com.nthb.kibooz.data.remote.RecommendedGuidance
-import com.nthb.kibooz.databinding.ActivityDashboardWaliBinding
 import com.nthb.kibooz.notification.ScanReminderNotifier
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
 import com.nthb.kibooz.ui.chat.ChatListActivity
 import com.nthb.kibooz.ui.common.NotificationInboxDialog
-import com.nthb.kibooz.ui.common.displayName
-import com.nthb.kibooz.ui.common.emoji
+import com.nthb.kibooz.ui.components.WaliTab
 import com.nthb.kibooz.ui.profile.ProfilSiswaActivity
 import com.nthb.kibooz.ui.profile.ProfilWaliActivity
 import com.nthb.kibooz.ui.profile.TambahAnakActivity
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
 import com.nthb.kibooz.util.TimeFormat
-import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class DashboardWaliActivity : AppCompatActivity() {
 
-    private val binding by lazy { ActivityDashboardWaliBinding.inflate(layoutInflater) }
     private val viewModel: WaliDashboardViewModel by viewModels {
         WaliDashboardViewModel.Factory(appContainer.waliRepository, appContainer.classRepository, appContainer.trashRepository)
     }
+
+    private val snackbarHost = SnackbarHostState()
 
     // Harus didaftarkan sebelum activity STARTED, jadi sebagai properti dan bukan di dalam klik
     private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
         requestNotificationPermission()
 
-        InsetsUtil.applySystemBarInsets(
-            root = binding.root,
-            headerView = binding.clTopHeader,
-            bottomBar = binding.clBottomNavigation,
-            fab = binding.fabScannerSampah
-        )
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                val date = remember { TimeFormat.compactHomeDate() }
+                DashboardWaliScreen(
+                    state = state,
+                    date = date,
+                    avatarLoader = appContainer.avatarLoader,
+                    snackbarHost = snackbarHost,
+                    actions = DashboardWaliActions(
+                        onRetry = ::retryLoad,
+                        onHistory = ::openHistory,
+                        onNotifications = { NotificationInboxDialog.show(this) },
+                        onStudentHeader = ::onStudentHeaderClicked,
+                        onLeaderboard = ::openLeaderboard,
+                        onTrashStats = ::openTrashStats,
+                        onGuidance = ::openGuidance,
+                        onClassRoom = ::openClassRoom,
+                        onChat = { startActivity(ChatListActivity.intent(this)) },
+                        onTab = ::openTab,
+                        onScan = ::openScan
+                    )
+                )
+            }
+        }
 
-        setupListeners()
-        binding.tvDate.text = TimeFormat.compactHomeDate()
         // Hanya saat dibuka pertama kali. Setelah layar diputar, anak yang dipilih sudah ada di ViewModel
         if (savedInstanceState == null) selectRequestedChild(intent)
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                launch { viewModel.state.collect(::handleState) }
+                launch { viewModel.state.map { it.noChild }.distinctUntilChanged().collectLatest(::showNoChildNotice) }
             }
         }
     }
@@ -80,76 +102,42 @@ class DashboardWaliActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Kembali dari scan sampah atau panduan membawa poin dan status yang baru
-        val state = viewModel.state.value
-        if (!state.loading && (state.dashboard != null || state.noChild)) viewModel.load()
+        // Kembali dari scan sampah atau panduan membawa poin dan status yang baru. Muat pertama yang gagal dicoba lagi
+        if (!viewModel.state.value.loading) viewModel.load()
     }
 
-    private fun render(state: WaliDashboardState) {
-        val data = state.dashboard
-        if (data != null) {
-            val student = data.student
-            val points = data.pointsSummary
+    /** Tombol coba lagi di layar. Pesan galat yang masih tampil dilepas dulu, karena snackbar tanpa batas tidak hilang sendiri. */
+    private fun retryLoad() {
+        snackbarHost.currentSnackbarData?.dismiss()
+        viewModel.load()
+    }
 
-            binding.tvNamaSiswa.text = if (state.children.size > 1) "${student.fullName} ▾" else student.fullName
-            binding.tvKelasNisn.text = "${student.className}\nNISN: ${student.nisn}"
-            appContainer.avatarLoader.load(binding.ivAvatarSiswa, student.avatarUrl, R.drawable.img_avatar_siswa)
-
-            val rank = if (points.classRank > 0) "#${points.classRank}" else "-"
-            binding.tvRank.text = rank
-            binding.tvSampahCount.text = points.sortedCount.toString()
-            binding.tvTotalPoin.text = points.totalPoints.toString()
-            binding.tvBannerTitle.text = getString(R.string.wali_banner_peringkat, rank)
-            binding.tvBannerSub.text = getString(R.string.wali_banner_poin_semester, points.seasonPoints)
-
-            val mood = data.todayMood
-            binding.tvMoodTimeLabel.text = mood?.let { TimeFormat.localTime(it.recordedAt) }
-                ?.let { getString(R.string.wali_mood_hari_ini_jam, it) } ?: getString(R.string.wali_mood_hari_ini)
-            binding.tvMoodValue.text = mood?.let { "${it.moodType.emoji()} ${it.moodType.displayName()}" }
-                ?: getString(R.string.mood_belum_dicatat)
-            binding.tvInsightBody.text = mood?.teacherNotes?.takeIf { it.isNotBlank() }
-                ?: getString(R.string.wali_belum_ada_catatan)
-
-            val sorted = points.sortedCount
-            binding.tvOrganik.text = countWithShare(points.organicCount, sorted)
-            binding.tvAnorganik.text = countWithShare(points.anorganicCount, sorted)
-
-            showGuidance(data.recommendedGuidance)
-        }
-
-        val quota = state.scanQuota
-        binding.cardSisaScan.isVisible = quota != null
-        if (quota != null) {
-            binding.tvSisaScan.text = getString(quota.messageRes, quota.remaining, quota.dailyLimit)
-        }
-
-        if (state.noChild) {
-            Snackbar.make(binding.root, R.string.error_no_child, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.anak_tambah_anak) { startActivity(Intent(this, TambahAnakActivity::class.java)) }
-                .show()
-        }
-
-        state.error?.let {
-            Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.coba_lagi) { viewModel.load() }
-                .show()
+    private fun handleState(state: WaliDashboardState) {
+        state.error?.let { message ->
+            lifecycleScope.launch {
+                // Pesan baru menggantikan yang sedang tampil, seperti Snackbar di layar XML
+                snackbarHost.currentSnackbarData?.dismiss()
+                val result = snackbarHost.showSnackbar(
+                    message = getString(message),
+                    actionLabel = getString(R.string.coba_lagi),
+                    duration = SnackbarDuration.Indefinite
+                )
+                if (result == SnackbarResult.ActionPerformed) viewModel.load()
+            }
             viewModel.errorShown()
         }
     }
 
-    private fun countWithShare(count: Int, total: Int): String =
-        if (total == 0) "$count" else "$count (${(count * 100f / total).roundToInt()}%)"
-
-    /** Panduan hanya ada selama sudah ada mood hari ini. Tanpa itu kartunya disembunyikan, bukan ditampilkan kosong. */
-    private fun showGuidance(guidance: RecommendedGuidance?) {
-        val visible = guidance != null
-        binding.tvPanduanSection.isVisible = visible
-        binding.cardPanduanAman.isVisible = visible
-        binding.btnBukaPenanganan.isVisible = visible
-        if (guidance != null) {
-            binding.tvGuidanceCategory.text = guidance.category
-            binding.tvGuidanceTitle.text = guidance.title
-        }
+    /** Pesan "belum ada anak" tetap tampil selama Wali belum punya anak, dan hilang begitu ada anak. */
+    private suspend fun showNoChildNotice(noChild: Boolean) {
+        if (!noChild) return
+        snackbarHost.currentSnackbarData?.dismiss()
+        val result = snackbarHost.showSnackbar(
+            message = getString(R.string.error_no_child),
+            actionLabel = getString(R.string.anak_tambah_anak),
+            duration = SnackbarDuration.Indefinite
+        )
+        if (result == SnackbarResult.ActionPerformed) startActivity(Intent(this, TambahAnakActivity::class.java))
     }
 
     /** Izin pengingat sisa scan pukul 12.00 (Android 13 ke atas). Jika ditolak, pengingat dilewati diam-diam. */
@@ -200,6 +188,38 @@ class DashboardWaliActivity : AppCompatActivity() {
         )
     }
 
+    private fun openHistory() {
+        val studentId = viewModel.state.value.dashboard?.student?.id
+        startActivity(
+            Intent(this, RiwayatAktivitasWaliActivity::class.java)
+                .putExtra(RiwayatAktivitasWaliActivity.EXTRA_STUDENT_ID, studentId)
+        )
+    }
+
+    private fun openClassRoom() {
+        val studentId = viewModel.state.value.dashboard?.student?.id
+        startActivity(
+            Intent(this, RuangKelasWaliActivity::class.java)
+                .putExtra(RuangKelasWaliActivity.EXTRA_STUDENT_ID, studentId)
+        )
+    }
+
+    private fun openScan() {
+        startActivity(
+            Intent(this, CameraScanSampahActivity::class.java)
+                .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.dashboard?.student?.id)
+        )
+    }
+
+    private fun openTab(tab: WaliTab) {
+        when (tab) {
+            WaliTab.HOME -> Unit
+            WaliTab.WASTE -> openTrashStats()
+            WaliTab.RANKING -> openLeaderboard()
+            WaliTab.PROFILE -> openProfile()
+        }
+    }
+
     /** Wali dengan beberapa anak memilih anak yang ditampilkan. Dengan satu anak, ketukan membuka profil. */
     private fun onStudentHeaderClicked() {
         val children = viewModel.state.value.children
@@ -212,75 +232,5 @@ class DashboardWaliActivity : AppCompatActivity() {
             .setItems(children.map { it.fullName }.toTypedArray()) { _, which -> viewModel.selectChild(children[which].id) }
             .setNegativeButton(R.string.batal, null)
             .show()
-    }
-
-    private fun setupListeners() {
-        // Navigasi ke Leaderboard / Ranking
-        binding.cardMetricRanking.setOnClickListener {
-            openLeaderboard()
-        }
-        binding.cardBannerRanking.setOnClickListener {
-            openLeaderboard()
-        }
-        binding.tabLeaderboard.setOnClickListener {
-            openLeaderboard()
-        }
-
-        // Navigasi ke Statistik Sampah
-        binding.cardMetricSampah.setOnClickListener {
-            openTrashStats()
-        }
-        binding.cardSampah.setOnClickListener {
-            openTrashStats()
-        }
-        binding.btnStatistikSampah.setOnClickListener {
-            openTrashStats()
-        }
-        binding.tabSampah.setOnClickListener {
-            openTrashStats()
-        }
-
-        // Navigasi ke Panduan & Penanganan Mood
-        binding.cardMoodHariIni.setOnClickListener { openGuidance() }
-        binding.btnBukaPenanganan.setOnClickListener { openGuidance() }
-        binding.cardPanduanAman.setOnClickListener { openGuidance() }
-
-        // Riwayat Aktivitas Si Kecil
-        binding.ivHistory.setOnClickListener {
-            val studentId = viewModel.state.value.dashboard?.student?.id
-            startActivity(
-                Intent(this, RiwayatAktivitasWaliActivity::class.java)
-                    .putExtra(RiwayatAktivitasWaliActivity.EXTRA_STUDENT_ID, studentId)
-            )
-        }
-
-        // Navigasi ke Ruang Kelas Si Kecil (Screenshot 154028)
-        binding.cardRuangKelasWali.setOnClickListener {
-            val studentId = viewModel.state.value.dashboard?.student?.id
-            startActivity(
-                Intent(this, RuangKelasWaliActivity::class.java)
-                    .putExtra(RuangKelasWaliActivity.EXTRA_STUDENT_ID, studentId)
-            )
-        }
-
-        // Pesan dengan guru
-        binding.cardPesan.setOnClickListener { startActivity(ChatListActivity.intent(this)) }
-
-        // Navigasi ke Profil Wali (Settings-First seperti Guru)
-        binding.llStudentProfile.setOnClickListener { onStudentHeaderClicked() }
-        binding.tabProfil.setOnClickListener { openProfile() }
-
-        // Navigasi ke Scanner AI Sampah
-        binding.fabScannerSampah.setOnClickListener {
-            startActivity(
-                Intent(this, CameraScanSampahActivity::class.java)
-                    .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, viewModel.state.value.dashboard?.student?.id)
-            )
-        }
-
-        // Notifikasi in-app
-        binding.ivNotification.setOnClickListener {
-            NotificationInboxDialog.show(this)
-        }
     }
 }
