@@ -49,7 +49,14 @@ class CameraScanSampahActivity : AppCompatActivity() {
 
     // Null sampai onCreate lolos gerbang model. Gerbang itu bisa menutup layar sebelum helper dibuat
     private var cameraPermission: CameraPermissionHelper? = null
-    private val previewView by lazy { PreviewView(this).apply { scaleType = PreviewView.ScaleType.FILL_CENTER } }
+    // TextureView dan bukan SurfaceView bawaan. Di dalam AndroidView, SurfaceView tidak ikut terpotong oleh tata letak
+    // dan menutupi bilah atas (tombol kembali, judul, senter) selama kamera menyala
+    private val previewView by lazy {
+        PreviewView(this).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            scaleType = PreviewView.ScaleType.FILL_CENTER
+        }
+    }
 
     private val viewModel: TrashScanViewModel by viewModels {
         TrashScanViewModel.Factory(appContainer.classRepository, appContainer.trashRepository)
