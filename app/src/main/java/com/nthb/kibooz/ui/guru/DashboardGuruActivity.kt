@@ -64,7 +64,8 @@ class DashboardGuruActivity : AppCompatActivity() {
                 val date = remember { TimeFormat.compactHomeDate() }
                 DashboardGuruScreen(
                     state = state,
-                    dashboard = state.dashboard ?: lastDashboard,
+                    // Angka kelas sebelumnya hanya dipakai selama kelas baru dimuat, bukan setelah muat gagal
+                    dashboard = state.dashboard ?: lastDashboard.takeIf { state.loading },
                     info = GuruDashboardHeaderInfo(greeting, date, session?.user?.avatarUrl),
                     avatarLoader = appContainer.avatarLoader,
                     outageSecondsLeft = outageSecondsLeft,
