@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dashboard_guru_judul">Kibooz Guru</string>
+    <string name="dashboard_guru_riwayat">Riwayat</string>
+    <string name="dashboard_guru_notifikasi">Notifikasi</string>
+    <string name="dashboard_guru_jumlah_siswa">Jumlah Siswa</string>
+    <string name="dashboard_guru_mood_dominan">Mood dominan</string>
+    <string name="dashboard_guru_hadir_hari_ini">Hadir hari ini</string>
+    <string name="dashboard_guru_mood_kelas">Mood Kelas Hari Ini</string>
+    <string name="dashboard_guru_scan_ulang">Scan Ulang</string>
+    <string name="dashboard_guru_banner_ranking">Banner Ranking Poin Kelas</string>
+</resources>
