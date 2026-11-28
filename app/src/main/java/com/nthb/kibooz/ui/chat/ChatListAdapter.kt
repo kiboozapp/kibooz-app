@@ -79,6 +79,7 @@ class ChatListAdapter(
                 ?.let { ClassNames.withPrefix(it.name) }
                 ?: context.getString(R.string.chat_semua_kelas)
             binding.tvClassFilter.text = "$selectedName ▾"
+            binding.cardClassFilter.contentDescription = context.getString(R.string.chat_filter_kelas_terpilih_cd, selectedName)
             binding.cardClassFilter.setOnClickListener {
                 val menu = PopupMenu(context, binding.cardClassFilter)
                 val allLabel = context.getString(R.string.chat_semua_kelas)
