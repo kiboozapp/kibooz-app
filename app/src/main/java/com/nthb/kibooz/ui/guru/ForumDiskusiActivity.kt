@@ -56,15 +56,20 @@ class ForumDiskusiActivity : AppCompatActivity() {
             binding.tvForumTitle.text = formatForumHeaderTitle(activeClassName)
 
             val classId = activeClassId ?: return@launch
-            val studentCount = fetchStudentCount(classId, isWali)
-            val teacherCount = fetchTeacherCount(classId, isWali)
-            binding.tvSubtitleForum.text = "Forum Kelas • $studentCount Siswa • $teacherCount Guru Pengajar"
+            // Angka di subjudul tidak boleh menahan daftar diskusi, jadi dimuat terpisah
+            launch { showForumSubtitle(classId, isWali) }
 
             val result = appContainer.forumRepository.threads(classId)
             if (result is ApiResult.Success) {
                 renderThreads(result.data.threads, session?.user)
             }
         }
+    }
+
+    private suspend fun showForumSubtitle(classId: String, isWali: Boolean) {
+        val studentCount = fetchStudentCount(classId, isWali)
+        val teacherCount = fetchTeacherCount(classId, isWali)
+        binding.tvSubtitleForum.text = "Forum Kelas • $studentCount Siswa • $teacherCount Guru Pengajar"
     }
 
     private suspend fun ensureActiveClassMetadata(hasNoSession: Boolean, isWali: Boolean) {
