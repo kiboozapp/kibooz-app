@@ -2,47 +2,57 @@ package com.nthb.kibooz.ui.wali
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.isVisible
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.material.snackbar.Snackbar
 import com.nthb.kibooz.R
 import com.nthb.kibooz.appContainer
-import com.nthb.kibooz.data.remote.TrashStats
-import com.nthb.kibooz.databinding.ActivityStatistikSampahBinding
-import com.nthb.kibooz.ml.TrashCategory
 import com.nthb.kibooz.ui.camera.CameraScanSampahActivity
+import com.nthb.kibooz.ui.components.WaliTab
 import com.nthb.kibooz.ui.profile.ProfilSiswaActivity
-import com.nthb.kibooz.util.InsetsUtil
+import com.nthb.kibooz.ui.theme.KiboozTheme
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 /** Statistik pilah sampah seorang anak untuk semester yang berjalan. API tidak punya filter harian atau mingguan. */
 class StatistikSampahActivity : AppCompatActivity() {
 
-    private val binding by lazy { ActivityStatistikSampahBinding.inflate(layoutInflater) }
     private val viewModel: TrashStatsViewModel by viewModels {
         TrashStatsViewModel.Factory(appContainer.trashRepository, intent.getStringExtra(EXTRA_STUDENT_ID))
     }
 
+    private val snackbarHost = SnackbarHostState()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
 
-        InsetsUtil.applySystemBarInsets(
-            root = binding.root,
-            headerView = binding.clTopBar,
-            bottomBar = binding.clBottomNavigation,
-            fab = binding.fabScannerSampah
-        )
-
-        setupListeners()
+        setContent {
+            KiboozTheme {
+                val state by viewModel.state.collectAsStateWithLifecycle()
+                StatistikSampahScreen(
+                    state = state,
+                    snackbarHost = snackbarHost,
+                    onBack = ::finish,
+                    onTab = ::openTab,
+                    onScan = ::openScan
+                )
+            }
+        }
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.state.collect(::render)
+                launch { viewModel.state.collect(::handleError) }
+                launch { viewModel.state.map { it.noChild }.distinctUntilChanged().collectLatest(::showNoChildNotice) }
             }
         }
     }
@@ -53,72 +63,50 @@ class StatistikSampahActivity : AppCompatActivity() {
         if (!viewModel.state.value.loading) viewModel.load()
     }
 
-    private fun setupListeners() {
-        binding.ivBack.setOnClickListener {
-            finish()
-        }
-
-        // Bottom Navigation
-        binding.tabHome.setOnClickListener {
-            finish()
-        }
-        binding.tabLeaderboard.setOnClickListener {
-            startActivity(Intent(this, LeaderboardActivity::class.java))
-            finish()
-        }
-        binding.tabProfil.setOnClickListener {
-            startActivity(Intent(this, ProfilSiswaActivity::class.java))
-            finish()
-        }
-        binding.fabScannerSampah.setOnClickListener {
-            startActivity(
-                Intent(this, CameraScanSampahActivity::class.java)
-                    .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, intent.getStringExtra(EXTRA_STUDENT_ID))
-            )
-        }
-    }
-
-    private fun render(state: TrashStatsState) {
-        state.stats?.let(::showStats)
-
-        if (state.noChild) {
-            Snackbar.make(binding.root, R.string.error_no_child, Snackbar.LENGTH_INDEFINITE).show()
-        }
-
-        state.error?.let {
-            Snackbar.make(binding.root, it, Snackbar.LENGTH_INDEFINITE)
-                .setAction(R.string.coba_lagi) { viewModel.load() }
-                .show()
+    /** Galat memuat tampil sampai ditutup, dengan tombol coba lagi. Pesan baru menggantikan yang sedang tampil. */
+    private fun handleError(state: TrashStatsState) {
+        state.error?.let { message ->
+            lifecycleScope.launch {
+                snackbarHost.currentSnackbarData?.dismiss()
+                val result = snackbarHost.showSnackbar(
+                    message = getString(message),
+                    actionLabel = getString(R.string.coba_lagi),
+                    duration = SnackbarDuration.Indefinite
+                )
+                if (result == SnackbarResult.ActionPerformed) viewModel.load()
+            }
             viewModel.errorShown()
         }
     }
 
-    private fun showStats(stats: TrashStats) {
-        val quota = stats.scanQuota()
-        binding.cardSisaScan.isVisible = true
-        binding.tvSisaScan.text = getString(quota.messageRes, quota.remaining, quota.dailyLimit)
+    /** Pesan "belum ada anak" tampil selama Wali belum punya anak. Seperti layar XML, pesan ini tidak punya tombol. */
+    private suspend fun showNoChildNotice(noChild: Boolean) {
+        if (!noChild) return
+        snackbarHost.currentSnackbarData?.dismiss()
+        snackbarHost.showSnackbar(message = getString(R.string.error_no_child), duration = SnackbarDuration.Indefinite)
+    }
 
-        // Persentase hanya di diagram, legenda cukup jumlahnya
-        val organik = stats.scansOf(TrashCategory.ORGANIK)
-        val anorganik = stats.scansOf(TrashCategory.ANORGANIK)
-        val b3 = stats.scansOf(TrashCategory.B3)
-        binding.pieSampah.setCounts(organik, anorganik, b3)
-        binding.tvOrganik.text = getString(R.string.sampah_item, organik)
-        binding.tvAnorganik.text = getString(R.string.sampah_item, anorganik)
-        binding.tvB3.text = getString(R.string.sampah_item, b3)
-
-        binding.tvBannerTitle.text = getString(R.string.sampah_banner_judul, stats.seasonPoints)
-        binding.tvBannerBody.text = if (stats.classRank > 0) {
-            getString(
-                R.string.sampah_banner_isi,
-                stats.student.fullName, stats.totalScans, stats.totalPoints, stats.classRank
-            )
-        } else {
-            getString(
-                R.string.sampah_banner_isi_tanpa_peringkat,
-                stats.student.fullName, stats.totalScans, stats.totalPoints
-            )
+    private fun openTab(tab: WaliTab) {
+        when (tab) {
+            WaliTab.HOME -> finish()
+            // Tab yang sedang terbuka
+            WaliTab.WASTE -> Unit
+            WaliTab.RANKING -> {
+                startActivity(Intent(this, LeaderboardActivity::class.java))
+                finish()
+            }
+            WaliTab.PROFILE -> {
+                startActivity(Intent(this, ProfilSiswaActivity::class.java))
+                finish()
+            }
         }
+    }
+
+    private fun openScan() {
+        startActivity(
+            Intent(this, CameraScanSampahActivity::class.java)
+                .putExtra(CameraScanSampahActivity.EXTRA_STUDENT_ID, intent.getStringExtra(EXTRA_STUDENT_ID))
+        )
     }
 
     companion object {
