@@ -201,7 +201,7 @@
 
         <!-- 19c. Wali Flow: Tambah Anak dengan kode kelas -->
         <activity
-            android:name=".ui.wali.TambahAnakActivity"
+            android:name=".ui.profile.TambahAnakActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
