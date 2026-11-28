@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -94,7 +95,9 @@ private fun Viewport(
 ) {
     val detected = state.detected.takeIf { state.claimed == null }
 
-    BoxWithConstraints(Modifier.fillMaxSize()) {
+    // FILL_CENTER memperbesar gambar kamera melebihi areanya. AndroidView tidak memotong isinya sendiri, jadi tanpa
+    // clipToBounds kelebihan itu menimpa bilah atas
+    BoxWithConstraints(Modifier.fillMaxSize().clipToBounds()) {
         cameraPreview()
 
         if (lowLight) {
