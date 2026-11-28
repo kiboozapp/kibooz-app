@@ -75,7 +75,8 @@ class ChatListAdapter(
                 return
             }
 
-            val selectedName = row.filterClasses.firstOrNull { it.id == row.selectedClassId }?.name
+            val selectedName = row.filterClasses.firstOrNull { it.id == row.selectedClassId }
+                ?.let { ClassNames.withPrefix(it.name) }
                 ?: context.getString(R.string.chat_semua_kelas)
             binding.tvClassFilter.text = "$selectedName ▾"
             binding.cardClassFilter.setOnClickListener {
@@ -84,7 +85,7 @@ class ChatListAdapter(
                 menu.menu.add(0, 0, 0, context.getString(R.string.chat_filter_opsi_jumlah, allLabel, row.filterContacts.size))
                 row.filterClasses.forEachIndexed { index, option ->
                     val count = row.filterContacts.count { contact -> contact.classes.any { it.id == option.id } }
-                    menu.menu.add(0, index + 1, index + 1, context.getString(R.string.chat_filter_opsi_jumlah, option.name, count))
+                    menu.menu.add(0, index + 1, index + 1, context.getString(R.string.chat_filter_opsi_jumlah, ClassNames.withPrefix(option.name), count))
                 }
                 menu.setOnMenuItemClickListener { item ->
                     val chosenId = if (item.itemId == 0) null else row.filterClasses[item.itemId - 1].id
